@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>方块指令工坊 - 登录</title>
+    <link rel="stylesheet" href="/login.css" />
+    <script defer src="/login.js"></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <section class="auth-card">
+        <p class="badge">Minecraft Command Generator</p>
+        <h1>方块指令工坊</h1>
+        <p class="lead">先登录或注册，再进入指令生成器。</p>
+        <div class="version-pill">当前版本 0.1.1 beta</div>
+
+        <div class="auth-tabs" role="tablist" aria-label="登录注册切换">
+          <button class="tab-button active" type="button" data-tab="login">登录</button>
+          <button class="tab-button" type="button" data-tab="register">注册</button>
+        </div>
+
+        <form class="auth-form" data-form="login">
+          <label>
+            用户名
+            <input type="text" name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <button type="submit" class="primary-button">登录</button>
+        </form>
+
+        <form class="auth-form hidden" data-form="register">
+          <label>
+            用户名
+            <input type="text" name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" autocomplete="new-password" required minlength="6" />
+          </label>
+          <button type="submit" class="primary-button">注册并进入</button>
+        </form>
+
+        <p class="message" data-message></p>
+      </section>
+    </main>
+  </body>
+</html>

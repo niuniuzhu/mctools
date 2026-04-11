@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界指令生成器</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Command Generator</p>
+          <h1>方块指令工坊</h1>
+          <p class="lead">
+            先从下方选择一条指令，再填写参数，点击生成按钮即可得到可直接复制的结果。
+          </p>
+          <div class="version-pill">当前版本 0.1.1 beta</div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前支持</p>
+          <p>tp、give、summon、effect、time set</p>
+        </div>
+      </section>
+
+      <section class="generator-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">选择一条指令</p>
+            <h2>当前只显示一个生成器</h2>
+          </div>
+          <label class="command-picker">
+            <span>指令类型</span>
+            <select data-command-picker>
+              <option value="tp">tp 传送</option>
+              <option value="give">give 给予物品</option>
+              <option value="summon">summon 召唤实体</option>
+              <option value="effect">effect 状态效果</option>
+              <option value="time">time set 设置时间</option>
+            </select>
+          </label>
+        </div>
+        <div class="command-host" data-command-host></div>
+      </section>
+    </main>
+  </body>
+</html>
