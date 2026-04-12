@@ -8,6 +8,26 @@
   --accent-strong: #38bdf8;
 }
 
+html[data-ui="ore"] {
+  --bg-1: #12171c;
+  --bg-2: #202a33;
+  --panel: rgba(47, 57, 66, 0.94);
+  --text: #f2f3ef;
+  --muted: #c2c8c5;
+  --accent: #73c546;
+  --accent-strong: #4e9a2e;
+}
+
+html[data-ui="classic"] {
+  --bg-1: #31412d;
+  --bg-2: #556b45;
+  --panel: rgba(81, 94, 69, 0.92);
+  --text: #f8f1d8;
+  --muted: #e0d7b4;
+  --accent: #d8c06b;
+  --accent-strong: #a98533;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -69,6 +89,42 @@ h1 {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
   font-size: 0.92rem;
+}
+
+.ui-picker {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ui-picker-label {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.ui-choice-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ui-choice {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ui-choice.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #052034;
 }
 
 .auth-tabs {
@@ -141,6 +197,94 @@ input:focus {
   color: var(--accent);
 }
 
+html[data-ui="ore"] body {
+  font-family: "Trebuchet MS", "Microsoft YaHei UI", sans-serif;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.03) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 2px, transparent 2px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0.3)),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-size: 36px 36px, 36px 36px, auto, auto;
+}
+
+html[data-ui="ore"] .auth-card {
+  border-radius: 8px;
+  border: 3px solid rgba(12, 15, 18, 0.9);
+  background: linear-gradient(180deg, rgba(100, 114, 125, 0.95), rgba(58, 70, 79, 0.94) 10%, rgba(47, 57, 66, 0.94));
+  backdrop-filter: none;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.28), 0 24px 48px rgba(0, 0, 0, 0.24);
+}
+
+html[data-ui="ore"] .version-pill,
+html[data-ui="ore"] .ui-picker {
+  border-radius: 6px;
+  border: 2px solid #1b2329;
+  background: linear-gradient(180deg, #4d5961, #364048);
+}
+
+html[data-ui="ore"] .tab-button,
+html[data-ui="ore"] .ui-choice {
+  border-radius: 4px;
+  border: 2px solid #1b2329;
+  background: linear-gradient(180deg, #59646c, #3a444c);
+}
+
+html[data-ui="ore"] .tab-button.active,
+html[data-ui="ore"] .ui-choice.active,
+html[data-ui="ore"] .primary-button {
+  border: 2px solid #244019;
+  background: linear-gradient(180deg, #8ad45a, #5dae36);
+  color: #13220c;
+}
+
+html[data-ui="ore"] input {
+  border-radius: 4px;
+  border: 2px solid #141b20;
+  background: linear-gradient(180deg, #1f272d, #151b20);
+}
+
+html[data-ui="classic"] body {
+  font-family: "Verdana", "Microsoft YaHei", sans-serif;
+  background:
+    linear-gradient(rgba(255, 245, 209, 0.05) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 245, 209, 0.05) 2px, transparent 2px),
+    linear-gradient(160deg, var(--bg-1), var(--bg-2));
+  background-size: 32px 32px, 32px 32px, auto;
+}
+
+html[data-ui="classic"] .auth-card {
+  border-radius: 14px;
+  border: 2px solid rgba(34, 45, 30, 0.92);
+  background: linear-gradient(180deg, rgba(122, 137, 99, 0.96), rgba(81, 94, 69, 0.94) 14%, rgba(69, 81, 58, 0.94));
+  box-shadow: 0 8px 0 rgba(44, 53, 35, 0.42), 0 18px 36px rgba(0, 0, 0, 0.28);
+}
+
+html[data-ui="classic"] .version-pill,
+html[data-ui="classic"] .ui-picker {
+  background: rgba(57, 68, 46, 0.8);
+  border-color: rgba(34, 45, 30, 0.92);
+}
+
+html[data-ui="classic"] .tab-button,
+html[data-ui="classic"] .ui-choice {
+  background: linear-gradient(180deg, rgba(117, 97, 50, 0.94), rgba(88, 70, 34, 0.94));
+  border-color: rgba(63, 47, 20, 0.92);
+  color: #fff1c8;
+}
+
+html[data-ui="classic"] .tab-button.active,
+html[data-ui="classic"] .ui-choice.active,
+html[data-ui="classic"] .primary-button {
+  background: linear-gradient(180deg, rgba(220, 196, 110, 0.98), rgba(170, 131, 51, 0.98));
+  border-color: rgba(106, 78, 23, 0.92);
+  color: #3e2d0f;
+}
+
+html[data-ui="classic"] input {
+  background: rgba(46, 57, 36, 0.84);
+  border-color: rgba(34, 45, 30, 0.92);
+}
+
 @media (max-width: 520px) {
   .auth-card {
     padding: 24px;
@@ -148,6 +292,10 @@ input:focus {
   }
 
   .auth-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .ui-choice-row {
     grid-template-columns: 1fr;
   }
 }

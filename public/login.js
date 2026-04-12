@@ -1,6 +1,32 @@
 const tabButtons = document.querySelectorAll('[data-tab]');
 const forms = document.querySelectorAll('[data-form]');
 const message = document.querySelector('[data-message]');
+const uiChoiceButtons = document.querySelectorAll('[data-ui-choice]');
+
+function getCurrentUi() {
+  try {
+    return localStorage.getItem('mctools-ui') || 'normal';
+  } catch {
+    return 'normal';
+  }
+}
+
+function applyUiChoice(uiName) {
+  document.documentElement.dataset.ui = uiName;
+  uiChoiceButtons.forEach((button) => {
+    button.classList.toggle('active', button.dataset.uiChoice === uiName);
+  });
+}
+
+function saveUiChoice(uiName) {
+  try {
+    localStorage.setItem('mctools-ui', uiName);
+  } catch {
+    // Ignore storage write failure.
+  }
+
+  applyUiChoice(uiName);
+}
 
 function setMessage(text, isError = false) {
   if (!message) {
@@ -51,7 +77,7 @@ async function submitForm(event) {
 
     setMessage(result.message || '成功');
     window.setTimeout(() => {
-      window.location.href = '/';
+      window.location.href = '/index.html';
     }, 300);
   } catch {
     setMessage('网络请求失败，请稍后重试', true);
@@ -66,4 +92,9 @@ forms.forEach((form) => {
   form.addEventListener('submit', submitForm);
 });
 
+uiChoiceButtons.forEach((button) => {
+  button.addEventListener('click', () => saveUiChoice(button.dataset.uiChoice || 'normal'));
+});
+
+applyUiChoice(getCurrentUi());
 switchTab('login');

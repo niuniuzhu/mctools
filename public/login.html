@@ -3,17 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>方块指令工坊 - 登录</title>
+    <title>我的世界工具箱 - 登录</title>
+    <script>
+      try {
+        document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
     <link rel="stylesheet" href="/login.css" />
     <script defer src="/login.js"></script>
   </head>
   <body>
     <main class="auth-shell">
       <section class="auth-card">
-        <p class="badge">Minecraft Command Generator</p>
-        <h1>方块指令工坊</h1>
-        <p class="lead">先登录或注册，再进入指令生成器。</p>
-        <div class="version-pill">当前版本 0.1.1 beta</div>
+        <p class="badge">Minecraft Toolbox</p>
+        <h1>我的世界工具箱</h1>
+        <p class="lead">先登录或注册，再进入工具箱。当前提供 5 个分类入口，现阶段开放指令工作台。</p>
+        <div class="version-pill">当前版本 beta0.8.1</div>
+
+        <section class="ui-picker" aria-label="界面风格选择">
+          <p class="ui-picker-label">界面风格</p>
+          <div class="ui-choice-row">
+            <button class="ui-choice" type="button" data-ui-choice="normal">新版 UI</button>
+            <button class="ui-choice" type="button" data-ui-choice="ore">基岩ORE UI</button>
+            <button class="ui-choice" type="button" data-ui-choice="classic">旧版 UI</button>
+          </div>
+        </section>
 
         <div class="auth-tabs" role="tablist" aria-label="登录注册切换">
           <button class="tab-button active" type="button" data-tab="login">登录</button>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 通关教程</title>
+    <script>
+      try {
+        document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>通关教程</h1>
+          <p class="lead">这里先提供一个从开荒到击败末影龙的简明流程，方便你按阶段推进生存进度。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta0.8.1</div>
+            <div class="version-pill">模块：通关教程</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：教程</p>
+          <p class="toolbox-summary">按阶段梳理关键目标，先保证流程清晰，后续再继续补细节图文。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <label class="upload-button">
+                  上传头像
+                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                </label>
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="guide-grid">
+          <article class="guide-card">
+            <p class="panel-label">阶段 1</p>
+            <h2>开局与铁装</h2>
+            <p>先解决木材、食物、床和基础矿洞，尽快做出全套铁装、盾牌和水桶。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 2</p>
+            <h2>下界准备</h2>
+            <p>制作黑曜石门，准备金装、抗火思路和足够食物，开始收集烈焰棒与末影珍珠。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 3</p>
+            <h2>定位要塞</h2>
+            <p>合成末影之眼定位要塞，途中补足附魔、药水和弓箭，避免裸装硬闯末地。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 4</p>
+            <h2>进入末地</h2>
+            <p>优先清理水晶与高塔威胁，再处理末影龙本体，确保有南瓜头、床或远程手段。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

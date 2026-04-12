@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的世界指令生成器</title>
+    <title>我的世界工具箱 - 分类选择</title>
+    <script>
+      try {
+        document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
   </head>
@@ -11,37 +18,77 @@
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
-          <p class="badge">Minecraft Command Generator</p>
-          <h1>方块指令工坊</h1>
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>我的世界工具箱</h1>
           <p class="lead">
-            先从下方选择一条指令，再填写参数，点击生成按钮即可得到可直接复制的结果。
+            这是工具箱的分类选择界面。当前仅开放指令工作台，其他分类入口先保留，后续逐步开放。
           </p>
-          <div class="version-pill">当前版本 0.1.1 beta</div>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta0.8.1</div>
+            <div class="version-pill">当前阶段：分类选择</div>
+          </div>
         </div>
         <div class="hero-card">
-          <p class="hero-card-label">当前支持</p>
-          <p>tp、give、summon、effect、time set</p>
+          <p class="hero-card-label">当前开放状态</p>
+          <p class="toolbox-summary">当前共有 5 个分类入口。分类 1、2、3 已开放，分类 4 为 VIP 专用入口，分类 5 仍未开放。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <label class="upload-button">
+                  上传头像
+                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                </label>
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
         </div>
       </section>
 
-      <section class="generator-panel">
-        <div class="panel-head">
-          <div>
-            <p class="panel-label">选择一条指令</p>
-            <h2>当前只显示一个生成器</h2>
-          </div>
-          <label class="command-picker">
-            <span>指令类型</span>
-            <select data-command-picker>
-              <option value="tp">tp 传送</option>
-              <option value="give">give 给予物品</option>
-              <option value="summon">summon 召唤实体</option>
-              <option value="effect">effect 状态效果</option>
-              <option value="time">time set 设置时间</option>
-            </select>
-          </label>
-        </div>
-        <div class="command-host" data-command-host></div>
+      <section class="tool-overview">
+        <article class="tool-card tool-card-active">
+          <p class="panel-label">分类 1</p>
+          <h2>指令工作台</h2>
+          <p>进入后可生成常用指令、复杂 execute 链、计分板、NBT、调度与生物群系类指令。</p>
+          <a class="tool-enter-button" href="/commands.html">进入指令工作台</a>
+        </article>
+        <article class="tool-card tool-card-locked">
+          <p class="panel-label">分类 2</p>
+          <h2>通关教程</h2>
+          <p>将来会提供从开荒到击败末影龙的阶段化教程、资源准备路线和关键节点提醒。</p>
+          <a class="tool-enter-button" href="/tutorial.html">进入通关教程</a>
+        </article>
+        <article class="tool-card">
+          <p class="panel-label">分类 3</p>
+          <h2>查看配方</h2>
+          <p>后续会提供工作台、熔炉、酿造台与特殊方块的配方和合成路径查询。</p>
+          <a class="tool-enter-button" href="/recipes.html">进入查看配方</a>
+        </article>
+        <article class="tool-card tool-card-vip" data-vip-category-card>
+          <p class="panel-label">分类 4</p>
+          <h2>坐标工具</h2>
+          <p>后续会提供主世界与下界坐标换算、区块定位、距离计算和区域辅助工具。</p>
+          <a class="tool-enter-button disabled" href="/coordinates.html" data-vip-category-link>购买 VIP 后进入</a>
+          <p class="tool-card-note" data-vip-category-note>当前为 VIP 专用入口。</p>
+        </article>
+        <article class="tool-card tool-card-locked">
+          <p class="panel-label">分类 5</p>
+          <h2>自动化机器教程</h2>
+          <p>后续会提供刷铁机、交易所、红石农场和常见自动化机器的搭建教程。</p>
+          <button type="button" class="tool-enter-button disabled" disabled>暂未开放</button>
+        </article>
       </section>
     </main>
   </body>

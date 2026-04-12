@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">分类选择插图</title>
+  <desc id="desc">五个发光分类卡片组成的工具箱首页插图</desc>
+  <rect width="800" height="420" rx="28" fill="#112747"/>
+  <rect x="56" y="54" width="688" height="312" rx="24" fill="#17345f" stroke="#5ea6ff" stroke-opacity="0.3"/>
+  <g font-family="Segoe UI, Microsoft YaHei, sans-serif" fill="#eef7ff">
+    <text x="78" y="100" font-size="28" font-weight="700">五个分类入口</text>
+    <text x="78" y="132" font-size="18" fill="#b9d6ff">指令、教程、配方、坐标、自动化</text>
+  </g>
+  <g>
+    <rect x="92" y="174" width="120" height="92" rx="16" fill="#2b6df6"/>
+    <rect x="230" y="174" width="120" height="92" rx="16" fill="#256f52"/>
+    <rect x="368" y="174" width="120" height="92" rx="16" fill="#875d2c"/>
+    <rect x="506" y="174" width="120" height="92" rx="16" fill="#6f4db3"/>
+    <rect x="644" y="174" width="72" height="92" rx="16" fill="#4a566d"/>
+  </g>
+</svg>

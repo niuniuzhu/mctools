@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">通关教程插图</title>
+  <desc id="desc">从主世界到末地的路线图</desc>
+  <rect width="800" height="420" rx="28" fill="#12253f"/>
+  <path d="M88 302C184 212 276 188 392 210C504 230 578 178 712 108" fill="none" stroke="#f7d774" stroke-width="10" stroke-linecap="round"/>
+  <g>
+    <circle cx="108" cy="298" r="26" fill="#3d7f41"/>
+    <circle cx="294" cy="222" r="26" fill="#7f4d26"/>
+    <circle cx="492" cy="222" r="26" fill="#4a67c7"/>
+    <circle cx="688" cy="108" r="26" fill="#7337a6"/>
+  </g>
+  <g fill="#eef7ff" font-family="Segoe UI, Microsoft YaHei, sans-serif">
+    <text x="80" y="82" font-size="30" font-weight="700">通关路线</text>
+    <text x="80" y="118" font-size="18">开荒 → 下界 → 要塞 → 末地</text>
+  </g>
+</svg>

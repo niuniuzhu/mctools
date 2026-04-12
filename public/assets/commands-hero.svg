@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">指令工作台插图</title>
+  <desc id="desc">终端面板和命令方块组合</desc>
+  <rect width="800" height="420" rx="28" fill="#101f39"/>
+  <rect x="62" y="58" width="676" height="302" rx="24" fill="#162d52"/>
+  <rect x="98" y="100" width="604" height="198" rx="16" fill="#0d1728" stroke="#5d9cff" stroke-opacity="0.35"/>
+  <g fill="#7fc4ff" font-family="Consolas, monospace" font-size="24">
+    <text x="124" y="148">&gt; execute as @p positioned ~ ~ ~ run say ready</text>
+    <text x="124" y="190">&gt; scoreboard objectives add bossDamage dummy</text>
+    <text x="124" y="232">&gt; fill ~ ~ ~ ~8 ~4 ~8 minecraft:stone replace</text>
+  </g>
+  <rect x="600" y="86" width="96" height="96" rx="12" fill="#bf8648"/>
+  <rect x="616" y="102" width="64" height="64" rx="8" fill="#8d5d2a"/>
+</svg>

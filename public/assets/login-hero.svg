@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">我的世界工具箱登录插图</title>
+  <desc id="desc">像素风方块、工作台和星空背景</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#102544"/>
+      <stop offset="100%" stop-color="#1d4c7f"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="420" rx="28" fill="url(#bg)"/>
+  <g opacity="0.26" fill="#d7efff">
+    <circle cx="86" cy="72" r="4"/><circle cx="152" cy="46" r="3"/><circle cx="742" cy="64" r="4"/>
+    <circle cx="652" cy="114" r="3"/><circle cx="548" cy="52" r="3"/><circle cx="476" cy="84" r="4"/>
+  </g>
+  <rect x="84" y="258" width="632" height="94" rx="14" fill="#274f29"/>
+  <rect x="126" y="164" width="170" height="126" rx="12" fill="#8f6438"/>
+  <rect x="318" y="124" width="164" height="166" rx="12" fill="#57767f"/>
+  <rect x="510" y="184" width="156" height="106" rx="12" fill="#75623a"/>
+  <g fill="#d7efff" font-family="Segoe UI, Microsoft YaHei, sans-serif">
+    <text x="92" y="98" font-size="28" font-weight="700">Minecraft Toolbox</text>
+    <text x="92" y="134" font-size="18">登录后进入你的世界工具箱</text>
+  </g>
+</svg>

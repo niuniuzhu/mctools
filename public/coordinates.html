@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 坐标工具</title>
+    <script>
+      try {
+        document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+    <script defer src="/coordinates.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>坐标工具</h1>
+          <p class="lead">这是 VIP 专用模块，先提供主世界与下界坐标换算，以及两点之间的平面距离计算。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta0.8.1</div>
+            <div class="version-pill">模块：坐标工具</div>
+            <div class="version-pill">VIP 专用</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：坐标工具</p>
+          <p class="toolbox-summary">用于跨维度坐标换算和基础位置测算，后续可继续扩展区块与区域工具。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <label class="upload-button">
+                  上传头像
+                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                </label>
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+        </div>
+      </section>
+
+      <section class="content-panel coordinate-layout">
+        <article class="coordinate-card">
+          <p class="panel-label">换算</p>
+          <h2>主世界 / 下界换算</h2>
+          <div class="fields two-col">
+            <label>
+              主世界 X
+              <input type="number" data-ow-x value="0" />
+            </label>
+            <label>
+              主世界 Z
+              <input type="number" data-ow-z value="0" />
+            </label>
+          </div>
+          <div class="button-row">
+            <button type="button" class="copy-btn" data-convert-nether>换算到下界</button>
+            <button type="button" class="copy-btn secondary" data-convert-overworld>按下界反推主世界</button>
+          </div>
+          <div class="result-card" data-coordinate-result>结果会显示在这里。</div>
+        </article>
+        <article class="coordinate-card">
+          <p class="panel-label">测距</p>
+          <h2>两点平面距离</h2>
+          <div class="fields two-col">
+            <label>
+              点 A X
+              <input type="number" data-point-ax value="0" />
+            </label>
+            <label>
+              点 A Z
+              <input type="number" data-point-az value="0" />
+            </label>
+          </div>
+          <div class="fields two-col">
+            <label>
+              点 B X
+              <input type="number" data-point-bx value="128" />
+            </label>
+            <label>
+              点 B Z
+              <input type="number" data-point-bz value="128" />
+            </label>
+          </div>
+          <div class="button-row">
+            <button type="button" class="copy-btn" data-calc-distance>计算距离</button>
+          </div>
+          <div class="result-card" data-distance-result>距离结果会显示在这里。</div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

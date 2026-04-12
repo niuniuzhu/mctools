@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" role="img" aria-labelledby="title desc">
+  <title id="title">坐标工具插图</title>
+  <desc id="desc">主世界与下界坐标换算图</desc>
+  <rect width="800" height="420" rx="28" fill="#111f38"/>
+  <rect x="88" y="90" width="244" height="244" rx="22" fill="#205f98"/>
+  <rect x="468" y="122" width="180" height="180" rx="22" fill="#8f4727"/>
+  <path d="M344 212H444" stroke="#f1d280" stroke-width="14" stroke-linecap="round"/>
+  <polygon points="444,212 408,188 408,236" fill="#f1d280"/>
+  <g fill="#eef7ff" font-family="Segoe UI, Microsoft YaHei, sans-serif">
+    <text x="118" y="132" font-size="24" font-weight="700">主世界</text>
+    <text x="502" y="160" font-size="24" font-weight="700">下界</text>
+    <text x="102" y="296" font-size="30">X 800  Z 320</text>
+    <text x="496" y="256" font-size="28">X 100  Z 40</text>
+  </g>
+</svg>

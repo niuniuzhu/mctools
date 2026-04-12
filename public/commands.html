@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 指令工作台</title>
+    <script>
+      try {
+        document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>指令工作台</h1>
+          <p class="lead">
+            当前开放的是工具箱中的指令模块。你可以在这里生成基础指令与复杂 VIP 指令，并管理自己的历史记录。
+          </p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta0.8.1</div>
+            <div class="version-pill">模块：指令工作台</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：指令</p>
+          <p class="toolbox-summary">已内置 30 条指令模板，其中 20 条基础指令面向全部用户，10 条复杂指令面向 VIP 用户。当前仍是工具箱第一阶段。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <label class="upload-button">
+                  上传头像
+                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                </label>
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+        </div>
+      </section>
+
+      <section class="generator-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 指令</p>
+            <h2>指令生成器</h2>
+          </div>
+          <label class="command-picker">
+            <span>指令类型</span>
+            <select data-command-picker>
+              <option value="tp">tp 传送</option>
+              <option value="give">give 给予物品</option>
+              <option value="summon">summon 召唤实体</option>
+              <option value="effect">effect 状态效果</option>
+              <option value="time">time set 设置时间</option>
+              <option value="gamemode">gamemode 游戏模式</option>
+              <option value="weather">weather 天气</option>
+              <option value="xp">xp 经验值</option>
+              <option value="setblock">setblock 放置方块</option>
+              <option value="fill">fill 区域填充</option>
+              <option value="clear">clear 清空物品</option>
+              <option value="difficulty">difficulty 难度</option>
+              <option value="locate">locate 定位</option>
+              <option value="title">title 标题显示</option>
+              <option value="playsound">playsound 播放声音</option>
+              <option value="particle">particle 粒子</option>
+              <option value="enchant">enchant 附魔</option>
+              <option value="gamerule">gamerule 游戏规则</option>
+              <option value="clone">clone 区域复制</option>
+              <option value="spreadplayers">spreadplayers 分散玩家</option>
+              <option value="executeChain">execute 条件执行 [VIP]</option>
+              <option value="scoreboardObjective">scoreboard objectives [VIP]</option>
+              <option value="scoreboardOperation">scoreboard operation [VIP]</option>
+              <option value="itemReplace">item replace 替换槽位 [VIP]</option>
+              <option value="lootTable">loot 战利品生成 [VIP]</option>
+              <option value="dataMergeBlock">data merge block [VIP]</option>
+              <option value="dataMergeEntity">data merge entity [VIP]</option>
+              <option value="attributeBase">attribute 属性设置 [VIP]</option>
+              <option value="scheduleFunction">schedule 函数调度 [VIP]</option>
+              <option value="fillBiome">fillbiome 生物群系填充 [VIP]</option>
+            </select>
+          </label>
+        </div>
+        <p class="empty-state command-access-message" data-command-access-message>
+          工具箱第一阶段先做指令。基础指令对所有已登录用户开放，10 条复杂指令为 VIP 专用。
+        </p>
+        <div class="command-host" data-command-host></div>
+      </section>
+
+      <section class="history-panel">
+        <div class="panel-head history-head">
+          <div>
+            <p class="panel-label">工具箱记录</p>
+            <h2>我的指令历史</h2>
+          </div>
+          <div class="history-actions">
+            <input type="text" class="history-search" data-history-keyword placeholder="搜索指令内容" />
+            <button type="button" class="ghost-button compact-button" data-history-refresh>查询</button>
+            <button type="button" class="ghost-button compact-button" data-history-clear>全部清空</button>
+          </div>
+        </div>
+        <div class="history-list" data-history-list>
+          <p class="empty-state">还没有保存过指令</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
