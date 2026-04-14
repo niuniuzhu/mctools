@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 开发者控制台</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/developer.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>开发者控制台</h1>
+          <p class="lead">开发者账号可以在这里查看项目文本代码文件并直接保存修改。修改 server.js 后通常需要重启服务才能生效。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta1.1.0</div>
+            <div class="version-pill">模块：开发者</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回分类选择</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前账号</p>
+          <p class="toolbox-summary" data-developer-username>读取中...</p>
+          <p class="tool-card-note">开发者权限允许访问项目文本文件，不包含数据库和头像目录。</p>
+          <button type="button" class="ghost-button compact-button" data-developer-refresh>刷新文件列表</button>
+          <button type="button" class="ghost-button compact-button" data-developer-logout>退出登录</button>
+        </div>
+      </section>
+
+      <section class="content-panel developer-layout">
+        <aside>
+          <p class="panel-label">文件列表</p>
+          <div class="developer-file-list" data-file-list>
+            <p class="empty-state compact">正在加载文件列表...</p>
+          </div>
+        </aside>
+        <section>
+          <div class="developer-editor-toolbar">
+            <div>
+              <p class="panel-label">当前文件</p>
+              <div class="developer-path" data-current-file>尚未选择文件</div>
+            </div>
+            <div class="developer-editor-actions">
+              <button type="button" class="ghost-button compact-button" data-open-index>返回首页</button>
+              <button type="button" class="ghost-button compact-button" data-save-file disabled>保存修改</button>
+            </div>
+          </div>
+          <textarea class="developer-editor" data-code-editor spellcheck="false" disabled>请选择左侧文件开始查看或修改。</textarea>
+          <p class="developer-status" data-editor-status>等待选择文件</p>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

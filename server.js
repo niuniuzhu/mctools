@@ -10,8 +10,14 @@ const publicDir = path.join(__dirname, 'public');
 const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
-const appVersion = 'beta0.8.1';
+const appVersion = 'beta1.1.1';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
+const maintenanceAdminAccount = {
+  username: 'maintenance_admin',
+  password: 'McTools2026!'
+};
+const developerRegistrationSecret = 'McTools2026!';
+const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
 const vipOnlyCommandNames = new Set([
   'executeChain',
   'scoreboardObjective',
@@ -50,6 +56,24 @@ try {
   // Column already exists in existing databases.
 }
 
+try {
+  db.exec('ALTER TABLE users ADD COLUMN is_maintenance_admin INTEGER NOT NULL DEFAULT 0');
+} catch {
+  // Column already exists in existing databases.
+}
+
+try {
+  db.exec('ALTER TABLE users ADD COLUMN is_developer INTEGER NOT NULL DEFAULT 0');
+} catch {
+  // Column already exists in existing databases.
+}
+
+try {
+  db.exec('ALTER TABLE users ADD COLUMN phone_number TEXT');
+} catch {
+  // Column already exists in existing databases.
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS command_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +103,19 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 const sessions = new Map();
+const loginCaptchas = new Map();
+const phoneLoginCodes = new Map();
+const captchaLifetimeMs = 1000 * 60 * 5;
+const phoneCodeLifetimeMs = 1000 * 60 * 5;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -220,6 +256,129 @@ function cleanupExpiredSessions() {
   }
 }
 
+function cleanupExpiredCaptchas() {
+  const now = Date.now();
+
+  for (const [captchaId, captcha] of loginCaptchas.entries()) {
+    if (captcha.expiresAt <= now) {
+      loginCaptchas.delete(captchaId);
+    }
+  }
+}
+
+function cleanupExpiredPhoneCodes() {
+  const now = Date.now();
+
+  for (const [phoneNumber, payload] of phoneLoginCodes.entries()) {
+    if (payload.expiresAt <= now) {
+      phoneLoginCodes.delete(phoneNumber);
+    }
+  }
+}
+
+function normalizePhoneNumber(phoneNumber) {
+  return String(phoneNumber || '').replace(/\s+/g, '').trim();
+}
+
+function isValidChineseMainlandPhone(phoneNumber) {
+  return /^1\d{10}$/.test(phoneNumber);
+}
+
+function issuePhoneLoginCode(phoneNumber, username) {
+  cleanupExpiredPhoneCodes();
+  const code = String(crypto.randomInt(100000, 1000000));
+
+  phoneLoginCodes.set(phoneNumber, {
+    code,
+    username,
+    expiresAt: Date.now() + phoneCodeLifetimeMs
+  });
+
+  return code;
+}
+
+function verifyPhoneLoginCode(phoneNumber, code) {
+  const payload = phoneLoginCodes.get(phoneNumber);
+  phoneLoginCodes.delete(phoneNumber);
+
+  if (!payload || payload.expiresAt <= Date.now()) {
+    return { ok: false, message: '短信验证码已过期，请重新获取' };
+  }
+
+  if (String(code || '').trim() !== payload.code) {
+    return { ok: false, message: '短信验证码错误' };
+  }
+
+  return { ok: true, username: payload.username };
+}
+
+function generateCaptchaCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+
+  for (let index = 0; index < 4; index += 1) {
+    const randomIndex = crypto.randomInt(0, alphabet.length);
+    code += alphabet[randomIndex];
+  }
+
+  return code;
+}
+
+function createCaptchaSvg(code) {
+  const characters = code.split('');
+  const textNodes = characters.map((character, index) => {
+    const x = 26 + index * 24;
+    const y = 30 + (index % 2 === 0 ? 2 : -2);
+    const rotation = index % 2 === 0 ? -8 : 7;
+    return `<text x="${x}" y="${y}" fill="#e2e8f0" font-size="24" font-family="Segoe UI, Arial, sans-serif" font-weight="700" transform="rotate(${rotation} ${x} ${y})">${character}</text>`;
+  }).join('');
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 44" width="140" height="44" role="img" aria-label="登录验证码">
+      <rect width="140" height="44" rx="12" fill="#0f172a"/>
+      <path d="M8 32 C 26 10, 44 40, 62 18 S 98 34, 132 12" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="2" fill="none"/>
+      <path d="M10 12 C 30 30, 46 4, 72 24 S 110 10, 132 28" stroke="#94a3b8" stroke-opacity="0.22" stroke-width="2" fill="none"/>
+      ${textNodes}
+    </svg>
+  `.trim();
+}
+
+function issueLoginCaptcha() {
+  cleanupExpiredCaptchas();
+  const captchaId = crypto.randomBytes(16).toString('hex');
+  const answer = generateCaptchaCode();
+  loginCaptchas.set(captchaId, {
+    answer,
+    expiresAt: Date.now() + captchaLifetimeMs
+  });
+
+  return {
+    captchaId,
+    svg: createCaptchaSvg(answer)
+  };
+}
+
+function verifyLoginCaptcha(captchaId, captchaCode) {
+  const captcha = loginCaptchas.get(captchaId);
+  loginCaptchas.delete(captchaId);
+
+  if (!captcha || captcha.expiresAt <= Date.now()) {
+    return { ok: false, message: '验证码已过期，请刷新后重试' };
+  }
+
+  const normalizedCode = String(captchaCode || '').trim().toUpperCase();
+
+  if (!normalizedCode) {
+    return { ok: false, message: '请输入验证码' };
+  }
+
+  if (normalizedCode !== captcha.answer) {
+    return { ok: false, message: '验证码错误，请重新输入' };
+  }
+
+  return { ok: true };
+}
+
 function getSessionFromRequest(request) {
   const cookies = parseCookies(request.headers.cookie);
   const sessionToken = cookies.mctools_session;
@@ -256,11 +415,155 @@ function redirectToIndex(response) {
   response.end();
 }
 
+function getSettingValue(settingKey, fallbackValue = '') {
+  const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get(settingKey);
+  return row ? String(row.value) : fallbackValue;
+}
+
+function setSettingValue(settingKey, value) {
+  db.prepare(
+    `INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP`
+  ).run(settingKey, String(value));
+}
+
+function isMaintenanceEnabled() {
+  return getSettingValue('maintenance_enabled', '0') === '1';
+}
+
+function isMaintenanceAdmin(username) {
+  if (!username) {
+    return false;
+  }
+
+  const row = db.prepare('SELECT is_maintenance_admin AS isMaintenanceAdmin FROM users WHERE username = ?').get(username);
+  return Boolean(row && row.isMaintenanceAdmin);
+}
+
+function isDeveloper(username) {
+  if (!username) {
+    return false;
+  }
+
+  const row = db.prepare('SELECT is_developer AS isDeveloper FROM users WHERE username = ?').get(username);
+  return Boolean(row && row.isDeveloper);
+}
+
+function isPrivilegedUser(username) {
+  return isMaintenanceAdmin(username) || isDeveloper(username);
+}
+
+function isTextLikeFile(filePath) {
+  return developerEditableExtensions.has(path.extname(filePath).toLowerCase());
+}
+
+function getSafeDeveloperFilePath(relativeFilePath) {
+  const normalizedRelativePath = String(relativeFilePath || '').replace(/\\/g, '/').replace(/^\/+/, '');
+
+  if (!normalizedRelativePath) {
+    throw new Error('缺少文件路径');
+  }
+
+  if (normalizedRelativePath.startsWith('data/') || normalizedRelativePath === 'data') {
+    throw new Error('该路径不可访问');
+  }
+
+  const absolutePath = path.resolve(__dirname, normalizedRelativePath);
+
+  if (!absolutePath.startsWith(__dirname)) {
+    throw new Error('非法文件路径');
+  }
+
+  if (!isTextLikeFile(absolutePath)) {
+    throw new Error('当前仅支持查看和修改文本代码文件');
+  }
+
+  return {
+    relativePath: normalizedRelativePath,
+    absolutePath
+  };
+}
+
+function collectDeveloperFiles(currentDir, baseDir = __dirname) {
+  const entries = fs.readdirSync(currentDir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    if (entry.name === 'node_modules' || entry.name === '.git') {
+      continue;
+    }
+
+    const absolutePath = path.join(currentDir, entry.name);
+    const relativePath = path.relative(baseDir, absolutePath).replace(/\\/g, '/');
+
+    if (!relativePath || relativePath.startsWith('data/')) {
+      continue;
+    }
+
+    if (entry.isDirectory()) {
+      files.push(...collectDeveloperFiles(absolutePath, baseDir));
+      continue;
+    }
+
+    if (entry.isFile() && isTextLikeFile(absolutePath)) {
+      files.push(relativePath);
+    }
+  }
+
+  return files.sort((left, right) => left.localeCompare(right, 'zh-CN'));
+}
+
+function ensureMaintenanceAdminAccount() {
+  const passwordHash = hashPassword(maintenanceAdminAccount.password);
+  const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(maintenanceAdminAccount.username);
+
+  if (existingUser) {
+    db.prepare('UPDATE users SET password_hash = ?, is_maintenance_admin = 1 WHERE username = ?').run(
+      passwordHash,
+      maintenanceAdminAccount.username
+    );
+  } else {
+    db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin) VALUES (?, ?, 1)').run(
+      maintenanceAdminAccount.username,
+      passwordHash
+    );
+  }
+
+  if (!db.prepare('SELECT key FROM app_settings WHERE key = ?').get('maintenance_enabled')) {
+    setSettingValue('maintenance_enabled', '0');
+  }
+}
+
+ensureMaintenanceAdminAccount();
+
 function handleRegister(request, response) {
   parseRequestBody(request)
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
+      const registerAsMaintenanceAdmin =
+        body.registerAsMaintenanceAdmin === true ||
+        body.registerAsMaintenanceAdmin === 'true' ||
+        body.registerAsMaintenanceAdmin === 1 ||
+        body.registerAsMaintenanceAdmin === '1';
+      const registerAsDeveloper =
+        body.registerAsDeveloper === true ||
+        body.registerAsDeveloper === 'true' ||
+        body.registerAsDeveloper === 1 ||
+        body.registerAsDeveloper === '1';
+      const maintenanceSecret = String(body.maintenanceSecret || '');
+      const developerSecret = String(body.developerSecret || '');
+
+      if (registerAsMaintenanceAdmin && registerAsDeveloper) {
+        sendJson(response, 400, { message: '一次只能注册一种特殊账号' });
+        return;
+      }
+
+      if (isMaintenanceEnabled() && !registerAsMaintenanceAdmin && !registerAsDeveloper) {
+        sendJson(response, 503, { message: '当前正在维护，暂不开放普通注册' });
+        return;
+      }
 
       if (username.length < 3 || username.length > 32) {
         sendJson(response, 400, { message: '用户名长度需为 3-32 个字符' });
@@ -272,19 +575,54 @@ function handleRegister(request, response) {
         return;
       }
 
+      if (!isValidChineseMainlandPhone(phoneNumber)) {
+        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
+        return;
+      }
+
+      if (registerAsMaintenanceAdmin && maintenanceSecret !== maintenanceAdminAccount.password) {
+        sendJson(response, 403, { message: '维护授权码错误' });
+        return;
+      }
+
+      if (registerAsDeveloper && developerSecret !== developerRegistrationSecret) {
+        sendJson(response, 403, { message: '开发者授权码错误' });
+        return;
+      }
+
       const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+      const existingPhoneUser = db.prepare('SELECT id FROM users WHERE phone_number = ?').get(phoneNumber);
 
       if (existingUser) {
         sendJson(response, 409, { message: '用户名已存在' });
         return;
       }
 
+      if (existingPhoneUser) {
+        sendJson(response, 409, { message: '手机号已绑定其他账号' });
+        return;
+      }
+
       const passwordHash = hashPassword(password);
-      db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)').run(username, passwordHash);
+      db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin, is_developer, phone_number) VALUES (?, ?, ?, ?, ?)').run(
+        username,
+        passwordHash,
+        registerAsMaintenanceAdmin ? 1 : 0,
+        registerAsDeveloper ? 1 : 0,
+        phoneNumber
+      );
 
       const sessionToken = createSession(username);
       setSessionCookie(response, sessionToken);
-      sendJson(response, 201, { message: '注册成功', username, version: appVersion });
+      sendJson(response, 201, {
+        message: registerAsMaintenanceAdmin
+          ? '维护账号注册成功'
+          : registerAsDeveloper
+          ? '开发者账号注册成功'
+          : '注册成功',
+        username,
+        version: appVersion
+      });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -297,9 +635,18 @@ function handleLogin(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const captchaId = String(body.captchaId || '').trim();
+      const captchaCode = String(body.captchaCode || '').trim();
 
       if (!username || !password) {
         sendJson(response, 400, { message: '请输入用户名和密码' });
+        return;
+      }
+
+      const captchaResult = verifyLoginCaptcha(captchaId, captchaCode);
+
+      if (!captchaResult.ok) {
+        sendJson(response, 400, { message: captchaResult.message });
         return;
       }
 
@@ -310,9 +657,103 @@ function handleLogin(request, response) {
         return;
       }
 
+      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
+        sendJson(response, 503, { message: '当前正在维护，仅维护账号和开发者账号可登录' });
+        return;
+      }
+
       const sessionToken = createSession(user.username);
       setSessionCookie(response, sessionToken);
       sendJson(response, 200, { message: '登录成功', username: user.username, version: appVersion });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handleLoginCaptcha(request, response) {
+  const captcha = issueLoginCaptcha();
+  sendJson(response, 200, {
+    captchaId: captcha.captchaId,
+    svg: captcha.svg,
+    version: appVersion
+  });
+}
+
+function handlePhoneCodeSend(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
+
+      if (!isValidChineseMainlandPhone(phoneNumber)) {
+        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
+        return;
+      }
+
+      const user = db.prepare('SELECT username FROM users WHERE phone_number = ?').get(phoneNumber);
+
+      if (!user) {
+        sendJson(response, 404, { message: '该手机号未绑定账号' });
+        return;
+      }
+
+      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
+        sendJson(response, 503, { message: '当前正在维护，该手机号对应账号暂不可登录' });
+        return;
+      }
+
+      const code = issuePhoneLoginCode(phoneNumber, user.username);
+      sendJson(response, 200, {
+        message: '短信验证码已发送',
+        phoneNumber,
+        version: appVersion,
+        debugCode: code
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handlePhoneLogin(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
+      const phoneCode = String(body.phoneCode || '').trim();
+
+      if (!isValidChineseMainlandPhone(phoneNumber)) {
+        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
+        return;
+      }
+
+      const codeResult = verifyPhoneLoginCode(phoneNumber, phoneCode);
+
+      if (!codeResult.ok) {
+        sendJson(response, 400, { message: codeResult.message });
+        return;
+      }
+
+      const user = db.prepare('SELECT username FROM users WHERE phone_number = ?').get(phoneNumber);
+
+      if (!user || user.username !== codeResult.username) {
+        sendJson(response, 404, { message: '该手机号未绑定账号' });
+        return;
+      }
+
+      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
+        sendJson(response, 503, { message: '当前正在维护，该手机号对应账号暂不可登录' });
+        return;
+      }
+
+      const sessionToken = createSession(user.username);
+      setSessionCookie(response, sessionToken);
+      sendJson(response, 200, {
+        message: '手机号登录成功',
+        username: user.username,
+        version: appVersion
+      });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -363,8 +804,113 @@ function getUserPayload(username) {
     username,
     version: appVersion,
     avatarUrl: getAvatarUrl(username),
+    maintenanceEnabled: isMaintenanceEnabled(),
+    isMaintenanceAdmin: isMaintenanceAdmin(username),
+    isDeveloper: isDeveloper(username),
     ...getVipInfo(username)
   };
+}
+
+function requireDeveloperSession(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return null;
+  }
+
+  if (!isDeveloper(session.username)) {
+    sendJson(response, 403, { message: '仅开发者账号可访问' });
+    return null;
+  }
+
+  return session;
+}
+
+function handleDeveloperFiles(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  const files = collectDeveloperFiles(__dirname);
+  sendJson(response, 200, {
+    items: files,
+    username: session.username,
+    version: appVersion
+  });
+}
+
+function handleDeveloperFileRead(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  try {
+    const url = new URL(request.url || '/', `http://${host}:${port}`);
+    const { relativePath, absolutePath } = getSafeDeveloperFilePath(url.searchParams.get('path') || '');
+
+    if (!fs.existsSync(absolutePath)) {
+      sendJson(response, 404, { message: '文件不存在' });
+      return;
+    }
+
+    const stat = fs.statSync(absolutePath);
+
+    if (stat.size > 1024 * 512) {
+      sendJson(response, 400, { message: '文件过大，暂不支持在线编辑' });
+      return;
+    }
+
+    const content = fs.readFileSync(absolutePath, 'utf8');
+    sendJson(response, 200, {
+      path: relativePath,
+      content,
+      size: stat.size,
+      version: appVersion
+    });
+  } catch (error) {
+    sendJson(response, 400, { message: error.message || '读取文件失败' });
+  }
+}
+
+function handleDeveloperFileSave(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const { relativePath, absolutePath } = getSafeDeveloperFilePath(body.path || '');
+      const content = String(body.content || '');
+
+      if (!fs.existsSync(absolutePath)) {
+        sendJson(response, 404, { message: '文件不存在' });
+        return;
+      }
+
+      if (Buffer.byteLength(content, 'utf8') > 1024 * 512) {
+        sendJson(response, 400, { message: '文件内容过大，保存失败' });
+        return;
+      }
+
+      fs.writeFileSync(absolutePath, content, 'utf8');
+      sendJson(response, 200, {
+        message: '文件已保存',
+        path: relativePath,
+        version: appVersion,
+        username: session.username
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
 }
 
 function normalizePrompt(text) {
@@ -946,6 +1492,42 @@ function handleMe(request, response) {
   sendJson(response, 200, getUserPayload(session.username));
 }
 
+function handleMaintenanceStatus(request, response) {
+  sendJson(response, 200, {
+    maintenanceEnabled: isMaintenanceEnabled(),
+    version: appVersion
+  });
+}
+
+function handleMaintenanceUpdate(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  if (!isMaintenanceAdmin(session.username)) {
+    sendJson(response, 403, { message: '只有维护账号可以修改维护状态' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const nextEnabled = typeof body.enabled === 'boolean' ? body.enabled : !isMaintenanceEnabled();
+      setSettingValue('maintenance_enabled', nextEnabled ? '1' : '0');
+
+      sendJson(response, 200, {
+        message: nextEnabled ? '维护模式已开启' : '维护模式已关闭',
+        ...getUserPayload(session.username)
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
 function serveStatic(pathname, response) {
   const normalizedPath = path.normalize(path.join(publicDir, pathname)).replace(/^([.][.][/\\])+/, '');
 
@@ -959,9 +1541,43 @@ function serveStatic(pathname, response) {
 
 const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
+  cleanupExpiredCaptchas();
+  cleanupExpiredPhoneCodes();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
+  const maintenanceEnabled = isMaintenanceEnabled();
+  const maintenanceAdmin = session ? isMaintenanceAdmin(session.username) : false;
+  const developer = session ? isDeveloper(session.username) : false;
+  const privilegedUser = maintenanceAdmin || developer;
+
+  if (request.method === 'GET' && pathname === '/api/maintenance/status') {
+    handleMaintenanceStatus(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/login/captcha') {
+    handleLoginCaptcha(request, response);
+    return;
+  }
+
+  const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
+  const isAllowedApiDuringMaintenance =
+    (request.method === 'POST' && (pathname === '/api/login' || pathname === '/api/logout' || pathname === '/api/register' || pathname === '/api/phone/send-code' || pathname === '/api/phone/login')) ||
+    (request.method === 'GET' && (pathname === '/api/maintenance/status' || pathname === '/api/login/captcha'));
+
+  if (maintenanceEnabled && !privilegedUser && !isLoginAsset && !isAllowedApiDuringMaintenance) {
+    if (pathname.startsWith('/api/')) {
+      sendJson(response, 503, {
+        message: '当前正在维护，仅维护账号可使用',
+        maintenanceEnabled: true
+      });
+      return;
+    }
+
+    redirectToLogin(response);
+    return;
+  }
 
   if (request.method === 'POST' && pathname === '/api/register') {
     handleRegister(request, response);
@@ -970,6 +1586,16 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/login') {
     handleLogin(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/phone/send-code') {
+    handlePhoneCodeSend(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/phone/login') {
+    handlePhoneLogin(request, response);
     return;
   }
 
@@ -1023,6 +1649,26 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && pathname === '/api/maintenance') {
+    handleMaintenanceUpdate(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/files') {
+    handleDeveloperFiles(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/file') {
+    handleDeveloperFileRead(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/developer/file') {
+    handleDeveloperFileSave(request, response);
+    return;
+  }
+
   if (request.method === 'GET' && pathname === '/api/me') {
     handleMe(request, response);
     return;
@@ -1040,7 +1686,9 @@ const server = http.createServer((request, response) => {
     pathname === '/tutorial.html' ||
     pathname === '/recipes.html' ||
     pathname === '/coordinates.html' ||
+    pathname === '/developer.html' ||
     pathname === '/app.js' ||
+    pathname === '/developer.js' ||
     pathname === '/coordinates.js' ||
     pathname === '/styles.css'
   ) {
@@ -1056,6 +1704,11 @@ const server = http.createServer((request, response) => {
         redirectToIndex(response);
         return;
       }
+    }
+
+    if ((pathname === '/developer.html' || pathname === '/developer.js') && !developer) {
+      redirectToIndex(response);
+      return;
     }
 
     serveStatic(pathname === '/' ? '/index.html' : pathname, response);

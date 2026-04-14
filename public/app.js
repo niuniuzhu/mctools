@@ -231,7 +231,10 @@ const COMMANDS = {
 };
 
 try {
-  document.documentElement.dataset.ui = localStorage.getItem('mctools-ui') || 'normal';
+  const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+  const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+  localStorage.setItem('mctools-ui', nextUi);
+  document.documentElement.dataset.ui = nextUi;
 } catch {
   document.documentElement.dataset.ui = 'normal';
 }
@@ -1345,6 +1348,162 @@ function updateAvatar(profile) {
   }
 }
 
+function syncMaintenancePanel(me) {
+  const panel = document.querySelector('[data-maintenance-panel]');
+
+  if (!panel) {
+    return;
+  }
+
+  const state = panel.querySelector('[data-maintenance-state]');
+  const note = panel.querySelector('[data-maintenance-note]');
+  const enableButton = panel.querySelector('[data-maintenance-enable]');
+  const disableButton = panel.querySelector('[data-maintenance-disable]');
+  const isEnabled = Boolean(me && me.maintenanceEnabled);
+
+  if (state) {
+    state.classList.toggle('maintenance-active', isEnabled);
+    state.textContent = isEnabled
+      ? '当前状态：维护中，仅维护账号可继续访问。'
+      : '当前状态：正常开放，普通用户可继续访问。';
+  }
+
+  if (note) {
+    note.textContent = isEnabled
+      ? '维护模式已开启。普通账号的新请求会被拦截，页面会跳回登录页。'
+      : '维护模式已关闭。开启后，只有维护账号还能继续使用工具箱。';
+  }
+
+  if (enableButton) {
+    enableButton.disabled = isEnabled;
+  }
+
+  if (disableButton) {
+    disableButton.disabled = !isEnabled;
+  }
+}
+
+function renderMaintenancePanel(me) {
+  const heroCard = document.querySelector('.hero-card');
+  let panel = document.querySelector('[data-maintenance-panel]');
+
+  if (!heroCard) {
+    return;
+  }
+
+  if (!me || !me.isMaintenanceAdmin) {
+    if (panel) {
+      panel.remove();
+    }
+    return;
+  }
+
+  if (!panel) {
+    panel = document.createElement('section');
+    panel.className = 'maintenance-panel';
+    panel.setAttribute('data-maintenance-panel', '');
+    panel.innerHTML = `
+      <p class="panel-label">维护控制</p>
+      <p class="maintenance-state" data-maintenance-state>当前状态：读取中</p>
+      <p class="tool-card-note" data-maintenance-note>只有维护账号可以切换当前维护状态。</p>
+      <div class="maintenance-actions">
+        <button type="button" class="ghost-button compact-button" data-maintenance-enable>开启维护</button>
+        <button type="button" class="ghost-button compact-button" data-maintenance-disable>关闭维护</button>
+      </div>
+    `;
+    heroCard.appendChild(panel);
+
+    const enableButton = panel.querySelector('[data-maintenance-enable]');
+    const disableButton = panel.querySelector('[data-maintenance-disable]');
+
+    if (enableButton) {
+      enableButton.addEventListener('click', () => {
+        updateMaintenanceMode(true);
+      });
+    }
+
+    if (disableButton) {
+      disableButton.addEventListener('click', () => {
+        updateMaintenanceMode(false);
+      });
+    }
+  }
+
+  syncMaintenancePanel(me);
+}
+
+function renderDeveloperPanel(me) {
+  const heroCard = document.querySelector('.hero-card');
+  let panel = document.querySelector('[data-developer-panel]');
+
+  if (!heroCard) {
+    return;
+  }
+
+  if (!me || !me.isDeveloper) {
+    if (panel) {
+      panel.remove();
+    }
+    return;
+  }
+
+  if (!panel) {
+    panel = document.createElement('section');
+    panel.className = 'developer-panel';
+    panel.setAttribute('data-developer-panel', '');
+    panel.innerHTML = `
+      <p class="panel-label">开发者控制台</p>
+      <p class="tool-card-note">开发者账号可查看项目文本代码文件，并在网页内直接保存修改。</p>
+      <a class="ghost-link-button" href="/developer.html">进入开发者控制台</a>
+    `;
+    heroCard.appendChild(panel);
+  }
+}
+
+async function updateMaintenanceMode(enabled) {
+  const panel = document.querySelector('[data-maintenance-panel]');
+  const state = panel ? panel.querySelector('[data-maintenance-state]') : null;
+  const enableButton = panel ? panel.querySelector('[data-maintenance-enable]') : null;
+  const disableButton = panel ? panel.querySelector('[data-maintenance-disable]') : null;
+
+  if (enableButton) {
+    enableButton.disabled = true;
+  }
+
+  if (disableButton) {
+    disableButton.disabled = true;
+  }
+
+  if (state) {
+    state.textContent = enabled ? '当前状态：正在开启维护...' : '当前状态：正在关闭维护...';
+  }
+
+  try {
+    const response = await fetch('/api/maintenance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+
+    const result = await response.json().catch(() => ({ message: '维护状态更新失败' }));
+
+    if (!response.ok) {
+      throw new Error(result.message || '维护状态更新失败');
+    }
+
+    updateVipState(result);
+  } catch (error) {
+    if (state) {
+      state.textContent = `维护状态更新失败：${error.message || '未知错误'}`;
+      state.classList.add('maintenance-active');
+    }
+
+    if (currentMe) {
+      syncMaintenancePanel(currentMe);
+    }
+  }
+}
+
 function updateVipState(me) {
   const vipState = document.querySelector('[data-vip-state]');
   const memberState = document.querySelector('[data-member-state]');
@@ -1389,6 +1548,19 @@ function updateVipState(me) {
   if (accountPill) {
     accountPill.classList.toggle('vip-active', isVipActive);
     accountPill.classList.toggle('svip-active', isSvipActive);
+    const roleTags = [];
+
+    if (me.isMaintenanceAdmin) {
+      roleTags.push('维护账号');
+    }
+
+    if (me.isDeveloper) {
+      roleTags.push('开发者');
+    }
+
+    accountPill.textContent = roleTags.length
+      ? `当前账号：${me.username} · ${roleTags.join(' / ')}`
+      : `当前账号：${me.username}`;
   }
 
   if (purchaseButton) {
@@ -1495,6 +1667,8 @@ function updateVipState(me) {
   }
 
   currentMe = me;
+  renderMaintenancePanel(me);
+  renderDeveloperPanel(me);
   refreshCommandAccess();
 }
 
@@ -1826,8 +2000,7 @@ if (avatarDeleteButton) {
 
 fetchMe()
   .then((me) => {
-    if (me && accountPill) {
-      accountPill.textContent = `当前账号：${me.username}`;
+    if (me) {
       updateVipState(me);
       updateAvatar(me);
     }

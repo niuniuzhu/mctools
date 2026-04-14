@@ -430,6 +430,44 @@ h1 {
   font-size: 0.92rem;
 }
 
+.maintenance-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.16);
+}
+
+.developer-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.maintenance-state {
+  margin-top: 10px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.maintenance-state.maintenance-active {
+  color: #fecaca;
+}
+
+.maintenance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.maintenance-actions .ghost-button {
+  width: fit-content;
+  margin-top: 0;
+}
+
 .tool-enter-button,
 .ghost-link-button {
   display: inline-flex;
@@ -470,6 +508,73 @@ h1 {
   backdrop-filter: blur(16px);
   border-radius: 28px;
   padding: 22px;
+}
+
+.developer-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.developer-file-list {
+  display: grid;
+  gap: 10px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.developer-file-button {
+  width: 100%;
+  text-align: left;
+  margin: 0;
+}
+
+.developer-file-button.active {
+  border-color: rgba(96, 165, 250, 0.32);
+  background: rgba(96, 165, 250, 0.12);
+  color: #bfdbfe;
+}
+
+.developer-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.developer-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.developer-path {
+  color: var(--muted);
+  font-size: 0.95rem;
+  word-break: break-all;
+}
+
+.developer-status {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.developer-editor {
+  width: 100%;
+  min-height: 70vh;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(3, 10, 18, 0.76);
+  color: var(--text);
+  padding: 16px;
+  font: 500 0.95rem/1.65 Consolas, "Courier New", monospace;
+  resize: vertical;
+}
+
+.empty-state.compact {
+  margin: 0;
 }
 
 .guide-grid,
@@ -1011,6 +1116,10 @@ html[data-ui="classic"] textarea {
 }
 
 @media (max-width: 960px) {
+  .developer-layout {
+    grid-template-columns: 1fr;
+  }
+
   .hero {
     grid-template-columns: 1fr;
   }

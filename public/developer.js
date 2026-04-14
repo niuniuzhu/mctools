@@ -1,0 +1,219 @@
+const fileList = document.querySelector('[data-file-list]');
+const codeEditor = document.querySelector('[data-code-editor]');
+const currentFile = document.querySelector('[data-current-file]');
+const editorStatus = document.querySelector('[data-editor-status]');
+const saveFileButton = document.querySelector('[data-save-file]');
+const refreshButton = document.querySelector('[data-developer-refresh]');
+const logoutButton = document.querySelector('[data-developer-logout]');
+const usernameLabel = document.querySelector('[data-developer-username]');
+const openIndexButton = document.querySelector('[data-open-index]');
+
+let currentFilePath = '';
+let currentFiles = [];
+
+function setStatus(text, isError = false) {
+  if (!editorStatus) {
+    return;
+  }
+
+  editorStatus.textContent = text;
+  editorStatus.style.color = isError ? '#fca5a5' : '';
+}
+
+function setActiveFileButton(pathname) {
+  document.querySelectorAll('[data-file-button]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.fileButton === pathname);
+  });
+}
+
+function renderFileList(items) {
+  currentFiles = items;
+
+  if (!fileList) {
+    return;
+  }
+
+  if (!items.length) {
+    fileList.innerHTML = '<p class="empty-state compact">当前没有可编辑文件</p>';
+    return;
+  }
+
+  fileList.innerHTML = items.map((item) => `
+    <button type="button" class="ghost-button compact-button developer-file-button" data-file-button="${item}">${item}</button>
+  `).join('');
+
+  fileList.querySelectorAll('[data-file-button]').forEach((button) => {
+    button.addEventListener('click', () => {
+      loadFile(button.dataset.fileButton || '');
+    });
+  });
+
+  if (currentFilePath && items.includes(currentFilePath)) {
+    setActiveFileButton(currentFilePath);
+  }
+}
+
+async function fetchMe() {
+  const response = await fetch('/api/me');
+
+  if (!response.ok) {
+    window.location.href = '/login.html';
+    return null;
+  }
+
+  const me = await response.json();
+
+  if (!me.isDeveloper) {
+    window.location.href = '/index.html';
+    return null;
+  }
+
+  if (usernameLabel) {
+    usernameLabel.textContent = `当前账号：${me.username} · 开发者`;
+  }
+
+  return me;
+}
+
+async function loadFiles() {
+  setStatus('正在加载文件列表...');
+
+  try {
+    const response = await fetch('/api/developer/files');
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '文件列表加载失败');
+    }
+
+    renderFileList(result.items || []);
+    setStatus('文件列表已更新');
+  } catch (error) {
+    renderFileList([]);
+    setStatus(error.message || '文件列表加载失败', true);
+  }
+}
+
+async function loadFile(pathname) {
+  if (!pathname) {
+    return;
+  }
+
+  currentFilePath = pathname;
+  setActiveFileButton(pathname);
+
+  if (currentFile) {
+    currentFile.textContent = pathname;
+  }
+
+  if (codeEditor) {
+    codeEditor.disabled = true;
+    codeEditor.value = '正在读取文件...';
+  }
+
+  if (saveFileButton) {
+    saveFileButton.disabled = true;
+  }
+
+  try {
+    const response = await fetch(`/api/developer/file?path=${encodeURIComponent(pathname)}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '读取文件失败');
+    }
+
+    if (codeEditor) {
+      codeEditor.value = result.content || '';
+      codeEditor.disabled = false;
+    }
+
+    if (saveFileButton) {
+      saveFileButton.disabled = false;
+    }
+
+    setStatus(`文件已加载：${pathname}`);
+  } catch (error) {
+    if (codeEditor) {
+      codeEditor.value = '';
+      codeEditor.disabled = true;
+    }
+
+    if (saveFileButton) {
+      saveFileButton.disabled = true;
+    }
+
+    setStatus(error.message || '读取文件失败', true);
+  }
+}
+
+async function saveCurrentFile() {
+  if (!currentFilePath || !codeEditor) {
+    return;
+  }
+
+  if (saveFileButton) {
+    saveFileButton.disabled = true;
+  }
+
+  setStatus(`正在保存：${currentFilePath}`);
+
+  try {
+    const response = await fetch('/api/developer/file', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: currentFilePath,
+        content: codeEditor.value
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '保存失败');
+    }
+
+    setStatus(`保存成功：${currentFilePath}`);
+  } catch (error) {
+    setStatus(error.message || '保存失败', true);
+  } finally {
+    if (saveFileButton) {
+      saveFileButton.disabled = false;
+    }
+  }
+}
+
+async function logout() {
+  try {
+    await fetch('/api/logout', { method: 'POST' });
+  } finally {
+    window.location.href = '/login.html';
+  }
+}
+
+if (saveFileButton) {
+  saveFileButton.addEventListener('click', saveCurrentFile);
+}
+
+if (refreshButton) {
+  refreshButton.addEventListener('click', loadFiles);
+}
+
+if (logoutButton) {
+  logoutButton.addEventListener('click', logout);
+}
+
+if (openIndexButton) {
+  openIndexButton.addEventListener('click', () => {
+    window.location.href = '/index.html';
+  });
+}
+
+fetchMe().then((me) => {
+  if (!me) {
+    return;
+  }
+
+  loadFiles();
+});
