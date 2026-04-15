@@ -72,6 +72,18 @@ html[data-ui="classic"] {
   --shadow: 0 8px 0 rgba(44, 53, 35, 0.42), 0 18px 36px rgba(0, 0, 0, 0.28);
 }
 
+html[data-ui="end"] {
+  --bg-1: #12081f;
+  --bg-2: #2b1243;
+  --panel: rgba(30, 16, 52, 0.9);
+  --panel-border: rgba(221, 214, 254, 0.16);
+  --text: #f5efff;
+  --muted: #d6c8ee;
+  --accent: #67e8f9;
+  --accent-strong: #ec4899;
+  --shadow: 0 22px 60px rgba(9, 3, 20, 0.46);
+}
+
 .profile-card {
   display: flex;
   align-items: center;
@@ -1181,4 +1193,71 @@ html[data-ui="classic"] textarea {
   .button-row {
     grid-template-columns: 1fr;
   }
+}
+
+html[data-ui="end"] body {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(103, 232, 249, 0.13), transparent 22%),
+    radial-gradient(circle at 84% 10%, rgba(236, 72, 153, 0.16), transparent 24%),
+    radial-gradient(circle at 48% 90%, rgba(168, 85, 247, 0.18), transparent 28%),
+    linear-gradient(150deg, var(--bg-1), var(--bg-2));
+}
+
+html[data-ui="end"] body::before {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.07), transparent 26%),
+    linear-gradient(180deg, transparent 0%, rgba(9, 3, 20, 0.34) 100%);
+}
+
+html[data-ui="end"] .profile-card,
+html[data-ui="end"] .hero-copy,
+html[data-ui="end"] .hero-card,
+html[data-ui="end"] .tool-card,
+html[data-ui="end"] .generator-panel,
+html[data-ui="end"] .content-panel,
+html[data-ui="end"] .command-card,
+html[data-ui="end"] .history-panel,
+html[data-ui="end"] .ai-panel,
+html[data-ui="end"] .executor-panel,
+html[data-ui="end"] .guide-card,
+html[data-ui="end"] .recipe-card,
+html[data-ui="end"] .coordinate-card {
+  border-color: rgba(221, 214, 254, 0.16);
+  background: linear-gradient(180deg, rgba(59, 35, 96, 0.92), rgba(30, 16, 52, 0.9));
+  box-shadow: var(--shadow);
+}
+
+html[data-ui="end"] .account-pill,
+html[data-ui="end"] .version-pill,
+html[data-ui="end"] .ai-lock {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(221, 214, 254, 0.16);
+}
+
+html[data-ui="end"] .ghost-button,
+html[data-ui="end"] .upload-button,
+html[data-ui="end"] .tool-enter-button,
+html[data-ui="end"] .ghost-link-button,
+html[data-ui="end"] .copy-btn.secondary,
+html[data-ui="end"] .history-delete {
+  background: linear-gradient(180deg, rgba(78, 48, 120, 0.94), rgba(47, 24, 82, 0.94));
+  border-color: rgba(221, 214, 254, 0.16);
+}
+
+html[data-ui="end"] .copy-btn,
+html[data-ui="end"] .tool-enter-button {
+  background: linear-gradient(135deg, #67e8f9, #ec4899);
+  color: #160a24;
+}
+
+html[data-ui="end"] input,
+html[data-ui="end"] select,
+html[data-ui="end"] textarea {
+  background: rgba(17, 10, 33, 0.78);
+  border-color: rgba(221, 214, 254, 0.16);
+}
+
+html[data-ui="end"] .tool-card-active {
+  border-color: rgba(103, 232, 249, 0.32);
+  background: linear-gradient(180deg, rgba(77, 42, 125, 0.94), rgba(30, 16, 52, 0.9));
 }

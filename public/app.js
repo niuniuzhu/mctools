@@ -232,7 +232,7 @@ const COMMANDS = {
 
 try {
   const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-  const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+  const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
   localStorage.setItem('mctools-ui', nextUi);
   document.documentElement.dataset.ui = nextUi;
 } catch {
@@ -1580,41 +1580,39 @@ function updateVipState(me) {
   }
 
   if (aiPanel) {
-    aiPanel.classList.toggle('locked', !isVipActive);
-    aiPanel.classList.toggle('vip-enabled', isVipActive && !isSvipActive);
+    aiPanel.classList.toggle('locked', !isSvipActive);
+    aiPanel.classList.toggle('vip-enabled', false);
     aiPanel.classList.toggle('svip-enabled', isSvipActive);
   }
 
   if (aiLock) {
-    aiLock.classList.toggle('vip-active', isVipActive && !isSvipActive);
+    aiLock.classList.toggle('vip-active', false);
     aiLock.classList.toggle('svip-active', isSvipActive);
-    aiLock.textContent = isSvipActive ? 'SVIP AI 已解锁' : isVipActive ? 'VIP AI 已解锁' : '仅 VIP 可使用';
+    aiLock.textContent = isSvipActive ? 'SVIP AI 已解锁' : '仅 SVIP 可使用';
   }
 
   if (aiMessage) {
     aiMessage.textContent = isSvipActive
-      ? '你正在使用更强大的 SVIP AI 助手'
-      : isVipActive
-      ? '输入自然语言需求，点击 AI 生成'
-      : '购买 VIP 后即可使用 AI 助手';
+      ? '你可以直接提问，AI 会返回中文答案。'
+      : '升级 SVIP 后即可使用 AI 问答助手';
   }
 
   if (aiTierMessage) {
     aiTierMessage.textContent = isSvipActive
-      ? '当前已启用 SVIP 增强 AI：更强解析、更高置信度、更多高级指令建议'
-      : 'SVIP 可获得更强大的 AI 助手与更高质量建议';
+      ? '服务端会优先尝试调用 Gemini 3.1 Pro，失败后自动回退到可用模型。'
+      : 'SVIP 专享问答：可直接询问指令、玩法、红石、服务器配置等问题。';
   }
 
   if (aiPrompt) {
-    aiPrompt.disabled = !isVipActive;
+    aiPrompt.disabled = !isSvipActive;
   }
 
   if (aiGenerateButton) {
-    aiGenerateButton.disabled = !isVipActive;
+    aiGenerateButton.disabled = !isSvipActive;
   }
 
   if (aiCopyButton) {
-    aiCopyButton.disabled = !isVipActive;
+    aiCopyButton.disabled = !isSvipActive;
   }
 
   if (executorPanel) {
@@ -1727,10 +1725,10 @@ async function generateAi() {
   }
 
   try {
-    const response = await fetch('/api/ai/generate', {
+    const response = await fetch('/api/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptInput.value })
+      body: JSON.stringify({ question: promptInput.value })
     });
 
     const result = await response.json();
@@ -1745,15 +1743,11 @@ async function generateAi() {
       return;
     }
 
-    output.value = result.commandText || '';
+    output.value = result.answer || '';
 
     if (message) {
-      message.textContent = result.label
-        ? `${result.aiTier || 'VIP'} · ${result.label} · 置信度 ${(result.confidence * 100).toFixed(0)}%`
-        : 'AI 已生成';
+      message.textContent = `${result.aiTier || 'SVIP'} · ${result.model || 'Gemini'} · 回复完成`;
     }
-
-    await loadCommandHistory(historyKeyword ? historyKeyword.value : '');
   } catch {
     if (message) {
       message.textContent = 'AI 请求失败';

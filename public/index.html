@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -27,7 +27,7 @@
             这是工具箱的分类选择界面。当前仅开放指令工作台，其他分类入口先保留，后续逐步开放。
           </p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.1.0</div>
+            <div class="version-pill">当前版本 beta1.2.0</div>
             <div class="version-pill">当前阶段：分类选择</div>
           </div>
         </div>

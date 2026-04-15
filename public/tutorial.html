@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -25,7 +25,7 @@
           <h1>通关教程</h1>
           <p class="lead">这里先提供一个从开荒到击败末影龙的简明流程，方便你按阶段推进生存进度。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.1.0</div>
+            <div class="version-pill">当前版本 beta1.2.0</div>
             <div class="version-pill">模块：通关教程</div>
           </div>
           <div class="workspace-nav">

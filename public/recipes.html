@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -25,7 +25,7 @@
           <h1>查看配方</h1>
           <p class="lead">这里先开放常用生存配方速查，后续可以继续扩展到完整的工作台、熔炉和酿造体系。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.1.0</div>
+            <div class="version-pill">当前版本 beta1.2.0</div>
             <div class="version-pill">模块：查看配方</div>
           </div>
           <div class="workspace-nav">

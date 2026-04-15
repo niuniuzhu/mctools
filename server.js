@@ -7,10 +7,12 @@ const { DatabaseSync } = require('node:sqlite');
 const host = process.env.HOST || '0.0.0.0';
 const port = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, 'public');
+const configDir = path.join(__dirname, 'config');
 const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
-const appVersion = 'beta1.1.1';
+const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
+const appVersion = 'beta1.2.0';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const maintenanceAdminAccount = {
   username: 'maintenance_admin',
@@ -33,6 +35,10 @@ const vipOnlyCommandNames = new Set([
 
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
+}
+
+if (!fs.existsSync(configDir)) {
+  fs.mkdirSync(configDir, { recursive: true });
 }
 
 if (!fs.existsSync(avatarsDir)) {
@@ -64,12 +70,6 @@ try {
 
 try {
   db.exec('ALTER TABLE users ADD COLUMN is_developer INTEGER NOT NULL DEFAULT 0');
-} catch {
-  // Column already exists in existing databases.
-}
-
-try {
-  db.exec('ALTER TABLE users ADD COLUMN phone_number TEXT');
 } catch {
   // Column already exists in existing databases.
 }
@@ -113,9 +113,7 @@ db.exec(`
 
 const sessions = new Map();
 const loginCaptchas = new Map();
-const phoneLoginCodes = new Map();
 const captchaLifetimeMs = 1000 * 60 * 5;
-const phoneCodeLifetimeMs = 1000 * 60 * 5;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -159,6 +157,32 @@ function sendFile(filePath, response) {
     response.writeHead(200, { 'Content-Type': contentType });
     response.end(content);
   });
+}
+
+function loadApiKeysConfig() {
+  if (!fs.existsSync(apiKeysConfigPath)) {
+    return {};
+  }
+
+  try {
+    const rawContent = fs.readFileSync(apiKeysConfigPath, 'utf8');
+    const parsedContent = JSON.parse(rawContent);
+    return parsedContent && typeof parsedContent === 'object' ? parsedContent : {};
+  } catch {
+    return {};
+  }
+}
+
+function getConfiguredValue(envKey, configKey, fallbackValue = '') {
+  const envValue = String(process.env[envKey] || '').trim();
+
+  if (envValue) {
+    return envValue;
+  }
+
+  const config = loadApiKeysConfig();
+  const configValue = config && typeof config[configKey] === 'string' ? config[configKey].trim() : '';
+  return configValue || fallbackValue;
 }
 
 function getMimeTypeFromExtension(extension) {
@@ -264,52 +288,6 @@ function cleanupExpiredCaptchas() {
       loginCaptchas.delete(captchaId);
     }
   }
-}
-
-function cleanupExpiredPhoneCodes() {
-  const now = Date.now();
-
-  for (const [phoneNumber, payload] of phoneLoginCodes.entries()) {
-    if (payload.expiresAt <= now) {
-      phoneLoginCodes.delete(phoneNumber);
-    }
-  }
-}
-
-function normalizePhoneNumber(phoneNumber) {
-  return String(phoneNumber || '').replace(/\s+/g, '').trim();
-}
-
-function isValidChineseMainlandPhone(phoneNumber) {
-  return /^1\d{10}$/.test(phoneNumber);
-}
-
-function issuePhoneLoginCode(phoneNumber, username) {
-  cleanupExpiredPhoneCodes();
-  const code = String(crypto.randomInt(100000, 1000000));
-
-  phoneLoginCodes.set(phoneNumber, {
-    code,
-    username,
-    expiresAt: Date.now() + phoneCodeLifetimeMs
-  });
-
-  return code;
-}
-
-function verifyPhoneLoginCode(phoneNumber, code) {
-  const payload = phoneLoginCodes.get(phoneNumber);
-  phoneLoginCodes.delete(phoneNumber);
-
-  if (!payload || payload.expiresAt <= Date.now()) {
-    return { ok: false, message: '短信验证码已过期，请重新获取' };
-  }
-
-  if (String(code || '').trim() !== payload.code) {
-    return { ok: false, message: '短信验证码错误' };
-  }
-
-  return { ok: true, username: payload.username };
 }
 
 function generateCaptchaCode() {
@@ -541,7 +519,6 @@ function handleRegister(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
       const registerAsMaintenanceAdmin =
         body.registerAsMaintenanceAdmin === true ||
         body.registerAsMaintenanceAdmin === 'true' ||
@@ -575,11 +552,6 @@ function handleRegister(request, response) {
         return;
       }
 
-      if (!isValidChineseMainlandPhone(phoneNumber)) {
-        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
-        return;
-      }
-
       if (registerAsMaintenanceAdmin && maintenanceSecret !== maintenanceAdminAccount.password) {
         sendJson(response, 403, { message: '维护授权码错误' });
         return;
@@ -591,25 +563,18 @@ function handleRegister(request, response) {
       }
 
       const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
-      const existingPhoneUser = db.prepare('SELECT id FROM users WHERE phone_number = ?').get(phoneNumber);
 
       if (existingUser) {
         sendJson(response, 409, { message: '用户名已存在' });
         return;
       }
 
-      if (existingPhoneUser) {
-        sendJson(response, 409, { message: '手机号已绑定其他账号' });
-        return;
-      }
-
       const passwordHash = hashPassword(password);
-      db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin, is_developer, phone_number) VALUES (?, ?, ?, ?, ?)').run(
+      db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin, is_developer) VALUES (?, ?, ?, ?)').run(
         username,
         passwordHash,
         registerAsMaintenanceAdmin ? 1 : 0,
-        registerAsDeveloper ? 1 : 0,
-        phoneNumber
+        registerAsDeveloper ? 1 : 0
       );
 
       const sessionToken = createSession(username);
@@ -679,86 +644,6 @@ function handleLoginCaptcha(request, response) {
     svg: captcha.svg,
     version: appVersion
   });
-}
-
-function handlePhoneCodeSend(request, response) {
-  parseRequestBody(request)
-    .then((body) => {
-      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
-
-      if (!isValidChineseMainlandPhone(phoneNumber)) {
-        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
-        return;
-      }
-
-      const user = db.prepare('SELECT username FROM users WHERE phone_number = ?').get(phoneNumber);
-
-      if (!user) {
-        sendJson(response, 404, { message: '该手机号未绑定账号' });
-        return;
-      }
-
-      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
-        sendJson(response, 503, { message: '当前正在维护，该手机号对应账号暂不可登录' });
-        return;
-      }
-
-      const code = issuePhoneLoginCode(phoneNumber, user.username);
-      sendJson(response, 200, {
-        message: '短信验证码已发送',
-        phoneNumber,
-        version: appVersion,
-        debugCode: code
-      });
-    })
-    .catch((error) => {
-      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
-      sendJson(response, statusCode, { message: error.message });
-    });
-}
-
-function handlePhoneLogin(request, response) {
-  parseRequestBody(request)
-    .then((body) => {
-      const phoneNumber = normalizePhoneNumber(body.phoneNumber || '');
-      const phoneCode = String(body.phoneCode || '').trim();
-
-      if (!isValidChineseMainlandPhone(phoneNumber)) {
-        sendJson(response, 400, { message: '请输入正确的 11 位手机号' });
-        return;
-      }
-
-      const codeResult = verifyPhoneLoginCode(phoneNumber, phoneCode);
-
-      if (!codeResult.ok) {
-        sendJson(response, 400, { message: codeResult.message });
-        return;
-      }
-
-      const user = db.prepare('SELECT username FROM users WHERE phone_number = ?').get(phoneNumber);
-
-      if (!user || user.username !== codeResult.username) {
-        sendJson(response, 404, { message: '该手机号未绑定账号' });
-        return;
-      }
-
-      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
-        sendJson(response, 503, { message: '当前正在维护，该手机号对应账号暂不可登录' });
-        return;
-      }
-
-      const sessionToken = createSession(user.username);
-      setSessionCookie(response, sessionToken);
-      sendJson(response, 200, {
-        message: '手机号登录成功',
-        username: user.username,
-        version: appVersion
-      });
-    })
-    .catch((error) => {
-      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
-      sendJson(response, statusCode, { message: error.message });
-    });
 }
 
 function handleLogout(request, response) {
@@ -1311,6 +1196,125 @@ function handleAiGenerate(request, response) {
     });
 }
 
+async function callGeminiAnswer(question) {
+  const apiKey = getConfiguredValue('GEMINI_API_KEY', 'geminiApiKey');
+
+  if (!apiKey) {
+    throw new Error('服务器未配置 Gemini API Key，请先填写 config/api-keys.json');
+  }
+
+  const requestedModel = getConfiguredValue('GEMINI_MODEL', 'geminiModel');
+  const candidateModels = requestedModel
+    ? [requestedModel]
+    : ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
+
+  let lastError = null;
+
+  for (const modelName of candidateModels) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    text: [
+                      '你是“我的世界工具箱”的 SVIP AI 助手。',
+                      '请始终使用简体中文回答。',
+                      '优先回答 Minecraft 指令、玩法、红石、配方、坐标、服务器管理相关问题。',
+                      '如果问题适合给步骤，请给简洁步骤；如果适合给命令，请给可直接复制的命令。',
+                      `用户问题：${question}`
+                    ].join('\n')
+                  }
+                ]
+              }
+            ]
+          })
+        }
+      );
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const errorMessage = result && result.error && result.error.message
+          ? result.error.message
+          : `Gemini 请求失败（${response.status}）`;
+        lastError = new Error(`${modelName}: ${errorMessage}`);
+        continue;
+      }
+
+      const parts = (((result || {}).candidates || [])[0] || {}).content?.parts || [];
+      const answer = parts
+        .map((part) => (part && typeof part.text === 'string' ? part.text : ''))
+        .join('\n')
+        .trim();
+
+      if (!answer) {
+        lastError = new Error(`${modelName}: 模型未返回文本内容`);
+        continue;
+      }
+
+      return {
+        model: modelName,
+        answer
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Gemini 调用失败');
+}
+
+function handleAiChat(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  const vipInfo = getVipInfo(session.username);
+
+  if (!vipInfo.svipPurchased) {
+    sendJson(response, 403, { message: 'AI 问答仅限 SVIP 使用' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then(async (body) => {
+      const question = String(body.question || '').trim();
+
+      if (!question) {
+        sendJson(response, 400, { message: '请输入要提问的问题' });
+        return;
+      }
+
+      const result = await callGeminiAnswer(question);
+      sendJson(response, 200, {
+        message: 'AI 回复成功',
+        answer: result.answer,
+        model: result.model,
+        username: session.username,
+        version: appVersion,
+        aiTier: 'SVIP'
+      });
+    })
+    .catch((error) => {
+      const isJsonError = error.message === 'Invalid JSON';
+      const statusCode = isJsonError ? 400 : 500;
+      sendJson(response, statusCode, { message: error.message || 'AI 问答失败' });
+    });
+}
+
 function handleExecutorRun(request, response) {
   const session = getSessionFromRequest(request);
 
@@ -1542,7 +1546,6 @@ function serveStatic(pathname, response) {
 const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
   cleanupExpiredCaptchas();
-  cleanupExpiredPhoneCodes();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
@@ -1563,7 +1566,7 @@ const server = http.createServer((request, response) => {
 
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
   const isAllowedApiDuringMaintenance =
-    (request.method === 'POST' && (pathname === '/api/login' || pathname === '/api/logout' || pathname === '/api/register' || pathname === '/api/phone/send-code' || pathname === '/api/phone/login')) ||
+    (request.method === 'POST' && (pathname === '/api/login' || pathname === '/api/logout' || pathname === '/api/register')) ||
     (request.method === 'GET' && (pathname === '/api/maintenance/status' || pathname === '/api/login/captcha'));
 
   if (maintenanceEnabled && !privilegedUser && !isLoginAsset && !isAllowedApiDuringMaintenance) {
@@ -1586,16 +1589,6 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/login') {
     handleLogin(request, response);
-    return;
-  }
-
-  if (request.method === 'POST' && pathname === '/api/phone/send-code') {
-    handlePhoneCodeSend(request, response);
-    return;
-  }
-
-  if (request.method === 'POST' && pathname === '/api/phone/login') {
-    handlePhoneLogin(request, response);
     return;
   }
 
@@ -1631,6 +1624,11 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/ai/generate') {
     handleAiGenerate(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/ai/chat') {
+    handleAiChat(request, response);
     return;
   }
 

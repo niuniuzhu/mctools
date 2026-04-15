@@ -1,0 +1,3 @@
+config/api-keys.json
+.mctools-server.pid
+mctools-server.log

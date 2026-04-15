@@ -28,6 +28,16 @@ html[data-ui="classic"] {
   --accent-strong: #a98533;
 }
 
+html[data-ui="end"] {
+  --bg-1: #140b24;
+  --bg-2: #2f174d;
+  --panel: rgba(30, 16, 52, 0.9);
+  --text: #f6efff;
+  --muted: #d7c9ef;
+  --accent: #67e8f9;
+  --accent-strong: #ec4899;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -140,7 +150,7 @@ h1 {
 
 .ui-choice-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -169,7 +179,7 @@ h1 {
 
 .auth-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   margin: 24px 0 18px;
 }
@@ -272,19 +282,6 @@ h1 {
 .captcha-input-label {
   display: grid;
   gap: 8px;
-}
-
-.phone-code-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.phone-code-note {
-  margin: 12px 0 0;
-  color: var(--muted);
-  line-height: 1.6;
 }
 
 .auth-form.hidden {
@@ -482,4 +479,51 @@ html[data-ui="classic"] input {
   .ui-choice-row {
     grid-template-columns: 1fr;
   }
+}
+
+html[data-ui="end"] body {
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(103, 232, 249, 0.12), transparent 22%),
+    radial-gradient(circle at 80% 10%, rgba(236, 72, 153, 0.14), transparent 26%),
+    radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.18), transparent 30%),
+    linear-gradient(155deg, var(--bg-1), var(--bg-2));
+}
+
+html[data-ui="end"] .auth-card {
+  border-radius: 26px;
+  border: 1px solid rgba(215, 201, 239, 0.18);
+  background:
+    linear-gradient(180deg, rgba(57, 34, 92, 0.94), rgba(30, 16, 52, 0.9));
+  box-shadow: 0 24px 70px rgba(8, 3, 20, 0.52);
+}
+
+html[data-ui="end"] .version-pill,
+html[data-ui="end"] .ui-picker,
+html[data-ui="end"] .maintenance-banner,
+html[data-ui="end"] .captcha-block,
+html[data-ui="end"] .maintenance-register,
+html[data-ui="end"] .maintenance-unlock {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(215, 201, 239, 0.18);
+}
+
+html[data-ui="end"] .tab-button,
+html[data-ui="end"] .ui-choice,
+html[data-ui="end"] .ghost-button,
+html[data-ui="end"] .text-button {
+  background: linear-gradient(180deg, rgba(74, 47, 114, 0.92), rgba(47, 24, 82, 0.92));
+  border-color: rgba(215, 201, 239, 0.16);
+}
+
+html[data-ui="end"] .tab-button.active,
+html[data-ui="end"] .ui-choice.active,
+html[data-ui="end"] .primary-button {
+  background: linear-gradient(135deg, #67e8f9, #ec4899);
+  color: #160b25;
+}
+
+html[data-ui="end"] input {
+  background: rgba(17, 10, 33, 0.8);
+  border-color: rgba(215, 201, 239, 0.16);
 }
