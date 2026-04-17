@@ -617,14 +617,89 @@ h1 {
   color: var(--muted);
 }
 
+.utility-panel {
+  margin-top: 24px;
+}
+
+.utility-panel-head {
+  margin-bottom: 16px;
+}
+
+.utility-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.utility-card {
+  display: grid;
+  gap: 14px;
+}
+
+.fps-card-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.compact-result {
+  min-height: auto;
+  margin-top: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
 .recipe-note {
   margin-top: 10px;
+}
+
+.recipe-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.recipe-card-detailed {
+  display: grid;
+  gap: 10px;
+}
+
+.recipe-card-detailed p {
+  margin: 0;
+}
+
+.recipe-ingredients {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .coordinate-layout {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+}
+
+.coordinate-card-wide {
+  grid-column: 1 / -1;
+}
+
+.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.saved-point-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.saved-point-item {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .result-card {
@@ -671,6 +746,122 @@ h1 {
 
 .command-host {
   display: grid;
+}
+
+.template-panel,
+.favorites-panel {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(4, 10, 20, 0.42);
+}
+
+.template-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.template-panel-head h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.template-list,
+.favorites-list {
+  display: grid;
+  gap: 12px;
+}
+
+.template-item,
+.favorite-item {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.template-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.template-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.template-apply-button,
+.favorite-item-actions .ghost-button,
+.favorite-item-actions .history-delete {
+  margin-top: 0;
+}
+
+.favorite-item-actions,
+.history-tag-editor {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.history-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.history-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  color: #bfdbfe;
+  font-size: 0.84rem;
+}
+
+.history-tag.muted {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--muted);
+}
+
+.history-tag-input {
+  min-width: 260px;
+}
+
+.quick-fill-group {
+  display: grid;
+  gap: 10px;
+  margin: 6px 0 14px;
+}
+
+.quick-fill-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.quick-fill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.quick-fill-button {
+  width: fit-content;
+  margin-top: 0;
+}
+
+.button-row-wide {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .history-panel {
@@ -1146,10 +1337,34 @@ html[data-ui="classic"] textarea {
     grid-template-columns: 1fr;
   }
 
+  .utility-grid,
+  .fps-card-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-toolbar,
+  .three-col {
+    grid-template-columns: 1fr;
+  }
+
   .panel-head {
     grid-template-columns: 1fr;
     align-items: start;
     flex-direction: column;
+  }
+
+  .template-panel-head,
+  .history-tag-editor,
+  .favorite-item-actions,
+  .template-item {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quick-fill-row {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .history-actions {
@@ -1162,6 +1377,10 @@ html[data-ui="classic"] textarea {
   }
 
   .button-row {
+    grid-template-columns: 1fr;
+  }
+
+  .button-row-wide {
     grid-template-columns: 1fr;
   }
 }

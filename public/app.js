@@ -227,12 +227,249 @@ const COMMANDS = {
     return safeReplaceBiome
       ? `fillbiome ${safeFromPos} ${safeToPos} ${safeBiome} replace ${safeReplaceBiome}`
       : `fillbiome ${safeFromPos} ${safeToPos} ${safeBiome}`;
+  },
+  snowballMenuOpen: ({ projectileTag, menuTag, objectiveName, radius, openScore, titleText, soundId }) => {
+    const safeProjectileTag = projectileTag.trim() || 'menu_ball';
+    const safeMenuTag = menuTag.trim() || 'snowball_menu';
+    const safeObjectiveName = objectiveName.trim() || 'menuSelect';
+    const safeRadius = Math.max(1, Number.parseFloat(radius) || 5);
+    const safeOpenScore = Math.max(1, Number.parseInt(openScore, 10) || 1);
+    const safeTitleText = titleText.trim() || '雪球菜单已开启';
+    const safeSoundId = soundId.trim() || 'minecraft:block.note_block.pling';
+    return [
+      `execute as @e[type=minecraft:snowball,tag=!${safeProjectileTag}] at @s run tag @s add ${safeProjectileTag}`,
+      `execute as @e[type=minecraft:snowball,tag=${safeProjectileTag}] at @s run tag @a[distance=..${safeRadius}] add ${safeMenuTag}`,
+      `execute as @e[type=minecraft:snowball,tag=${safeProjectileTag}] at @s run scoreboard players set @a[distance=..${safeRadius}] ${safeObjectiveName} ${safeOpenScore}`,
+      `execute as @e[type=minecraft:snowball,tag=${safeProjectileTag}] at @s run title @a[distance=..${safeRadius}] actionbar ${JSON.stringify(safeTitleText)}`,
+      `execute as @e[type=minecraft:snowball,tag=${safeProjectileTag}] at @s run playsound ${safeSoundId} master @a[distance=..${safeRadius}] ~ ~ ~ 1 1 0`,
+      `kill @e[type=minecraft:snowball,tag=${safeProjectileTag}]`
+    ].join('\n');
+  },
+  snowballMenuHud: ({ menuTag, objectiveName, optionOneLabel, optionTwoLabel, optionThreeLabel }) => {
+    const safeMenuTag = menuTag.trim() || 'snowball_menu';
+    const safeObjectiveName = objectiveName.trim() || 'menuSelect';
+    const labelOne = optionOneLabel.trim() || '回城';
+    const labelTwo = optionTwoLabel.trim() || '补给';
+    const labelThree = optionThreeLabel.trim() || '治疗';
+    return [
+      `execute as @a[tag=${safeMenuTag},scores={${safeObjectiveName}=1}] run title @s actionbar ${JSON.stringify(`=> ${labelOne} | ${labelTwo} | ${labelThree}`)}`,
+      `execute as @a[tag=${safeMenuTag},scores={${safeObjectiveName}=2}] run title @s actionbar ${JSON.stringify(`${labelOne} | => ${labelTwo} | ${labelThree}`)}`,
+      `execute as @a[tag=${safeMenuTag},scores={${safeObjectiveName}=3}] run title @s actionbar ${JSON.stringify(`${labelOne} | ${labelTwo} | => ${labelThree}`)}`
+    ].join('\n');
+  },
+  snowballMenuRun: ({ menuTag, objectiveName, selectedScore, runCommand, cooldownObjective, cooldownTicks, clearAfterRun }) => {
+    const safeMenuTag = menuTag.trim() || 'snowball_menu';
+    const safeObjectiveName = objectiveName.trim() || 'menuSelect';
+    const safeSelectedScore = Math.max(1, Number.parseInt(selectedScore, 10) || 1);
+    const safeRunCommand = runCommand.trim() || 'tp @s 0 80 0';
+    const safeCooldownObjective = cooldownObjective.trim() || 'menuCooldown';
+    const safeCooldownTicks = Math.max(0, Number.parseInt(cooldownTicks, 10) || 40);
+    const selector = `@a[tag=${safeMenuTag},scores={${safeObjectiveName}=${safeSelectedScore}}]`;
+    const commands = [
+      `execute as ${selector} run ${safeRunCommand}`,
+      `scoreboard players set ${selector} ${safeCooldownObjective} ${safeCooldownTicks}`,
+      `scoreboard players set ${selector} ${safeObjectiveName} 0`
+    ];
+
+    if (clearAfterRun) {
+      commands.push(`tag ${selector} remove ${safeMenuTag}`);
+    }
+
+    return commands.join('\n');
+  },
+  banMenuOpen: ({ menuTag, objectiveName, pageObjective, moderatorSelector, targetName, openScore, titleText, soundId }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safePageObjective = pageObjective.trim() || 'banPage';
+    const safeModeratorSelector = moderatorSelector.trim() || '@p[tag=staff]';
+    const safeTargetName = targetName.trim() || 'TargetPlayer';
+    const safeOpenScore = Math.max(1, Number.parseInt(openScore, 10) || 1);
+    const safeTitleText = titleText.trim() || `封禁菜单已开启：目标 ${safeTargetName}`;
+    const safeSoundId = soundId.trim() || 'minecraft:block.note_block.pling';
+    return [
+      `tag ${safeModeratorSelector} add ${safeMenuTag}`,
+      `scoreboard players set ${safeModeratorSelector} ${safeObjectiveName} ${safeOpenScore}`,
+      `scoreboard players set ${safeModeratorSelector} ${safePageObjective} 1`,
+      `title ${safeModeratorSelector} actionbar ${JSON.stringify(safeTitleText)}`,
+      `playsound ${safeSoundId} master ${safeModeratorSelector} ~ ~ ~ 1 1 0`
+    ].join('\n');
+  },
+  banMenuSelect: ({ menuTag, objectiveName, triggerObjective, triggerScore, mode, optionCount, selectedValue, soundId }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safeTriggerObjective = triggerObjective.trim() || 'banClick';
+    const safeTriggerScore = Math.max(1, Number.parseInt(triggerScore, 10) || 1);
+    const safeMode = mode || 'next';
+    const safeOptionCount = Math.max(2, Number.parseInt(optionCount, 10) || 4);
+    const safeSelectedValue = Math.min(safeOptionCount, Math.max(1, Number.parseInt(selectedValue, 10) || 1));
+    const safeSoundId = soundId.trim() || 'minecraft:ui.button.click';
+    const selector = `@a[tag=${safeMenuTag},scores={${safeTriggerObjective}=${safeTriggerScore}..}]`;
+    const commands = [];
+
+    if (safeMode === 'prev') {
+      commands.push(`scoreboard players remove ${selector} ${safeObjectiveName} 1`);
+      commands.push(`execute as @a[tag=${safeMenuTag},scores={${safeObjectiveName}=..0}] run scoreboard players set @s ${safeObjectiveName} ${safeOptionCount}`);
+    } else if (safeMode === 'direct') {
+      commands.push(`scoreboard players set ${selector} ${safeObjectiveName} ${safeSelectedValue}`);
+    } else {
+      commands.push(`scoreboard players add ${selector} ${safeObjectiveName} 1`);
+      commands.push(`execute as @a[tag=${safeMenuTag},scores={${safeObjectiveName}=${safeOptionCount + 1}..}] run scoreboard players set @s ${safeObjectiveName} 1`);
+    }
+
+    commands.push(`scoreboard players set ${selector} ${safeTriggerObjective} 0`);
+    commands.push(`execute as ${selector} run playsound ${safeSoundId} master @s ~ ~ ~ 0.7 1.2 0`);
+    return commands.join('\n');
+  },
+  banMenuHud: ({ menuTag, objectiveName, pageObjective, pageValue, optionOneLabel, optionTwoLabel, optionThreeLabel, optionFourLabel }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safePageObjective = pageObjective.trim() || 'banPage';
+    const safePageValue = Math.max(1, Number.parseInt(pageValue, 10) || 1);
+    const labelOne = optionOneLabel.trim() || '24h封禁';
+    const labelTwo = optionTwoLabel.trim() || '永久封禁';
+    const labelThree = optionThreeLabel.trim() || '踢出玩家';
+    const labelFour = optionFourLabel.trim() || '解封玩家';
+    const selectorBase = `@a[tag=${safeMenuTag},scores={${safePageObjective}=${safePageValue}}]`;
+    return [
+      `execute as ${selectorBase}[scores={${safeObjectiveName}=1}] run title @s actionbar ${JSON.stringify(`=> ${labelOne} | ${labelTwo} | ${labelThree} | ${labelFour}`)}`,
+      `execute as ${selectorBase}[scores={${safeObjectiveName}=2}] run title @s actionbar ${JSON.stringify(`${labelOne} | => ${labelTwo} | ${labelThree} | ${labelFour}`)}`,
+      `execute as ${selectorBase}[scores={${safeObjectiveName}=3}] run title @s actionbar ${JSON.stringify(`${labelOne} | ${labelTwo} | => ${labelThree} | ${labelFour}`)}`,
+      `execute as ${selectorBase}[scores={${safeObjectiveName}=4}] run title @s actionbar ${JSON.stringify(`${labelOne} | ${labelTwo} | ${labelThree} | => ${labelFour}`)}`
+    ].join('\n');
+  },
+  banMenuPage: ({ menuTag, pageObjective, triggerObjective, triggerScore, direction, maxPage, directPage, soundId }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safePageObjective = pageObjective.trim() || 'banPage';
+    const safeTriggerObjective = triggerObjective.trim() || 'banPageClick';
+    const safeTriggerScore = Math.max(1, Number.parseInt(triggerScore, 10) || 1);
+    const safeDirection = direction || 'next';
+    const safeMaxPage = Math.max(2, Number.parseInt(maxPage, 10) || 2);
+    const safeDirectPage = Math.min(safeMaxPage, Math.max(1, Number.parseInt(directPage, 10) || 1));
+    const safeSoundId = soundId.trim() || 'minecraft:item.book.page_turn';
+    const selector = `@a[tag=${safeMenuTag},scores={${safeTriggerObjective}=${safeTriggerScore}..}]`;
+    const commands = [];
+
+    if (safeDirection === 'prev') {
+      commands.push(`scoreboard players remove ${selector} ${safePageObjective} 1`);
+      commands.push(`execute as @a[tag=${safeMenuTag},scores={${safePageObjective}=..0}] run scoreboard players set @s ${safePageObjective} ${safeMaxPage}`);
+    } else if (safeDirection === 'direct') {
+      commands.push(`scoreboard players set ${selector} ${safePageObjective} ${safeDirectPage}`);
+    } else {
+      commands.push(`scoreboard players add ${selector} ${safePageObjective} 1`);
+      commands.push(`execute as @a[tag=${safeMenuTag},scores={${safePageObjective}=${safeMaxPage + 1}..}] run scoreboard players set @s ${safePageObjective} 1`);
+    }
+
+    commands.push(`scoreboard players set ${selector} ${safeTriggerObjective} 0`);
+    commands.push(`execute as ${selector} run playsound ${safeSoundId} master @s ~ ~ ~ 0.8 1 0`);
+    return commands.join('\n');
+  },
+  banMenuBan: ({ menuTag, objectiveName, selectedScore, targetName, banMode, durationText, reason, clearAfterRun }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safeSelectedScore = Math.max(1, Number.parseInt(selectedScore, 10) || 1);
+    const safeTargetName = targetName.trim() || 'TargetPlayer';
+    const safeBanMode = banMode || 'tempban';
+    const safeDurationText = durationText.trim() || '24h';
+    const safeReason = reason.trim() || '违反服务器规则';
+    const selector = `@a[tag=${safeMenuTag},scores={${safeObjectiveName}=${safeSelectedScore}}]`;
+    const commandText = safeBanMode === 'permaban'
+      ? `ban ${safeTargetName} ${safeReason}`
+      : `tempban ${safeTargetName} ${safeDurationText} ${safeReason}`;
+    const commands = [
+      `execute as ${selector} run ${commandText}`,
+      `title ${selector} actionbar ${JSON.stringify(`已对 ${safeTargetName} 执行${safeBanMode === 'permaban' ? '永久封禁' : `临时封禁 ${safeDurationText}`}`)}`,
+      `scoreboard players set ${selector} ${safeObjectiveName} 0`
+    ];
+
+    if (clearAfterRun) {
+      commands.push(`tag ${selector} remove ${safeMenuTag}`);
+    }
+
+    return commands.join('\n');
+  },
+  banMenuKick: ({ menuTag, objectiveName, selectedScore, targetName, reason, clearAfterRun }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safeSelectedScore = Math.max(1, Number.parseInt(selectedScore, 10) || 1);
+    const safeTargetName = targetName.trim() || 'TargetPlayer';
+    const safeReason = reason.trim() || '管理员手动移出';
+    const selector = `@a[tag=${safeMenuTag},scores={${safeObjectiveName}=${safeSelectedScore}}]`;
+    const commands = [
+      `execute as ${selector} run kick ${safeTargetName} ${safeReason}`,
+      `title ${selector} actionbar ${JSON.stringify(`已踢出 ${safeTargetName}`)}`,
+      `scoreboard players set ${selector} ${safeObjectiveName} 0`
+    ];
+
+    if (clearAfterRun) {
+      commands.push(`tag ${selector} remove ${safeMenuTag}`);
+    }
+
+    return commands.join('\n');
+  },
+  banMenuUnban: ({ menuTag, objectiveName, selectedScore, targetName, clearAfterRun }) => {
+    const safeMenuTag = menuTag.trim() || 'ban_menu';
+    const safeObjectiveName = objectiveName.trim() || 'banSelect';
+    const safeSelectedScore = Math.max(1, Number.parseInt(selectedScore, 10) || 1);
+    const safeTargetName = targetName.trim() || 'TargetPlayer';
+    const selector = `@a[tag=${safeMenuTag},scores={${safeObjectiveName}=${safeSelectedScore}}]`;
+    const commands = [
+      `execute as ${selector} run pardon ${safeTargetName}`,
+      `title ${selector} actionbar ${JSON.stringify(`已解封 ${safeTargetName}`)}`,
+      `scoreboard players set ${selector} ${safeObjectiveName} 0`
+    ];
+
+    if (clearAfterRun) {
+      commands.push(`tag ${selector} remove ${safeMenuTag}`);
+    }
+
+    return commands.join('\n');
+  },
+  banRecordQuery: ({ pluginType, queryMode, targetName, page, pageSize, includeIp }) => {
+    const safePluginType = pluginType || 'vanilla';
+    const safeQueryMode = queryMode || 'banlist';
+    const safeTargetName = targetName.trim() || 'TargetPlayer';
+    const safePage = Math.max(1, Number.parseInt(page, 10) || 1);
+    const safePageSize = Math.max(1, Number.parseInt(pageSize, 10) || 10);
+
+    if (safePluginType === 'litebans') {
+      if (safeQueryMode === 'history') {
+        return `litebans history ${safeTargetName} ${safePage}`;
+      }
+
+      if (safeQueryMode === 'check') {
+        return `litebans checkban ${safeTargetName}`;
+      }
+
+      return `litebans bans ${safeTargetName}`;
+    }
+
+    if (safePluginType === 'advancedban') {
+      if (safeQueryMode === 'history') {
+        return `advancedban history ${safeTargetName} ${safePage}`;
+      }
+
+      if (safeQueryMode === 'check') {
+        return `advancedban check ${safeTargetName}`;
+      }
+
+      return `advancedban list ${safeTargetName} ${safePage} ${safePageSize}`;
+    }
+
+    if (safeQueryMode === 'iplist') {
+      return includeIp ? 'banlist ips' : 'banlist';
+    }
+
+    if (safeQueryMode === 'check') {
+      return `banlist | findstr ${safeTargetName}`;
+    }
+
+    return 'banlist';
   }
 };
 
 try {
   const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-  const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
+  const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
   localStorage.setItem('mctools-ui', nextUi);
   document.documentElement.dataset.ui = nextUi;
 } catch {
@@ -249,10 +486,584 @@ const VIP_COMPLEX_COMMANDS = new Set([
   'dataMergeEntity',
   'attributeBase',
   'scheduleFunction',
-  'fillBiome'
+  'fillBiome',
+  'snowballMenuOpen',
+  'snowballMenuHud',
+  'snowballMenuRun',
+  'banMenuOpen',
+  'banMenuSelect',
+  'banMenuHud',
+  'banMenuPage',
+  'banMenuBan',
+  'banMenuKick',
+  'banMenuUnban',
+  'banRecordQuery'
 ]);
 
 let currentMe = null;
+let currentHistoryItems = [];
+
+const COMMAND_PRESETS = {
+  tp: [
+    {
+      id: 'spawn',
+      name: '回到主城',
+      description: '把玩家传送到主城广场。',
+      values: { target: '@p', destination: '0 80 0' }
+    },
+    {
+      id: 'team',
+      name: '传送到队友',
+      description: '快速传送到最近的队友或队长。',
+      values: { target: '@p', destination: '@a[team=red,limit=1]' }
+    }
+  ],
+  give: [
+    {
+      id: 'starter',
+      name: '开荒礼包',
+      description: '发放前期常用的钻石工具。',
+      values: { target: '@p', item: 'minecraft:diamond_pickaxe', count: '1' }
+    },
+    {
+      id: 'blocks',
+      name: '建筑材料包',
+      description: '发放一组常用建筑方块。',
+      values: { target: '@p', item: 'minecraft:stone_bricks', count: '64' }
+    }
+  ],
+  summon: [
+    {
+      id: 'boss',
+      name: 'Boss 演示',
+      description: '召唤带名称的强化僵尸。',
+      values: {
+        entity: 'minecraft:zombie',
+        pos: '~ ~ ~',
+        extra: '{CustomName:"\\"Boss Zombie\\"",Health:80f,PersistenceRequired:1b}'
+      }
+    },
+    {
+      id: 'merchant',
+      name: '村民商人',
+      description: '召唤一个不会移动的展示商人。',
+      values: {
+        entity: 'minecraft:villager',
+        pos: '~ ~ ~',
+        extra: '{NoAI:1b,Invulnerable:1b,CustomName:"\\"工具商人\\""}'
+      }
+    }
+  ],
+  effect: [
+    {
+      id: 'speedrun',
+      name: '跑图加速',
+      description: '给玩家短时间高速移动。',
+      values: { target: '@p', effect: 'minecraft:speed', duration: '90', amplifier: '2', hideParticles: true }
+    }
+  ],
+  fill: [
+    {
+      id: 'wall',
+      name: '快速建墙',
+      description: '生成一面石砖墙。',
+      values: { fromPos: '~ ~ ~', toPos: '~20 ~5 ~', block: 'minecraft:stone_bricks', mode: 'replace' }
+    },
+    {
+      id: 'clear-space',
+      name: '清场挖空',
+      description: '把指定区域全部变成空气。',
+      values: { fromPos: '~ ~ ~', toPos: '~10 ~6 ~10', block: 'minecraft:air', mode: 'replace' }
+    }
+  ],
+  title: [
+    {
+      id: 'welcome',
+      name: '欢迎标题',
+      description: '进入服务器时显示欢迎信息。',
+      values: { targets: '@a', action: 'title', text: '{"text":"欢迎来到我的世界工具箱服务器","color":"gold"}' }
+    }
+  ],
+  gamerule: [
+    {
+      id: 'keep-inventory',
+      name: '保留背包',
+      description: '死亡后不掉落物品。',
+      values: { rule: 'keepInventory', value: 'true' }
+    }
+  ],
+  executeChain: [
+    {
+      id: 'diamond-check',
+      name: '脚下钻石块检测',
+      description: '检测玩家脚下是钻石块时执行命令。',
+      values: {
+        executor: '@p',
+        anchorPos: '~ ~ ~',
+        conditionType: 'ifBlock',
+        conditionValue: '~ ~-1 ~ minecraft:diamond_block',
+        runCommand: 'say 你站在钻石块上'
+      }
+    }
+  ],
+  scoreboardObjective: [
+    {
+      id: 'coins',
+      name: '金币计分板',
+      description: '创建一个金币计分板目标。',
+      values: { objectiveName: 'coins', criterion: 'dummy', displayName: 'Coins' }
+    }
+  ],
+  snowballMenuOpen: [
+    {
+      id: 'snowball-shop-open',
+      name: '雪球商店打开',
+      description: '玩家扔雪球后，给附近玩家打开 3 选 1 菜单。',
+      values: {
+        projectileTag: 'menu_ball',
+        menuTag: 'snowball_menu',
+        objectiveName: 'menuSelect',
+        radius: '5',
+        openScore: '1',
+        titleText: '雪球菜单已开启：请切换选项',
+        soundId: 'minecraft:block.note_block.pling'
+      }
+    }
+  ],
+  snowballMenuHud: [
+    {
+      id: 'snowball-shop-hud',
+      name: '雪球菜单显示',
+      description: '显示回城、补给、治疗三个选项。',
+      values: {
+        menuTag: 'snowball_menu',
+        objectiveName: 'menuSelect',
+        optionOneLabel: '回城',
+        optionTwoLabel: '补给',
+        optionThreeLabel: '治疗'
+      }
+    }
+  ],
+  snowballMenuRun: [
+    {
+      id: 'snowball-shop-run',
+      name: '雪球菜单执行',
+      description: '菜单选中第 1 项时把玩家传送回主城。',
+      values: {
+        menuTag: 'snowball_menu',
+        objectiveName: 'menuSelect',
+        selectedScore: '1',
+        runCommand: 'tp @s 0 80 0',
+        cooldownObjective: 'menuCooldown',
+        cooldownTicks: '40',
+        clearAfterRun: true
+      }
+    }
+  ],
+  banMenuOpen: [
+    {
+      id: 'ban-menu-open',
+      name: '封禁菜单开启',
+      description: '给管理员打开一个封禁菜单。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        pageObjective: 'banPage',
+        moderatorSelector: '@p[tag=staff]',
+        targetName: 'TargetPlayer',
+        openScore: '1',
+        titleText: '封禁菜单已开启：目标 TargetPlayer',
+        soundId: 'minecraft:block.note_block.pling'
+      }
+    }
+  ],
+  banMenuSelect: [
+    {
+      id: 'ban-menu-select',
+      name: '封禁菜单下一项',
+      description: '把封禁菜单切到下一个选项。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        triggerObjective: 'banClick',
+        triggerScore: '1',
+        mode: 'next',
+        optionCount: '4',
+        selectedValue: '1',
+        soundId: 'minecraft:ui.button.click'
+      }
+    }
+  ],
+  banMenuHud: [
+    {
+      id: 'ban-menu-hud',
+      name: '封禁菜单显示',
+      description: '显示封禁、永久封禁、踢出、解封四项。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        pageObjective: 'banPage',
+        pageValue: '1',
+        optionOneLabel: '24h封禁',
+        optionTwoLabel: '永久封禁',
+        optionThreeLabel: '踢出玩家',
+        optionFourLabel: '解封玩家'
+      }
+    }
+  ],
+  banMenuPage: [
+    {
+      id: 'ban-menu-page',
+      name: '封禁菜单翻页',
+      description: '在封禁菜单的多个页面间切换。',
+      values: {
+        menuTag: 'ban_menu',
+        pageObjective: 'banPage',
+        triggerObjective: 'banPageClick',
+        triggerScore: '1',
+        direction: 'next',
+        maxPage: '2',
+        directPage: '1',
+        soundId: 'minecraft:item.book.page_turn'
+      }
+    }
+  ],
+  banMenuBan: [
+    {
+      id: 'ban-menu-ban',
+      name: '封禁菜单执行封禁',
+      description: '对目标执行 24 小时临时封禁。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        selectedScore: '1',
+        targetName: 'TargetPlayer',
+        banMode: 'tempban',
+        durationText: '24h',
+        reason: '违反服务器规则',
+        clearAfterRun: true
+      }
+    }
+  ],
+  banMenuKick: [
+    {
+      id: 'ban-menu-kick',
+      name: '封禁菜单执行踢出',
+      description: '执行菜单中的踢出操作。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        selectedScore: '3',
+        targetName: 'TargetPlayer',
+        reason: '请先联系管理员',
+        clearAfterRun: true
+      }
+    }
+  ],
+  banMenuUnban: [
+    {
+      id: 'ban-menu-unban',
+      name: '封禁菜单执行解封',
+      description: '执行菜单中的解封操作。',
+      values: {
+        menuTag: 'ban_menu',
+        objectiveName: 'banSelect',
+        selectedScore: '4',
+        targetName: 'TargetPlayer',
+        clearAfterRun: true
+      }
+    }
+  ],
+  banRecordQuery: [
+    {
+      id: 'ban-record-litebans',
+      name: '查询玩家封禁记录',
+      description: '查询指定玩家的封禁历史记录。',
+      values: {
+        pluginType: 'litebans',
+        queryMode: 'history',
+        targetName: 'TargetPlayer',
+        page: '1',
+        pageSize: '10',
+        includeIp: false
+      }
+    }
+  ]
+};
+
+function safeJsonParse(raw, fallback) {
+  try {
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getScopedStorageKey(scope) {
+  const username = currentMe && currentMe.username ? currentMe.username : 'guest';
+  return `mctools:${scope}:${username}`;
+}
+
+function readScopedStorage(scope, fallback) {
+  try {
+    return safeJsonParse(localStorage.getItem(getScopedStorageKey(scope)), fallback);
+  } catch {
+    return fallback;
+  }
+}
+
+function writeScopedStorage(scope, value) {
+  try {
+    localStorage.setItem(getScopedStorageKey(scope), JSON.stringify(value));
+  } catch {
+    // Ignore storage write failure.
+  }
+}
+
+function getFavoriteCommands() {
+  const items = readScopedStorage('favorite-commands', []);
+  return Array.isArray(items) ? items : [];
+}
+
+function setFavoriteCommands(items) {
+  writeScopedStorage('favorite-commands', items);
+}
+
+function normalizeTagList(rawText) {
+  return Array.from(
+    new Set(
+      String(rawText || '')
+        .split(/[，,\s]+/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+    )
+  ).slice(0, 6);
+}
+
+function getHistoryTagMap() {
+  const tags = readScopedStorage('history-tags', {});
+  return tags && typeof tags === 'object' && !Array.isArray(tags) ? tags : {};
+}
+
+function setHistoryTagMap(map) {
+  writeScopedStorage('history-tags', map);
+}
+
+function getHistoryTagsById(id) {
+  const map = getHistoryTagMap();
+  const tags = map[String(id)];
+  return Array.isArray(tags) ? tags : [];
+}
+
+function setHistoryTagsById(id, rawText) {
+  const map = getHistoryTagMap();
+  const tags = normalizeTagList(rawText);
+
+  if (tags.length) {
+    map[String(id)] = tags;
+  } else {
+    delete map[String(id)];
+  }
+
+  setHistoryTagMap(map);
+}
+
+function getCommandPresets(commandName) {
+  return COMMAND_PRESETS[commandName] || [];
+}
+
+function fillCardValues(card, values) {
+  if (!card || !values) {
+    return;
+  }
+
+  card.querySelectorAll('[data-field]').forEach((element) => {
+    const key = element.getAttribute('data-field');
+
+    if (!key || !(key in values)) {
+      return;
+    }
+
+    if (element.type === 'checkbox') {
+      element.checked = Boolean(values[key]);
+      return;
+    }
+
+    element.value = values[key];
+  });
+}
+
+function renderTemplateLibrary(commandName) {
+  const container = document.querySelector('[data-template-list]');
+
+  if (!container) {
+    return;
+  }
+
+  const presets = getCommandPresets(commandName);
+
+  if (!presets.length) {
+    container.innerHTML = '<p class="empty-state">当前指令暂无快捷模板</p>';
+    return;
+  }
+
+  container.innerHTML = presets.map((preset) => `
+    <article class="template-item">
+      <div>
+        <strong>${escapeHtml(preset.name)}</strong>
+        <p>${escapeHtml(preset.description)}</p>
+      </div>
+      <button type="button" class="ghost-button compact-button template-apply-button" data-template-apply="${escapeHtml(preset.id)}">套用模板</button>
+    </article>
+  `).join('');
+}
+
+function applyCommandPreset(commandName, presetId) {
+  const presets = getCommandPresets(commandName);
+  const preset = presets.find((item) => item.id === presetId);
+  const card = getCurrentCard();
+
+  if (!preset || !card) {
+    return;
+  }
+
+  fillCardValues(card, preset.values);
+  updateCard(card);
+  setCommandAccessMessage(`已套用模板：${preset.name}`);
+}
+
+function renderFavoriteCommands() {
+  const container = document.querySelector('[data-favorites-list]');
+
+  if (!container) {
+    return;
+  }
+
+  const items = getFavoriteCommands();
+
+  if (!items.length) {
+    container.innerHTML = '<p class="empty-state">还没有收藏任何指令</p>';
+    return;
+  }
+
+  container.innerHTML = items.map((item) => `
+    <article class="favorite-item">
+      <div class="history-item-head">
+        <strong>${escapeHtml(item.title)}</strong>
+        <span>${escapeHtml(item.commandName)}</span>
+      </div>
+      <code>${escapeHtml(item.commandText)}</code>
+      <div class="favorite-item-actions">
+        <button type="button" class="ghost-button compact-button" data-favorite-apply="${escapeHtml(item.id)}">载入</button>
+        <button type="button" class="ghost-button compact-button" data-favorite-copy="${escapeHtml(item.id)}">复制</button>
+        <button type="button" class="history-delete" data-favorite-delete="${escapeHtml(item.id)}">删除</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+async function copyTextValue(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const helper = document.createElement('textarea');
+    helper.value = text;
+    document.body.appendChild(helper);
+    helper.select();
+    document.execCommand('copy');
+    helper.remove();
+  }
+}
+
+async function saveCurrentFavorite(card) {
+  const commandName = card ? card.getAttribute('data-command') : '';
+  const output = card ? card.querySelector('[data-output]') : null;
+
+  if (!card || !commandName || !output) {
+    return;
+  }
+
+  if (!output.value.trim()) {
+    updateCard(card);
+  }
+
+  const title = window.prompt('请输入收藏名称', `${COMMAND_TEMPLATES[commandName].title} 收藏`);
+
+  if (!title) {
+    return;
+  }
+
+  const items = getFavoriteCommands();
+  items.unshift({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    title: title.trim(),
+    commandName,
+    commandText: output.value.trim(),
+    inputs: getCardValues(card),
+    createdAt: new Date().toISOString()
+  });
+
+  setFavoriteCommands(items.slice(0, 30));
+  renderFavoriteCommands();
+  setCommandAccessMessage('当前指令已加入收藏夹。');
+}
+
+function applyFavoriteCommand(favoriteId) {
+  const favorite = getFavoriteCommands().find((item) => item.id === favoriteId);
+
+  if (!favorite || !commandPicker || !commandHost) {
+    return;
+  }
+
+  if (commandPicker.value !== favorite.commandName) {
+    commandPicker.value = favorite.commandName;
+    renderSelectedCommand(favorite.commandName, commandHost);
+  }
+
+  const card = getCurrentCard();
+  if (!card) {
+    return;
+  }
+
+  fillCardValues(card, favorite.inputs || {});
+  updateCard(card);
+  setCommandAccessMessage(`已载入收藏：${favorite.title}`);
+}
+
+function deleteFavoriteCommand(favoriteId) {
+  const items = getFavoriteCommands().filter((item) => item.id !== favoriteId);
+  setFavoriteCommands(items);
+  renderFavoriteCommands();
+}
+
+function saveHistoryItemToFavorites(historyId) {
+  const historyItem = currentHistoryItems.find((item) => String(item.id) === String(historyId));
+
+  if (!historyItem) {
+    return;
+  }
+
+  const items = getFavoriteCommands();
+  items.unshift({
+    id: `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+    title: `${historyItem.commandName} 历史收藏`,
+    commandName: historyItem.commandName,
+    commandText: historyItem.commandText,
+    inputs: safeJsonParse(historyItem.inputJson, {}),
+    createdAt: new Date().toISOString()
+  });
+  setFavoriteCommands(items.slice(0, 30));
+  renderFavoriteCommands();
+}
 
 const COMMAND_TEMPLATES = {
   tp: {
@@ -1019,6 +1830,482 @@ const COMMAND_TEMPLATES = {
         </label>
       </div>
     `
+  },
+  snowballMenuOpen: {
+    title: '雪球菜单开启',
+    description: 'VIP 复杂指令，用于侦测雪球并打开一个附近玩家菜单',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          雪球标签
+          <input type="text" data-field="projectileTag" placeholder="menu_ball" value="menu_ball" />
+        </label>
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="snowball_menu" value="snowball_menu" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="menuSelect" value="menuSelect" />
+        </label>
+        <label>
+          生效半径
+          <input type="number" min="1" step="0.5" data-field="radius" value="5" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          初始选项分数
+          <input type="number" min="1" data-field="openScore" value="1" />
+        </label>
+        <label>
+          打开音效
+          <input type="text" data-field="soundId" placeholder="minecraft:block.note_block.pling" value="minecraft:block.note_block.pling" />
+        </label>
+      </div>
+      <label>
+        动作栏提示文案
+        <input type="text" data-field="titleText" placeholder="雪球菜单已开启" value="雪球菜单已开启：请切换选项" />
+      </label>
+    `
+  },
+  snowballMenuHud: {
+    title: '雪球菜单显示',
+    description: 'VIP 复杂指令，用于按当前分数显示 3 项菜单内容',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="snowball_menu" value="snowball_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="menuSelect" value="menuSelect" />
+        </label>
+      </div>
+      <div class="fields three-col">
+        <label>
+          选项 1 文案
+          <input type="text" data-field="optionOneLabel" placeholder="回城" value="回城" />
+        </label>
+        <label>
+          选项 2 文案
+          <input type="text" data-field="optionTwoLabel" placeholder="补给" value="补给" />
+        </label>
+        <label>
+          选项 3 文案
+          <input type="text" data-field="optionThreeLabel" placeholder="治疗" value="治疗" />
+        </label>
+      </div>
+    `
+  },
+  snowballMenuRun: {
+    title: '雪球菜单执行',
+    description: 'VIP 复杂指令，用于当玩家选中指定菜单项后执行命令',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="snowball_menu" value="snowball_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="menuSelect" value="menuSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          触发选项分数
+          <input type="number" min="1" data-field="selectedScore" value="1" />
+        </label>
+        <label>
+          冷却分数项
+          <input type="text" data-field="cooldownObjective" placeholder="menuCooldown" value="menuCooldown" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          冷却 Tick
+          <input type="number" min="0" data-field="cooldownTicks" value="40" />
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" data-field="clearAfterRun" checked />
+          执行后移除菜单标签
+        </label>
+      </div>
+      <label>
+        执行命令
+        <input type="text" data-field="runCommand" placeholder="tp @s 0 80 0" value="tp @s 0 80 0" />
+      </label>
+    `
+  },
+  banMenuOpen: {
+    title: '封禁菜单开启',
+    description: 'VIP 复杂指令，用于初始化管理员封禁菜单',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          选项分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          页码分数项
+          <input type="text" data-field="pageObjective" placeholder="banPage" value="banPage" />
+        </label>
+        <label>
+          管理员选择器
+          <input type="text" data-field="moderatorSelector" placeholder="@p[tag=staff]" value="@p[tag=staff]" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          目标玩家名称
+          <input type="text" data-field="targetName" placeholder="TargetPlayer" value="TargetPlayer" />
+        </label>
+        <label>
+          初始选项分数
+          <input type="number" min="1" data-field="openScore" value="1" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          动作栏文案
+          <input type="text" data-field="titleText" placeholder="封禁菜单已开启" value="封禁菜单已开启：目标 TargetPlayer" />
+        </label>
+        <label>
+          打开音效
+          <input type="text" data-field="soundId" placeholder="minecraft:block.note_block.pling" value="minecraft:block.note_block.pling" />
+        </label>
+      </div>
+    `
+  },
+  banMenuSelect: {
+    title: '封禁菜单选择',
+    description: 'VIP 复杂指令，用于切换封禁菜单当前选项',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          触发分数项
+          <input type="text" data-field="triggerObjective" placeholder="banClick" value="banClick" />
+        </label>
+        <label>
+          触发阈值
+          <input type="number" min="1" data-field="triggerScore" value="1" />
+        </label>
+      </div>
+      <div class="fields three-col">
+        <label>
+          切换模式
+          <select data-field="mode">
+            <option value="next" selected>next 下一项</option>
+            <option value="prev">prev 上一项</option>
+            <option value="direct">direct 指定选项</option>
+          </select>
+        </label>
+        <label>
+          总选项数
+          <input type="number" min="2" data-field="optionCount" value="4" />
+        </label>
+        <label>
+          direct 目标值
+          <input type="number" min="1" data-field="selectedValue" value="1" />
+        </label>
+      </div>
+      <label>
+        切换音效
+        <input type="text" data-field="soundId" placeholder="minecraft:ui.button.click" value="minecraft:ui.button.click" />
+      </label>
+    `
+  },
+  banMenuHud: {
+    title: '封禁菜单显示',
+    description: 'VIP 复杂指令，用于显示封禁菜单当前页的选项文案',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          页码分数项
+          <input type="text" data-field="pageObjective" placeholder="banPage" value="banPage" />
+        </label>
+        <label>
+          对应页码
+          <input type="number" min="1" data-field="pageValue" value="1" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          选项 1 文案
+          <input type="text" data-field="optionOneLabel" placeholder="24h封禁" value="24h封禁" />
+        </label>
+        <label>
+          选项 2 文案
+          <input type="text" data-field="optionTwoLabel" placeholder="永久封禁" value="永久封禁" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          选项 3 文案
+          <input type="text" data-field="optionThreeLabel" placeholder="踢出玩家" value="踢出玩家" />
+        </label>
+        <label>
+          选项 4 文案
+          <input type="text" data-field="optionFourLabel" placeholder="解封玩家" value="解封玩家" />
+        </label>
+      </div>
+    `
+  },
+  banMenuPage: {
+    title: '封禁菜单翻页',
+    description: 'VIP 复杂指令，用于切换封禁菜单页码',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          页码分数项
+          <input type="text" data-field="pageObjective" placeholder="banPage" value="banPage" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          触发分数项
+          <input type="text" data-field="triggerObjective" placeholder="banPageClick" value="banPageClick" />
+        </label>
+        <label>
+          触发阈值
+          <input type="number" min="1" data-field="triggerScore" value="1" />
+        </label>
+      </div>
+      <div class="fields three-col">
+        <label>
+          翻页模式
+          <select data-field="direction">
+            <option value="next" selected>next 下一页</option>
+            <option value="prev">prev 上一页</option>
+            <option value="direct">direct 指定页</option>
+          </select>
+        </label>
+        <label>
+          最大页码
+          <input type="number" min="2" data-field="maxPage" value="2" />
+        </label>
+        <label>
+          direct 目标页
+          <input type="number" min="1" data-field="directPage" value="1" />
+        </label>
+      </div>
+      <label>
+        翻页音效
+        <input type="text" data-field="soundId" placeholder="minecraft:item.book.page_turn" value="minecraft:item.book.page_turn" />
+      </label>
+    `
+  },
+  banMenuBan: {
+    title: '封禁菜单执行封禁',
+    description: 'VIP 复杂指令，用于执行临时或永久封禁',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          对应选项分数
+          <input type="number" min="1" data-field="selectedScore" value="1" />
+        </label>
+        <label>
+          目标玩家名称
+          <input type="text" data-field="targetName" placeholder="TargetPlayer" value="TargetPlayer" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          封禁类型
+          <select data-field="banMode">
+            <option value="tempban" selected>tempban 临时封禁</option>
+            <option value="permaban">ban 永久封禁</option>
+          </select>
+        </label>
+        <label>
+          临时封禁时长
+          <input type="text" data-field="durationText" placeholder="24h" value="24h" />
+        </label>
+      </div>
+      <div class="quick-fill-group">
+        <span class="quick-fill-label">时长快捷</span>
+        <div class="quick-fill-row">
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="durationText" data-fill-value="1h">1 小时</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="durationText" data-fill-value="12h">12 小时</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="durationText" data-fill-value="24h">24 小时</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="durationText" data-fill-value="7d">7 天</button>
+        </div>
+      </div>
+      <div class="fields two-col">
+        <label>
+          原因
+          <input type="text" data-field="reason" placeholder="违反服务器规则" value="违反服务器规则" />
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" data-field="clearAfterRun" checked />
+          执行后移除菜单标签
+        </label>
+      </div>
+      <div class="quick-fill-group">
+        <span class="quick-fill-label">理由预设</span>
+        <div class="quick-fill-row">
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="reason" data-fill-value="作弊与使用非法客户端">作弊</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="reason" data-fill-value="恶意破坏与影响其他玩家体验">恶意破坏</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="reason" data-fill-value="辱骂、刷屏或不当言论">言语违规</button>
+          <button type="button" class="ghost-button compact-button quick-fill-button" data-fill-field="reason" data-fill-value="多次违规且拒不整改">多次违规</button>
+        </div>
+      </div>
+    `
+  },
+  banMenuKick: {
+    title: '封禁菜单执行踢出',
+    description: 'VIP 复杂指令，用于执行踢出操作',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          对应选项分数
+          <input type="number" min="1" data-field="selectedScore" value="3" />
+        </label>
+        <label>
+          目标玩家名称
+          <input type="text" data-field="targetName" placeholder="TargetPlayer" value="TargetPlayer" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          踢出原因
+          <input type="text" data-field="reason" placeholder="请先联系管理员" value="请先联系管理员" />
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" data-field="clearAfterRun" checked />
+          执行后移除菜单标签
+        </label>
+      </div>
+    `
+  },
+  banMenuUnban: {
+    title: '封禁菜单执行解封',
+    description: 'VIP 复杂指令，用于执行解封操作',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          菜单标签
+          <input type="text" data-field="menuTag" placeholder="ban_menu" value="ban_menu" />
+        </label>
+        <label>
+          菜单分数项
+          <input type="text" data-field="objectiveName" placeholder="banSelect" value="banSelect" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          对应选项分数
+          <input type="number" min="1" data-field="selectedScore" value="4" />
+        </label>
+        <label>
+          目标玩家名称
+          <input type="text" data-field="targetName" placeholder="TargetPlayer" value="TargetPlayer" />
+        </label>
+      </div>
+      <label class="inline-check">
+        <input type="checkbox" data-field="clearAfterRun" checked />
+        执行后移除菜单标签
+      </label>
+    `
+  },
+  banRecordQuery: {
+    title: '封禁记录查询',
+    description: 'VIP 复杂指令，用于生成常见服务端封禁记录查询命令',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          服务端插件
+          <select data-field="pluginType">
+            <option value="vanilla">vanilla 原版</option>
+            <option value="litebans" selected>LiteBans</option>
+            <option value="advancedban">AdvancedBan</option>
+          </select>
+        </label>
+        <label>
+          查询类型
+          <select data-field="queryMode">
+            <option value="history" selected>history 历史记录</option>
+            <option value="check">check 当前状态</option>
+            <option value="list">list 列表查询</option>
+            <option value="iplist">iplist IP 封禁列表</option>
+          </select>
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          目标玩家名称
+          <input type="text" data-field="targetName" placeholder="TargetPlayer" value="TargetPlayer" />
+        </label>
+        <label>
+          页码
+          <input type="number" min="1" data-field="page" value="1" />
+        </label>
+      </div>
+      <div class="fields two-col">
+        <label>
+          每页数量
+          <input type="number" min="1" data-field="pageSize" value="10" />
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" data-field="includeIp" />
+          原版 banlist 时附带 IP 列表
+        </label>
+      </div>
+    `
   }
 };
 
@@ -1083,9 +2370,10 @@ function buildCommandTemplate(commandName) {
         生成结果
         <textarea data-output readonly rows="2"></textarea>
       </label>
-      <div class="button-row">
+      <div class="button-row button-row-wide">
         <button type="button" class="copy-btn" data-generate>生成指令</button>
         <button type="button" class="copy-btn secondary" data-copy>复制结果</button>
+        <button type="button" class="copy-btn secondary" data-save-favorite>收藏当前配置</button>
       </div>
     </article>
   `;
@@ -1187,6 +2475,7 @@ async function saveCurrentCommand(card) {
 function renderSelectedCommand(commandName, host) {
   host.innerHTML = buildCommandTemplate(commandName);
   const card = host.querySelector('.command-card');
+  renderTemplateLibrary(commandName);
 
   if (isVipOnlyCommand(commandName)) {
     setCommandAccessMessage(
@@ -1195,9 +2484,26 @@ function renderSelectedCommand(commandName, host) {
         : '当前是工具箱中的 VIP 复杂指令，未开通 VIP 时仅可查看，无法生成与保存。'
     );
   } else {
-    setCommandAccessMessage('工具箱第一阶段先做指令。基础指令对所有已登录用户开放，10 条复杂指令为 VIP 专用。');
+    setCommandAccessMessage('工具箱第一阶段先做指令。基础指令对所有已登录用户开放，21 条复杂指令为 VIP 专用。');
   }
 
+
+function applyQuickFill(fieldName, fieldValue) {
+  const card = getCurrentCard();
+
+  if (!card || !fieldName) {
+    return;
+  }
+
+  const field = card.querySelector(`[data-field="${fieldName}"]`);
+
+  if (!field) {
+    return;
+  }
+
+  field.value = fieldValue;
+  updateCard(card);
+}
   if (card) {
     setupCard(card);
   }
@@ -1672,12 +2978,13 @@ function updateVipState(me) {
 
 async function loadCommandHistory(keyword = '') {
   const historyList = document.querySelector('[data-history-list]');
+  const historyTagFilter = document.querySelector('[data-history-tag]');
 
   if (!historyList) {
     return;
   }
 
-  const params = new URLSearchParams({ limit: '10' });
+  const params = new URLSearchParams({ limit: '30' });
 
   if (keyword.trim()) {
     params.set('keyword', keyword.trim());
@@ -1691,21 +2998,38 @@ async function loadCommandHistory(keyword = '') {
   }
 
   const result = await response.json();
-  const items = result.items || [];
+  const rawItems = result.items || [];
+  const tagKeyword = historyTagFilter ? historyTagFilter.value.trim().toLowerCase() : '';
+  currentHistoryItems = rawItems;
+  const items = rawItems.filter((item) => {
+    if (!tagKeyword) {
+      return true;
+    }
+
+    return getHistoryTagsById(item.id).some((tag) => tag.toLowerCase().includes(tagKeyword));
+  });
 
   if (!items.length) {
-    historyList.innerHTML = '<p class="empty-state">还没有保存过指令</p>';
+    historyList.innerHTML = `<p class="empty-state">${tagKeyword ? '当前标签筛选下没有匹配记录' : '还没有保存过指令'}</p>`;
     return;
   }
 
   historyList.innerHTML = items.map((item) => `
     <article class="history-item">
       <div class="history-item-head">
-        <strong>${item.commandName}</strong>
-        <span>${item.createdAt}</span>
+        <strong>${escapeHtml(item.commandName)}</strong>
+        <span>${escapeHtml(item.createdAt)}</span>
       </div>
-      <code>${item.commandText}</code>
-      <button type="button" class="history-delete" data-history-delete="${item.id}">删除</button>
+      <code>${escapeHtml(item.commandText)}</code>
+      <div class="history-tag-list">${getHistoryTagsById(item.id).map((tag) => `<span class="history-tag">${escapeHtml(tag)}</span>`).join('') || '<span class="history-tag muted">未设置标签</span>'}</div>
+      <div class="history-tag-editor">
+        <input type="text" class="history-tag-input" data-history-tag-input="${item.id}" value="${escapeHtml(getHistoryTagsById(item.id).join(', '))}" placeholder="输入标签，空格或逗号分隔" />
+        <button type="button" class="ghost-button compact-button" data-history-tag-save="${item.id}">保存标签</button>
+      </div>
+      <div class="favorite-item-actions">
+        <button type="button" class="ghost-button compact-button" data-history-favorite="${item.id}">加入收藏</button>
+        <button type="button" class="history-delete" data-history-delete="${item.id}">删除</button>
+      </div>
     </article>
   `).join('');
 }
@@ -1831,6 +3155,7 @@ const logoutButton = document.querySelector('[data-logout]');
 const accountPill = document.querySelector('[data-account-pill]');
 const historyRefresh = document.querySelector('[data-history-refresh]');
 const historyKeyword = document.querySelector('[data-history-keyword]');
+const historyTagFilter = document.querySelector('[data-history-tag]');
 const vipPurchaseButton = document.querySelector('[data-vip-purchase]');
 const svipPurchaseButton = document.querySelector('[data-svip-purchase]');
 const aiGenerateButton = document.querySelector('[data-ai-generate]');
@@ -1849,6 +3174,74 @@ if (commandPicker && commandHost) {
   });
 
   document.addEventListener('click', async (event) => {
+    const templateButton = event.target.closest('[data-template-apply]');
+
+    if (templateButton && commandPicker) {
+      applyCommandPreset(commandPicker.value, templateButton.getAttribute('data-template-apply') || '');
+      return;
+    }
+
+    const quickFillButton = event.target.closest('[data-fill-field]');
+
+    if (quickFillButton) {
+      applyQuickFill(
+        quickFillButton.getAttribute('data-fill-field') || '',
+        quickFillButton.getAttribute('data-fill-value') || ''
+      );
+      return;
+    }
+
+    const saveFavoriteButton = event.target.closest('[data-save-favorite]');
+
+    if (saveFavoriteButton) {
+      const card = getCurrentCard();
+      if (card) {
+        await saveCurrentFavorite(card);
+      }
+      return;
+    }
+
+    const favoriteApplyButton = event.target.closest('[data-favorite-apply]');
+
+    if (favoriteApplyButton) {
+      applyFavoriteCommand(favoriteApplyButton.getAttribute('data-favorite-apply') || '');
+      return;
+    }
+
+    const favoriteCopyButton = event.target.closest('[data-favorite-copy]');
+
+    if (favoriteCopyButton) {
+      const favorite = getFavoriteCommands().find((item) => item.id === (favoriteCopyButton.getAttribute('data-favorite-copy') || ''));
+      if (favorite) {
+        await copyTextValue(favorite.commandText);
+      }
+      return;
+    }
+
+    const favoriteDeleteButton = event.target.closest('[data-favorite-delete]');
+
+    if (favoriteDeleteButton) {
+      deleteFavoriteCommand(favoriteDeleteButton.getAttribute('data-favorite-delete') || '');
+      return;
+    }
+
+    const historyTagSaveButton = event.target.closest('[data-history-tag-save]');
+
+    if (historyTagSaveButton) {
+      const historyId = historyTagSaveButton.getAttribute('data-history-tag-save') || '';
+      const input = document.querySelector(`[data-history-tag-input="${historyId}"]`);
+      setHistoryTagsById(historyId, input ? input.value : '');
+      await loadCommandHistory(historyKeyword ? historyKeyword.value : '');
+      return;
+    }
+
+    const historyFavoriteButton = event.target.closest('[data-history-favorite]');
+
+    if (historyFavoriteButton) {
+      saveHistoryItemToFavorites(historyFavoriteButton.getAttribute('data-history-favorite') || '');
+      return;
+    }
+
     const button = event.target.closest('[data-generate]');
 
     if (!button) {
@@ -1942,6 +3335,15 @@ if (historyKeyword) {
   });
 }
 
+if (historyTagFilter) {
+  historyTagFilter.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      loadCommandHistory(historyKeyword ? historyKeyword.value : '');
+    }
+  });
+}
+
 if (aiGenerateButton) {
   aiGenerateButton.addEventListener('click', generateAi);
 }
@@ -1997,6 +3399,7 @@ fetchMe()
     if (me) {
       updateVipState(me);
       updateAvatar(me);
+      renderFavoriteCommands();
     }
 
     return loadCommandHistory(historyKeyword ? historyKeyword.value : '');

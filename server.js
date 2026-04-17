@@ -12,7 +12,7 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const appVersion = 'beta1.2.0';
+const appVersion = 'beta1.5.1';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const maintenanceAdminAccount = {
   username: 'maintenance_admin',
@@ -30,7 +30,18 @@ const vipOnlyCommandNames = new Set([
   'dataMergeEntity',
   'attributeBase',
   'scheduleFunction',
-  'fillBiome'
+  'fillBiome',
+  'snowballMenuOpen',
+  'snowballMenuHud',
+  'snowballMenuRun',
+  'banMenuOpen',
+  'banMenuSelect',
+  'banMenuHud',
+  'banMenuPage',
+  'banMenuBan',
+  'banMenuKick',
+  'banMenuUnban',
+  'banRecordQuery'
 ]);
 
 if (!fs.existsSync(dataDir)) {
@@ -1682,11 +1693,16 @@ const server = http.createServer((request, response) => {
     pathname === '/index.html' ||
     pathname === '/commands.html' ||
     pathname === '/tutorial.html' ||
+    pathname === '/fps-test.html' ||
+    pathname === '/page-detection.html' ||
     pathname === '/recipes.html' ||
     pathname === '/coordinates.html' ||
     pathname === '/developer.html' ||
     pathname === '/app.js' ||
     pathname === '/developer.js' ||
+    pathname === '/fps-test.js' ||
+    pathname === '/page-detection.js' ||
+    pathname === '/recipes.js' ||
     pathname === '/coordinates.js' ||
     pathname === '/styles.css'
   ) {

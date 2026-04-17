@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -24,9 +24,9 @@
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
           <h1>坐标工具</h1>
-          <p class="lead">这是 VIP 专用模块，先提供主世界与下界坐标换算，以及两点之间的平面距离计算。</p>
+          <p class="lead">这是 VIP 专用模块，现已支持主世界与下界换算、两点测距、批量坐标转换、路线建议，以及死亡点与传送点收藏。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.2.0</div>
+            <div class="version-pill">当前版本 v1.0.0正式版</div>
             <div class="version-pill">模块：坐标工具</div>
             <div class="version-pill">VIP 专用</div>
           </div>
@@ -85,7 +85,7 @@
         </article>
         <article class="coordinate-card">
           <p class="panel-label">测距</p>
-          <h2>两点平面距离</h2>
+          <h2>两点距离与路线建议</h2>
           <div class="fields two-col">
             <label>
               点 A X
@@ -110,6 +110,66 @@
             <button type="button" class="copy-btn" data-calc-distance>计算距离</button>
           </div>
           <div class="result-card" data-distance-result>距离结果会显示在这里。</div>
+        </article>
+        <article class="coordinate-card coordinate-card-wide">
+          <p class="panel-label">批量换算</p>
+          <h2>批量坐标转换</h2>
+          <label>
+            换算方向
+            <select data-batch-mode>
+              <option value="ow-to-nether">主世界 → 下界</option>
+              <option value="nether-to-ow">下界 → 主世界</option>
+            </select>
+          </label>
+          <label>
+            批量坐标
+            <textarea data-batch-input rows="6" placeholder="每行一组坐标，例如：&#10;120 64 -80&#10;800 -240"></textarea>
+          </label>
+          <div class="button-row">
+            <button type="button" class="copy-btn" data-batch-convert>批量换算</button>
+            <button type="button" class="copy-btn secondary" data-batch-copy>复制结果</button>
+          </div>
+          <div class="result-card" data-batch-result>批量换算结果会显示在这里。</div>
+        </article>
+        <article class="coordinate-card coordinate-card-wide">
+          <p class="panel-label">点位档案</p>
+          <h2>死亡点与传送点收藏</h2>
+          <div class="fields two-col">
+            <label>
+              点位名称
+              <input type="text" data-bookmark-name placeholder="例如 主城 / 死亡点 1" />
+            </label>
+            <label>
+              所在维度
+              <select data-bookmark-dimension>
+                <option value="主世界">主世界</option>
+                <option value="下界">下界</option>
+                <option value="末地">末地</option>
+              </select>
+            </label>
+          </div>
+          <div class="fields three-col">
+            <label>
+              X
+              <input type="number" data-bookmark-x value="0" />
+            </label>
+            <label>
+              Y
+              <input type="number" data-bookmark-y value="64" />
+            </label>
+            <label>
+              Z
+              <input type="number" data-bookmark-z value="0" />
+            </label>
+          </div>
+          <div class="button-row button-row-wide">
+            <button type="button" class="copy-btn" data-save-bookmark>保存为传送点</button>
+            <button type="button" class="copy-btn secondary" data-save-death>记录死亡点</button>
+            <button type="button" class="copy-btn secondary" data-fill-current>从换算区带入 X/Z</button>
+          </div>
+          <div class="saved-point-list" data-saved-point-list>
+            <p class="empty-state">还没有保存任何点位。</p>
+          </div>
         </article>
       </section>
     </main>

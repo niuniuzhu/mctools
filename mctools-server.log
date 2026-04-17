@@ -33,3 +33,52 @@ Server is running at http://0.0.0.0:3000
 (node:16840) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:29916) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:17332) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:24048) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:34072) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:3984) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:9068) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:29344) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000

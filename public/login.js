@@ -21,7 +21,7 @@ const captchaPreview = document.querySelector('[data-captcha-preview]');
 const captchaRefreshButton = document.querySelector('[data-captcha-refresh]');
 const captchaIdInput = document.querySelector('[data-captcha-id]');
 const captchaInput = document.querySelector('[data-captcha-input]');
-const allowedUiChoices = new Set(['normal', 'end']);
+const allowedUiChoices = new Set(['normal', 'classic', 'end']);
 
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;

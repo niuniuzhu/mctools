@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -16,6 +16,7 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
+    <script defer src="/recipes.js"></script>
   </head>
   <body>
     <main class="shell">
@@ -25,7 +26,7 @@
           <h1>查看配方</h1>
           <p class="lead">这里先开放常用生存配方速查，后续可以继续扩展到完整的工作台、熔炉和酿造体系。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.2.0</div>
+            <div class="version-pill">当前版本 v1.0.0正式版</div>
             <div class="version-pill">模块：查看配方</div>
           </div>
           <div class="workspace-nav">
@@ -62,43 +63,30 @@
       </section>
 
       <section class="content-panel">
-        <div class="recipe-grid">
-          <article class="recipe-card">
-            <p class="panel-label">基础</p>
-            <h2>工作台</h2>
-            <p>4 个任意木板</p>
-            <p class="recipe-note">用途：解锁大多数前期合成。</p>
-          </article>
-          <article class="recipe-card">
-            <p class="panel-label">装备</p>
-            <h2>盾牌</h2>
-            <p>6 木板 + 1 铁锭</p>
-            <p class="recipe-note">用途：前期对抗骷髅和苦力怕很关键。</p>
-          </article>
-          <article class="recipe-card">
-            <p class="panel-label">生存</p>
-            <h2>床</h2>
-            <p>3 羊毛 + 3 木板</p>
-            <p class="recipe-note">用途：跳过夜晚并设置重生点。</p>
-          </article>
-          <article class="recipe-card">
-            <p class="panel-label">功能</p>
-            <h2>酿造台</h2>
-            <p>1 烈焰棒 + 3 圆石</p>
-            <p class="recipe-note">用途：开始制作药水与战斗增益。</p>
-          </article>
-          <article class="recipe-card">
-            <p class="panel-label">下界</p>
-            <h2>末影箱</h2>
-            <p>8 黑曜石 + 1 末影之眼</p>
-            <p class="recipe-note">用途：跨地点共享物品存储。</p>
-          </article>
-          <article class="recipe-card">
-            <p class="panel-label">红石</p>
-            <h2>漏斗</h2>
-            <p>5 铁锭 + 1 箱子</p>
-            <p class="recipe-note">用途：自动化机器和物品运输核心组件。</p>
-          </article>
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 配方库</p>
+            <h2>配方搜索数据库</h2>
+          </div>
+          <p class="tool-card-note">支持按名称、分类、材料反查常见生存配方。</p>
+        </div>
+        <div class="recipe-toolbar">
+          <input type="text" data-recipe-search placeholder="搜索配方名称，例如 盾牌 / 漏斗 / 酿造台" />
+          <select data-recipe-category>
+            <option value="all">全部分类</option>
+            <option value="基础">基础</option>
+            <option value="装备">装备</option>
+            <option value="生存">生存</option>
+            <option value="功能">功能</option>
+            <option value="下界">下界</option>
+            <option value="红石">红石</option>
+            <option value="储存">储存</option>
+          </select>
+          <input type="text" data-recipe-material placeholder="按材料反查，例如 铁锭 / 木板 / 红石" />
+        </div>
+        <p class="tool-card-note" data-recipe-summary>正在加载配方库...</p>
+        <div class="recipe-grid" data-recipe-results>
+          <p class="empty-state">正在加载配方库...</p>
         </div>
       </section>
     </main>

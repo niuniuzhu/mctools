@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -25,7 +25,7 @@
           <h1>开发者控制台</h1>
           <p class="lead">开发者账号可以在这里查看项目文本代码文件并直接保存修改。修改 server.js 后通常需要重启服务才能生效。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.2.0</div>
+            <div class="version-pill">当前版本 v1.0.0正式版</div>
             <div class="version-pill">模块：开发者</div>
           </div>
           <div class="workspace-nav">
