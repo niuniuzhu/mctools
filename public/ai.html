@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的世界工具箱 - 页面检测</title>
+    <title>我的世界工具箱 - AI 问答助手</title>
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
@@ -16,26 +16,28 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
-    <script defer src="/page-detection.js"></script>
   </head>
   <body>
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
-          <h1>我的世界页面检测</h1>
-          <p class="lead">独立的 Minecraft 页面识别分类，用 URL、标题和正文片段判断内容是否与我的世界相关。</p>
+          <h1>AI 问答助手</h1>
+          <p class="lead">
+            AI 功能现在已经独立成单独分类。你可以在这里直接提问指令、玩法、生存路线、红石和服务器配置问题。
+          </p>
           <div class="meta-row">
             <div class="version-pill">当前版本 beta1.6.0</div>
-            <div class="version-pill">模块：页面检测</div>
+            <div class="version-pill">模块：AI 问答助手</div>
+            <div class="version-pill">SVIP 专用</div>
           </div>
           <div class="workspace-nav">
             <a class="ghost-link-button" href="/index.html">返回选择界面</a>
           </div>
         </div>
         <div class="hero-card">
-          <p class="hero-card-label">当前模块：页面检测</p>
-          <p class="toolbox-summary">判断网页是否属于 Minecraft 官方、Wiki、模组、服务器或社区相关内容。</p>
+          <p class="hero-card-label">当前模块：AI</p>
+          <p class="toolbox-summary">独立 AI 分类只保留问答功能，不再和指令生成器混在同一页。SVIP 用户可直接使用，其他账号可先查看入口。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -56,39 +58,35 @@
           </div>
           <p class="member-state" data-member-state>会员等级：普通用户</p>
           <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
         </div>
       </section>
 
-      <section class="content-panel">
+      <section class="ai-panel locked" data-ai-panel>
         <div class="panel-head">
           <div>
-            <p class="panel-label">工具箱 · 检测</p>
-            <h2>我的世界页面检测</h2>
+            <p class="panel-label">工具箱 · AI</p>
+            <h2>SVIP AI 问答助手</h2>
           </div>
-          <p class="tool-card-note">适合快速辨别网页内容是否与 Minecraft 相关。</p>
+          <span class="ai-lock" data-ai-lock>仅 SVIP 可使用</span>
         </div>
-        <article class="guide-card utility-card">
-          <p class="panel-label">页面识别</p>
-          <h2>Minecraft 页面分析器</h2>
-          <p class="tool-card-note">输入 URL、标题和内容片段，工具会按关键词打分并给出页面类型提示。</p>
+        <p class="tool-card-note" data-ai-message>升级 SVIP 后即可向 AI 提问并获得回答。</p>
+        <p class="tool-card-note" data-ai-tier-message>服务端会优先尝试调用 Gemini 3.1 Pro，若模型不可用会自动回退到可用模型。</p>
+        <div class="ai-input-group">
           <label>
-            页面 URL
-            <input type="text" data-page-url placeholder="例如 https://www.minecraft.net/ 或某个服务器介绍页" />
+            提问内容
+            <textarea data-ai-prompt rows="5" placeholder="例如：如何用 execute 检测玩家脚下是不是钻石块？" disabled></textarea>
           </label>
-          <label>
-            页面标题
-            <input type="text" data-page-title placeholder="例如 Minecraft Wiki - Beacon" />
-          </label>
-          <label>
-            页面内容片段
-            <textarea data-page-content rows="6" placeholder="粘贴网页中的一段正文、导航或功能说明"></textarea>
-          </label>
-          <div class="button-row">
-            <button type="button" class="copy-btn" data-page-detect>开始检测</button>
-            <button type="button" class="copy-btn secondary" data-page-fill-current>检测当前工具箱页面</button>
-          </div>
-          <div class="result-card" data-page-detect-result>检测结果会显示在这里。</div>
-        </article>
+        </div>
+        <div class="button-row ai-buttons">
+          <button type="button" class="copy-btn" data-ai-generate disabled>发送问题</button>
+          <button type="button" class="copy-btn secondary" data-ai-copy disabled>复制回复</button>
+        </div>
+        <label>
+          AI 回复
+          <textarea data-ai-output rows="9" readonly placeholder="AI 回复会显示在这里"></textarea>
+        </label>
       </section>
     </main>
   </body>

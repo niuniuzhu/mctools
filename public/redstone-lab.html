@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 红石实验室</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+    <script defer src="/redstone-lab.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>红石实验室</h1>
+          <p class="lead">给红石玩家做的灵感页，帮你快速抽电路思路、元件组合和机器主题，适合想做装置但没头绪的时候。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">模块：红石实验室</div>
+          </div>
+          <div class="workspace-nav"><a class="ghost-link-button" href="/index.html">返回选择界面</a></div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：红石</p>
+          <p class="toolbox-summary">内置电路类型、触发方式、机器目标和布线风格建议。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap"><img class="avatar-image" data-avatar-image alt="账号头像" src="" /><div class="avatar-fallback" data-avatar-fallback>头</div></div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p><strong data-profile-name>未登录</strong><div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions"><button type="button" class="upload-button" data-avatar-trigger>上传头像</button><input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden /><button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button><button type="button" class="ghost-button compact-button" data-logout>退出登录</button></div>
+              <p class="avatar-status" data-avatar-status hidden></p>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p><p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+        </div>
+      </section>
+      <section class="content-panel">
+        <div class="panel-head"><div><p class="panel-label">工具箱 · 红石</p><h2>电路灵感工具</h2></div><p class="tool-card-note">适合做门电路、农场、机关和自动机。</p></div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card"><p class="panel-label">功能 1</p><h2>电路主题</h2><button type="button" class="copy-btn" data-redstone-theme>抽一个主题</button><div class="result-card" data-redstone-theme-result>主题会显示在这里。</div></article>
+          <article class="guide-card utility-card"><p class="panel-label">功能 2</p><h2>触发方式</h2><button type="button" class="copy-btn" data-redstone-trigger>抽触发方式</button><div class="result-card" data-redstone-trigger-result>触发方式会显示在这里。</div></article>
+          <article class="guide-card utility-card utility-card-wide"><p class="panel-label">功能 3</p><h2>整套红石方案</h2><button type="button" class="copy-btn" data-redstone-pack>生成方案</button><div class="result-card" data-redstone-pack-result>方案会显示在这里。</div></article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

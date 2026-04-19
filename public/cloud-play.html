@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 云玩中心</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+    <script defer src="/cloud-play.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>云玩中心</h1>
+          <p class="lead">这里先不接真实云主机，先帮你规划云玩方案、节点选择、预算和开局配置，适合做在线云玩的前期决策。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">模块：云玩中心</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：云玩</p>
+          <p class="toolbox-summary">内置节点建议、预算估算、最低配置建议和延迟评级，先帮你把“能不能做”算清楚。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 云玩</p>
+            <h2>节点与预算规划</h2>
+          </div>
+          <p class="tool-card-note">给云玩项目做前期方案，不直接控制云服务器。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 1</p>
+            <h2>延迟评级</h2>
+            <label>
+              当前预计延迟（ms）
+              <input type="number" data-cloud-latency value="45" min="1" />
+            </label>
+            <button type="button" class="copy-btn" data-cloud-evaluate>评估体验</button>
+            <div class="result-card" data-cloud-latency-result>评估结果会显示在这里。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 2</p>
+            <h2>预算估算器</h2>
+            <div class="fields two-col">
+              <label>
+                在线人数
+                <input type="number" data-cloud-users value="10" min="1" />
+              </label>
+              <label>
+                单实例月成本（元）
+                <input type="number" data-cloud-cost value="180" min="1" />
+              </label>
+            </div>
+            <button type="button" class="copy-btn" data-cloud-budget>估算月成本</button>
+            <div class="result-card" data-cloud-budget-result>预算结果会显示在这里。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">功能 3</p>
+            <h2>开局方案建议</h2>
+            <div class="fields two-col">
+              <label>
+                目标版本
+                <select data-cloud-edition>
+                  <option value="java">Java 版</option>
+                  <option value="bedrock">基岩版</option>
+                </select>
+              </label>
+              <label>
+                云玩形态
+                <select data-cloud-mode>
+                  <option value="desktop">远程桌面式</option>
+                  <option value="webrtc">网页串流式</option>
+                </select>
+              </label>
+            </div>
+            <button type="button" class="copy-btn" data-cloud-plan>生成建议</button>
+            <div class="result-card" data-cloud-plan-result>方案建议会显示在这里。</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

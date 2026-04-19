@@ -12,7 +12,7 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const appVersion = 'beta1.5.1';
+const appVersion = 'beta1.6.0';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const maintenanceAdminAccount = {
   username: 'maintenance_admin',
@@ -1695,6 +1695,16 @@ const server = http.createServer((request, response) => {
     pathname === '/tutorial.html' ||
     pathname === '/fps-test.html' ||
     pathname === '/page-detection.html' ||
+    pathname === '/ai.html' ||
+    pathname === '/fun.html' ||
+    pathname === '/cloud-play.html' ||
+    pathname === '/seed-lab.html' ||
+    pathname === '/build-lab.html' ||
+    pathname === '/redstone-lab.html' ||
+    pathname === '/server-hub.html' ||
+    pathname === '/survival-board.html' ||
+    pathname === '/pack-center.html' ||
+    pathname === '/mods.html' ||
     pathname === '/recipes.html' ||
     pathname === '/coordinates.html' ||
     pathname === '/developer.html' ||
@@ -1702,6 +1712,15 @@ const server = http.createServer((request, response) => {
     pathname === '/developer.js' ||
     pathname === '/fps-test.js' ||
     pathname === '/page-detection.js' ||
+    pathname === '/fun.js' ||
+    pathname === '/cloud-play.js' ||
+    pathname === '/seed-lab.js' ||
+    pathname === '/build-lab.js' ||
+    pathname === '/redstone-lab.js' ||
+    pathname === '/server-hub.js' ||
+    pathname === '/survival-board.js' ||
+    pathname === '/pack-center.js' ||
+    pathname === '/mods.js' ||
     pathname === '/recipes.js' ||
     pathname === '/coordinates.js' ||
     pathname === '/styles.css'

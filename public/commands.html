@@ -27,7 +27,7 @@
             当前开放的是工具箱中的指令模块。你可以在这里生成基础指令与复杂 VIP 指令，并管理自己的历史记录。
           </p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.0.0正式版</div>
+            <div class="version-pill">当前版本 beta1.6.0</div>
             <div class="version-pill">模块：指令工作台</div>
           </div>
           <div class="workspace-nav">
@@ -36,7 +36,7 @@
         </div>
         <div class="hero-card">
           <p class="hero-card-label">当前模块：指令</p>
-          <p class="toolbox-summary">已内置 41 条指令模板，其中 20 条基础指令面向全部用户，21 条复杂指令面向 VIP 用户。当前仍是工具箱第一阶段。</p>
+          <p class="toolbox-summary">已内置 46 条指令模板，其中 25 条基础指令面向全部用户，21 条复杂指令面向 VIP 用户。当前仍是工具箱第一阶段。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -47,13 +47,12 @@
               <strong data-profile-name>未登录</strong>
               <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
               <div class="profile-actions">
-                <label class="upload-button">
-                  上传头像
-                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
-                </label>
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
                 <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
                 <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
               </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
             </div>
           </div>
           <p class="member-state" data-member-state>会员等级：普通用户</p>
@@ -83,6 +82,11 @@
               <option value="setblock">setblock 放置方块</option>
               <option value="fill">fill 区域填充</option>
               <option value="clear">clear 清空物品</option>
+              <option value="kill">kill 清除实体</option>
+              <option value="say">say 全服广播</option>
+              <option value="tag">tag 标签管理</option>
+              <option value="spawnpoint">spawnpoint 个人重生点</option>
+              <option value="setworldspawn">setworldspawn 世界出生点</option>
               <option value="difficulty">difficulty 难度</option>
               <option value="locate">locate 定位</option>
               <option value="title">title 标题显示</option>
@@ -132,32 +136,6 @@
             </div>
           </section>
           <div class="command-host" data-command-host></div>
-      </section>
-
-      <section class="ai-panel locked" data-ai-panel>
-        <div class="panel-head">
-          <div>
-            <p class="panel-label">工具箱 · AI</p>
-            <h2>SVIP AI 问答助手</h2>
-          </div>
-          <span class="ai-lock" data-ai-lock>仅 SVIP 可使用</span>
-        </div>
-        <p class="tool-card-note" data-ai-message>升级 SVIP 后即可向 AI 提问并获得回答。</p>
-        <p class="tool-card-note" data-ai-tier-message>服务端会优先尝试调用 Gemini 3.1 Pro，若模型不可用会自动回退到可用模型。</p>
-        <div class="ai-input-group">
-          <label>
-            提问内容
-            <textarea data-ai-prompt rows="4" placeholder="例如：如何用 execute 检测玩家脚下是不是钻石块？" disabled></textarea>
-          </label>
-        </div>
-        <div class="button-row ai-buttons">
-          <button type="button" class="copy-btn" data-ai-generate disabled>发送问题</button>
-          <button type="button" class="copy-btn secondary" data-ai-copy disabled>复制回复</button>
-        </div>
-        <label>
-          AI 回复
-          <textarea data-ai-output rows="7" readonly placeholder="AI 回复会显示在这里"></textarea>
-        </label>
       </section>
 
       <section class="history-panel">

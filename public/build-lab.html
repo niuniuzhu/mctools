@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的世界工具箱 - 页面检测</title>
+    <title>我的世界工具箱 - 建筑灵感库</title>
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
@@ -16,26 +16,26 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
-    <script defer src="/page-detection.js"></script>
+    <script defer src="/build-lab.js"></script>
   </head>
   <body>
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
-          <h1>我的世界页面检测</h1>
-          <p class="lead">独立的 Minecraft 页面识别分类，用 URL、标题和正文片段判断内容是否与我的世界相关。</p>
+          <h1>建筑灵感库</h1>
+          <p class="lead">这里给建筑党准备了风格、配色、房间功能和基地主题生成器，适合不知道下一步建什么的时候来抽灵感。</p>
           <div class="meta-row">
             <div class="version-pill">当前版本 beta1.6.0</div>
-            <div class="version-pill">模块：页面检测</div>
+            <div class="version-pill">模块：建筑灵感库</div>
           </div>
           <div class="workspace-nav">
             <a class="ghost-link-button" href="/index.html">返回选择界面</a>
           </div>
         </div>
         <div class="hero-card">
-          <p class="hero-card-label">当前模块：页面检测</p>
-          <p class="toolbox-summary">判断网页是否属于 Minecraft 官方、Wiki、模组、服务器或社区相关内容。</p>
+          <p class="hero-card-label">当前模块：建筑</p>
+          <p class="toolbox-summary">内置基地主题、材料配色、房间功能和整套建筑方案生成器，适合生存主城和单体建筑设计。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -62,33 +62,40 @@
       <section class="content-panel">
         <div class="panel-head">
           <div>
-            <p class="panel-label">工具箱 · 检测</p>
-            <h2>我的世界页面检测</h2>
+            <p class="panel-label">工具箱 · 建筑</p>
+            <h2>建筑灵感生成器</h2>
           </div>
-          <p class="tool-card-note">适合快速辨别网页内容是否与 Minecraft 相关。</p>
+          <p class="tool-card-note">用于生存建筑规划，不替代真实蓝图工具。</p>
         </div>
-        <article class="guide-card utility-card">
-          <p class="panel-label">页面识别</p>
-          <h2>Minecraft 页面分析器</h2>
-          <p class="tool-card-note">输入 URL、标题和内容片段，工具会按关键词打分并给出页面类型提示。</p>
-          <label>
-            页面 URL
-            <input type="text" data-page-url placeholder="例如 https://www.minecraft.net/ 或某个服务器介绍页" />
-          </label>
-          <label>
-            页面标题
-            <input type="text" data-page-title placeholder="例如 Minecraft Wiki - Beacon" />
-          </label>
-          <label>
-            页面内容片段
-            <textarea data-page-content rows="6" placeholder="粘贴网页中的一段正文、导航或功能说明"></textarea>
-          </label>
-          <div class="button-row">
-            <button type="button" class="copy-btn" data-page-detect>开始检测</button>
-            <button type="button" class="copy-btn secondary" data-page-fill-current>检测当前工具箱页面</button>
-          </div>
-          <div class="result-card" data-page-detect-result>检测结果会显示在这里。</div>
-        </article>
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 1</p>
+            <h2>基地主题</h2>
+            <button type="button" class="copy-btn" data-build-theme>抽基地主题</button>
+            <div class="result-card" data-build-theme-result>基地主题会显示在这里。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 2</p>
+            <h2>材料配色</h2>
+            <button type="button" class="copy-btn" data-build-palette>抽材料配色</button>
+            <div class="result-card" data-build-palette-result>材料配色会显示在这里。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 3</p>
+            <h2>房间功能</h2>
+            <button type="button" class="copy-btn" data-build-room>抽房间功能</button>
+            <div class="result-card" data-build-room-result>房间功能会显示在这里。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">功能 4</p>
+            <h2>整套建筑方案</h2>
+            <div class="button-row button-row-wide">
+              <button type="button" class="copy-btn" data-build-pack>生成一套方案</button>
+              <button type="button" class="copy-btn secondary" data-build-pack-copy>复制方案</button>
+            </div>
+            <div class="result-card" data-build-pack-result>建筑方案会显示在这里。</div>
+          </article>
+        </div>
       </section>
     </main>
   </body>

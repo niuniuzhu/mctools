@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 趣味实验室</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+    <script defer src="/fun.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>趣味实验室</h1>
+          <p class="lead">这里专门放轻松、随机、整活向的 Minecraft 小工具，适合一个人玩，也适合和朋友一起开玩笑。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">模块：趣味实验室</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：趣味</p>
+          <p class="toolbox-summary">已内置 5 个趣味玩法：幸运方块模拟、生物对决预测、昵称生成器、掉落轮盘和今日挑战。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 趣味</p>
+            <h2>随机整活工具</h2>
+          </div>
+          <p class="tool-card-note">这些功能不修改存档，只在网页里给你随机结果和灵感。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 1</p>
+            <h2>幸运方块模拟器</h2>
+            <p class="tool-card-note">模拟敲开一个幸运方块会出现什么离谱事件。</p>
+            <button type="button" class="copy-btn" data-fun-lucky>打开幸运方块</button>
+            <div class="result-card" data-fun-lucky-result>结果会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 2</p>
+            <h2>生物对决预测</h2>
+            <p class="tool-card-note">输入两个生物，看看谁更像今天的赢家。</p>
+            <div class="fields two-col">
+              <label>
+                生物 A
+                <input type="text" data-fun-mob-a placeholder="例如 末影人" value="末影人" />
+              </label>
+              <label>
+                生物 B
+                <input type="text" data-fun-mob-b placeholder="例如 铁傀儡" value="铁傀儡" />
+              </label>
+            </div>
+            <button type="button" class="copy-btn" data-fun-duel>开始预测</button>
+            <div class="result-card" data-fun-duel-result>预测结果会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 3</p>
+            <h2>服务器昵称生成器</h2>
+            <p class="tool-card-note">生成一个偏 Minecraft 风格的趣味昵称。</p>
+            <button type="button" class="copy-btn" data-fun-name>随机生成昵称</button>
+            <div class="result-card" data-fun-name-result>昵称结果会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 4</p>
+            <h2>掉落轮盘</h2>
+            <p class="tool-card-note">随机抽取一个奖励或惩罚掉落，适合小游戏和直播互动。</p>
+            <button type="button" class="copy-btn" data-fun-loot>旋转掉落轮盘</button>
+            <div class="result-card" data-fun-loot-result>掉落结果会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">功能 5</p>
+            <h2>今日生存挑战</h2>
+            <p class="tool-card-note">给今天的生存局抽一个轻度挑战，顺手再生成一套整活套餐。</p>
+            <div class="button-row button-row-wide">
+              <button type="button" class="copy-btn" data-fun-challenge>抽取今日挑战</button>
+              <button type="button" class="copy-btn secondary" data-fun-challenge-copy>复制挑战</button>
+              <button type="button" class="copy-btn secondary" data-fun-pack>随机整活套餐</button>
+            </div>
+            <div class="result-card" data-fun-challenge-result>挑战结果会显示在这里。</div>
+            <div class="fun-pack-list" data-fun-pack-result></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

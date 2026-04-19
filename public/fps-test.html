@@ -26,7 +26,7 @@
           <h1>帧率测试</h1>
           <p class="lead">独立的实时 FPS 检测分类，用来观察当前网页渲染是否流畅，并记录低帧与平均值。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.5.1</div>
+            <div class="version-pill">当前版本 beta1.6.0</div>
             <div class="version-pill">模块：帧率测试</div>
           </div>
           <div class="workspace-nav">
@@ -46,13 +46,12 @@
               <strong data-profile-name>未登录</strong>
               <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
               <div class="profile-actions">
-                <label class="upload-button">
-                  上传头像
-                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
-                </label>
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
                 <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
                 <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
               </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
             </div>
           </div>
           <p class="member-state" data-member-state>会员等级：普通用户</p>

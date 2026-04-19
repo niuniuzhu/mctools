@@ -82,3 +82,52 @@ Server is running at http://0.0.0.0:3000
 (node:29344) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:3480) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:27000) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:30168) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:29680) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:20192) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:26080) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:28772) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000

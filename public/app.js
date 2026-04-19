@@ -76,6 +76,33 @@ const COMMANDS = {
 
     return `clear ${safeTarget} ${safeItem} ${safeMaxCount}`;
   },
+  kill: ({ target }) => {
+    const safeTarget = target.trim() || '@e[type=minecraft:zombie,limit=1,sort=nearest]';
+    return `kill ${safeTarget}`;
+  },
+  say: ({ message }) => {
+    const safeMessage = message.trim() || '欢迎来到服务器';
+    return `say ${safeMessage}`;
+  },
+  tag: ({ target, action, tagName }) => {
+    const safeTarget = target.trim() || '@p';
+    const safeAction = action || 'add';
+    const safeTagName = tagName.trim() || 'vip';
+    return safeAction === 'list'
+      ? `tag ${safeTarget} list`
+      : `tag ${safeTarget} ${safeAction} ${safeTagName}`;
+  },
+  spawnpoint: ({ target, pos, angle }) => {
+    const safeTarget = target.trim() || '@p';
+    const safePos = pos.trim() || '~ ~ ~';
+    const safeAngle = angle.trim();
+    return safeAngle ? `spawnpoint ${safeTarget} ${safePos} ${safeAngle}` : `spawnpoint ${safeTarget} ${safePos}`;
+  },
+  setworldspawn: ({ pos, angle }) => {
+    const safePos = pos.trim() || '0 80 0';
+    const safeAngle = angle.trim();
+    return safeAngle ? `setworldspawn ${safePos} ${safeAngle}` : `setworldspawn ${safePos}`;
+  },
   difficulty: ({ level }) => {
     const safeLevel = level || 'normal';
     return `difficulty ${safeLevel}`;
@@ -590,6 +617,46 @@ const COMMAND_PRESETS = {
       name: '保留背包',
       description: '死亡后不掉落物品。',
       values: { rule: 'keepInventory', value: 'true' }
+    }
+  ],
+  kill: [
+    {
+      id: 'kill-nearest-hostile',
+      name: '清除最近怪物',
+      description: '快速清理最近的一只敌对生物。',
+      values: { target: '@e[type=minecraft:zombie,limit=1,sort=nearest]' }
+    }
+  ],
+  say: [
+    {
+      id: 'server-broadcast',
+      name: '全服广播',
+      description: '向全服发送一条简单公告。',
+      values: { message: '服务器将在 5 分钟后重启，请及时回城。' }
+    }
+  ],
+  tag: [
+    {
+      id: 'mark-builder',
+      name: '标记建筑玩家',
+      description: '给目标玩家添加一个 builder 标签。',
+      values: { target: '@p', action: 'add', tagName: 'builder' }
+    }
+  ],
+  spawnpoint: [
+    {
+      id: 'set-personal-spawn',
+      name: '设置个人重生点',
+      description: '把当前玩家重生点设置到主城。',
+      values: { target: '@p', pos: '0 80 0', angle: '0' }
+    }
+  ],
+  setworldspawn: [
+    {
+      id: 'set-world-spawn',
+      name: '设置世界出生点',
+      description: '把全服世界出生点设置到主城广场。',
+      values: { pos: '0 80 0', angle: '180' }
     }
   ],
   executeChain: [
@@ -1307,6 +1374,86 @@ const COMMAND_TEMPLATES = {
         最大清除数量
         <input type="number" min="1" data-field="maxCount" value="1" />
       </label>
+    `
+  },
+  kill: {
+    title: 'kill 清除实体',
+    description: '生成清除玩家或实体的指令',
+    fields: `
+      <label>
+        目标选择器
+        <input type="text" data-field="target" placeholder="@e[type=minecraft:zombie,limit=1,sort=nearest]" value="@e[type=minecraft:zombie,limit=1,sort=nearest]" />
+      </label>
+    `
+  },
+  say: {
+    title: 'say 全服广播',
+    description: '向全服发送一条普通聊天公告',
+    fields: `
+      <label>
+        广播内容
+        <input type="text" data-field="message" placeholder="欢迎来到服务器" value="欢迎来到服务器" />
+      </label>
+    `
+  },
+  tag: {
+    title: 'tag 标签管理',
+    description: '给实体添加、删除或列出标签',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          目标实体
+          <input type="text" data-field="target" placeholder="@p" value="@p" />
+        </label>
+        <label>
+          操作类型
+          <select data-field="action">
+            <option value="add" selected>add 添加</option>
+            <option value="remove">remove 移除</option>
+            <option value="list">list 查看</option>
+          </select>
+        </label>
+      </div>
+      <label>
+        标签名称
+        <input type="text" data-field="tagName" placeholder="builder" value="builder" />
+      </label>
+    `
+  },
+  spawnpoint: {
+    title: 'spawnpoint 个人重生点',
+    description: '设置指定玩家的个人重生点位置',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          目标玩家
+          <input type="text" data-field="target" placeholder="@p" value="@p" />
+        </label>
+        <label>
+          重生点坐标
+          <input type="text" data-field="pos" placeholder="0 80 0" value="0 80 0" />
+        </label>
+      </div>
+      <label>
+        朝向角度
+        <input type="text" data-field="angle" placeholder="可留空，例如 0" value="0" />
+      </label>
+    `
+  },
+  setworldspawn: {
+    title: 'setworldspawn 世界出生点',
+    description: '设置整个世界的公共出生点',
+    fields: `
+      <div class="fields two-col">
+        <label>
+          世界出生点坐标
+          <input type="text" data-field="pos" placeholder="0 80 0" value="0 80 0" />
+        </label>
+        <label>
+          朝向角度
+          <input type="text" data-field="angle" placeholder="可留空，例如 180" value="180" />
+        </label>
+      </div>
     `
   },
   difficulty: {
@@ -2625,6 +2772,36 @@ async function deleteAvatar() {
   return result;
 }
 
+let avatarStatusTimer = 0;
+
+function setAvatarStatus(message, type = 'info') {
+  const avatarStatus = document.querySelector('[data-avatar-status]');
+
+  if (!avatarStatus) {
+    return;
+  }
+
+  avatarStatus.hidden = !message;
+  avatarStatus.textContent = message || '';
+  avatarStatus.classList.remove('success', 'error');
+
+  if (type === 'success' || type === 'error') {
+    avatarStatus.classList.add(type);
+  }
+
+  if (avatarStatusTimer) {
+    window.clearTimeout(avatarStatusTimer);
+  }
+
+  if (message) {
+    avatarStatusTimer = window.setTimeout(() => {
+      avatarStatus.hidden = true;
+      avatarStatus.textContent = '';
+      avatarStatus.classList.remove('success', 'error');
+    }, 3000);
+  }
+}
+
 function updateAvatar(profile) {
   const avatarImage = document.querySelector('[data-avatar-image]');
   const avatarFallback = document.querySelector('[data-avatar-fallback]');
@@ -3162,6 +3339,7 @@ const aiGenerateButton = document.querySelector('[data-ai-generate]');
 const aiCopyButton = document.querySelector('[data-ai-copy]');
 const executorRunButton = document.querySelector('[data-executor-run]');
 const executorCopyButton = document.querySelector('[data-executor-copy]');
+const avatarTrigger = document.querySelector('[data-avatar-trigger]');
 const avatarInput = document.querySelector('[data-avatar-input]');
 const avatarDeleteButton = document.querySelector('[data-avatar-delete]');
 const historyClearButton = document.querySelector('[data-history-clear]');
@@ -3360,6 +3538,12 @@ if (executorCopyButton) {
   executorCopyButton.addEventListener('click', copyExecutorOutput);
 }
 
+if (avatarTrigger && avatarInput) {
+  avatarTrigger.addEventListener('click', () => {
+    avatarInput.click();
+  });
+}
+
 if (avatarInput) {
   avatarInput.addEventListener('change', async (event) => {
     const file = event.target.files && event.target.files[0];
@@ -3368,16 +3552,35 @@ if (avatarInput) {
       return;
     }
 
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+      setAvatarStatus('仅支持 PNG、JPG、WEBP 图片', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > 1024 * 1024 * 2) {
+      setAvatarStatus('头像图片不能超过 2MB', 'error');
+      event.target.value = '';
+      return;
+    }
+
+    setAvatarStatus(`正在上传头像：${file.name}`);
+
     const reader = new FileReader();
     reader.onload = async () => {
       try {
         const result = await uploadAvatar(String(reader.result || ''));
         updateAvatar(result);
-      } catch {
-        // Ignore upload UI failure beyond keeping current avatar.
+        setAvatarStatus('头像上传成功', 'success');
+      } catch (error) {
+        setAvatarStatus(error.message || '头像上传失败', 'error');
       } finally {
         event.target.value = '';
       }
+    };
+    reader.onerror = () => {
+      setAvatarStatus('头像读取失败', 'error');
+      event.target.value = '';
     };
     reader.readAsDataURL(file);
   });
@@ -3388,8 +3591,9 @@ if (avatarDeleteButton) {
     try {
       const result = await deleteAvatar();
       updateAvatar(result);
-    } catch {
-      // Ignore and keep current avatar.
+      setAvatarStatus('头像已删除', 'success');
+    } catch (error) {
+      setAvatarStatus(error.message || '头像删除失败', 'error');
     }
   });
 }

@@ -26,7 +26,7 @@
           <h1>坐标工具</h1>
           <p class="lead">这是 VIP 专用模块，现已支持主世界与下界换算、两点测距、批量坐标转换、路线建议，以及死亡点与传送点收藏。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.0.0正式版</div>
+            <div class="version-pill">当前版本 beta1.6.0</div>
             <div class="version-pill">模块：坐标工具</div>
             <div class="version-pill">VIP 专用</div>
           </div>
@@ -47,13 +47,12 @@
               <strong data-profile-name>未登录</strong>
               <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
               <div class="profile-actions">
-                <label class="upload-button">
-                  上传头像
-                  <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
-                </label>
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
                 <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
                 <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
               </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
             </div>
           </div>
           <p class="member-state" data-member-state>会员等级：普通用户</p>
