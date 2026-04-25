@@ -12,7 +12,7 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const appVersion = 'beta1.9.0';
+const appVersion = 'v1.2.0';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const maintenanceAdminAccount = {
   username: 'maintenance_admin',
@@ -1562,26 +1562,38 @@ function handleMaintenanceUpdate(request, response) {
 }
 
 function serveStatic(pathname, response) {
-  const normalizedPath = path.normalize(path.join(publicDir, pathname)).replace(/^([.][.][/\\])+/, '');
+  const safePath = resolveSafePublicPath(pathname);
 
-  if (!normalizedPath.startsWith(publicDir)) {
+  if (!safePath) {
     sendText(response, 403, '403 Forbidden');
     return;
   }
 
-  sendFile(normalizedPath, response);
+  sendFile(safePath, response);
+}
+
+function resolveSafePublicPath(pathname) {
+  const requestPath = pathname.startsWith('/') ? pathname : `/${pathname}`;
+  const safePath = path.resolve(publicDir, `.${requestPath}`);
+  const publicRoot = `${publicDir}${path.sep}`;
+
+  if (safePath !== publicDir && !safePath.startsWith(publicRoot)) {
+    return null;
+  }
+
+  return safePath;
 }
 
 function resolvePublicFilePath(pathname) {
-  const normalizedPath = path.normalize(path.join(publicDir, pathname)).replace(/^([.][.][/\\])+/, '');
+  const safePath = resolveSafePublicPath(pathname);
 
-  if (!normalizedPath.startsWith(publicDir)) {
+  if (!safePath) {
     return null;
   }
 
   try {
-    const stats = fs.statSync(normalizedPath);
-    return stats.isFile() ? normalizedPath : null;
+    const stats = fs.statSync(safePath);
+    return stats.isFile() ? safePath : null;
   } catch {
     return null;
   }
@@ -1778,5 +1790,5 @@ const server = http.createServer((request, response) => {
 });
 
 server.listen(port, host, () => {
-  console.log(`Server is running at http://${host}:${port}`);
+  console.log(`Server is running at http://${host}:${port} (${appVersion})`);
 });
