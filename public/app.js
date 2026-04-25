@@ -2843,6 +2843,8 @@ function syncMaintenancePanel(me) {
   const enableButton = panel.querySelector('[data-maintenance-enable]');
   const disableButton = panel.querySelector('[data-maintenance-disable]');
   const isEnabled = Boolean(me && me.maintenanceEnabled);
+  const canEnable = Boolean(me && me.isMaintenanceAdmin);
+  const canDisable = Boolean(me && (me.isMaintenanceAdmin || me.isDeveloper));
 
   if (state) {
     state.classList.toggle('maintenance-active', isEnabled);
@@ -2853,16 +2855,18 @@ function syncMaintenancePanel(me) {
 
   if (note) {
     note.textContent = isEnabled
-      ? '维护模式已开启。普通账号的新请求会被拦截，页面会跳回登录页。'
-      : '维护模式已关闭。开启后，只有维护账号还能继续使用工具箱。';
+      ? '维护模式已开启。普通账号的新请求会被拦截。维护账号与开发者账号可以关闭维护。'
+      : canEnable
+        ? '维护模式已关闭。你当前可以开启或关闭维护。'
+        : '维护模式已关闭。你当前只能关闭维护，不能再次开启。';
   }
 
   if (enableButton) {
-    enableButton.disabled = isEnabled;
+    enableButton.disabled = isEnabled || !canEnable;
   }
 
   if (disableButton) {
-    disableButton.disabled = !isEnabled;
+    disableButton.disabled = !isEnabled || !canDisable;
   }
 }
 
@@ -2874,7 +2878,7 @@ function renderMaintenancePanel(me) {
     return;
   }
 
-  if (!me || !me.isMaintenanceAdmin) {
+  if (!me || (!me.isMaintenanceAdmin && !me.isDeveloper)) {
     if (panel) {
       panel.remove();
     }
@@ -2888,7 +2892,7 @@ function renderMaintenancePanel(me) {
     panel.innerHTML = `
       <p class="panel-label">维护控制</p>
       <p class="maintenance-state" data-maintenance-state>当前状态：读取中</p>
-      <p class="tool-card-note" data-maintenance-note>只有维护账号可以切换当前维护状态。</p>
+      <p class="tool-card-note" data-maintenance-note>维护账号可开启或关闭维护，开发者账号可关闭维护。</p>
       <div class="maintenance-actions">
         <button type="button" class="ghost-button compact-button" data-maintenance-enable>开启维护</button>
         <button type="button" class="ghost-button compact-button" data-maintenance-disable>关闭维护</button>

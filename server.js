@@ -1522,14 +1522,32 @@ function handleMaintenanceUpdate(request, response) {
     return;
   }
 
-  if (!isMaintenanceAdmin(session.username)) {
-    sendJson(response, 403, { message: '只有维护账号可以修改维护状态' });
-    return;
-  }
-
   parseRequestBody(request)
     .then((body) => {
-      const nextEnabled = typeof body.enabled === 'boolean' ? body.enabled : !isMaintenanceEnabled();
+      const canEnableMaintenance = isMaintenanceAdmin(session.username);
+      const canDisableMaintenance = isPrivilegedUser(session.username);
+      let nextEnabled;
+
+      if (typeof body.enabled === 'boolean') {
+        nextEnabled = body.enabled;
+      } else if (body.enabled === 'true' || body.enabled === '1' || body.enabled === 1) {
+        nextEnabled = true;
+      } else if (body.enabled === 'false' || body.enabled === '0' || body.enabled === 0) {
+        nextEnabled = false;
+      } else {
+        nextEnabled = !isMaintenanceEnabled();
+      }
+
+      if (nextEnabled && !canEnableMaintenance) {
+        sendJson(response, 403, { message: '只有维护账号可以开启维护状态' });
+        return;
+      }
+
+      if (!nextEnabled && !canDisableMaintenance) {
+        sendJson(response, 403, { message: '只有特权账号可以关闭维护状态' });
+        return;
+      }
+
       setSettingValue('maintenance_enabled', nextEnabled ? '1' : '0');
 
       sendJson(response, 200, {
@@ -1552,6 +1570,21 @@ function serveStatic(pathname, response) {
   }
 
   sendFile(normalizedPath, response);
+}
+
+function resolvePublicFilePath(pathname) {
+  const normalizedPath = path.normalize(path.join(publicDir, pathname)).replace(/^([.][.][/\\])+/, '');
+
+  if (!normalizedPath.startsWith(publicDir)) {
+    return null;
+  }
+
+  try {
+    const stats = fs.statSync(normalizedPath);
+    return stats.isFile() ? normalizedPath : null;
+  } catch {
+    return null;
+  }
 }
 
 const server = http.createServer((request, response) => {
@@ -1688,51 +1721,16 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (
-    pathname === '/' ||
-    pathname === '/index.html' ||
-    pathname === '/commands.html' ||
-    pathname === '/tutorial.html' ||
-    pathname === '/fps-test.html' ||
-    pathname === '/page-detection.html' ||
-    pathname === '/ai.html' ||
-    pathname === '/fun.html' ||
-    pathname === '/cloud-play.html' ||
-    pathname === '/seed-lab.html' ||
-    pathname === '/build-lab.html' ||
-    pathname === '/redstone-lab.html' ||
-    pathname === '/server-hub.html' ||
-    pathname === '/survival-board.html' ||
-    pathname === '/pack-center.html' ||
-    pathname === '/mods.html' ||
-    pathname === '/update-log.html' ||
-    pathname === '/ios-liquid-glass.html' ||
-    pathname === '/recipes.html' ||
-    pathname === '/coordinates.html' ||
-    pathname === '/developer.html' ||
-    pathname === '/app.js' ||
-    pathname === '/developer.js' ||
-    pathname === '/fps-test.js' ||
-    pathname === '/page-detection.js' ||
-    pathname === '/fun.js' ||
-    pathname === '/cloud-play.js' ||
-    pathname === '/seed-lab.js' ||
-    pathname === '/build-lab.js' ||
-    pathname === '/redstone-lab.js' ||
-    pathname === '/server-hub.js' ||
-    pathname === '/survival-board.js' ||
-    pathname === '/pack-center.js' ||
-    pathname === '/mods.js' ||
-    pathname === '/recipes.js' ||
-    pathname === '/coordinates.js' ||
-    pathname === '/styles.css'
-  ) {
+  const staticPath = pathname === '/' ? '/index.html' : pathname;
+  const publicFilePath = resolvePublicFilePath(staticPath);
+
+  if (publicFilePath && !isLoginAsset) {
     if (!session) {
       redirectToLogin(response);
       return;
     }
 
-    if (pathname === '/coordinates.html') {
+    if (staticPath === '/coordinates.html') {
       const vipInfo = getVipInfo(session.username);
 
       if (!vipInfo.vipPurchased) {
@@ -1741,12 +1739,12 @@ const server = http.createServer((request, response) => {
       }
     }
 
-    if ((pathname === '/developer.html' || pathname === '/developer.js') && !developer) {
+    if ((staticPath === '/developer.html' || staticPath === '/developer.js') && !developer) {
       redirectToIndex(response);
       return;
     }
 
-    serveStatic(pathname === '/' ? '/index.html' : pathname, response);
+    serveStatic(staticPath, response);
     return;
   }
 
