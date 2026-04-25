@@ -21,7 +21,7 @@ const captchaPreview = document.querySelector('[data-captcha-preview]');
 const captchaRefreshButton = document.querySelector('[data-captcha-refresh]');
 const captchaIdInput = document.querySelector('[data-captcha-id]');
 const captchaInput = document.querySelector('[data-captcha-input]');
-const allowedUiChoices = new Set(['normal', 'classic', 'end']);
+const allowedUiChoices = new Set(['normal', 'classic', 'end', 'liquid']);
 
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;
@@ -185,6 +185,42 @@ function setRegisterAvailability(isAvailable) {
   refreshRegisterAvailability();
 }
 
+async function loadMaintenanceStatus() {
+  try {
+    const response = await fetch('/api/maintenance/status');
+    const result = await response.json().catch(() => ({ maintenanceEnabled: false }));
+    const isEnabled = Boolean(result.maintenanceEnabled);
+
+    maintenanceEnabled = isEnabled;
+
+    refreshRegisterAvailability();
+
+    if (!maintenanceBanner) {
+      return;
+    }
+
+    maintenanceBanner.hidden = !isEnabled;
+    maintenanceBanner.textContent = isEnabled
+      ? '当前正在维护，仅维护账号和开发者账号可以登录并控制状态。'
+      : '';
+  } catch {
+    maintenanceEnabled = false;
+    refreshRegisterAvailability();
+  }
+}
+
+function switchTab(tabName) {
+  tabButtons.forEach((button) => {
+    button.classList.toggle('active', button.dataset.tab === tabName);
+  });
+
+  forms.forEach((form) => {
+    form.classList.toggle('hidden', form.dataset.form !== tabName);
+  });
+
+  setMessage('');
+}
+
 async function loadLoginCaptcha() {
   if (captchaRefreshButton) {
     captchaRefreshButton.disabled = true;
@@ -222,42 +258,6 @@ async function loadLoginCaptcha() {
       captchaRefreshButton.disabled = false;
     }
   }
-}
-
-async function loadMaintenanceStatus() {
-  try {
-    const response = await fetch('/api/maintenance/status');
-    const result = await response.json().catch(() => ({ maintenanceEnabled: false }));
-    const isEnabled = Boolean(result.maintenanceEnabled);
-
-    maintenanceEnabled = isEnabled;
-
-    refreshRegisterAvailability();
-
-    if (!maintenanceBanner) {
-      return;
-    }
-
-    maintenanceBanner.hidden = !isEnabled;
-    maintenanceBanner.textContent = isEnabled
-      ? '当前正在维护，仅维护账号和开发者账号可以登录并控制状态。'
-      : '';
-  } catch {
-    maintenanceEnabled = false;
-    refreshRegisterAvailability();
-  }
-}
-
-function switchTab(tabName) {
-  tabButtons.forEach((button) => {
-    button.classList.toggle('active', button.dataset.tab === tabName);
-  });
-
-  forms.forEach((form) => {
-    form.classList.toggle('hidden', form.dataset.form !== tabName);
-  });
-
-  setMessage('');
 }
 
 async function submitForm(event) {

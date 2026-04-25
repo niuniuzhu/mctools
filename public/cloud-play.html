@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -26,7 +26,7 @@
           <h1>云玩中心</h1>
           <p class="lead">这里先不接真实云主机，先帮你规划云玩方案、节点选择、预算和开局配置，适合做在线云玩的前期决策。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">当前版本 beta1.9.0</div>
             <div class="version-pill">模块：云玩中心</div>
           </div>
           <div class="workspace-nav">

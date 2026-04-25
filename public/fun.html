@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -26,7 +26,7 @@
           <h1>趣味实验室</h1>
           <p class="lead">这里专门放轻松、随机、整活向的 Minecraft 小工具，适合一个人玩，也适合和朋友一起开玩笑。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">当前版本 beta1.9.0</div>
             <div class="version-pill">模块：趣味实验室</div>
           </div>
           <div class="workspace-nav">

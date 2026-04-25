@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -27,7 +27,7 @@
             当前开放的是工具箱中的指令模块。你可以在这里生成基础指令与复杂 VIP 指令，并管理自己的历史记录。
           </p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">当前版本 beta1.9.0</div>
             <div class="version-pill">模块：指令工作台</div>
           </div>
           <div class="workspace-nav">

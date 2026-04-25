@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -26,7 +26,7 @@
           <h1>坐标工具</h1>
           <p class="lead">这是 VIP 专用模块，现已支持主世界与下界换算、两点测距、批量坐标转换、路线建议，以及死亡点与传送点收藏。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">当前版本 beta1.9.0</div>
             <div class="version-pill">模块：坐标工具</div>
             <div class="version-pill">VIP 专用</div>
           </div>

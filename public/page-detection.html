@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -26,7 +26,7 @@
           <h1>我的世界页面检测</h1>
           <p class="lead">独立的 Minecraft 页面识别分类，用 URL、标题和正文片段判断内容是否与我的世界相关。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 beta1.6.0</div>
+            <div class="version-pill">当前版本 beta1.9.0</div>
             <div class="version-pill">模块：页面检测</div>
           </div>
           <div class="workspace-nav">

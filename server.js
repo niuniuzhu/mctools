@@ -12,7 +12,7 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const appVersion = 'beta1.6.0';
+const appVersion = 'beta1.9.0';
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const maintenanceAdminAccount = {
   username: 'maintenance_admin',
@@ -1705,6 +1705,8 @@ const server = http.createServer((request, response) => {
     pathname === '/survival-board.html' ||
     pathname === '/pack-center.html' ||
     pathname === '/mods.html' ||
+    pathname === '/update-log.html' ||
+    pathname === '/ios-liquid-glass.html' ||
     pathname === '/recipes.html' ||
     pathname === '/coordinates.html' ||
     pathname === '/developer.html' ||
