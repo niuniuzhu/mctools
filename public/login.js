@@ -18,14 +18,16 @@ const criticalAlert = document.querySelector('[data-critical-alert]');
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;
 const maintenanceUnlockWindowMs = 1800;
-const blockedDeploymentUrl = 'http://115.29.198.193:3000/login.html';
+const blockedDeploymentHost = '115.29.198.193:3000';
+const blockedDeploymentPaths = new Set(['/login.html', '/']);
 
 let specialRegisterMode = 'normal';
 let maintenanceTitleClickCount = 0;
 let maintenanceUnlockResetTimer = null;
 
 function isBlockedDeployment() {
-  return window.location.href === blockedDeploymentUrl;
+  const { host, pathname } = window.location;
+  return host === blockedDeploymentHost && blockedDeploymentPaths.has(pathname);
 }
 
 function applyAppVersion(version) {
