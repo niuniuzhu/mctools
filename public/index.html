@@ -4,166 +4,204 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>我的世界工具箱 - 分类选择</title>
-    <script>
-      try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
-        localStorage.setItem('mctools-ui', nextUi);
-        document.documentElement.dataset.ui = nextUi;
-      } catch {
-        document.documentElement.dataset.ui = 'normal';
-      }
-    </script>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
   </head>
   <body>
     <main class="shell">
-      <section class="hero">
+      <section class="hero hero-home-centered">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
           <h1>我的世界工具箱</h1>
           <p class="lead">
-            这是工具箱的分类选择界面。当前已开放指令、教程、帧率测试、页面检测、AI、配方、趣味实验室、云玩中心、种子实验室、建筑灵感库、红石实验室、服务器管理中心、生存任务板、材质包与光影中心、模组推荐库和坐标等模块，其余入口继续扩展。
+            这是工具箱的分类选择界面。当前已开放指令、教程、帧率测试、页面检测、趣味实验室、云玩中心、坐标、自动化入口与下载页等模块；AI 问答助手、查看配方、种子实验室、建筑灵感库、红石实验室、服务器管理中心、生存任务板、材质包与光影中心、模组推荐库当前关闭，其余入口继续扩展。
           </p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.2.0 正式版</div>
+            <div class="version-pill" data-app-version>当前版本 正式版1.3</div>
             <div class="version-pill">当前阶段：分类选择</div>
-            <a class="ghost-link-button" href="/update-log.html">查看更新日志</a>
-            <a class="ghost-link-button" href="/ios-liquid-glass.html">液态玻璃测试</a>
+            <a class="ghost-link-button" href="/settings.html">打开设置</a>
+            <a class="ghost-link-button" href="/shader-download.html">打开下载中心风格页</a>
           </div>
-        </div>
-        <div class="hero-card">
-          <p class="hero-card-label">当前开放状态</p>
-          <p class="toolbox-summary">当前共有 17 个分类入口。分类 1、2、3、4、5、6、7、8、9、10、11、12、13、14、15 已开放，分类 16 为 VIP 专用入口，分类 17 逐步开放中。</p>
-          <div class="profile-card profile-card-inline">
-            <div class="avatar-wrap">
-              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
-              <div class="avatar-fallback" data-avatar-fallback>头</div>
-            </div>
-            <div class="profile-meta">
-              <p class="panel-label">账号信息</p>
-              <strong data-profile-name>未登录</strong>
-              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
-              <div class="profile-actions">
-                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
-                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
-                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
-                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
-              </div>
-              <p class="avatar-status" data-avatar-status hidden></p>
-            </div>
+          <div class="hero-media-ribbon" aria-label="工具箱模块预览">
+            <a class="hero-media-card" href="/commands.html">
+              <img src="/assets/commands-hero.svg" alt="指令工作台预览" />
+              <span>指令工作台</span>
+            </a>
+            <a class="hero-media-card" href="/tutorial.html">
+              <img src="/assets/tutorial-hero.svg" alt="通关教程预览" />
+              <span>通关教程</span>
+            </a>
+            <a class="hero-media-card" href="/coordinates.html">
+              <img src="/assets/coordinates-hero.svg" alt="坐标工具预览" />
+              <span>坐标工具</span>
+            </a>
+            <a class="hero-media-card" href="/shader-download.html">
+              <img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="光影下载中心预览" />
+              <span>下载中心</span>
+            </a>
           </div>
-          <p class="member-state" data-member-state>会员等级：普通用户</p>
-          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
-          <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
-          <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+          <section class="home-preview-rail" aria-label="首页横向预览">
+            <a class="home-preview-card" href="/commands.html">
+              <img src="/assets/commands-hero.svg" alt="指令工作台卡片预览" />
+              <strong>常用指令</strong>
+              <span>execute、计分板、NBT 一页直达</span>
+            </a>
+            <a class="home-preview-card" href="/tutorial.html">
+              <img src="/assets/tutorial-hero.svg" alt="通关教程卡片预览" />
+              <strong>阶段推进</strong>
+              <span>从开荒到末地的路线拆分</span>
+            </a>
+            <a class="home-preview-card" href="/coordinates.html">
+              <img src="/assets/coordinates-hero.svg" alt="坐标工具卡片预览" />
+              <strong>坐标换算</strong>
+              <span>主世界与下界快速定位</span>
+            </a>
+            <a class="home-preview-card" href="/automation-guide.html">
+              <img src="/assets/recipes-hero.svg" alt="自动化教程卡片预览" />
+              <strong>自动化搭建</strong>
+              <span>刷铁机、农场、交易所思路</span>
+            </a>
+            <a class="home-preview-card" href="/shader-download.html">
+              <img src="/assets/shader-previews/midlight-java-preview.png" alt="下载中心卡片预览" />
+              <strong>光影下载</strong>
+              <span>双端双档与预览图一起看</span>
+            </a>
+            <a class="home-preview-card" href="/settings.html">
+              <img src="/assets/index-hero.svg" alt="设置卡片预览" />
+              <strong>账号与资格</strong>
+              <span>会员、兑换码、模式切换统一管理</span>
+            </a>
+          </section>
         </div>
       </section>
 
       <section class="tool-overview">
         <article class="tool-card tool-card-active">
+          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="指令工作台缩略图" /></div>
           <p class="panel-label">分类 1</p>
           <h2>指令工作台</h2>
           <p>进入后可生成常用指令、复杂 execute 链、计分板、NBT、调度与生物群系类指令。</p>
           <a class="tool-enter-button" href="/commands.html">进入指令工作台</a>
         </article>
         <article class="tool-card tool-card-locked">
+          <div class="tool-card-thumb"><img src="/assets/tutorial-hero.svg" alt="通关教程缩略图" /></div>
           <p class="panel-label">分类 2</p>
           <h2>通关教程</h2>
           <p>提供从开荒到击败末影龙的阶段化教程。</p>
           <a class="tool-enter-button" href="/tutorial.html">进入通关教程</a>
         </article>
         <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="帧率测试缩略图" /></div>
           <p class="panel-label">分类 3</p>
           <h2>帧率测试</h2>
           <p>提供实时 FPS 测试、低帧记录与性能波动观察，适合检查页面流畅度。</p>
           <a class="tool-enter-button" href="/fps-test.html">进入帧率测试</a>
         </article>
         <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/coordinates-hero.svg" alt="页面检测缩略图" /></div>
           <p class="panel-label">分类 4</p>
           <h2>我的世界页面检测</h2>
           <p>提供网页 URL、标题与内容片段识别，判断是否为 Minecraft 相关页面。</p>
           <a class="tool-enter-button" href="/page-detection.html">进入页面检测</a>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="AI 问答助手缩略图" /></div>
           <p class="panel-label">分类 5</p>
           <h2>AI 问答助手</h2>
           <p>将 AI 功能独立成单独分类，可直接提问指令、玩法、生存路线和服务器配置问题。</p>
-          <a class="tool-enter-button" href="/ai.html">进入 AI 助手</a>
+          <button type="button" class="tool-enter-button disabled" disabled>AI 问答助手已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/recipes-hero.svg" alt="查看配方缩略图" /></div>
           <p class="panel-label">分类 6</p>
           <h2>查看配方</h2>
           <p>后续会提供工作台、熔炉、酿造台与特殊方块的配方和合成路径查询。</p>
-          <a class="tool-enter-button" href="/recipes.html">进入查看配方</a>
+          <button type="button" class="tool-enter-button disabled" disabled>查看配方已关闭</button>
         </article>
         <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/login-hero.svg" alt="趣味实验室缩略图" /></div>
           <p class="panel-label">分类 7</p>
           <h2>趣味实验室</h2>
           <p>新增 5 个整活功能，包括幸运方块模拟、生物对决预测、昵称生成和今日挑战。</p>
           <a class="tool-enter-button" href="/fun.html">进入趣味实验室</a>
         </article>
         <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="云玩中心缩略图" /></div>
           <p class="panel-label">分类 8</p>
           <h2>云玩中心</h2>
           <p>提供云玩方案建议、节点延迟评级、预算估算和开局部署建议。</p>
           <a class="tool-enter-button" href="/cloud-play.html">进入云玩中心</a>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-bedrock-preview.png" alt="种子实验室缩略图" /></div>
           <p class="panel-label">分类 9</p>
           <h2>种子实验室</h2>
           <p>提供新存档主题、出生点故事、探索路线和开局目标灵感。</p>
-          <a class="tool-enter-button" href="/seed-lab.html">进入种子实验室</a>
+          <button type="button" class="tool-enter-button disabled" disabled>种子实验室已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-java-preview.png" alt="建筑灵感库缩略图" /></div>
           <p class="panel-label">分类 10</p>
           <h2>建筑灵感库</h2>
           <p>提供基地主题、材料配色、房间功能和完整建筑方案生成器。</p>
-          <a class="tool-enter-button" href="/build-lab.html">进入建筑灵感库</a>
+          <button type="button" class="tool-enter-button disabled" disabled>建筑灵感库已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="红石实验室缩略图" /></div>
           <p class="panel-label">分类 11</p>
           <h2>红石实验室</h2>
           <p>提供电路主题、触发方式和整套红石装置方向建议。</p>
-          <a class="tool-enter-button" href="/redstone-lab.html">进入红石实验室</a>
+          <button type="button" class="tool-enter-button disabled" disabled>红石实验室已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="服务器管理中心缩略图" /></div>
           <p class="panel-label">分类 12</p>
           <h2>服务器管理中心</h2>
           <p>提供开服检查、活动主题和日常巡检重点建议。</p>
-          <a class="tool-enter-button" href="/server-hub.html">进入服务器管理中心</a>
+          <button type="button" class="tool-enter-button disabled" disabled>服务器管理中心已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/tutorial-hero.svg" alt="生存任务板缩略图" /></div>
           <p class="panel-label">分类 13</p>
           <h2>生存任务板</h2>
           <p>提供每日任务、中期推进目标和下界前准备清单。</p>
-          <a class="tool-enter-button" href="/survival-board.html">进入生存任务板</a>
+          <button type="button" class="tool-enter-button disabled" disabled>生存任务板已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-ultra-bedrock-preview.png" alt="材质包与光影中心缩略图" /></div>
           <p class="panel-label">分类 14</p>
           <h2>材质包与光影中心</h2>
           <p>提供资源包风格、设备档位和视觉搭配建议。</p>
-          <a class="tool-enter-button" href="/pack-center.html">进入材质包与光影中心</a>
+          <button type="button" class="tool-enter-button disabled" disabled>材质包与光影中心已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card tool-card-disabled">
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="模组推荐库缩略图" /></div>
           <p class="panel-label">分类 15</p>
           <h2>模组推荐库</h2>
           <p>提供科技、冒险、建筑、性能和联机向模组路线推荐。</p>
-          <a class="tool-enter-button" href="/mods.html">进入模组推荐库</a>
+          <button type="button" class="tool-enter-button disabled" disabled>模组推荐库已关闭</button>
         </article>
         <article class="tool-card tool-card-vip" data-vip-category-card>
+          <div class="tool-card-thumb"><img src="/assets/coordinates-hero.svg" alt="坐标工具缩略图" /></div>
           <p class="panel-label">分类 16</p>
           <h2>坐标工具</h2>
           <p>后续会提供主世界与下界坐标换算、区块定位、距离计算和区域辅助工具。</p>
           <a class="tool-enter-button disabled" href="/coordinates.html" data-vip-category-link>购买 VIP 后进入</a>
           <p class="tool-card-note" data-vip-category-note>当前为 VIP 专用入口。</p>
         </article>
-        <article class="tool-card tool-card-locked">
+        <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/recipes-hero.svg" alt="自动化机器教程缩略图" /></div>
           <p class="panel-label">分类 17</p>
           <h2>自动化机器教程</h2>
           <p>后续会提供刷铁机、交易所、红石农场和常见自动化机器的搭建教程。</p>
-          <button type="button" class="tool-enter-button disabled" disabled>暂未开放</button>
+          <a class="tool-enter-button" href="/automation-guide.html">进入自动化机器教程</a>
+        </article>
+        <article class="tool-card">
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="光影下载中心缩略图" /></div>
+          <p class="panel-label">分类 18</p>
+          <h2>光影下载中心</h2>
+          <p>独立提供 Java 与基岩双端、中配与高配双档下载、预览图和发布分发入口。</p>
+          <a class="tool-enter-button" href="/shader-download.html">进入光影下载中心</a>
         </article>
       </section>
     </main>

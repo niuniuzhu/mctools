@@ -7,9 +7,28 @@ const refreshButton = document.querySelector('[data-developer-refresh]');
 const logoutButton = document.querySelector('[data-developer-logout]');
 const usernameLabel = document.querySelector('[data-developer-username]');
 const openIndexButton = document.querySelector('[data-open-index]');
+const versionInput = document.querySelector('[data-version-input]');
+const versionStatus = document.querySelector('[data-version-status]');
+const loadVersionButton = document.querySelector('[data-load-version]');
+const saveVersionButton = document.querySelector('[data-save-version]');
 
 let currentFilePath = '';
 let currentFiles = [];
+
+function applyAppVersion(version) {
+  document.querySelectorAll('[data-app-version]').forEach((element) => {
+    element.textContent = `当前版本 ${version}`;
+  });
+}
+
+function setVersionStatus(text, isError = false) {
+  if (!versionStatus) {
+    return;
+  }
+
+  versionStatus.textContent = text;
+  versionStatus.style.color = isError ? '#fca5a5' : '';
+}
 
 function setStatus(text, isError = false) {
   if (!editorStatus) {
@@ -72,7 +91,82 @@ async function fetchMe() {
     usernameLabel.textContent = `当前账号：${me.username} · 开发者`;
   }
 
+  if (me.version) {
+    applyAppVersion(me.version);
+  }
+
   return me;
+}
+
+async function loadVersion() {
+  setVersionStatus('正在读取版本号...');
+
+  try {
+    const response = await fetch('/api/developer/version');
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '版本号读取失败');
+    }
+
+    if (versionInput) {
+      versionInput.value = result.version || '';
+    }
+
+    if (result.version) {
+      applyAppVersion(result.version);
+    }
+
+    setVersionStatus(`当前版本：${result.version || '未设置'}`);
+  } catch (error) {
+    setVersionStatus(error.message || '版本号读取失败', true);
+  }
+}
+
+async function saveVersion() {
+  if (!versionInput) {
+    return;
+  }
+
+  const nextVersion = versionInput.value.trim();
+
+  if (!nextVersion) {
+    setVersionStatus('请输入版本号', true);
+    return;
+  }
+
+  if (saveVersionButton) {
+    saveVersionButton.disabled = true;
+  }
+
+  setVersionStatus('正在保存版本号...');
+
+  try {
+    const response = await fetch('/api/developer/version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ version: nextVersion })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.message || '版本号保存失败');
+    }
+
+    if (result.version) {
+      versionInput.value = result.version;
+      applyAppVersion(result.version);
+    }
+
+    setVersionStatus(`版本号已更新为 ${result.version}`);
+  } catch (error) {
+    setVersionStatus(error.message || '版本号保存失败', true);
+  } finally {
+    if (saveVersionButton) {
+      saveVersionButton.disabled = false;
+    }
+  }
 }
 
 async function loadFiles() {
@@ -210,10 +304,19 @@ if (openIndexButton) {
   });
 }
 
+if (loadVersionButton) {
+  loadVersionButton.addEventListener('click', loadVersion);
+}
+
+if (saveVersionButton) {
+  saveVersionButton.addEventListener('click', saveVersion);
+}
+
 fetchMe().then((me) => {
   if (!me) {
     return;
   }
 
+  loadVersion();
   loadFiles();
 });

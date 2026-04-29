@@ -1,0 +1,21 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Midlight Realism Bedrock Pack",
+    "description": "中配真实材质增强包（基岩版）",
+    "uuid": "f7b2e6de-a3bd-4c43-a655-5df29a4d0a11",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 20, 0]
+  },
+  "modules": [
+    {
+      "type": "resources",
+      "uuid": "7266ec74-1318-42d8-8d46-b3db2e96b4df",
+      "version": [1, 0, 0]
+    }
+  ],
+  "metadata": {
+    "authors": ["Minecraft Toolbox"],
+    "license": "Internal demo pack"
+  }
+}

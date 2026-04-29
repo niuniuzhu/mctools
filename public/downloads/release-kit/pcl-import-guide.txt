@@ -1,0 +1,27 @@
+PCL Import Guide
+
+Single mod (.jar)
+1. Open the instance folder in PCL.
+2. Put the .jar file into the mods folder.
+3. Confirm the Minecraft version and loader match the mod.
+4. Launch and test once.
+
+Java shader pack (.zip)
+1. Open the instance folder in PCL.
+2. Put the shader pack zip into the shaderpacks folder.
+3. Start the game and enable it in video or shader settings.
+
+Java resource pack (.zip)
+1. Open the instance folder in PCL.
+2. Put the zip into the resourcepacks folder.
+3. Enable it inside the resource packs screen.
+
+Bedrock pack (.mcpack)
+1. Double click the mcpack file on Windows, or open it from the file manager on mobile.
+2. Minecraft will import it automatically.
+3. Enable it in global resources or world resources.
+
+Java modpack instance
+1. Keep mods, config, resourcepacks, shaderpacks, and README together.
+2. Do not include accounts, logs, caches, or crash reports.
+3. Test a clean import before release.

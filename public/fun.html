@@ -26,7 +26,7 @@
           <h1>趣味实验室</h1>
           <p class="lead">这里专门放轻松、随机、整活向的 Minecraft 小工具，适合一个人玩，也适合和朋友一起开玩笑。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.2.0 正式版</div>
+            <div class="version-pill" data-app-version>当前版本 正式版1.3</div>
             <div class="version-pill">模块：趣味实验室</div>
           </div>
           <div class="workspace-nav">
@@ -35,7 +35,7 @@
         </div>
         <div class="hero-card">
           <p class="hero-card-label">当前模块：趣味</p>
-          <p class="toolbox-summary">已内置 5 个趣味玩法：幸运方块模拟、生物对决预测、昵称生成器、掉落轮盘和今日挑战。</p>
+          <p class="toolbox-summary">已内置 13 个趣味玩法：幸运方块模拟、生物对决预测、昵称生成器、掉落轮盘、今日挑战、宝藏坐标盲盒、村民交易吐槽、Boss 出场台词、联机整活惩罚签、建筑主题签、红石翻车警报、开荒职业卡和生物群系任务书。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -121,6 +121,81 @@
             </div>
             <div class="result-card" data-fun-challenge-result>挑战结果会显示在这里。</div>
             <div class="fun-pack-list" data-fun-pack-result></div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 6</p>
+            <h2>宝藏坐标盲盒</h2>
+            <p class="tool-card-note">随机给你一组像真的一样的探索坐标和一句出发理由。</p>
+            <button type="button" class="copy-btn" data-fun-treasure>抽取坐标盲盒</button>
+            <div class="result-card" data-fun-treasure-result>坐标结果会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 7</p>
+            <h2>村民交易吐槽机</h2>
+            <p class="tool-card-note">输入一个物品，看看村民会给出什么离谱报价和点评。</p>
+            <label>
+              交易物品
+              <input type="text" data-fun-villager-item placeholder="例如 附魔书" value="附魔书" />
+            </label>
+            <button type="button" class="copy-btn" data-fun-villager>生成交易吐槽</button>
+            <div class="result-card" data-fun-villager-result>交易吐槽会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 8</p>
+            <h2>Boss 出场台词</h2>
+            <p class="tool-card-note">给末影龙、凋灵或者你朋友的自制 Boss 随机配一句夸张登场词。</p>
+            <label>
+              Boss 名称
+              <input type="text" data-fun-boss-name placeholder="例如 末影龙" value="末影龙" />
+            </label>
+            <button type="button" class="copy-btn" data-fun-boss>生成登场台词</button>
+            <div class="result-card" data-fun-boss-result>Boss 台词会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 9</p>
+            <h2>联机整活惩罚签</h2>
+            <p class="tool-card-note">适合朋友联机时快速抽一条整活规则，不改存档，只改气氛。</p>
+            <button type="button" class="copy-btn" data-fun-party>抽取惩罚签</button>
+            <div class="result-card" data-fun-party-result>惩罚签会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 10</p>
+            <h2>今日建筑主题签</h2>
+            <p class="tool-card-note">抽一个建造方向，避免站在空地前面发呆半小时。</p>
+            <button type="button" class="copy-btn" data-fun-build>抽取建筑主题</button>
+            <div class="result-card" data-fun-build-result>建筑主题会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 11</p>
+            <h2>红石翻车警报</h2>
+            <p class="tool-card-note">随机生成一条非常像真实事故总结的红石故障提示。</p>
+            <button type="button" class="copy-btn" data-fun-redstone>生成翻车警报</button>
+            <div class="result-card" data-fun-redstone-result>翻车警报会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card">
+            <p class="panel-label">功能 12</p>
+            <h2>开荒职业卡</h2>
+            <p class="tool-card-note">给今天的开荒局抽一个临时定位，决定你先干什么。</p>
+            <button type="button" class="copy-btn" data-fun-role>抽取职业卡</button>
+            <div class="result-card" data-fun-role-result>职业卡会显示在这里。</div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">功能 13</p>
+            <h2>生物群系任务书</h2>
+            <p class="tool-card-note">随机指定一个群系，并给出一件到场后必须完成的小目标。</p>
+            <div class="button-row button-row-wide">
+              <button type="button" class="copy-btn" data-fun-biome>抽取群系任务</button>
+              <button type="button" class="copy-btn secondary" data-fun-biome-copy>复制任务书</button>
+            </div>
+            <div class="result-card" data-fun-biome-result>群系任务会显示在这里。</div>
           </article>
         </div>
       </section>

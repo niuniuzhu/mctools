@@ -1,0 +1,22 @@
+{
+  "name": "Midlight Realism Fabric Pack",
+  "version": "0.1.0",
+  "minecraftVersion": "1.20.1",
+  "loader": "fabric",
+  "author": "Your Name",
+  "recommendedMemoryMb": 6144,
+  "dependencies": [
+    "Fabric API",
+    "Iris Shaders",
+    "Sodium",
+    "Continuity",
+    "LambDynamicLights"
+  ],
+  "includedFolders": [
+    "mods",
+    "config",
+    "resourcepacks",
+    "shaderpacks"
+  ],
+  "notes": "Replace example values before publishing. Keep this manifest next to your README and changelog."
+}

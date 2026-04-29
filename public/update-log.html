@@ -4,81 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>我的世界工具箱 - 更新日志</title>
-    <script>
-      try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
-        localStorage.setItem('mctools-ui', nextUi);
-        document.documentElement.dataset.ui = nextUi;
-      } catch {
-        document.documentElement.dataset.ui = 'normal';
-      }
-    </script>
     <link rel="stylesheet" href="/styles.css" />
-    <script>
-      function detectLiquidGlassSupport() {
-        const ua = navigator.userAgent || '';
-        const platform = navigator.platform || '';
-        const isTouchMac = platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-        const isIOS = /iPhone|iPad|iPod/i.test(ua) || isTouchMac;
-        const supportsBackdrop =
-          typeof CSS !== 'undefined' &&
-          (CSS.supports('backdrop-filter: blur(18px)') || CSS.supports('-webkit-backdrop-filter: blur(18px)'));
-        const reducedTransparency =
-          typeof window.matchMedia === 'function' &&
-          window.matchMedia('(prefers-reduced-transparency: reduce)').matches;
-
-        return {
-          isIOS,
-          supportsBackdrop,
-          reducedTransparency,
-          canUse: Boolean(isIOS && supportsBackdrop && !reducedTransparency)
-        };
-      }
-
-      function renderLiquidGlassResult() {
-        const resultNode = document.querySelector('[data-liquid-glass-result]');
-        const pillNode = document.querySelector('[data-liquid-glass-pill]');
-        const previewNode = document.querySelector('[data-liquid-glass-preview]');
-
-        if (!resultNode || !pillNode || !previewNode) {
-          return;
-        }
-
-        const result = detectLiquidGlassSupport();
-        const lines = [];
-
-        lines.push(result.isIOS ? '已检测到 iOS 或 iPadOS 设备环境。' : '当前不是 iOS 或 iPadOS 设备环境。');
-        lines.push(result.supportsBackdrop ? '浏览器支持 backdrop-filter / -webkit-backdrop-filter。' : '浏览器不支持玻璃模糊关键能力。');
-
-        if (result.reducedTransparency) {
-          lines.push('系统当前偏好降低透明效果，建议不要启用液态玻璃样式。');
-        }
-
-        if (result.canUse) {
-          pillNode.textContent = '检测结果：可尝试启用';
-          previewNode.classList.add('tool-card-active');
-          previewNode.classList.remove('tool-card-locked');
-          resultNode.textContent = `${lines.join(' ')} 当前设备可尝试启用液态玻璃效果。`;
-          return;
-        }
-
-        pillNode.textContent = '检测结果：不建议启用';
-        previewNode.classList.add('tool-card-locked');
-        previewNode.classList.remove('tool-card-active');
-        resultNode.textContent = `${lines.join(' ')} 当前设备不满足稳定启用条件。`;
-      }
-
-      window.addEventListener('DOMContentLoaded', () => {
-        const detectButton = document.querySelector('[data-liquid-glass-detect]');
-
-        if (detectButton) {
-          detectButton.addEventListener('click', renderLiquidGlassResult);
-        }
-
-        renderLiquidGlassResult();
-      });
-    </script>
   </head>
   <body>
     <main class="shell">
@@ -86,20 +12,20 @@
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
           <h1>更新日志</h1>
-          <p class="lead">这里记录我的世界工具箱历次主要版本变更，当前版本为 v1.2.0 正式版。</p>
+          <p class="lead">这里记录我的世界工具箱历次主要版本变更，当前版本为 正式版1.3。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.2.0 正式版</div>
+            <div class="version-pill">当前版本 正式版1.3</div>
             <div class="version-pill">模块：更新日志</div>
-            <a class="ghost-link-button" href="/ios-liquid-glass.html">打开液态玻璃实验室</a>
+            <a class="ghost-link-button" href="/shader-download.html">查看统一视觉页</a>
           </div>
           <div class="workspace-nav">
-            <a class="ghost-link-button" href="/login.html">返回登录</a>
+            <a class="ghost-link-button" href="/settings.html">返回设置</a>
             <a class="ghost-link-button" href="/index.html">返回选择界面</a>
           </div>
         </div>
         <div class="hero-card">
           <p class="hero-card-label">版本说明</p>
-          <p class="toolbox-summary">v1.2.0 正式版完成液态玻璃全界面实装，并修复 Linux 服务器下新增分类 404 与维护模式难以关闭的问题，作为当前稳定发布版本。</p>
+          <p class="toolbox-summary">beta1.12.0 新增 Java 与基岩双端光影下载中心，现已扩展到中配 / 高配双档，并补充四套预览图。</p>
         </div>
       </section>
 
@@ -111,6 +37,41 @@
           </div>
         </div>
         <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">正式版1.3</p>
+            <h2>趣味实验室扩展到 9 项功能</h2>
+            <div class="result-card compact-result">在原有幸运方块、生物对决、昵称生成、掉落轮盘和今日挑战之外，新增宝藏坐标盲盒、村民交易吐槽、Boss 出场台词和联机整活惩罚签，并切换到正式版 1.3。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">1.3rc3</p>
+            <h2>补充全站视觉插画</h2>
+            <div class="result-card compact-result">为大多数共享页面追加插画背景、角落缩略图和更明显的卡片层次，减少页面过于空白和过于简洁的问题。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">1.3rc2</p>
+            <h2>关闭白天选项</h2>
+            <div class="result-card compact-result">设置页关闭白天切换入口，显示模式统一锁定为晚上，旧的白天本地设置也会自动回到夜间模式。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">1.3rc1</p>
+            <h2>取消验证码登录</h2>
+            <div class="result-card compact-result">登录流程改回用户名和密码直接登录，移除登录页验证码展示、刷新和提交校验，减少进入阻力。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta2.3.3</p>
+            <h2>首页主视觉居中</h2>
+            <div class="result-card compact-result">首页顶部主视觉改为单列居中展示，标题、简介和入口按钮统一收拢到中轴，分类区保持不变。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta2.3.1</p>
+            <h2>设置页开放并接管日志入口</h2>
+            <div class="result-card compact-result">开放独立设置页，账号信息、VIP 购买、昼夜切换和更新日志入口统一迁入；更新日志页移除返回登录按钮，改为返回设置。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta2.3.0</p>
+            <h2>设置入口与昼夜模式</h2>
+            <div class="result-card compact-result">新增设置承载页的产品结构，准备承接账号信息、VIP 购买与白天 / 晚上显示切换，减少首页信息堆叠。</div>
+          </article>
           <article class="guide-card utility-card utility-card-wide">
             <p class="panel-label">beta0.1.0</p>
             <h2>最早原型建立</h2>
@@ -181,17 +142,20 @@
             <h2>Linux 部署修复与稳定发布</h2>
             <div class="result-card compact-result">修复 Linux 服务器部署时新增分类与实验页因静态文件白名单遗漏导致的 404 问题，并调整维护模式控制权限与状态解析逻辑，确保维护状态可以稳定关闭，作为正式版 1.2.0 发布。</div>
           </article>
-          <article class="guide-card utility-card utility-card-wide" data-liquid-glass-preview>
-            <p class="panel-label">兼容性检测</p>
-            <h2>iOS 液态玻璃效果检测</h2>
-            <div class="meta-row">
-              <div class="version-pill" data-liquid-glass-pill>检测结果：等待检测</div>
-            </div>
-            <p class="tool-card-note">这里只能检测当前设备是否接近满足 iOS 玻璃模糊能力，不能直接判断系统级视觉效果是否 100% 可用。</p>
-            <div class="button-row button-row-wide">
-              <button type="button" class="copy-btn" data-liquid-glass-detect>检测当前设备</button>
-            </div>
-            <div class="result-card compact-result" data-liquid-glass-result>检测结果会显示在这里。</div>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta1.10.0</p>
+            <h2>维护权限并入开发者账号</h2>
+            <div class="result-card compact-result">取消独立维护账号与对应注册入口，维护模式的开启、关闭、维护期登录与状态控制统一由开发者账号负责，减少双角色带来的权限分叉与维护成本。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta1.11.0</p>
+            <h2>取消维护功能并补充版本号控制</h2>
+            <div class="result-card compact-result">移除维护模式相关接口、访问拦截、开发者维护控制面板和登录页维护态展示，同时保留并补强开发者控制台的版本号读取与保存功能，可直接更新当前站点版本显示与接口版本字段。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">beta1.12.0</p>
+            <h2>光影下载中心与双档资源包</h2>
+            <div class="result-card compact-result">新增光影下载中心，提供 Java / 基岩双端的中配与高配四套资源包下载，并补上站内预览图，既可走稳定帧率路线，也可走更强视觉表现路线。</div>
           </article>
         </div>
       </section>

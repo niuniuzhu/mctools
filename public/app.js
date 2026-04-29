@@ -494,15 +494,6 @@ const COMMANDS = {
   }
 };
 
-try {
-  const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-  const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
-  localStorage.setItem('mctools-ui', nextUi);
-  document.documentElement.dataset.ui = nextUi;
-} catch {
-  document.documentElement.dataset.ui = 'normal';
-}
-
 const VIP_COMPLEX_COMMANDS = new Set([
   'executeChain',
   'scoreboardObjective',
@@ -528,6 +519,22 @@ const VIP_COMPLEX_COMMANDS = new Set([
 ]);
 
 let currentMe = null;
+
+function applyAppVersion(version) {
+  if (!version) {
+    return;
+  }
+
+  document.querySelectorAll('[data-app-version]').forEach((element) => {
+    element.textContent = `当前版本 ${version}`;
+  });
+
+  document.querySelectorAll('.meta-row .version-pill').forEach((element) => {
+    if (/^当前版本\s+/u.test(element.textContent.trim())) {
+      element.textContent = `当前版本 ${version}`;
+    }
+  });
+}
 let currentHistoryItems = [];
 
 const COMMAND_PRESETS = {
@@ -894,6 +901,346 @@ function writeScopedStorage(scope, value) {
   } catch {
     // Ignore storage write failure.
   }
+}
+
+const LIQUID_GLASS_REDEEM_CODE = 'MCTOOLS-LIQUID-2026';
+const SHADER_HUB_REDEEM_CODE = 'MCTOOLS-SHADER-2026';
+
+function getLiquidGlassState() {
+  const state = readScopedStorage('liquid-glass-test', { qualified: false, enabled: false });
+
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return { qualified: false, enabled: false };
+  }
+
+  return {
+    qualified: Boolean(state.qualified),
+    enabled: Boolean(state.enabled)
+  };
+}
+
+function setLiquidGlassState(nextState) {
+  writeScopedStorage('liquid-glass-test', {
+    qualified: Boolean(nextState && nextState.qualified),
+    enabled: Boolean(nextState && nextState.enabled)
+  });
+}
+
+function getShaderHubState() {
+  const state = readScopedStorage('shader-hub-access', { qualified: false });
+
+  if (!state || typeof state !== 'object' || Array.isArray(state)) {
+    return { qualified: false };
+  }
+
+  return {
+    qualified: Boolean(state.qualified)
+  };
+}
+
+function setShaderHubState(nextState) {
+  writeScopedStorage('shader-hub-access', {
+    qualified: Boolean(nextState && nextState.qualified)
+  });
+}
+
+function setUiTheme(themeName) {
+  if (themeName === 'liquid') {
+    document.documentElement.setAttribute('data-ui', 'liquid');
+    return;
+  }
+
+  document.documentElement.setAttribute('data-ui', 'normal');
+}
+
+function renderLiquidGlassAccess() {
+  const state = currentMe ? getLiquidGlassState() : { qualified: false, enabled: false };
+  const status = document.querySelector('[data-liquid-glass-status]');
+  const message = document.querySelector('[data-liquid-glass-message]');
+  const codeInput = document.querySelector('[data-liquid-glass-code]');
+  const redeemButton = document.querySelector('[data-liquid-glass-redeem]');
+  const enableButton = document.querySelector('[data-liquid-glass-enable]');
+  const disableButton = document.querySelector('[data-liquid-glass-disable]');
+  const revokeButton = document.querySelector('[data-liquid-glass-revoke]');
+
+  setUiTheme(state.qualified && state.enabled ? 'liquid' : 'normal');
+
+  if (status) {
+    status.textContent = state.qualified
+      ? state.enabled
+        ? '测试资格：已开通，液态玻璃已启用'
+        : '测试资格：已开通，当前使用默认风格'
+      : '测试资格：未开通';
+    status.classList.toggle('vip-active', state.qualified);
+  }
+
+  if (message) {
+    message.textContent = state.qualified
+      ? '当前账号已经获得液态玻璃测试资格，可启用或恢复默认风格，也可以直接取消资格。'
+      : '当前账号还没有液态玻璃测试资格。';
+  }
+
+  if (codeInput) {
+    codeInput.disabled = state.qualified;
+    if (state.qualified) {
+      codeInput.value = '';
+    }
+  }
+
+  if (redeemButton) {
+    redeemButton.disabled = state.qualified;
+  }
+
+  if (enableButton) {
+    enableButton.disabled = !state.qualified || state.enabled;
+  }
+
+  if (disableButton) {
+    disableButton.disabled = !state.qualified || !state.enabled;
+  }
+
+  if (revokeButton) {
+    revokeButton.disabled = !state.qualified;
+  }
+}
+
+function renderShaderHubAccess() {
+  const state = currentMe ? getShaderHubState() : { qualified: false };
+  const status = document.querySelector('[data-shader-hub-status]');
+  const message = document.querySelector('[data-shader-hub-message]');
+  const codeInput = document.querySelector('[data-shader-hub-code]');
+  const redeemButton = document.querySelector('[data-shader-hub-redeem]');
+  const actions = document.querySelector('[data-shader-hub-actions]');
+  const revokeButton = document.querySelector('[data-shader-hub-revoke]');
+  const lockedPanel = document.querySelector('[data-shader-hub-locked]');
+  const contentPanel = document.querySelector('[data-shader-hub-content]');
+  const pageStatus = document.querySelector('[data-shader-hub-page-status]');
+
+  if (status) {
+    status.textContent = state.qualified ? '下载中心：已开放' : '下载中心：未开放';
+    status.classList.toggle('vip-active', state.qualified);
+  }
+
+  if (message) {
+    message.textContent = state.qualified
+      ? '当前账号已获得光影下载中心资格，可直接进入下载页面。'
+      : '输入独立兑换码后即可开放光影下载中心。';
+  }
+
+  if (codeInput) {
+    codeInput.disabled = state.qualified;
+    if (state.qualified) {
+      codeInput.value = '';
+    }
+  }
+
+  if (redeemButton) {
+    redeemButton.disabled = state.qualified;
+  }
+
+  if (actions) {
+    actions.classList.toggle('hidden', !state.qualified);
+  }
+
+  if (revokeButton) {
+    revokeButton.disabled = !state.qualified;
+  }
+
+  if (lockedPanel) {
+    lockedPanel.classList.toggle('hidden', state.qualified);
+  }
+
+  if (contentPanel) {
+    contentPanel.classList.toggle('shader-hub-disabled', !state.qualified);
+    contentPanel.setAttribute('aria-disabled', state.qualified ? 'false' : 'true');
+  }
+
+  if (pageStatus) {
+    pageStatus.textContent = state.qualified ? '权限：已开放下载' : '权限：需兑换码开放';
+    pageStatus.classList.toggle('vip-active', state.qualified);
+  }
+}
+
+function initializeLiquidGlassControls() {
+  const redeemButton = document.querySelector('[data-liquid-glass-redeem]');
+  const enableButton = document.querySelector('[data-liquid-glass-enable]');
+  const disableButton = document.querySelector('[data-liquid-glass-disable]');
+  const revokeButton = document.querySelector('[data-liquid-glass-revoke]');
+  const codeInput = document.querySelector('[data-liquid-glass-code]');
+  const message = document.querySelector('[data-liquid-glass-message]');
+
+  if (!redeemButton && !enableButton && !disableButton && !revokeButton) {
+    renderLiquidGlassAccess();
+    return;
+  }
+
+  if (redeemButton && codeInput) {
+    redeemButton.addEventListener('click', () => {
+      const normalizedCode = String(codeInput.value || '').trim().toUpperCase();
+
+      if (normalizedCode !== LIQUID_GLASS_REDEEM_CODE) {
+        if (message) {
+          message.textContent = '兑换码无效，未获得液态玻璃测试资格。';
+        }
+        return;
+      }
+
+      setLiquidGlassState({ qualified: true, enabled: true });
+
+      if (message) {
+        message.textContent = '兑换成功，当前账号已获得液态玻璃测试资格，并已切换到液态玻璃风格。';
+      }
+
+      renderLiquidGlassAccess();
+    });
+
+    codeInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        redeemButton.click();
+      }
+    });
+  }
+
+  if (enableButton) {
+    enableButton.addEventListener('click', () => {
+      const state = getLiquidGlassState();
+      setLiquidGlassState({ ...state, qualified: true, enabled: true });
+      if (message) {
+        message.textContent = '液态玻璃测试风格已启用。';
+      }
+      renderLiquidGlassAccess();
+    });
+  }
+
+  if (disableButton) {
+    disableButton.addEventListener('click', () => {
+      const state = getLiquidGlassState();
+      setLiquidGlassState({ ...state, qualified: true, enabled: false });
+      if (message) {
+        message.textContent = '已恢复默认风格，测试资格仍然保留。';
+      }
+      renderLiquidGlassAccess();
+    });
+  }
+
+  if (revokeButton) {
+    revokeButton.addEventListener('click', () => {
+      setLiquidGlassState({ qualified: false, enabled: false });
+      if (message) {
+        message.textContent = '液态玻璃测试资格已取消。';
+      }
+      renderLiquidGlassAccess();
+    });
+  }
+
+  renderLiquidGlassAccess();
+}
+
+function initializeShaderHubAccessControls() {
+  const redeemButton = document.querySelector('[data-shader-hub-redeem]');
+  const revokeButton = document.querySelector('[data-shader-hub-revoke]');
+  const codeInput = document.querySelector('[data-shader-hub-code]');
+  const message = document.querySelector('[data-shader-hub-message]');
+  const lockedPanel = document.querySelector('[data-shader-hub-locked]');
+  const contentPanel = document.querySelector('[data-shader-hub-content]');
+
+  if (!redeemButton && !revokeButton && !lockedPanel && !contentPanel) {
+    return;
+  }
+
+  if (redeemButton && codeInput) {
+    redeemButton.addEventListener('click', () => {
+      const normalizedCode = String(codeInput.value || '').trim().toUpperCase();
+
+      if (normalizedCode !== SHADER_HUB_REDEEM_CODE) {
+        if (message) {
+          message.textContent = '兑换码无效，光影下载中心仍未开放。';
+        }
+        return;
+      }
+
+      setShaderHubState({ qualified: true });
+
+      if (message) {
+        message.textContent = '兑换成功，光影下载中心已开放。';
+      }
+
+      renderShaderHubAccess();
+    });
+
+    codeInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        redeemButton.click();
+      }
+    });
+  }
+
+  if (revokeButton) {
+    revokeButton.addEventListener('click', () => {
+      setShaderHubState({ qualified: false });
+
+      if (message) {
+        message.textContent = '已取消光影下载中心资格。';
+      }
+
+      renderShaderHubAccess();
+    });
+  }
+
+  renderShaderHubAccess();
+}
+
+function readDisplayMode() {
+  try {
+    const storedMode = localStorage.getItem('mctools:display-mode');
+    return storedMode === 'night' ? 'night' : 'night';
+  } catch {
+    return 'night';
+  }
+}
+
+function writeDisplayMode(mode) {
+  try {
+    localStorage.setItem('mctools:display-mode', mode === 'night' ? 'night' : 'night');
+  } catch {
+    // Ignore storage write failure.
+  }
+}
+
+function applyDisplayMode(mode) {
+  const normalizedMode = 'night';
+  document.body.classList.toggle('night-mode', normalizedMode === 'night');
+  document.documentElement.dataset.displayMode = normalizedMode;
+
+  document.querySelectorAll('[data-display-mode-button]').forEach((button) => {
+    const isActive = button.getAttribute('data-display-mode-button') === normalizedMode;
+    const isDayButton = button.getAttribute('data-display-mode-button') === 'day';
+    button.classList.toggle('active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    button.disabled = isDayButton;
+  });
+
+  document.querySelectorAll('[data-display-mode-text]').forEach((element) => {
+    element.textContent = '当前模式：晚上';
+  });
+}
+
+function initializeDisplayModeControls() {
+  applyDisplayMode(readDisplayMode());
+
+  document.querySelectorAll('[data-display-mode-button]').forEach((button) => {
+    button.addEventListener('click', () => {
+      if (button.getAttribute('data-display-mode-button') !== 'night') {
+        return;
+      }
+
+      const mode = 'night';
+      writeDisplayMode(mode);
+      applyDisplayMode(mode);
+    });
+  });
 }
 
 function getFavoriteCommands() {
@@ -2721,21 +3068,6 @@ async function purchaseSvip() {
   return response.json();
 }
 
-async function uploadAvatar(imageData) {
-  const response = await fetch('/api/avatar', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageData })
-  });
-
-  if (!response.ok) {
-    const result = await response.json().catch(() => ({ message: '头像上传失败' }));
-    throw new Error(result.message || '头像上传失败');
-  }
-
-  return response.json();
-}
-
 async function deleteHistoryItem(id) {
   const response = await fetch('/api/commands/delete', {
     method: 'POST',
@@ -2758,165 +3090,13 @@ async function clearAllHistory() {
   }
 }
 
-async function deleteAvatar() {
-  const response = await fetch('/api/avatar/delete', {
-    method: 'POST'
-  });
-
-  const result = await response.json().catch(() => ({ message: '头像删除失败' }));
-
-  if (!response.ok) {
-    throw new Error(result.message || '头像删除失败');
-  }
-
-  return result;
-}
-
-let avatarStatusTimer = 0;
-
-function setAvatarStatus(message, type = 'info') {
-  const avatarStatus = document.querySelector('[data-avatar-status]');
-
-  if (!avatarStatus) {
-    return;
-  }
-
-  avatarStatus.hidden = !message;
-  avatarStatus.textContent = message || '';
-  avatarStatus.classList.remove('success', 'error');
-
-  if (type === 'success' || type === 'error') {
-    avatarStatus.classList.add(type);
-  }
-
-  if (avatarStatusTimer) {
-    window.clearTimeout(avatarStatusTimer);
-  }
-
-  if (message) {
-    avatarStatusTimer = window.setTimeout(() => {
-      avatarStatus.hidden = true;
-      avatarStatus.textContent = '';
-      avatarStatus.classList.remove('success', 'error');
-    }, 3000);
-  }
-}
-
-function updateAvatar(profile) {
-  const avatarImage = document.querySelector('[data-avatar-image]');
-  const avatarFallback = document.querySelector('[data-avatar-fallback]');
+function updateProfileIdentity(profile) {
   const profileName = document.querySelector('[data-profile-name]');
-  const avatarDeleteButton = document.querySelector('[data-avatar-delete]');
   const username = profile && profile.username ? profile.username : '未登录';
-  const avatarUrl = profile && profile.avatarUrl ? `${profile.avatarUrl}?t=${Date.now()}` : '';
 
   if (profileName) {
     profileName.textContent = username;
   }
-
-  if (avatarImage && avatarFallback) {
-    if (avatarUrl) {
-      avatarImage.src = avatarUrl;
-      avatarImage.hidden = false;
-      avatarFallback.hidden = true;
-    } else {
-      avatarImage.hidden = true;
-      avatarFallback.hidden = false;
-      avatarFallback.textContent = username.slice(0, 1) || '头';
-    }
-  }
-
-  if (avatarDeleteButton) {
-    avatarDeleteButton.disabled = !avatarUrl;
-  }
-}
-
-function syncMaintenancePanel(me) {
-  const panel = document.querySelector('[data-maintenance-panel]');
-
-  if (!panel) {
-    return;
-  }
-
-  const state = panel.querySelector('[data-maintenance-state]');
-  const note = panel.querySelector('[data-maintenance-note]');
-  const enableButton = panel.querySelector('[data-maintenance-enable]');
-  const disableButton = panel.querySelector('[data-maintenance-disable]');
-  const isEnabled = Boolean(me && me.maintenanceEnabled);
-  const canEnable = Boolean(me && me.isMaintenanceAdmin);
-  const canDisable = Boolean(me && (me.isMaintenanceAdmin || me.isDeveloper));
-
-  if (state) {
-    state.classList.toggle('maintenance-active', isEnabled);
-    state.textContent = isEnabled
-      ? '当前状态：维护中，仅维护账号可继续访问。'
-      : '当前状态：正常开放，普通用户可继续访问。';
-  }
-
-  if (note) {
-    note.textContent = isEnabled
-      ? '维护模式已开启。普通账号的新请求会被拦截。维护账号与开发者账号可以关闭维护。'
-      : canEnable
-        ? '维护模式已关闭。你当前可以开启或关闭维护。'
-        : '维护模式已关闭。你当前只能关闭维护，不能再次开启。';
-  }
-
-  if (enableButton) {
-    enableButton.disabled = isEnabled || !canEnable;
-  }
-
-  if (disableButton) {
-    disableButton.disabled = !isEnabled || !canDisable;
-  }
-}
-
-function renderMaintenancePanel(me) {
-  const heroCard = document.querySelector('.hero-card');
-  let panel = document.querySelector('[data-maintenance-panel]');
-
-  if (!heroCard) {
-    return;
-  }
-
-  if (!me || (!me.isMaintenanceAdmin && !me.isDeveloper)) {
-    if (panel) {
-      panel.remove();
-    }
-    return;
-  }
-
-  if (!panel) {
-    panel = document.createElement('section');
-    panel.className = 'maintenance-panel';
-    panel.setAttribute('data-maintenance-panel', '');
-    panel.innerHTML = `
-      <p class="panel-label">维护控制</p>
-      <p class="maintenance-state" data-maintenance-state>当前状态：读取中</p>
-      <p class="tool-card-note" data-maintenance-note>维护账号可开启或关闭维护，开发者账号可关闭维护。</p>
-      <div class="maintenance-actions">
-        <button type="button" class="ghost-button compact-button" data-maintenance-enable>开启维护</button>
-        <button type="button" class="ghost-button compact-button" data-maintenance-disable>关闭维护</button>
-      </div>
-    `;
-    heroCard.appendChild(panel);
-
-    const enableButton = panel.querySelector('[data-maintenance-enable]');
-    const disableButton = panel.querySelector('[data-maintenance-disable]');
-
-    if (enableButton) {
-      enableButton.addEventListener('click', () => {
-        updateMaintenanceMode(true);
-      });
-    }
-
-    if (disableButton) {
-      disableButton.addEventListener('click', () => {
-        updateMaintenanceMode(false);
-      });
-    }
-  }
-
-  syncMaintenancePanel(me);
 }
 
 function renderDeveloperPanel(me) {
@@ -2944,50 +3124,6 @@ function renderDeveloperPanel(me) {
       <a class="ghost-link-button" href="/developer.html">进入开发者控制台</a>
     `;
     heroCard.appendChild(panel);
-  }
-}
-
-async function updateMaintenanceMode(enabled) {
-  const panel = document.querySelector('[data-maintenance-panel]');
-  const state = panel ? panel.querySelector('[data-maintenance-state]') : null;
-  const enableButton = panel ? panel.querySelector('[data-maintenance-enable]') : null;
-  const disableButton = panel ? panel.querySelector('[data-maintenance-disable]') : null;
-
-  if (enableButton) {
-    enableButton.disabled = true;
-  }
-
-  if (disableButton) {
-    disableButton.disabled = true;
-  }
-
-  if (state) {
-    state.textContent = enabled ? '当前状态：正在开启维护...' : '当前状态：正在关闭维护...';
-  }
-
-  try {
-    const response = await fetch('/api/maintenance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled })
-    });
-
-    const result = await response.json().catch(() => ({ message: '维护状态更新失败' }));
-
-    if (!response.ok) {
-      throw new Error(result.message || '维护状态更新失败');
-    }
-
-    updateVipState(result);
-  } catch (error) {
-    if (state) {
-      state.textContent = `维护状态更新失败：${error.message || '未知错误'}`;
-      state.classList.add('maintenance-active');
-    }
-
-    if (currentMe) {
-      syncMaintenancePanel(currentMe);
-    }
   }
 }
 
@@ -3036,10 +3172,6 @@ function updateVipState(me) {
     accountPill.classList.toggle('vip-active', isVipActive);
     accountPill.classList.toggle('svip-active', isSvipActive);
     const roleTags = [];
-
-    if (me.isMaintenanceAdmin) {
-      roleTags.push('维护账号');
-    }
 
     if (me.isDeveloper) {
       roleTags.push('开发者');
@@ -3151,8 +3283,11 @@ function updateVipState(me) {
       : '当前为 VIP 专用入口。';
   }
 
+  applyAppVersion(me.version);
+
   currentMe = me;
-  renderMaintenancePanel(me);
+  renderLiquidGlassAccess();
+  renderShaderHubAccess();
   renderDeveloperPanel(me);
   refreshCommandAccess();
 }
@@ -3343,10 +3478,11 @@ const aiGenerateButton = document.querySelector('[data-ai-generate]');
 const aiCopyButton = document.querySelector('[data-ai-copy]');
 const executorRunButton = document.querySelector('[data-executor-run]');
 const executorCopyButton = document.querySelector('[data-executor-copy]');
-const avatarTrigger = document.querySelector('[data-avatar-trigger]');
-const avatarInput = document.querySelector('[data-avatar-input]');
-const avatarDeleteButton = document.querySelector('[data-avatar-delete]');
 const historyClearButton = document.querySelector('[data-history-clear]');
+
+initializeDisplayModeControls();
+initializeLiquidGlassControls();
+initializeShaderHubAccessControls();
 
 if (commandPicker && commandHost) {
   renderSelectedCommand(commandPicker.value, commandHost);
@@ -3372,6 +3508,7 @@ if (commandPicker && commandHost) {
       );
       return;
     }
+        renderShaderHubAccess();
 
     const saveFavoriteButton = event.target.closest('[data-save-favorite]');
 
@@ -3542,71 +3679,11 @@ if (executorCopyButton) {
   executorCopyButton.addEventListener('click', copyExecutorOutput);
 }
 
-if (avatarTrigger && avatarInput) {
-  avatarTrigger.addEventListener('click', () => {
-    avatarInput.click();
-  });
-}
-
-if (avatarInput) {
-  avatarInput.addEventListener('change', async (event) => {
-    const file = event.target.files && event.target.files[0];
-
-    if (!file) {
-      return;
-    }
-
-    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
-      setAvatarStatus('仅支持 PNG、JPG、WEBP 图片', 'error');
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > 1024 * 1024 * 2) {
-      setAvatarStatus('头像图片不能超过 2MB', 'error');
-      event.target.value = '';
-      return;
-    }
-
-    setAvatarStatus(`正在上传头像：${file.name}`);
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const result = await uploadAvatar(String(reader.result || ''));
-        updateAvatar(result);
-        setAvatarStatus('头像上传成功', 'success');
-      } catch (error) {
-        setAvatarStatus(error.message || '头像上传失败', 'error');
-      } finally {
-        event.target.value = '';
-      }
-    };
-    reader.onerror = () => {
-      setAvatarStatus('头像读取失败', 'error');
-      event.target.value = '';
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-if (avatarDeleteButton) {
-  avatarDeleteButton.addEventListener('click', async () => {
-    try {
-      const result = await deleteAvatar();
-      updateAvatar(result);
-      setAvatarStatus('头像已删除', 'success');
-    } catch (error) {
-      setAvatarStatus(error.message || '头像删除失败', 'error');
-    }
-  });
-}
-
 fetchMe()
   .then((me) => {
     if (me) {
       updateVipState(me);
-      updateAvatar(me);
+      updateProfileIdentity(me);
       renderFavoriteCommands();
     }
 

@@ -4,16 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>我的世界工具箱 - 登录</title>
-    <script>
-      try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
-        localStorage.setItem('mctools-ui', nextUi);
-        document.documentElement.dataset.ui = nextUi;
-      } catch {
-        document.documentElement.dataset.ui = 'normal';
-      }
-    </script>
     <link rel="stylesheet" href="/login.css" />
     <script defer src="/login.js"></script>
   </head>
@@ -24,28 +14,103 @@
       <section class="auth-card">
         <p class="badge">Minecraft Toolbox</p>
         <h1 data-maintenance-title>我的世界工具箱</h1>
-        <p class="lead">先登录或注册，再进入工具箱。当前提供 17 个分类入口，现阶段开放指令、教程、帧率测试、页面检测、AI、配方、趣味实验室、云玩中心、种子实验室、建筑灵感库、红石实验室、服务器管理中心、生存任务板、材质包与光影中心、模组推荐库、坐标与自动化入口。</p>
+        <p class="lead">先登录或注册，再进入工具箱。当前提供 18 个分类入口，现阶段开放指令、教程、帧率测试、页面检测、趣味实验室、云玩中心、坐标、自动化入口与光影下载中心，其余分类按阶段开放。</p>
         <div class="meta-band">
-          <div class="version-pill">当前版本 v1.2.0 正式版</div>
-          <div class="version-pill glass-state-pill">液态玻璃全界面实装</div>
+          <div class="version-pill" data-app-version>当前版本 正式版1.3</div>
+          <div class="version-pill glass-state-pill">统一下载中心风格</div>
         </div>
+
+        <section class="auth-highlights" aria-label="核心亮点">
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">18</p>
+            <p class="auth-highlight-label">分类入口</p>
+          </article>
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">13</p>
+            <p class="auth-highlight-label">趣味玩法</p>
+          </article>
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">Night</p>
+            <p class="auth-highlight-label">统一夜间模式</p>
+          </article>
+        </section>
+
+        <section class="auth-feature-board" aria-label="登录页功能预览">
+          <div class="auth-feature-head">
+            <div>
+              <p class="auth-feature-kicker">进入后可用</p>
+              <h2>最近可玩的内容</h2>
+            </div>
+            <p class="auth-feature-note">先登录，再直达常用页面。</p>
+          </div>
+          <div class="auth-feature-grid">
+            <article class="auth-feature-card auth-feature-card-large">
+              <p class="auth-feature-tag">Fun Lab</p>
+              <strong>趣味实验室已扩展到 13 项</strong>
+              <span>包括宝藏坐标盲盒、Boss 台词、建筑主题签和生物群系任务书。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Shader Hub</p>
+              <strong>光影下载中心</strong>
+              <span>基岩版与 Java 版资源统一收口，未兑换时灰显锁定。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Commands</p>
+              <strong>常用指令与自动化</strong>
+              <span>快速查传送、坐标、流程辅助和实验功能。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Settings</p>
+              <strong>账号、VIP 与更新日志</strong>
+              <span>设置页统一承接资格状态、版本信息和夜间显示模式。</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="auth-preview-gallery" aria-label="模块预览图">
+          <article class="auth-preview-card auth-preview-card-wide">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/index-hero.svg" alt="首页模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Home</p>
+              <strong>首页与分类入口</strong>
+              <span>登录后先进入总览页，常用模块、下载中心和实验入口统一从这里展开。</span>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/commands-hero.svg" alt="指令模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Commands</p>
+              <strong>指令面板</strong>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/coordinates-hero.svg" alt="坐标模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Coords</p>
+              <strong>坐标与导航</strong>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/tutorial-hero.svg" alt="教程模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Guide</p>
+              <strong>教程与入门</strong>
+            </div>
+          </article>
+        </section>
+
         <section class="maintenance-unlock hidden" data-maintenance-unlock>
           <p class="maintenance-unlock-label">入口已解锁</p>
           <div class="special-entry-row">
-            <button type="button" class="ghost-button" data-maintenance-entry>维护账号注册</button>
             <button type="button" class="ghost-button" data-developer-entry>开发者账号注册</button>
-          </div>
-        </section>
-        <p class="maintenance-banner" data-maintenance-banner hidden></p>
-
-        <section class="ui-picker" aria-label="界面风格选择">
-          <p class="ui-picker-label">界面风格</p>
-          <div class="ui-choice-row">
-            <button class="ui-choice" type="button" data-ui-choice="normal">现代 UI</button>
-            <button class="ui-choice" type="button" data-ui-choice="liquid">液态玻璃</button>
-            <button class="ui-choice" type="button" data-ui-choice="end">末地 UI</button>
-            <button class="ui-choice" type="button" data-ui-choice="ore" disabled title="暂时停用">基岩ORE UI</button>
-            <button class="ui-choice" type="button" data-ui-choice="classic">经典 UI</button>
           </div>
         </section>
 
@@ -53,6 +118,12 @@
           <button class="tab-button active" type="button" data-tab="login">登录</button>
           <button class="tab-button" type="button" data-tab="register">注册</button>
         </div>
+
+        <section class="auth-tab-status" data-tab-status>
+          <p class="auth-tab-status-tag" data-tab-status-tag>当前模式</p>
+          <strong data-tab-status-title>登录工具箱</strong>
+          <span data-tab-status-note>输入账号和密码后直接进入首页。</span>
+        </section>
 
         <form class="auth-form" data-form="login">
           <label>
@@ -63,20 +134,6 @@
             密码
             <input type="password" name="password" autocomplete="current-password" required minlength="6" />
           </label>
-          <section class="captcha-block" aria-label="登录验证码">
-            <div class="captcha-head">
-              <p class="captcha-label">验证码登录</p>
-              <button type="button" class="text-button" data-captcha-refresh>刷新验证码</button>
-            </div>
-            <div class="captcha-row">
-              <div class="captcha-preview" data-captcha-preview>正在加载验证码...</div>
-              <label class="captcha-input-label">
-                输入验证码
-                <input type="text" name="captchaCode" autocomplete="off" inputmode="latin" maxlength="4" required data-captcha-input />
-              </label>
-            </div>
-            <input type="hidden" name="captchaId" data-captcha-id />
-          </section>
           <button type="submit" class="primary-button">登录</button>
         </form>
 
@@ -89,24 +146,12 @@
             密码
             <input type="password" name="password" autocomplete="new-password" required minlength="6" />
           </label>
-          <section class="maintenance-register hidden" data-maintenance-register>
-            <div class="maintenance-register-head">
-              <p class="maintenance-register-title">维护账号注册模式</p>
-              <button type="button" class="text-button" data-maintenance-exit>退出</button>
-            </div>
-            <p class="maintenance-register-note">创建后可登录并控制维护状态。</p>
-            <input type="hidden" name="registerAsMaintenanceAdmin" value="0" data-maintenance-flag />
-            <label>
-              维护授权码
-              <input type="password" name="maintenanceSecret" autocomplete="off" data-maintenance-secret />
-            </label>
-          </section>
           <section class="maintenance-register hidden" data-developer-register>
             <div class="maintenance-register-head">
               <p class="maintenance-register-title">开发者账号注册模式</p>
               <button type="button" class="text-button" data-developer-exit>退出</button>
             </div>
-            <p class="maintenance-register-note">可进入开发者控制台，查看并修改项目代码文件。</p>
+            <p class="maintenance-register-note">可进入开发者控制台，并修改当前站点版本号等开发设置。</p>
             <input type="hidden" name="registerAsDeveloper" value="0" data-developer-flag />
             <label>
               开发者授权码

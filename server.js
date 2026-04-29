@@ -12,12 +12,9 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const appVersion = 'v1.2.0';
+const sourceAppVersion = '正式版1.3';
+let appVersion = sourceAppVersion;
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
-const maintenanceAdminAccount = {
-  username: 'maintenance_admin',
-  password: 'McTools2026!'
-};
 const developerRegistrationSecret = 'McTools2026!';
 const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
 const vipOnlyCommandNames = new Set([
@@ -69,12 +66,6 @@ db.exec(`
 
 try {
   db.exec('ALTER TABLE users ADD COLUMN avatar_path TEXT');
-} catch {
-  // Column already exists in existing databases.
-}
-
-try {
-  db.exec('ALTER TABLE users ADD COLUMN is_maintenance_admin INTEGER NOT NULL DEFAULT 0');
 } catch {
   // Column already exists in existing databases.
 }
@@ -416,17 +407,18 @@ function setSettingValue(settingKey, value) {
   ).run(settingKey, String(value));
 }
 
-function isMaintenanceEnabled() {
-  return getSettingValue('maintenance_enabled', '0') === '1';
-}
+function sanitizeAppVersion(value) {
+  const nextVersion = String(value || '').trim();
 
-function isMaintenanceAdmin(username) {
-  if (!username) {
-    return false;
+  if (!nextVersion) {
+    throw new Error('版本号不能为空');
   }
 
-  const row = db.prepare('SELECT is_maintenance_admin AS isMaintenanceAdmin FROM users WHERE username = ?').get(username);
-  return Boolean(row && row.isMaintenanceAdmin);
+  if (nextVersion.length > 32) {
+    throw new Error('版本号长度不能超过 32 个字符');
+  }
+
+  return nextVersion;
 }
 
 function isDeveloper(username) {
@@ -439,7 +431,7 @@ function isDeveloper(username) {
 }
 
 function isPrivilegedUser(username) {
-  return isMaintenanceAdmin(username) || isDeveloper(username);
+  return isDeveloper(username);
 }
 
 function isTextLikeFile(filePath) {
@@ -502,56 +494,39 @@ function collectDeveloperFiles(currentDir, baseDir = __dirname) {
   return files.sort((left, right) => left.localeCompare(right, 'zh-CN'));
 }
 
-function ensureMaintenanceAdminAccount() {
-  const passwordHash = hashPassword(maintenanceAdminAccount.password);
-  const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(maintenanceAdminAccount.username);
+function ensureAppSettings() {
+  const storedVersion = getSettingValue('app_version', '').trim();
+  const storedSourceVersion = getSettingValue('app_version_source', '').trim();
 
-  if (existingUser) {
-    db.prepare('UPDATE users SET password_hash = ?, is_maintenance_admin = 1 WHERE username = ?').run(
-      passwordHash,
-      maintenanceAdminAccount.username
-    );
-  } else {
-    db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin) VALUES (?, ?, 1)').run(
-      maintenanceAdminAccount.username,
-      passwordHash
-    );
+  if (storedSourceVersion !== sourceAppVersion) {
+    appVersion = sourceAppVersion;
+    setSettingValue('app_version', appVersion);
+    setSettingValue('app_version_source', sourceAppVersion);
+    return;
   }
 
-  if (!db.prepare('SELECT key FROM app_settings WHERE key = ?').get('maintenance_enabled')) {
-    setSettingValue('maintenance_enabled', '0');
+  if (storedVersion) {
+    appVersion = storedVersion;
+    return;
   }
+
+  setSettingValue('app_version', appVersion);
+  setSettingValue('app_version_source', sourceAppVersion);
 }
 
-ensureMaintenanceAdminAccount();
+ensureAppSettings();
 
 function handleRegister(request, response) {
   parseRequestBody(request)
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const registerAsMaintenanceAdmin =
-        body.registerAsMaintenanceAdmin === true ||
-        body.registerAsMaintenanceAdmin === 'true' ||
-        body.registerAsMaintenanceAdmin === 1 ||
-        body.registerAsMaintenanceAdmin === '1';
       const registerAsDeveloper =
         body.registerAsDeveloper === true ||
         body.registerAsDeveloper === 'true' ||
         body.registerAsDeveloper === 1 ||
         body.registerAsDeveloper === '1';
-      const maintenanceSecret = String(body.maintenanceSecret || '');
       const developerSecret = String(body.developerSecret || '');
-
-      if (registerAsMaintenanceAdmin && registerAsDeveloper) {
-        sendJson(response, 400, { message: '一次只能注册一种特殊账号' });
-        return;
-      }
-
-      if (isMaintenanceEnabled() && !registerAsMaintenanceAdmin && !registerAsDeveloper) {
-        sendJson(response, 503, { message: '当前正在维护，暂不开放普通注册' });
-        return;
-      }
 
       if (username.length < 3 || username.length > 32) {
         sendJson(response, 400, { message: '用户名长度需为 3-32 个字符' });
@@ -560,11 +535,6 @@ function handleRegister(request, response) {
 
       if (password.length < 6) {
         sendJson(response, 400, { message: '密码长度至少 6 位' });
-        return;
-      }
-
-      if (registerAsMaintenanceAdmin && maintenanceSecret !== maintenanceAdminAccount.password) {
-        sendJson(response, 403, { message: '维护授权码错误' });
         return;
       }
 
@@ -581,19 +551,16 @@ function handleRegister(request, response) {
       }
 
       const passwordHash = hashPassword(password);
-      db.prepare('INSERT INTO users (username, password_hash, is_maintenance_admin, is_developer) VALUES (?, ?, ?, ?)').run(
+      db.prepare('INSERT INTO users (username, password_hash, is_developer) VALUES (?, ?, ?)').run(
         username,
         passwordHash,
-        registerAsMaintenanceAdmin ? 1 : 0,
         registerAsDeveloper ? 1 : 0
       );
 
       const sessionToken = createSession(username);
       setSessionCookie(response, sessionToken);
       sendJson(response, 201, {
-        message: registerAsMaintenanceAdmin
-          ? '维护账号注册成功'
-          : registerAsDeveloper
+        message: registerAsDeveloper
           ? '开发者账号注册成功'
           : '注册成功',
         username,
@@ -611,18 +578,9 @@ function handleLogin(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const captchaId = String(body.captchaId || '').trim();
-      const captchaCode = String(body.captchaCode || '').trim();
 
       if (!username || !password) {
         sendJson(response, 400, { message: '请输入用户名和密码' });
-        return;
-      }
-
-      const captchaResult = verifyLoginCaptcha(captchaId, captchaCode);
-
-      if (!captchaResult.ok) {
-        sendJson(response, 400, { message: captchaResult.message });
         return;
       }
 
@@ -630,11 +588,6 @@ function handleLogin(request, response) {
 
       if (!user || !verifyPassword(password, user.password_hash)) {
         sendJson(response, 401, { message: '用户名或密码错误' });
-        return;
-      }
-
-      if (isMaintenanceEnabled() && !isPrivilegedUser(user.username)) {
-        sendJson(response, 503, { message: '当前正在维护，仅维护账号和开发者账号可登录' });
         return;
       }
 
@@ -700,8 +653,6 @@ function getUserPayload(username) {
     username,
     version: appVersion,
     avatarUrl: getAvatarUrl(username),
-    maintenanceEnabled: isMaintenanceEnabled(),
-    isMaintenanceAdmin: isMaintenanceAdmin(username),
     isDeveloper: isDeveloper(username),
     ...getVipInfo(username)
   };
@@ -799,6 +750,44 @@ function handleDeveloperFileSave(request, response) {
       sendJson(response, 200, {
         message: '文件已保存',
         path: relativePath,
+        version: appVersion,
+        username: session.username
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handleDeveloperVersionRead(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  sendJson(response, 200, {
+    version: appVersion,
+    username: session.username
+  });
+}
+
+function handleDeveloperVersionSave(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const nextVersion = sanitizeAppVersion(body.version || '');
+      appVersion = nextVersion;
+      setSettingValue('app_version', nextVersion);
+
+      sendJson(response, 200, {
+        message: '版本号已更新',
         version: appVersion,
         username: session.username
       });
@@ -1507,60 +1496,6 @@ function handleMe(request, response) {
   sendJson(response, 200, getUserPayload(session.username));
 }
 
-function handleMaintenanceStatus(request, response) {
-  sendJson(response, 200, {
-    maintenanceEnabled: isMaintenanceEnabled(),
-    version: appVersion
-  });
-}
-
-function handleMaintenanceUpdate(request, response) {
-  const session = getSessionFromRequest(request);
-
-  if (!session) {
-    sendJson(response, 401, { message: '未登录' });
-    return;
-  }
-
-  parseRequestBody(request)
-    .then((body) => {
-      const canEnableMaintenance = isMaintenanceAdmin(session.username);
-      const canDisableMaintenance = isPrivilegedUser(session.username);
-      let nextEnabled;
-
-      if (typeof body.enabled === 'boolean') {
-        nextEnabled = body.enabled;
-      } else if (body.enabled === 'true' || body.enabled === '1' || body.enabled === 1) {
-        nextEnabled = true;
-      } else if (body.enabled === 'false' || body.enabled === '0' || body.enabled === 0) {
-        nextEnabled = false;
-      } else {
-        nextEnabled = !isMaintenanceEnabled();
-      }
-
-      if (nextEnabled && !canEnableMaintenance) {
-        sendJson(response, 403, { message: '只有维护账号可以开启维护状态' });
-        return;
-      }
-
-      if (!nextEnabled && !canDisableMaintenance) {
-        sendJson(response, 403, { message: '只有特权账号可以关闭维护状态' });
-        return;
-      }
-
-      setSettingValue('maintenance_enabled', nextEnabled ? '1' : '0');
-
-      sendJson(response, 200, {
-        message: nextEnabled ? '维护模式已开启' : '维护模式已关闭',
-        ...getUserPayload(session.username)
-      });
-    })
-    .catch((error) => {
-      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
-      sendJson(response, statusCode, { message: error.message });
-    });
-}
-
 function serveStatic(pathname, response) {
   const safePath = resolveSafePublicPath(pathname);
 
@@ -1605,15 +1540,6 @@ const server = http.createServer((request, response) => {
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
-  const maintenanceEnabled = isMaintenanceEnabled();
-  const maintenanceAdmin = session ? isMaintenanceAdmin(session.username) : false;
-  const developer = session ? isDeveloper(session.username) : false;
-  const privilegedUser = maintenanceAdmin || developer;
-
-  if (request.method === 'GET' && pathname === '/api/maintenance/status') {
-    handleMaintenanceStatus(request, response);
-    return;
-  }
 
   if (request.method === 'GET' && pathname === '/api/login/captcha') {
     handleLoginCaptcha(request, response);
@@ -1621,22 +1547,7 @@ const server = http.createServer((request, response) => {
   }
 
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
-  const isAllowedApiDuringMaintenance =
-    (request.method === 'POST' && (pathname === '/api/login' || pathname === '/api/logout' || pathname === '/api/register')) ||
-    (request.method === 'GET' && (pathname === '/api/maintenance/status' || pathname === '/api/login/captcha'));
-
-  if (maintenanceEnabled && !privilegedUser && !isLoginAsset && !isAllowedApiDuringMaintenance) {
-    if (pathname.startsWith('/api/')) {
-      sendJson(response, 503, {
-        message: '当前正在维护，仅维护账号可使用',
-        maintenanceEnabled: true
-      });
-      return;
-    }
-
-    redirectToLogin(response);
-    return;
-  }
+  const isPublicLoginDependency = pathname.startsWith('/assets/');
 
   if (request.method === 'POST' && pathname === '/api/register') {
     handleRegister(request, response);
@@ -1703,11 +1614,6 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (request.method === 'POST' && pathname === '/api/maintenance') {
-    handleMaintenanceUpdate(request, response);
-    return;
-  }
-
   if (request.method === 'GET' && pathname === '/api/developer/files') {
     handleDeveloperFiles(request, response);
     return;
@@ -1720,6 +1626,16 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/developer/file') {
     handleDeveloperFileSave(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/version') {
+    handleDeveloperVersionRead(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/developer/version') {
+    handleDeveloperVersionSave(request, response);
     return;
   }
 
@@ -1736,7 +1652,7 @@ const server = http.createServer((request, response) => {
   const staticPath = pathname === '/' ? '/index.html' : pathname;
   const publicFilePath = resolvePublicFilePath(staticPath);
 
-  if (publicFilePath && !isLoginAsset) {
+  if (publicFilePath && !isLoginAsset && !isPublicLoginDependency) {
     if (!session) {
       redirectToLogin(response);
       return;
@@ -1781,7 +1697,7 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js') {
+  if (isLoginAsset || isPublicLoginDependency) {
     serveStatic(pathname, response);
     return;
   }

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 设置</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>设置</h1>
+          <p class="lead">统一管理账号信息、VIP 购买、夜间显示模式与更新日志入口，避免主页信息过满。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 正式版1.3</div>
+            <div class="version-pill">模块：设置</div>
+            <div class="version-pill" data-display-mode-text>当前模式：晚上</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">设置概览</p>
+          <p class="toolbox-summary">这里现在承接主页原来的账号与会员区域，同时保留夜间显示模式。更新日志也改为从这里进入。</p>
+          <div class="settings-visual-stack" aria-label="设置页功能预览">
+            <a class="settings-visual-card" href="/shader-download.html">
+              <img src="/assets/shader-previews/midlight-bedrock-preview.png" alt="下载中心预览" />
+              <strong>下载资格与视觉测试</strong>
+              <span>资格兑换、风格切换、下载入口都在这里统一管理。</span>
+            </a>
+            <a class="settings-visual-card" href="/update-log.html">
+              <img src="/assets/index-hero.svg" alt="更新日志预览" />
+              <strong>版本与更新</strong>
+              <span>查看版本变化、当前限制和最近新增的功能调整。</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">设置面板</p>
+            <h2>账号、会员与显示</h2>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <article class="guide-card utility-card settings-card">
+            <p class="panel-label">账号信息</p>
+            <strong data-profile-name>未登录</strong>
+            <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+            <p class="member-state" data-member-state>会员等级：普通用户</p>
+            <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+            <div class="settings-actions">
+              <button type="button" class="ghost-button" data-logout>退出登录</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card">
+            <p class="panel-label">VIP 购买</p>
+            <h2>会员升级</h2>
+            <p class="tool-card-note">VIP 可解锁坐标工具入口，SVIP 保留更高等级会员标识。</p>
+            <div class="settings-actions">
+              <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
+              <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">显示模式</p>
+            <h2>夜间模式</h2>
+            <p class="tool-card-note">白天选项已关闭，当前仅保留更深的夜空配色，并继续保留现有动画结构。</p>
+            <div class="mode-toggle-row">
+              <button type="button" class="ghost-button mode-toggle-button" data-display-mode-button="day" aria-pressed="false" disabled>白天已关闭</button>
+              <button type="button" class="ghost-button mode-toggle-button" data-display-mode-button="night" aria-pressed="true">当前为晚上</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">其他入口</p>
+            <h2>日志与页面跳转</h2>
+            <div class="settings-actions">
+              <a class="ghost-link-button" href="/update-log.html">进入更新日志</a>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">光影下载中心</p>
+            <h2>兑换码开放下载</h2>
+            <p class="tool-card-note">这里使用独立兑换码，不与液态玻璃测试资格共用。兑换成功后，当前账号才会开放光影下载中心。</p>
+            <div class="account-pill" data-shader-hub-status>下载中心：未开放</div>
+            <div class="redeem-code-row">
+              <input type="text" data-shader-hub-code placeholder="输入光影下载中心兑换码" autocomplete="off" />
+              <button type="button" class="ghost-button" data-shader-hub-redeem>开放下载中心</button>
+            </div>
+            <p class="tool-card-note" data-shader-hub-message>输入独立兑换码后即可开放光影下载中心。</p>
+            <div class="settings-actions hidden" data-shader-hub-actions>
+              <a class="ghost-link-button" href="/shader-download.html">进入下载中心</a>
+              <button type="button" class="ghost-button" data-shader-hub-revoke>取消下载资格</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">液态玻璃测试</p>
+            <h2>兑换码与测试资格</h2>
+            <p class="tool-card-note">输入兑换码后可获得液态玻璃测试资格，并在当前账号下切换为液态玻璃风格；也可以随时取消资格。</p>
+            <div class="account-pill" data-liquid-glass-status>测试资格：未开通</div>
+            <div class="redeem-code-row">
+              <input type="text" data-liquid-glass-code placeholder="输入液态玻璃测试兑换码" autocomplete="off" />
+              <button type="button" class="ghost-button" data-liquid-glass-redeem>兑换资格</button>
+            </div>
+            <p class="tool-card-note" data-liquid-glass-message>当前账号还没有液态玻璃测试资格。</p>
+            <div class="settings-actions">
+              <button type="button" class="ghost-button" data-liquid-glass-enable disabled>启用液态玻璃测试风格</button>
+              <button type="button" class="ghost-button" data-liquid-glass-disable disabled>恢复默认风格</button>
+              <button type="button" class="ghost-button" data-liquid-glass-revoke disabled>取消测试资格</button>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

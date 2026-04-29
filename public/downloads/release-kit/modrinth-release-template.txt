@@ -1,0 +1,39 @@
+Title
+Midlight Realism Shader Pack
+
+Short Description
+A clean pixel-inspired visual pack set for Minecraft Java and Bedrock, with balanced mid-tier and stronger ultra presets.
+
+Body
+Midlight Realism is a visual pack set focused on warm sunlight, stronger block texture contrast, reflective wet surfaces, and clearer night atmosphere.
+
+This release includes:
+- Java zip packs
+- Bedrock mcpack packs
+- Mid tier preset for better frame stability
+- Ultra preset for stronger contrast and texture density
+- Preview images for all included variants
+
+Recommended setup:
+- Java: Iris + Sodium
+- Bedrock: keep other HD UI or texture packs disabled to avoid overlap
+
+Suggested compatibility fields:
+- Minecraft version:
+- Platform: Java / Bedrock
+- Loader:
+- Dependencies:
+- Resolution target:
+- Recommended VRAM / memory:
+
+Changelog
+- Added:
+- Improved:
+- Fixed:
+
+FAQ
+Q: Is this a standalone gameplay mod?
+A: No. This release is better described as a shader / texture visual pack set.
+
+Q: Can PCL users install it?
+A: Yes. Provide the zip or mcpack files and include a short import guide.

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 光影下载中心</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body class="shader-pixel-page">
+    <main class="shell shader-pixel-shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <p class="shader-kicker">CLEAR PIXEL SHADER HUB</p>
+          <h1>光影下载中心</h1>
+          <p class="lead">四套原创视觉包覆盖 Java 和基岩双端。中配主打稳定帧率与光照层次，高配主打更密实的纹理、反光和夜景表现，先看预览再按设备档位下载即可。</p>
+          <div class="shader-quick-strip" aria-label="下载中心速览">
+            <div class="shader-quick-chip">
+              <strong>4 套资源</strong>
+              <span>中配 / 高配双档</span>
+            </div>
+            <div class="shader-quick-chip">
+              <strong>2 个平台</strong>
+              <span>Java / 基岩直接覆盖</span>
+            </div>
+            <div class="shader-quick-chip">
+              <strong>3 步完成</strong>
+              <span>预览 / 下载 / 导入</span>
+            </div>
+          </div>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 optimization 1.2</div>
+            <div class="version-pill">模块：光影下载中心</div>
+            <div class="version-pill">定位：中配 / 高配双档</div>
+            <div class="version-pill">平台：Java / 基岩双端</div>
+            <div class="version-pill" data-shader-hub-page-status>权限：需兑换码开放</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">推荐配置</p>
+          <p class="toolbox-summary">中配建议：1080p、12-20 区块视距、16GB 内存或等效移动端新平台。高配建议：2K、20-28 区块视距、独显 8GB 或新一代平板 / Win10 高性能设备。Java 版更适合 Iris + Sodium 或 OptiFine，基岩版更适合 Win10 与较新的移动设备。</p>
+          <ul class="shader-spec-list">
+            <li>中配方向：湿地反光、暖阳过渡、石材细节和木质纹理增强</li>
+            <li>高配方向：更强对比、更高纹理密度、更明显高光和夜间氛围</li>
+            <li>使用方式：先看预览，再按设备档位选择下载导入</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="content-panel hidden" data-shader-hub-locked>
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">访问受限</p>
+            <h2>先兑换，再下载</h2>
+          </div>
+          <p class="tool-card-note">当前账号还没有光影下载中心资格，下方下载区会保持灰显且无法操作，请先前往设置页兑换后再使用。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">开放方式</p>
+            <h2>去设置页输入兑换码</h2>
+            <div class="result-card compact-result">兑换成功后，这个下载页会自动解除灰显并恢复操作。</div>
+            <div class="button-row">
+              <a class="copy-btn" href="/settings.html">前往设置页</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel" data-shader-hub-content>
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">下载中心</p>
+            <h2>中配与高配双档资源包</h2>
+          </div>
+          <p class="tool-card-note">四个资源包文件均已放入站内，可直接下载。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide shader-download-card">
+            <p class="panel-label">中配 Java</p>
+            <h2>Midlight Realism Java Pack</h2>
+            <p class="tool-card-note">适合中配 PC。重点强化石材、木板、泥土、草地和光色氛围，建议与 Iris 或 OptiFine 搭配使用获得更完整的光影质感。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/midlight-realism-java.zip" download>下载 Java 包</a>
+              <a class="copy-btn secondary" href="/assets/shader-previews/midlight-java-preview.png" target="_blank" rel="noreferrer">查看预览图</a>
+            </div>
+            <div class="result-card compact-result">安装方法：将 zip 放入 resourcepacks 文件夹，启动游戏后在资源包界面启用。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-download-card">
+            <p class="panel-label">中配基岩</p>
+            <h2>Midlight Realism Bedrock Pack</h2>
+            <p class="tool-card-note">适合基岩版与 Win10 版。优先做亮暗层次、色温和基础材质真实感增强，保持相对轻量，方便中配设备直接导入。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/midlight-realism-bedrock.mcpack" download>下载基岩包</a>
+              <a class="copy-btn secondary" href="/assets/shader-previews/midlight-bedrock-preview.png" target="_blank" rel="noreferrer">查看预览图</a>
+            </div>
+            <div class="result-card compact-result">安装方法：下载 mcpack 后直接双击导入，或在移动端文件管理器中打开导入 Minecraft。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-download-card">
+            <p class="panel-label">高配 Java</p>
+            <h2>Midlight Realism Ultra Java</h2>
+            <p class="tool-card-note">面向高配 PC。提高纹理对比、反光层次和夜景氛围，适合 2K 或更高分辨率下追求更强画面冲击的玩家。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/midlight-realism-ultra-java.zip" download>下载高配 Java 包</a>
+              <a class="copy-btn secondary" href="/assets/shader-previews/midlight-ultra-java-preview.png" target="_blank" rel="noreferrer">查看预览图</a>
+            </div>
+            <div class="result-card compact-result">建议环境：2K 分辨率、20-28 区块视距、独显 8GB 起步，体积云与阴影可提升到中高档。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-download-card">
+            <p class="panel-label">高配基岩</p>
+            <h2>Midlight Realism Ultra Bedrock</h2>
+            <p class="tool-card-note">面向 Win10 高性能设备与新一代平板。强化暖阳高光、草地层次和木纹反差，保留基岩端可直接导入的便捷性。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/midlight-realism-ultra-bedrock.mcpack" download>下载高配基岩包</a>
+              <a class="copy-btn secondary" href="/assets/shader-previews/midlight-ultra-bedrock-preview.png" target="_blank" rel="noreferrer">查看预览图</a>
+            </div>
+            <div class="result-card compact-result">建议环境：Win10 高性能模式或新平台平板，视距 14-18 区块，避免再叠加超高清 UI 包。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-gallery-card">
+            <p class="panel-label">预览画廊</p>
+            <h2>四套风格预览</h2>
+            <div class="shader-preview-grid">
+              <a class="shader-preview-card" href="/assets/shader-previews/midlight-java-preview.png" target="_blank" rel="noreferrer">
+                <img src="/assets/shader-previews/midlight-java-preview.png" alt="Midlight Realism Java 预览图" />
+                <strong>中配 Java</strong>
+              </a>
+              <a class="shader-preview-card" href="/assets/shader-previews/midlight-bedrock-preview.png" target="_blank" rel="noreferrer">
+                <img src="/assets/shader-previews/midlight-bedrock-preview.png" alt="Midlight Realism Bedrock 预览图" />
+                <strong>中配基岩</strong>
+              </a>
+              <a class="shader-preview-card" href="/assets/shader-previews/midlight-ultra-java-preview.png" target="_blank" rel="noreferrer">
+                <img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="Midlight Realism Ultra Java 预览图" />
+                <strong>高配 Java</strong>
+              </a>
+              <a class="shader-preview-card" href="/assets/shader-previews/midlight-ultra-bedrock-preview.png" target="_blank" rel="noreferrer">
+                <img src="/assets/shader-previews/midlight-ultra-bedrock-preview.png" alt="Midlight Realism Ultra Bedrock 预览图" />
+                <strong>高配基岩</strong>
+              </a>
+            </div>
+            <div class="result-card compact-result">预览图用于展示色温、纹理密度和亮暗层次差异，实际游戏效果仍会受设备、渲染器和分辨率影响。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-mod-card">
+            <p class="panel-label">推荐搭配模组</p>
+            <h2>Java 版画质与体验补强</h2>
+            <div class="shader-mod-grid">
+              <section class="shader-mod-item">
+                <span class="shader-mod-tag">加载核心</span>
+                <strong>Iris Shaders</strong>
+                <p>优先用于 Fabric 环境加载光影，和本页 Java 包最稳，调节阴影、体积云和反射时更直观。</p>
+              </section>
+              <section class="shader-mod-item">
+                <span class="shader-mod-tag">帧率优化</span>
+                <strong>Sodium</strong>
+                <p>如果你打算开更高视距或更高配档位，先上 Sodium 把基础帧率拉稳，再去调光影细节。</p>
+              </section>
+              <section class="shader-mod-item">
+                <span class="shader-mod-tag">纹理补全</span>
+                <strong>Continuity</strong>
+                <p>适合搭配木板、砖块和部分连接材质，让资源包边缘更统一，不容易出现拼接断层。</p>
+              </section>
+              <section class="shader-mod-item">
+                <span class="shader-mod-tag">氛围增强</span>
+                <strong>LambDynamicLights</strong>
+                <p>探索洞穴和夜景时手持物动态发光更明显，和本页高配包的夜景氛围很搭。</p>
+              </section>
+            </div>
+            <div class="result-card compact-result">基岩版建议保持纯净导入，不要叠加超高清 UI 包或多个同类材质。Java 版常见组合：Fabric API + Iris + Sodium，再按需要补 Continuity 与动态光源。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide shader-mod-card">
+            <p class="panel-label">发布与分发</p>
+            <h2>Modrinth 文案 / 整合包模板</h2>
+            <p class="tool-card-note">如果你准备把这套内容公开分发，当前保留发布文案模板和整合包结构模板，方便继续整理下载说明。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/release-kit/modrinth-release-template.txt" download>下载文案模板</a>
+              <a class="copy-btn secondary" href="/downloads/release-kit/modpack-manifest-template.json" download>下载整合包模板</a>
+            </div>
+            <div class="result-card compact-result">这套模板更适合光影包、材质包和 Java 端整合包。单独模组仍建议优先发到 Modrinth / CurseForge，再单独整理安装说明。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">光影说明</p>
+            <h2>Java 版建议</h2>
+            <div class="result-card">中配建议用中档阴影与低档反射，高配建议在 Iris 中把体积云提升到中档，并预留更高显存缓存。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">移动端说明</p>
+            <h2>基岩版建议</h2>
+            <div class="result-card">中配将视距控制在 10-14 区块，高配建议 14-18 区块并关闭多余后台录屏或悬浮窗，优先保证持续帧率。</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
