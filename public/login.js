@@ -149,8 +149,8 @@ function updateTabStatus(tabName) {
     tabStatus.classList.remove('register-mode');
     tabStatus.classList.add('outage-mode');
     tabStatusTag.textContent = '故障版本';
-    tabStatusTitle.textContent = '该版本存在严重问题';
-    tabStatusNote.textContent = '当前部署地址已关闭登录与注册，请停止在这个入口使用账号功能。';
+    tabStatusTitle.textContent = '该网站存在严重问题';
+    tabStatusNote.textContent = '请耐心等待新版本推送与修复，当前入口的登录与注册功能已临时关闭。';
     return;
   }
 
@@ -181,7 +181,7 @@ async function submitForm(event) {
   event.preventDefault();
 
   if (isBlockedDeployment()) {
-    setMessage('当前版本存在严重问题，登录与注册已关闭', true);
+    setMessage('该网站存在严重问题，请耐心等待新版本推送与修复', true);
     return;
   }
 
@@ -252,7 +252,7 @@ if (maintenanceTitle) {
 if (developerEntryButton) {
   developerEntryButton.addEventListener('click', () => {
     if (isBlockedDeployment()) {
-      setMessage('当前版本存在严重问题，开发者注册入口也已关闭', true);
+      setMessage('该网站存在严重问题，请耐心等待新版本推送与修复', true);
       return;
     }
 
@@ -276,7 +276,7 @@ if (isBlockedDeployment()) {
   setMaintenanceUnlockVisible(false);
   switchTab('login');
   refreshRegisterAvailability();
-  setMessage('当前版本存在严重问题，登录与注册已关闭', true);
+  setMessage('该网站存在严重问题，请耐心等待新版本推送与修复', true);
 } else {
   setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
 }
