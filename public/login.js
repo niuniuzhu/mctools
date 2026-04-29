@@ -14,13 +14,19 @@ const tabStatus = document.querySelector('[data-tab-status]');
 const tabStatusTag = document.querySelector('[data-tab-status-tag]');
 const tabStatusTitle = document.querySelector('[data-tab-status-title]');
 const tabStatusNote = document.querySelector('[data-tab-status-note]');
+const criticalAlert = document.querySelector('[data-critical-alert]');
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;
 const maintenanceUnlockWindowMs = 1800;
+const blockedDeploymentUrl = 'http://115.29.198.193:3000/login.html';
 
 let specialRegisterMode = 'normal';
 let maintenanceTitleClickCount = 0;
 let maintenanceUnlockResetTimer = null;
+
+function isBlockedDeployment() {
+  return window.location.href === blockedDeploymentUrl;
+}
 
 function applyAppVersion(version) {
   document.querySelectorAll('[data-app-version]').forEach((element) => {
@@ -57,6 +63,24 @@ function setMaintenanceUnlockVisible(isVisible) {
 }
 
 function refreshRegisterAvailability() {
+  if (isBlockedDeployment()) {
+    tabButtons.forEach((button) => {
+      button.disabled = true;
+    });
+
+    forms.forEach((form) => {
+      form.querySelectorAll('input, button').forEach((element) => {
+        element.disabled = true;
+      });
+    });
+
+    return;
+  }
+
+  tabButtons.forEach((button) => {
+    button.disabled = false;
+  });
+
   if (registerTabButton) {
     registerTabButton.disabled = false;
   }
@@ -121,7 +145,17 @@ function updateTabStatus(tabName) {
     return;
   }
 
+  if (isBlockedDeployment()) {
+    tabStatus.classList.remove('register-mode');
+    tabStatus.classList.add('outage-mode');
+    tabStatusTag.textContent = '故障版本';
+    tabStatusTitle.textContent = '该版本存在严重问题';
+    tabStatusNote.textContent = '当前部署地址已关闭登录与注册，请停止在这个入口使用账号功能。';
+    return;
+  }
+
   const isRegister = tabName === 'register';
+  tabStatus.classList.remove('outage-mode');
   tabStatus.classList.toggle('register-mode', isRegister);
   tabStatusTag.textContent = isRegister ? '创建账号' : '当前模式';
   tabStatusTitle.textContent = isRegister ? '注册并建立新存档入口' : '登录工具箱';
@@ -145,6 +179,12 @@ function switchTab(tabName) {
 
 async function submitForm(event) {
   event.preventDefault();
+
+  if (isBlockedDeployment()) {
+    setMessage('当前版本存在严重问题，登录与注册已关闭', true);
+    return;
+  }
+
   const form = event.currentTarget;
   const tabName = form.dataset.form;
   const formData = new FormData(form);
@@ -211,6 +251,11 @@ if (maintenanceTitle) {
 
 if (developerEntryButton) {
   developerEntryButton.addEventListener('click', () => {
+    if (isBlockedDeployment()) {
+      setMessage('当前版本存在严重问题，开发者注册入口也已关闭', true);
+      return;
+    }
+
     setSpecialRegisterMode('developer');
   });
 }
@@ -226,6 +271,15 @@ forms.forEach((form) => {
   form.addEventListener('submit', submitForm);
 });
 
-setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
+if (isBlockedDeployment()) {
+  criticalAlert?.classList.remove('hidden');
+  setMaintenanceUnlockVisible(false);
+  switchTab('login');
+  refreshRegisterAvailability();
+  setMessage('当前版本存在严重问题，登录与注册已关闭', true);
+} else {
+  setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
+}
+
 setSpecialRegisterMode('normal');
 switchTab('login');
