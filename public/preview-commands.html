@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 指令预览</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'liquid';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="preview-lock-banner">
+        <p class="panel-label">未登录预览</p>
+        <h2>未登录，登录解锁所有功能</h2>
+        <p>当前页只展示指令工作台的公开结构与示例内容。历史记录、收藏、账号信息、VIP 指令与执行器仍需要登录后使用。</p>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>指令工作台预览</h1>
+          <p class="lead">这里展示几个常用指令模板和模块结构，便于未登录用户先了解工具箱内容。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 正式版1.3.2</div>
+            <div class="version-pill">模块：指令预览</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/preview.html">返回公开预览</a>
+            <a class="ghost-link-button" href="/login.html">返回登录页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">示例模块</p>
+          <p class="toolbox-summary">正式版中提供基础指令、复杂指令、收藏、历史、AI 问答和执行器。本页仅展示公开示例，不保存任何输入。</p>
+          <p class="member-state">账号状态：未登录</p>
+          <p class="vip-state">登录后可解锁：历史记录、VIP 指令、SVIP 执行器</p>
+        </div>
+      </section>
+
+      <section class="generator-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">公开示例</p>
+            <h2>指令模板预览</h2>
+          </div>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">模板 1</p>
+            <h2>tp 传送</h2>
+            <div class="result-card compact-result">tp @p 120 68 -35</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">模板 2</p>
+            <h2>give 给予物品</h2>
+            <div class="result-card compact-result">give @p minecraft:golden_apple 3</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">模板 3</p>
+            <h2>weather 天气切换</h2>
+            <div class="result-card compact-result">weather clear 1200</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">模板 4</p>
+            <h2>VIP 示例</h2>
+            <div class="result-card compact-result">execute as @p if entity @e[type=minecraft:zombie,distance=..8] run say 已发现怪物</div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="preview-fixed-tip" aria-label="登录提示">
+        <strong>登录后解锁完整功能</strong>
+        <p>当前只是静态预览。登录后才能使用历史记录、收藏、VIP 指令与执行器等完整功能。</p>
+        <div class="preview-fixed-actions">
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">登录解锁</a>
+          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

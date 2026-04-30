@@ -237,6 +237,91 @@ h1 {
   background: rgba(125, 211, 252, 0.16);
 }
 
+.preview-entry-row {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.preview-entry-button {
+  width: fit-content;
+  text-decoration: none;
+}
+
+.preview-entry-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.preview-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.preview-fixed-tip {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  width: min(360px, calc(100vw - 32px));
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(9, 16, 29, 0.88), rgba(22, 50, 79, 0.88));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.preview-fixed-tip strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.preview-fixed-tip p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.preview-fixed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.preview-fixed-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 132px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.preview-fixed-link-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: #07111c;
+}
+
 .auth-highlights {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -547,6 +632,11 @@ h1 {
   -webkit-backdrop-filter: blur(14px);
 }
 
+a.ghost-button,
+a.text-button {
+  text-decoration: none;
+}
+
 .ghost-button:disabled,
 .text-button:disabled,
 .tab-button:disabled,
@@ -711,6 +801,18 @@ input:focus {
   }
 
   .auth-preview-card-wide {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-fixed-tip {
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+  }
+
+  .preview-fixed-actions {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }

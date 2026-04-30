@@ -11,9 +11,53 @@ const versionInput = document.querySelector('[data-version-input]');
 const versionStatus = document.querySelector('[data-version-status]');
 const loadVersionButton = document.querySelector('[data-load-version]');
 const saveVersionButton = document.querySelector('[data-save-version]');
+const accessNote = document.querySelector('[data-developer-access-note]');
 
 let currentFilePath = '';
 let currentFiles = [];
+
+function setDeveloperControlsEnabled(enabled) {
+  [
+    versionInput,
+    loadVersionButton,
+    saveVersionButton,
+    refreshButton,
+    saveFileButton,
+    codeEditor
+  ].forEach((element) => {
+    if (!element) {
+      return;
+    }
+
+    element.disabled = !enabled;
+  });
+}
+
+function renderDeveloperLockedState(me) {
+  if (usernameLabel) {
+    usernameLabel.textContent = `当前账号：${me.username} · 无开发者权限`;
+  }
+
+  if (accessNote) {
+    accessNote.textContent = '当前账号不是开发者账号，因此只能查看说明，不能读取或修改版本号与项目文件。需要开发者账号时，请回到登录页使用开发者账号注册模式。';
+  }
+
+  if (currentFile) {
+    currentFile.textContent = '当前账号没有开发者权限';
+  }
+
+  if (fileList) {
+    fileList.innerHTML = '<p class="empty-state compact">当前账号没有开发者权限，无法查看文件列表。</p>';
+  }
+
+  if (codeEditor) {
+    codeEditor.value = '当前账号没有开发者权限。请返回登录页，使用开发者账号注册模式创建开发者账号后再进入本页。';
+  }
+
+  setDeveloperControlsEnabled(false);
+  setVersionStatus('需要开发者账号才可读取或修改版本号', true);
+  setStatus('需要开发者账号才可查看和保存文件', true);
+}
 
 function applyAppVersion(version) {
   document.querySelectorAll('[data-app-version]').forEach((element) => {
@@ -82,17 +126,18 @@ async function fetchMe() {
 
   const me = await response.json();
 
-  if (!me.isDeveloper) {
-    window.location.href = '/index.html';
-    return null;
-  }
-
   if (usernameLabel) {
-    usernameLabel.textContent = `当前账号：${me.username} · 开发者`;
+    usernameLabel.textContent = me.isDeveloper
+      ? `当前账号：${me.username} · 开发者`
+      : `当前账号：${me.username}`;
   }
 
   if (me.version) {
     applyAppVersion(me.version);
+  }
+
+  if (!me.isDeveloper) {
+    renderDeveloperLockedState(me);
   }
 
   return me;
@@ -314,6 +359,10 @@ if (saveVersionButton) {
 
 fetchMe().then((me) => {
   if (!me) {
+    return;
+  }
+
+  if (!me.isDeveloper) {
     return;
   }
 

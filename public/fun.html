@@ -6,12 +6,12 @@
     <title>我的世界工具箱 - 趣味实验室</title>
     <script>
       try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'liquid';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
-        document.documentElement.dataset.ui = 'normal';
+        document.documentElement.dataset.ui = 'liquid';
       }
     </script>
     <link rel="stylesheet" href="/styles.css" />
@@ -26,7 +26,7 @@
           <h1>趣味实验室</h1>
           <p class="lead">这里专门放轻松、随机、整活向的 Minecraft 小工具，适合一个人玩，也适合和朋友一起开玩笑。</p>
           <div class="meta-row">
-            <div class="version-pill" data-app-version>当前版本 正式版1.3</div>
+            <div class="version-pill" data-app-version>当前版本 正式版1.3.2</div>
             <div class="version-pill">模块：趣味实验室</div>
           </div>
           <div class="workspace-nav">
@@ -35,7 +35,7 @@
         </div>
         <div class="hero-card">
           <p class="hero-card-label">当前模块：趣味</p>
-          <p class="toolbox-summary">已内置 13 个趣味玩法：幸运方块模拟、生物对决预测、昵称生成器、掉落轮盘、今日挑战、宝藏坐标盲盒、村民交易吐槽、Boss 出场台词、联机整活惩罚签、建筑主题签、红石翻车警报、开荒职业卡和生物群系任务书。</p>
+          <p class="toolbox-summary">已内置 13 个趣味玩法：幸运方块模拟、生物对决预测、昵称生成器、掉落轮盘、今日挑战、宝藏坐标盲盒、村民交易吐槽、Boss 出场台词、联机整活惩罚签、建筑主题签、红石翻车警报、开荒职业卡和生物群系任务书。其中今日生存挑战和建筑主题签现已升级为更完整的灵感生成器。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -113,13 +113,14 @@
           <article class="guide-card utility-card utility-card-wide">
             <p class="panel-label">功能 5</p>
             <h2>今日生存挑战</h2>
-            <p class="tool-card-note">给今天的生存局抽一个轻度挑战，顺手再生成一套整活套餐。</p>
+            <p class="tool-card-note">给今天的生存局生成一份完整挑战单，包含主目标、限制、出门准备和一句开局提示。</p>
             <div class="button-row button-row-wide">
               <button type="button" class="copy-btn" data-fun-challenge>抽取今日挑战</button>
               <button type="button" class="copy-btn secondary" data-fun-challenge-copy>复制挑战</button>
               <button type="button" class="copy-btn secondary" data-fun-pack>随机整活套餐</button>
             </div>
             <div class="result-card" data-fun-challenge-result>挑战结果会显示在这里。</div>
+            <div class="fun-pack-list" data-fun-challenge-details></div>
             <div class="fun-pack-list" data-fun-pack-result></div>
           </article>
 
@@ -166,9 +167,13 @@
           <article class="guide-card utility-card">
             <p class="panel-label">功能 10</p>
             <h2>今日建筑主题签</h2>
-            <p class="tool-card-note">抽一个建造方向，避免站在空地前面发呆半小时。</p>
-            <button type="button" class="copy-btn" data-fun-build>抽取建筑主题</button>
+            <p class="tool-card-note">抽一个更完整的建筑灵感包，连风格、主材料、功能房和气氛词一起给你。</p>
+            <div class="button-row button-row-wide">
+              <button type="button" class="copy-btn" data-fun-build>抽取建筑主题</button>
+              <button type="button" class="copy-btn secondary" data-fun-build-copy>复制灵感包</button>
+            </div>
             <div class="result-card" data-fun-build-result>建筑主题会显示在这里。</div>
+            <div class="fun-pack-list" data-fun-build-details></div>
           </article>
 
           <article class="guide-card utility-card">

@@ -6,6 +6,7 @@
     <title>我的世界工具箱 - 分类选择</title>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
+    <script defer src="/home.js"></script>
   </head>
   <body>
     <main class="shell">
@@ -75,33 +76,94 @@
         </div>
       </section>
 
+      <section class="content-panel home-daily-panel" aria-label="今日推荐">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Today Picks</p>
+            <h2>今日推荐</h2>
+          </div>
+          <p class="tool-card-note">每天会组合出一套更适合当前打开节奏的工具箱路线。</p>
+        </div>
+        <div class="home-daily-grid" data-home-daily-grid>
+          <article class="guide-card utility-card home-daily-card">
+            <p class="panel-label">推荐加载中</p>
+            <h2>正在生成今日推荐</h2>
+            <p>稍等一会，首页会按今天的日期给你生成一套开局路线。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel home-broadcast-panel" aria-label="每日播报">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Daily Broadcast</p>
+            <h2>每日播报</h2>
+          </div>
+          <p class="tool-card-note">每天进入首页都会收到一条偏 Minecraft 风格的站内播报。</p>
+        </div>
+        <div class="home-broadcast-grid" data-home-broadcast-grid>
+          <article class="guide-card utility-card home-broadcast-card">
+            <p class="panel-label">播报加载中</p>
+            <h2>正在整理今天的世界消息</h2>
+            <div class="result-card">稍等一会，今日播报会出现在这里。</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel home-workbench-panel" aria-label="个人工作台">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">Workbench</p>
+            <h2>个人工作台</h2>
+          </div>
+          <p class="tool-card-note">把你最常用的 4 个模块固定在首页，下次进入可以少翻一轮分类卡。</p>
+        </div>
+        <div class="home-workbench-meta">
+          <strong data-profile-name>正在识别账号</strong>
+          <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+          <p class="tool-card-note" data-home-workbench-note>工作台会跟着当前账号分别保存。</p>
+        </div>
+        <div class="home-workbench-grid" data-home-workbench-grid>
+          <article class="guide-card utility-card home-workbench-card">
+            <p class="panel-label">工作台加载中</p>
+            <h2>正在整理常用模块</h2>
+            <p>账号信息加载完成后，这里会显示你固定的常用入口。</p>
+          </article>
+        </div>
+        <div class="home-workbench-controls" data-home-workbench-controls></div>
+      </section>
+
       <section class="tool-overview">
-        <article class="tool-card tool-card-active">
+        <article class="tool-card tool-card-active" data-home-module-card data-home-module-key="commands" data-home-module-label="指令工作台">
           <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="指令工作台缩略图" /></div>
           <p class="panel-label">分类 1</p>
           <h2>指令工作台</h2>
           <p>进入后可生成常用指令、复杂 execute 链、计分板、NBT、调度与生物群系类指令。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/commands.html">进入指令工作台</a>
         </article>
-        <article class="tool-card tool-card-locked">
+        <article class="tool-card tool-card-locked" data-home-module-card data-home-module-key="tutorial" data-home-module-label="通关教程">
           <div class="tool-card-thumb"><img src="/assets/tutorial-hero.svg" alt="通关教程缩略图" /></div>
           <p class="panel-label">分类 2</p>
           <h2>通关教程</h2>
           <p>提供从开荒到击败末影龙的阶段化教程。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/tutorial.html">进入通关教程</a>
         </article>
-        <article class="tool-card">
+        <article class="tool-card" data-home-module-card data-home-module-key="fpsTest" data-home-module-label="帧率测试">
           <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="帧率测试缩略图" /></div>
           <p class="panel-label">分类 3</p>
           <h2>帧率测试</h2>
           <p>提供实时 FPS 测试、低帧记录与性能波动观察，适合检查页面流畅度。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/fps-test.html">进入帧率测试</a>
         </article>
-        <article class="tool-card">
+        <article class="tool-card" data-home-module-card data-home-module-key="pageDetection" data-home-module-label="我的世界页面检测">
           <div class="tool-card-thumb"><img src="/assets/coordinates-hero.svg" alt="页面检测缩略图" /></div>
           <p class="panel-label">分类 4</p>
           <h2>我的世界页面检测</h2>
           <p>提供网页 URL、标题与内容片段识别，判断是否为 Minecraft 相关页面。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/page-detection.html">进入页面检测</a>
         </article>
         <article class="tool-card tool-card-disabled">
@@ -118,18 +180,20 @@
           <p>后续会提供工作台、熔炉、酿造台与特殊方块的配方和合成路径查询。</p>
           <button type="button" class="tool-enter-button disabled" disabled>查看配方已关闭</button>
         </article>
-        <article class="tool-card">
+        <article class="tool-card" data-home-module-card data-home-module-key="fun" data-home-module-label="趣味实验室">
           <div class="tool-card-thumb"><img src="/assets/login-hero.svg" alt="趣味实验室缩略图" /></div>
           <p class="panel-label">分类 7</p>
           <h2>趣味实验室</h2>
-          <p>新增 5 个整活功能，包括幸运方块模拟、生物对决预测、昵称生成和今日挑战。</p>
+          <p>现已支持更完整的今日生存挑战和建筑灵感抽签，还能顺手生成一整套整活路线。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/fun.html">进入趣味实验室</a>
         </article>
-        <article class="tool-card">
+        <article class="tool-card" data-home-module-card data-home-module-key="cloud" data-home-module-label="云玩中心">
           <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="云玩中心缩略图" /></div>
           <p class="panel-label">分类 8</p>
           <h2>云玩中心</h2>
           <p>提供云玩方案建议、节点延迟评级、预算估算和开局部署建议。</p>
+          <div class="tool-card-quick-actions" data-home-module-actions></div>
           <a class="tool-enter-button" href="/cloud-play.html">进入云玩中心</a>
         </article>
         <article class="tool-card tool-card-disabled">

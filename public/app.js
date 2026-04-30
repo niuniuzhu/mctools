@@ -903,27 +903,41 @@ function writeScopedStorage(scope, value) {
   }
 }
 
-const LIQUID_GLASS_REDEEM_CODE = 'MCTOOLS-LIQUID-2026';
+const HOME_WORKBENCH_SCOPE = 'home-workbench';
+const HOME_WORKBENCH_DEFAULT_KEYS = ['commands', 'tutorial', 'fun', 'settings'];
+const WORKBENCH_PAGE_MODULES = {
+  '/commands.html': { key: 'commands', label: '指令工作台' },
+  '/tutorial.html': { key: 'tutorial', label: '通关教程' },
+  '/fun.html': { key: 'fun', label: '趣味实验室' },
+  '/coordinates.html': { key: 'coordinates', label: '坐标工具' },
+  '/automation-guide.html': { key: 'automation', label: '自动化机器教程' },
+  '/shader-download.html': { key: 'downloads', label: '光影下载中心' },
+  '/settings.html': { key: 'settings', label: '设置' },
+  '/cloud-play.html': { key: 'cloud', label: '云玩中心' },
+  '/recipes.html': { key: 'recipes', label: '配方速查' },
+  '/build-lab.html': { key: 'buildLab', label: '建筑实验室' },
+  '/redstone-lab.html': { key: 'redstone', label: '红石实验室' },
+  '/seed-lab.html': { key: 'seedLab', label: '种子实验室' },
+  '/server-hub.html': { key: 'serverHub', label: '开服中心' },
+  '/survival-board.html': { key: 'survivalBoard', label: '生存看板' },
+  '/pack-center.html': { key: 'packCenter', label: '整合包中心' },
+  '/mods.html': { key: 'mods', label: '模组推荐库' },
+  '/fps-test.html': { key: 'fpsTest', label: '帧率测试' },
+  '/page-detection.html': { key: 'pageDetection', label: '页面识别' },
+  '/ai.html': { key: 'ai', label: 'AI 问答' }
+};
+
 const SHADER_HUB_REDEEM_CODE = 'MCTOOLS-SHADER-2026';
+const DEFAULT_UI_THEME = 'liquid';
+const ALLOWED_UI_THEMES = new Set(['normal', 'classic', 'end', 'liquid']);
 
-function getLiquidGlassState() {
-  const state = readScopedStorage('liquid-glass-test', { qualified: false, enabled: false });
-
-  if (!state || typeof state !== 'object' || Array.isArray(state)) {
-    return { qualified: false, enabled: false };
+function getPreferredUiTheme() {
+  try {
+    const storedTheme = localStorage.getItem('mctools-ui') || DEFAULT_UI_THEME;
+    return ALLOWED_UI_THEMES.has(storedTheme) ? storedTheme : DEFAULT_UI_THEME;
+  } catch {
+    return DEFAULT_UI_THEME;
   }
-
-  return {
-    qualified: Boolean(state.qualified),
-    enabled: Boolean(state.enabled)
-  };
-}
-
-function setLiquidGlassState(nextState) {
-  writeScopedStorage('liquid-glass-test', {
-    qualified: Boolean(nextState && nextState.qualified),
-    enabled: Boolean(nextState && nextState.enabled)
-  });
 }
 
 function getShaderHubState() {
@@ -945,62 +959,14 @@ function setShaderHubState(nextState) {
 }
 
 function setUiTheme(themeName) {
-  if (themeName === 'liquid') {
-    document.documentElement.setAttribute('data-ui', 'liquid');
-    return;
-  }
+  const nextTheme = ALLOWED_UI_THEMES.has(themeName) ? themeName : DEFAULT_UI_THEME;
 
-  document.documentElement.setAttribute('data-ui', 'normal');
-}
+  document.documentElement.setAttribute('data-ui', nextTheme);
 
-function renderLiquidGlassAccess() {
-  const state = currentMe ? getLiquidGlassState() : { qualified: false, enabled: false };
-  const status = document.querySelector('[data-liquid-glass-status]');
-  const message = document.querySelector('[data-liquid-glass-message]');
-  const codeInput = document.querySelector('[data-liquid-glass-code]');
-  const redeemButton = document.querySelector('[data-liquid-glass-redeem]');
-  const enableButton = document.querySelector('[data-liquid-glass-enable]');
-  const disableButton = document.querySelector('[data-liquid-glass-disable]');
-  const revokeButton = document.querySelector('[data-liquid-glass-revoke]');
-
-  setUiTheme(state.qualified && state.enabled ? 'liquid' : 'normal');
-
-  if (status) {
-    status.textContent = state.qualified
-      ? state.enabled
-        ? '测试资格：已开通，液态玻璃已启用'
-        : '测试资格：已开通，当前使用默认风格'
-      : '测试资格：未开通';
-    status.classList.toggle('vip-active', state.qualified);
-  }
-
-  if (message) {
-    message.textContent = state.qualified
-      ? '当前账号已经获得液态玻璃测试资格，可启用或恢复默认风格，也可以直接取消资格。'
-      : '当前账号还没有液态玻璃测试资格。';
-  }
-
-  if (codeInput) {
-    codeInput.disabled = state.qualified;
-    if (state.qualified) {
-      codeInput.value = '';
-    }
-  }
-
-  if (redeemButton) {
-    redeemButton.disabled = state.qualified;
-  }
-
-  if (enableButton) {
-    enableButton.disabled = !state.qualified || state.enabled;
-  }
-
-  if (disableButton) {
-    disableButton.disabled = !state.qualified || !state.enabled;
-  }
-
-  if (revokeButton) {
-    revokeButton.disabled = !state.qualified;
+  try {
+    localStorage.setItem('mctools-ui', nextTheme);
+  } catch {
+    // Ignore storage write failure.
   }
 }
 
@@ -1059,82 +1025,6 @@ function renderShaderHubAccess() {
     pageStatus.textContent = state.qualified ? '权限：已开放下载' : '权限：需兑换码开放';
     pageStatus.classList.toggle('vip-active', state.qualified);
   }
-}
-
-function initializeLiquidGlassControls() {
-  const redeemButton = document.querySelector('[data-liquid-glass-redeem]');
-  const enableButton = document.querySelector('[data-liquid-glass-enable]');
-  const disableButton = document.querySelector('[data-liquid-glass-disable]');
-  const revokeButton = document.querySelector('[data-liquid-glass-revoke]');
-  const codeInput = document.querySelector('[data-liquid-glass-code]');
-  const message = document.querySelector('[data-liquid-glass-message]');
-
-  if (!redeemButton && !enableButton && !disableButton && !revokeButton) {
-    renderLiquidGlassAccess();
-    return;
-  }
-
-  if (redeemButton && codeInput) {
-    redeemButton.addEventListener('click', () => {
-      const normalizedCode = String(codeInput.value || '').trim().toUpperCase();
-
-      if (normalizedCode !== LIQUID_GLASS_REDEEM_CODE) {
-        if (message) {
-          message.textContent = '兑换码无效，未获得液态玻璃测试资格。';
-        }
-        return;
-      }
-
-      setLiquidGlassState({ qualified: true, enabled: true });
-
-      if (message) {
-        message.textContent = '兑换成功，当前账号已获得液态玻璃测试资格，并已切换到液态玻璃风格。';
-      }
-
-      renderLiquidGlassAccess();
-    });
-
-    codeInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        redeemButton.click();
-      }
-    });
-  }
-
-  if (enableButton) {
-    enableButton.addEventListener('click', () => {
-      const state = getLiquidGlassState();
-      setLiquidGlassState({ ...state, qualified: true, enabled: true });
-      if (message) {
-        message.textContent = '液态玻璃测试风格已启用。';
-      }
-      renderLiquidGlassAccess();
-    });
-  }
-
-  if (disableButton) {
-    disableButton.addEventListener('click', () => {
-      const state = getLiquidGlassState();
-      setLiquidGlassState({ ...state, qualified: true, enabled: false });
-      if (message) {
-        message.textContent = '已恢复默认风格，测试资格仍然保留。';
-      }
-      renderLiquidGlassAccess();
-    });
-  }
-
-  if (revokeButton) {
-    revokeButton.addEventListener('click', () => {
-      setLiquidGlassState({ qualified: false, enabled: false });
-      if (message) {
-        message.textContent = '液态玻璃测试资格已取消。';
-      }
-      renderLiquidGlassAccess();
-    });
-  }
-
-  renderLiquidGlassAccess();
 }
 
 function initializeShaderHubAccessControls() {
@@ -3099,6 +2989,87 @@ function updateProfileIdentity(profile) {
   }
 }
 
+function getCurrentWorkbenchModule() {
+  return WORKBENCH_PAGE_MODULES[window.location.pathname] || null;
+}
+
+function readHomeWorkbenchItems() {
+  const stored = readScopedStorage(HOME_WORKBENCH_SCOPE, null);
+
+  if (stored === null) {
+    return [...HOME_WORKBENCH_DEFAULT_KEYS];
+  }
+
+  if (!Array.isArray(stored)) {
+    return [...HOME_WORKBENCH_DEFAULT_KEYS];
+  }
+
+  const validKeys = new Set(Object.values(WORKBENCH_PAGE_MODULES).map((item) => item.key));
+  return stored.filter((item) => validKeys.has(item)).slice(0, 4);
+}
+
+function writeHomeWorkbenchItems(items) {
+  writeScopedStorage(HOME_WORKBENCH_SCOPE, items.slice(0, 4));
+}
+
+function renderWorkbenchPageAction() {
+  const module = getCurrentWorkbenchModule();
+  const workspaceNav = document.querySelector('.workspace-nav');
+
+  if (!module || !workspaceNav) {
+    return;
+  }
+
+  let button = workspaceNav.querySelector('[data-workbench-page-toggle]');
+  let note = workspaceNav.querySelector('[data-workbench-page-note]');
+
+  if (!button) {
+    button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'ghost-button compact-button workbench-page-button';
+    button.setAttribute('data-workbench-page-toggle', module.key);
+    workspaceNav.appendChild(button);
+  }
+
+  if (!note) {
+    note = document.createElement('p');
+    note.className = 'tool-card-note workbench-page-note';
+    note.setAttribute('data-workbench-page-note', '');
+    workspaceNav.appendChild(note);
+  }
+
+  const syncView = (message) => {
+    const workbenchItems = readHomeWorkbenchItems();
+    const isActive = workbenchItems.includes(module.key);
+
+    button.classList.toggle('active', isActive);
+    button.textContent = isActive ? `已固定 ${module.label}` : `固定到个人工作台`;
+    note.textContent = message || (isActive
+      ? `${module.label} 已固定到首页工作台。`
+      : '把当前模块固定到首页，之后可以从个人工作台快速进入。');
+  };
+
+  button.onclick = () => {
+    const current = readHomeWorkbenchItems();
+
+    if (current.includes(module.key)) {
+      writeHomeWorkbenchItems(current.filter((item) => item !== module.key));
+      syncView(`已从个人工作台移除 ${module.label}。`);
+      return;
+    }
+
+    if (current.length >= 4) {
+      syncView('个人工作台最多固定 4 个模块，请先回首页取消一个再添加。');
+      return;
+    }
+
+    writeHomeWorkbenchItems([...current, module.key]);
+    syncView(`已把 ${module.label} 固定到个人工作台。`);
+  };
+
+  syncView('');
+}
+
 function renderDeveloperPanel(me) {
   const heroCard = document.querySelector('.hero-card');
   let panel = document.querySelector('[data-developer-panel]');
@@ -3286,7 +3257,9 @@ function updateVipState(me) {
   applyAppVersion(me.version);
 
   currentMe = me;
-  renderLiquidGlassAccess();
+  window.dispatchEvent(new CustomEvent('mctools:me-loaded', { detail: me }));
+  setUiTheme(getPreferredUiTheme());
+  renderWorkbenchPageAction();
   renderShaderHubAccess();
   renderDeveloperPanel(me);
   refreshCommandAccess();
@@ -3481,7 +3454,6 @@ const executorCopyButton = document.querySelector('[data-executor-copy]');
 const historyClearButton = document.querySelector('[data-history-clear]');
 
 initializeDisplayModeControls();
-initializeLiquidGlassControls();
 initializeShaderHubAccessControls();
 
 if (commandPicker && commandHost) {

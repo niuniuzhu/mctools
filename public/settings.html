@@ -6,6 +6,7 @@
     <title>我的世界工具箱 - 设置</title>
     <link rel="stylesheet" href="/styles.css" />
     <script defer src="/app.js"></script>
+    <script defer src="/home.js"></script>
   </head>
   <body>
     <main class="shell">
@@ -89,6 +90,48 @@
           </article>
 
           <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">首页开关</p>
+            <h2>首页面板偏好</h2>
+            <p class="tool-card-note" data-settings-home-panel-note>这里控制首页是否展示“今日推荐”和“每日播报”，避免首页信息太满。</p>
+            <div class="settings-actions settings-preference-actions" data-settings-home-preferences>
+              <button type="button" class="ghost-button" data-home-pref-toggle="daily">今日推荐显示中</button>
+              <button type="button" class="ghost-button" data-home-pref-toggle="broadcast">每日播报显示中</button>
+              <button type="button" class="ghost-button" data-home-pref-toggle="previewRail">横向预览显示中</button>
+              <button type="button" class="ghost-button" data-home-workbench-reset>恢复默认工作台</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">首页偏好</p>
+            <h2>个人工作台管理</h2>
+            <p class="tool-card-note" data-settings-workbench-note>在这里集中管理首页固定模块和顺序，首页里只保留展示和快捷固定。</p>
+            <div class="home-workbench-grid settings-workbench-grid" data-settings-workbench-grid>
+              <article class="guide-card utility-card home-workbench-card">
+                <p class="panel-label">工作台加载中</p>
+                <h2>正在同步你的固定模块</h2>
+                <p>稍等一会，设置页会显示当前账号的首页工作台配置。</p>
+              </article>
+            </div>
+            <div class="home-workbench-controls" data-settings-workbench-controls></div>
+            <div class="settings-actions">
+              <a class="ghost-link-button" href="/index.html">返回首页查看效果</a>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">今日播报</p>
+            <h2>首页播报详情</h2>
+            <p class="tool-card-note">把今天的宜忌、节奏窗口和环境提示也放进设置页，方便集中查看。</p>
+            <div class="home-broadcast-grid settings-broadcast-grid" data-settings-broadcast-grid>
+              <article class="guide-card utility-card home-broadcast-card">
+                <p class="panel-label">播报加载中</p>
+                <h2>正在整理今天的世界消息</h2>
+                <div class="result-card">稍等一会，播报详情会同步到这里。</div>
+              </article>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
             <p class="panel-label">光影下载中心</p>
             <h2>兑换码开放下载</h2>
             <p class="tool-card-note">这里使用独立兑换码，不与液态玻璃测试资格共用。兑换成功后，当前账号才会开放光影下载中心。</p>
@@ -105,19 +148,12 @@
           </article>
 
           <article class="guide-card utility-card settings-card settings-card-wide">
-            <p class="panel-label">液态玻璃测试</p>
-            <h2>兑换码与测试资格</h2>
-            <p class="tool-card-note">输入兑换码后可获得液态玻璃测试资格，并在当前账号下切换为液态玻璃风格；也可以随时取消资格。</p>
-            <div class="account-pill" data-liquid-glass-status>测试资格：未开通</div>
-            <div class="redeem-code-row">
-              <input type="text" data-liquid-glass-code placeholder="输入液态玻璃测试兑换码" autocomplete="off" />
-              <button type="button" class="ghost-button" data-liquid-glass-redeem>兑换资格</button>
-            </div>
-            <p class="tool-card-note" data-liquid-glass-message>当前账号还没有液态玻璃测试资格。</p>
+            <p class="panel-label">液态玻璃</p>
+            <h2>全站默认实装</h2>
+            <p class="tool-card-note">液态玻璃已经不再作为测试资格单独开关，当前版本默认以液态玻璃主题作为全站显示风格。</p>
+            <div class="account-pill">当前状态：已默认启用</div>
             <div class="settings-actions">
-              <button type="button" class="ghost-button" data-liquid-glass-enable disabled>启用液态玻璃测试风格</button>
-              <button type="button" class="ghost-button" data-liquid-glass-disable disabled>恢复默认风格</button>
-              <button type="button" class="ghost-button" data-liquid-glass-revoke disabled>取消测试资格</button>
+              <a class="ghost-link-button" href="/index.html">查看当前全站效果</a>
             </div>
           </article>
         </div>

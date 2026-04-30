@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 趣味预览</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'liquid';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="preview-lock-banner">
+        <p class="panel-label">未登录预览</p>
+        <h2>未登录，登录解锁所有功能</h2>
+        <p>当前页展示趣味实验室的部分玩法方向和示例结果。正式随机功能、账号资料和更多页面联动仍需登录后使用。</p>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>趣味实验室预览</h1>
+          <p class="lead">先看看这个模块里都有什么类型的整活玩法，登录后再使用完整随机工具。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 正式版1.3.2</div>
+            <div class="version-pill">模块：趣味预览</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/preview.html">返回公开预览</a>
+            <a class="ghost-link-button" href="/login.html">返回登录页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：趣味</p>
+          <p class="toolbox-summary">正式版趣味实验室已扩展到 13 项玩法。预览页先展示其中几类代表性内容和示例结果。</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">玩法 1</p>
+            <h2>幸运方块模拟</h2>
+            <div class="result-card compact-result">你开出了鞘翅和烟花，但只给你 30 秒试飞。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">玩法 2</p>
+            <h2>宝藏坐标盲盒</h2>
+            <div class="result-card compact-result">今日盲盒坐标：X 248 / Y 72 / Z -640，目标在雪原村庄后山。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">玩法 3</p>
+            <h2>建筑主题签</h2>
+            <div class="result-card compact-result">今日建筑主题：海边灯塔仓库。附加要求：入口必须藏起来。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">玩法 4</p>
+            <h2>生物群系任务书</h2>
+            <div class="result-card compact-result">前往红树林沼泽，并且带回一种当地特色方块。</div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="preview-fixed-tip" aria-label="登录提示">
+        <strong>登录后解锁完整功能</strong>
+        <p>当前只是玩法预览。登录后才能进入完整随机工具和更多账号联动功能。</p>
+        <div class="preview-fixed-actions">
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">登录解锁</a>
+          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

@@ -445,3 +445,77 @@ Server is running at http://0.0.0.0:3000 (正式版1.3.2)
 (node:23728) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:11704) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:29088) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:1232) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:36128) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:32328) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:26804) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:12520) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+D:\Projects\mctools\server.js:1671
+    if ((staticPath === '/developer.html' || staticPath === '/developer.js') && !developer) {
+                                                                                 ^
+
+ReferenceError: developer is not defined
+    at Server.<anonymous> (D:\Projects\mctools\server.js:1671:82)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17)
+
+Node.js v24.14.1
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:25460) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:35444) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000 (正式版1.3.2)

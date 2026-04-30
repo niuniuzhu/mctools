@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 下载中心预览</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'liquid';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="preview-lock-banner">
+        <p class="panel-label">未登录预览</p>
+        <h2>未登录，登录解锁所有功能</h2>
+        <p>当前页展示下载中心的公开资源方向与版本说明。实际下载、账号资格和更多资源权限仍需要登录后使用。</p>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>下载中心预览</h1>
+          <p class="lead">先查看当前资源方向、版本分支和使用场景，再决定是否登录进入正式下载中心。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 正式版1.3.2</div>
+            <div class="version-pill">模块：下载中心预览</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/preview.html">返回公开预览</a>
+            <a class="ghost-link-button" href="/login.html">返回登录页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">公开方向</p>
+          <p class="toolbox-summary">当前可公开浏览的内容包括光影包分支、基岩版与 Java 版区分、README 说明和发布套件方向。</p>
+          <p class="member-state">账号状态：未登录</p>
+          <p class="vip-state">登录后可解锁：正式下载入口、更多账号联动状态与完整资源页</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="guide-grid">
+          <article class="guide-card">
+            <p class="panel-label">资源 1</p>
+            <h2>Midlight Realism Bedrock</h2>
+            <p>面向基岩版的轻量现实风资源方向，适合只想快速替换材质风格的玩家。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">资源 2</p>
+            <h2>Midlight Realism Ultra</h2>
+            <p>更强调画面层次与氛围的版本，用于更完整的视觉改造体验。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">资源 3</p>
+            <h2>Java / Bedrock 双分支</h2>
+            <p>下载中心会按照不同平台给出分支说明，避免装包时走错版本。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">资源 4</p>
+            <h2>Release Kit</h2>
+            <p>包含发布模板、导入说明和清单文件方向，适合后续整理资源发布流程。</p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="preview-fixed-tip" aria-label="登录提示">
+        <strong>登录后解锁完整功能</strong>
+        <p>当前仅展示下载中心的公开说明。实际下载入口、权限状态和更多资源内容仍在正式页中提供。</p>
+        <div class="preview-fixed-actions">
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">登录解锁</a>
+          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>

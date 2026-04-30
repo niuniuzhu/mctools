@@ -1547,7 +1547,8 @@ const server = http.createServer((request, response) => {
   }
 
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
-  const isPublicLoginDependency = pathname.startsWith('/assets/');
+  const isPublicPreviewPage = pathname === '/preview.html' || /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);
+  const isPublicLoginDependency = pathname.startsWith('/assets/') || pathname === '/styles.css';
 
   if (request.method === 'POST' && pathname === '/api/register') {
     handleRegister(request, response);
@@ -1652,7 +1653,7 @@ const server = http.createServer((request, response) => {
   const staticPath = pathname === '/' ? '/index.html' : pathname;
   const publicFilePath = resolvePublicFilePath(staticPath);
 
-  if (publicFilePath && !isLoginAsset && !isPublicLoginDependency) {
+  if (publicFilePath && !isLoginAsset && !isPublicPreviewPage && !isPublicLoginDependency) {
     if (!session) {
       redirectToLogin(response);
       return;
@@ -1665,11 +1666,6 @@ const server = http.createServer((request, response) => {
         redirectToIndex(response);
         return;
       }
-    }
-
-    if ((staticPath === '/developer.html' || staticPath === '/developer.js') && !developer) {
-      redirectToIndex(response);
-      return;
     }
 
     serveStatic(staticPath, response);
@@ -1697,7 +1693,7 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (isLoginAsset || isPublicLoginDependency) {
+  if (isLoginAsset || isPublicPreviewPage || isPublicLoginDependency) {
     serveStatic(pathname, response);
     return;
   }

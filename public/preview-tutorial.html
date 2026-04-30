@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 教程预览</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'liquid';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="preview-lock-banner">
+        <p class="panel-label">未登录预览</p>
+        <h2>未登录，登录解锁所有功能</h2>
+        <p>当前页展示教程模块的公开概要。更完整的阶段整理、后续补充和账号相关功能仍在正式界面中开放。</p>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>通关教程预览</h1>
+          <p class="lead">以只读方式查看从开荒到末地的大致推进路线，便于未登录时先快速了解内容。</p>
+          <div class="meta-row">
+            <div class="version-pill">当前版本 正式版1.3.2</div>
+            <div class="version-pill">模块：教程预览</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/preview.html">返回公开预览</a>
+            <a class="ghost-link-button" href="/login.html">返回登录页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">预览说明</p>
+          <p class="toolbox-summary">本页保留四个核心阶段的简要目标，适合先浏览整体结构。登录后再进入正式教程页查看更完整内容。</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="guide-grid">
+          <article class="guide-card">
+            <p class="panel-label">阶段 1</p>
+            <h2>开局稳住资源</h2>
+            <p>优先木材、食物、床和铁装，保证第一晚和第一次下矿的生存稳定。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 2</p>
+            <h2>进入下界</h2>
+            <p>准备金装、盾牌和远行物资，开始收集烈焰棒与末影珍珠相关材料。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 3</p>
+            <h2>定位要塞</h2>
+            <p>合成末影之眼并向要塞推进，途中补足附魔、药水和远程输出思路。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">阶段 4</p>
+            <h2>进入末地与收尾</h2>
+            <p>优先处理末地水晶和高塔威胁，再集中解决末影龙本体。</p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="preview-fixed-tip" aria-label="登录提示">
+        <strong>登录后解锁完整功能</strong>
+        <p>预览页只保留阶段概览。登录后再进入正式教程页查看更完整的模块内容和后续扩展。</p>
+        <div class="preview-fixed-actions">
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">登录解锁</a>
+          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+        </div>
+      </aside>
+    </main>
+  </body>
+</html>
