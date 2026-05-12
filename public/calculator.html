@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 计算器</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .calculator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+      }
+
+      .calculator-header h1 {
+        margin: 0 0 10px;
+        font-size: 2rem;
+      }
+
+      .calculator-header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .calculator-topbar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .calculator-topbar a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .calculator-topbar a:hover {
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .calculator-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 560px) minmax(260px, 1fr);
+        gap: 24px;
+        align-items: start;
+      }
+
+      .calculator-panel,
+      .calculator-side {
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 24px;
+      }
+
+      .calculator-display {
+        margin-bottom: 18px;
+      }
+
+      .calculator-expression {
+        min-height: 32px;
+        font-size: 1rem;
+        color: var(--muted);
+        word-break: break-all;
+        text-align: right;
+      }
+
+      .calculator-result {
+        min-height: 56px;
+        font-size: 2.2rem;
+        font-weight: 700;
+        text-align: right;
+        color: var(--text);
+        word-break: break-all;
+      }
+
+      .calculator-error {
+        min-height: 24px;
+        margin-top: 8px;
+        color: #ef4444;
+        text-align: right;
+        font-size: 0.9rem;
+      }
+
+      .calculator-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .calc-btn {
+        min-height: 58px;
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(96, 165, 250, 0.08);
+        color: var(--text);
+        font-size: 1.08rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .calc-btn:hover {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.16);
+        transform: translateY(-2px);
+      }
+
+      .calc-btn.operator {
+        color: var(--accent);
+      }
+
+      .calc-btn.equal {
+        background: var(--accent);
+        color: #081225;
+      }
+
+      .calc-btn.equal:hover {
+        background: var(--accent-strong);
+      }
+
+      .calc-btn.danger {
+        color: #ef4444;
+      }
+
+      .calc-btn.zero {
+        grid-column: span 2;
+      }
+
+      .calculator-side h2 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 1.2rem;
+      }
+
+      .calculator-side ul {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--muted);
+        line-height: 1.9;
+      }
+
+      .calculator-shortcut {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 8px;
+        background: rgba(96, 165, 250, 0.08);
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.8;
+      }
+
+      .calculator-shortcut strong {
+        color: var(--text);
+      }
+
+      @media (max-width: 900px) {
+        .calculator-shell {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="calculator-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="calculator-header">
+        <div>
+          <h1>计算器 🧮</h1>
+          <p>支持基础四则运算、括号、小数、百分比和键盘输入。</p>
+        </div>
+      </section>
+
+      <section class="calculator-shell">
+        <div class="calculator-panel">
+          <div class="calculator-display">
+            <div class="calculator-expression" data-expression>0</div>
+            <div class="calculator-result" data-result>0</div>
+            <div class="calculator-error" data-error></div>
+          </div>
+
+          <div class="calculator-grid">
+            <button type="button" class="calc-btn danger" data-action="clear">AC</button>
+            <button type="button" class="calc-btn danger" data-action="backspace">⌫</button>
+            <button type="button" class="calc-btn operator" data-value="%">%</button>
+            <button type="button" class="calc-btn operator" data-value="/">÷</button>
+
+            <button type="button" class="calc-btn" data-value="7">7</button>
+            <button type="button" class="calc-btn" data-value="8">8</button>
+            <button type="button" class="calc-btn" data-value="9">9</button>
+            <button type="button" class="calc-btn operator" data-value="*">×</button>
+
+            <button type="button" class="calc-btn" data-value="4">4</button>
+            <button type="button" class="calc-btn" data-value="5">5</button>
+            <button type="button" class="calc-btn" data-value="6">6</button>
+            <button type="button" class="calc-btn operator" data-value="-">−</button>
+
+            <button type="button" class="calc-btn" data-value="1">1</button>
+            <button type="button" class="calc-btn" data-value="2">2</button>
+            <button type="button" class="calc-btn" data-value="3">3</button>
+            <button type="button" class="calc-btn operator" data-value="+">+</button>
+
+            <button type="button" class="calc-btn operator" data-value="(">(</button>
+            <button type="button" class="calc-btn operator" data-value=")">)</button>
+            <button type="button" class="calc-btn zero" data-value="0">0</button>
+            <button type="button" class="calc-btn" data-value=".">.</button>
+
+            <button type="button" class="calc-btn equal" style="grid-column: span 4;" data-action="calculate">=</button>
+          </div>
+        </div>
+
+        <aside class="calculator-side">
+          <h2>当前支持</h2>
+          <ul>
+            <li>加减乘除与括号运算</li>
+            <li>百分比，例如 200×15%</li>
+            <li>小数输入与结果实时显示</li>
+            <li>键盘输入：数字、运算符、Enter、Backspace、Esc</li>
+          </ul>
+          <div class="calculator-shortcut">
+            <strong>快捷键：</strong><br />
+            Enter 计算，Backspace 删除一位，Esc 一键清空。
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const expressionEl = document.querySelector('[data-expression]');
+        const resultEl = document.querySelector('[data-result]');
+        const errorEl = document.querySelector('[data-error]');
+        let expression = '';
+
+        function normalizeExpression(raw) {
+          return raw.replace(/×/g, '*').replace(/÷/g, '/');
+        }
+
+        function formatExpression(raw) {
+          return raw || '0';
+        }
+
+        function safeEvaluate(raw) {
+          const normalized = normalizeExpression(raw).replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+          if (!/^[\d+\-*/().\s]+$/.test(normalized)) {
+            throw new Error('仅支持数字和基础运算符');
+          }
+          const value = Function('return (' + normalized + ')')();
+          if (!Number.isFinite(value)) {
+            throw new Error('结果无效');
+          }
+          return value;
+        }
+
+        function updateDisplay(preview = true) {
+          expressionEl.textContent = formatExpression(expression);
+          errorEl.textContent = '';
+
+          if (!expression) {
+            resultEl.textContent = '0';
+            return;
+          }
+
+          if (!preview) {
+            return;
+          }
+
+          try {
+            const result = safeEvaluate(expression);
+            resultEl.textContent = String(result);
+          } catch {
+            resultEl.textContent = '...';
+          }
+        }
+
+        function appendValue(value) {
+          expression += value;
+          updateDisplay(true);
+        }
+
+        function clearAll() {
+          expression = '';
+          errorEl.textContent = '';
+          updateDisplay(true);
+        }
+
+        function backspace() {
+          expression = expression.slice(0, -1);
+          updateDisplay(true);
+        }
+
+        function calculate() {
+          if (!expression) {
+            return;
+          }
+          try {
+            const result = safeEvaluate(expression);
+            expression = String(result);
+            resultEl.textContent = expression;
+            errorEl.textContent = '';
+            expressionEl.textContent = formatExpression(expression);
+          } catch (error) {
+            errorEl.textContent = error.message || '表达式有误';
+          }
+        }
+
+        document.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-value], [data-action]');
+          if (!button) {
+            return;
+          }
+
+          const value = button.getAttribute('data-value');
+          const action = button.getAttribute('data-action');
+
+          if (value) {
+            appendValue(value);
+            return;
+          }
+
+          if (action === 'clear') {
+            clearAll();
+          } else if (action === 'backspace') {
+            backspace();
+          } else if (action === 'calculate') {
+            calculate();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (/^[0-9.+\-*/()%]$/.test(event.key)) {
+            event.preventDefault();
+            appendValue(event.key);
+            return;
+          }
+
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            calculate();
+            return;
+          }
+
+          if (event.key === 'Backspace') {
+            event.preventDefault();
+            backspace();
+            return;
+          }
+
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            clearAll();
+          }
+        });
+
+        updateDisplay(true);
+      })();
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 计算器</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .calculator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+      }
+
+      .calculator-header h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .calculator-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+        gap: 24px;
+      }
+
+      .calculator-panel,
+      .calculator-tips {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 24px;
+      }
+
+      .display-label {
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+
+      .calculator-expression,
+      .calculator-result {
+        width: 100%;
+        border: 2px solid var(--panel-border);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.14);
+        color: var(--text);
+        padding: 14px 16px;
+        font-family: "Segoe UI Mono", Consolas, monospace;
+      }
+
+      .calculator-expression {
+        min-height: 64px;
+        resize: vertical;
+        margin-bottom: 16px;
+        font-size: 1rem;
+      }
+
+      .calculator-result {
+        min-height: 74px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 18px;
+        word-break: break-all;
+      }
+
+      .calculator-actions {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .calc-btn {
+        min-height: 58px;
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .calc-btn:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.16);
+      }
+
+      .calc-btn.operator {
+        color: var(--accent);
+      }
+
+      .calc-btn.primary {
+        background: var(--accent);
+        color: #081225;
+        border-color: var(--accent);
+      }
+
+      .calc-btn.danger {
+        color: #ef4444;
+      }
+
+      .calc-btn.wide {
+        grid-column: span 2;
+      }
+
+      .quick-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .quick-chip {
+        border-radius: 999px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 8px 14px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+
+      .calculator-tips h2 {
+        margin-top: 0;
+      }
+
+      .calculator-tips ul {
+        margin: 0;
+        padding-left: 20px;
+        color: var(--muted);
+        line-height: 1.9;
+      }
+
+      .calculator-status {
+        margin-top: 18px;
+        color: var(--muted);
+        min-height: 24px;
+      }
+
+      @media (max-width: 860px) {
+        .calculator-shell {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar-nav" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;">
+        <a href="/niuniu-utility.html" style="color:var(--accent);text-decoration:none;padding:8px 16px;border-radius:4px;">← 返回实用工具箱</a>
+        <a href="/settings.html" style="color:var(--accent);text-decoration:none;padding:8px 16px;border-radius:4px;">设置</a>
+      </div>
+
+      <section class="calculator-header">
+        <div>
+          <h1>计算器 🧮</h1>
+          <p style="margin:8px 0 0;color:var(--muted);">支持基础四则运算、括号、小数和百分比表达式。</p>
+        </div>
+      </section>
+
+      <section class="calculator-shell">
+        <div class="calculator-panel">
+          <div class="display-label">输入表达式</div>
+          <textarea class="calculator-expression" data-calc-expression placeholder="例如：(12.5+7.5)*2-10%"></textarea>
+          <div class="display-label">计算结果</div>
+          <div class="calculator-result" data-calc-result>0</div>
+
+          <div class="quick-row">
+            <button type="button" class="quick-chip" data-calc-template="(18+24)/2">平均值</button>
+            <button type="button" class="quick-chip" data-calc-template="199*0.88">折扣价</button>
+            <button type="button" class="quick-chip" data-calc-template="5600*0.035">利息</button>
+            <button type="button" class="quick-chip" data-calc-template="128/3">快速除法</button>
+          </div>
+
+          <div class="calculator-actions">
+            <button type="button" class="calc-btn danger" data-calc-action="clear">AC</button>
+            <button type="button" class="calc-btn danger" data-calc-action="backspace">DEL</button>
+            <button type="button" class="calc-btn operator" data-calc-value="(">(</button>
+            <button type="button" class="calc-btn operator" data-calc-value=")">)</button>
+
+            <button type="button" class="calc-btn" data-calc-value="7">7</button>
+            <button type="button" class="calc-btn" data-calc-value="8">8</button>
+            <button type="button" class="calc-btn" data-calc-value="9">9</button>
+            <button type="button" class="calc-btn operator" data-calc-value="/">÷</button>
+
+            <button type="button" class="calc-btn" data-calc-value="4">4</button>
+            <button type="button" class="calc-btn" data-calc-value="5">5</button>
+            <button type="button" class="calc-btn" data-calc-value="6">6</button>
+            <button type="button" class="calc-btn operator" data-calc-value="*">×</button>
+
+            <button type="button" class="calc-btn" data-calc-value="1">1</button>
+            <button type="button" class="calc-btn" data-calc-value="2">2</button>
+            <button type="button" class="calc-btn" data-calc-value="3">3</button>
+            <button type="button" class="calc-btn operator" data-calc-value="-">−</button>
+
+            <button type="button" class="calc-btn wide" data-calc-value="0">0</button>
+            <button type="button" class="calc-btn" data-calc-value=".">.</button>
+            <button type="button" class="calc-btn operator" data-calc-value="+">+</button>
+
+            <button type="button" class="calc-btn operator" data-calc-value="%">%</button>
+            <button type="button" class="calc-btn wide primary" data-calc-action="equals">=</button>
+            <button type="button" class="calc-btn operator" data-calc-action="copy">复制</button>
+          </div>
+
+          <div class="calculator-status" data-calc-status>可直接输入表达式，按 Enter 或 = 计算。</div>
+        </div>
+
+        <aside class="calculator-tips">
+          <h2>使用说明</h2>
+          <ul>
+            <li>支持输入：数字、加减乘除、小数点、括号、百分号。</li>
+            <li>百分号会按常见习惯转换为除以 100，例如 10% 等于 0.1。</li>
+            <li>可直接键盘输入，也可点击按钮补全表达式。</li>
+            <li>点击“复制”可以把当前结果放到剪贴板。</li>
+            <li>后续可继续扩展单位换算、进制换算和科学函数。</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      const expressionInput = document.querySelector('[data-calc-expression]');
+      const resultView = document.querySelector('[data-calc-result]');
+      const statusView = document.querySelector('[data-calc-status]');
+
+      function normalizeExpression(source) {
+        return source.replace(/\s+/g, '').replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+      }
+
+      function isSafeExpression(source) {
+        return /^[0-9+\-*/().%\s]+$/.test(source);
+      }
+
+      function evaluateExpression(rawExpression) {
+        if (!rawExpression.trim()) {
+          return '0';
+        }
+
+        if (!isSafeExpression(rawExpression)) {
+          throw new Error('只支持数字和基础运算符');
+        }
+
+        const normalized = normalizeExpression(rawExpression);
+        const result = Function('return (' + normalized + ')')();
+
+        if (!Number.isFinite(result)) {
+          throw new Error('结果不可用');
+        }
+
+        return Number(result.toFixed(10)).toString();
+      }
+
+      function updateResult() {
+        try {
+          const value = evaluateExpression(expressionInput.value);
+          resultView.textContent = value;
+          statusView.textContent = '计算成功';
+        } catch (error) {
+          resultView.textContent = '...';
+          statusView.textContent = error.message;
+        }
+      }
+
+      function appendValue(value) {
+        expressionInput.value += value;
+        expressionInput.focus();
+        updateResult();
+      }
+
+      document.querySelectorAll('[data-calc-value]').forEach((button) => {
+        button.addEventListener('click', () => appendValue(button.getAttribute('data-calc-value') || ''));
+      });
+
+      document.querySelectorAll('[data-calc-template]').forEach((button) => {
+        button.addEventListener('click', () => {
+          expressionInput.value = button.getAttribute('data-calc-template') || '';
+          updateResult();
+          expressionInput.focus();
+        });
+      });
+
+      document.querySelectorAll('[data-calc-action]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          const action = button.getAttribute('data-calc-action');
+
+          if (action === 'clear') {
+            expressionInput.value = '';
+            resultView.textContent = '0';
+            statusView.textContent = '已清空';
+            return;
+          }
+
+          if (action === 'backspace') {
+            expressionInput.value = expressionInput.value.slice(0, -1);
+            updateResult();
+            expressionInput.focus();
+            return;
+          }
+
+          if (action === 'equals') {
+            updateResult();
+            expressionInput.focus();
+            return;
+          }
+
+          if (action === 'copy') {
+            try {
+              await navigator.clipboard.writeText(resultView.textContent || '0');
+              statusView.textContent = '结果已复制';
+            } catch {
+              statusView.textContent = '复制失败，请手动复制';
+            }
+          }
+        });
+      });
+
+      expressionInput.addEventListener('input', updateResult);
+      expressionInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          updateResult();
+        }
+      });
+
+      updateResult();
+    </script>
+  </body>
+</html>
