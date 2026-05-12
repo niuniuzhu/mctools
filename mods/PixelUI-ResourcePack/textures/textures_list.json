@@ -1,0 +1,51 @@
+{
+  "resource_pack_textures": {
+    "textures": {
+      "ui/pixel_hotbar_background": {
+        "textures": [
+          "textures/ui/pixel_hotbar_background"
+        ]
+      },
+      "ui/pixel_hotbar_selection": {
+        "textures": [
+          "textures/ui/pixel_hotbar_selection"
+        ]
+      },
+      "ui/pixel_experience_bar": {
+        "textures": [
+          "textures/ui/pixel_experience_bar"
+        ]
+      },
+      "ui/pixel_health_background": {
+        "textures": [
+          "textures/ui/pixel_health_background"
+        ]
+      },
+      "ui/pixel_health_bar": {
+        "textures": [
+          "textures/ui/pixel_health_bar"
+        ]
+      },
+      "ui/pixel_hunger_background": {
+        "textures": [
+          "textures/ui/pixel_hunger_background"
+        ]
+      },
+      "ui/pixel_hunger_bar": {
+        "textures": [
+          "textures/ui/pixel_hunger_bar"
+        ]
+      },
+      "ui/pixel_background": {
+        "textures": [
+          "textures/ui/pixel_background"
+        ]
+      },
+      "ui/pixel_overlay": {
+        "textures": [
+          "textures/ui/pixel_overlay"
+        ]
+      }
+    }
+  }
+}

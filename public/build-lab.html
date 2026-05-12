@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -6,7 +6,7 @@
     <title>我的世界工具箱 - 建筑灵感库</title>
     <script>
       try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
         const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;

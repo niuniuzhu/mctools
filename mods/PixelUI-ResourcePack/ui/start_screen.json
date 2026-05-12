@@ -1,0 +1,91 @@
+{
+  "namespace": "ui",
+  "start_screen": {
+    "type": "screen",
+    "screen_size": ["100%", "100%"],
+    "controls": [
+      {
+        "main_panel": {
+          "type": "panel",
+          "size": ["100%", "100%"],
+          "controls": [
+            {
+              "background_panel": {
+                "type": "image",
+                "texture": "ui/pixel_background",
+                "size": ["100%", "100%"],
+                "offset": [0, 0]
+              }
+            },
+            {
+              "title_panel": {
+                "type": "panel",
+                "size": ["100%", "80px"],
+                "offset": [0, "20%"],
+                "controls": [
+                  {
+                    "title_text": {
+                      "type": "label",
+                      "text": "奶茶像素世界",
+                      "font_size": "extra_large",
+                      "color": "#F7E8D0",
+                      "shadow": true,
+                      "anchor_from": "center",
+                      "anchor_to": "center"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "button_panel": {
+                "type": "panel",
+                "size": ["200px", "200px"],
+                "offset": ["50% - 100px", "50% - 50px"],
+                "controls": [
+                  {
+                    "play_button": {
+                      "type": "button",
+                      "size": ["100%", "40px"],
+                      "offset": [0, 0],
+                      "text": "开始游戏",
+                      "font_size": "large",
+                      "button_mappings": [
+                        {
+                          "from_button_id": "button.menu_play"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "settings_button": {
+                      "type": "button",
+                      "size": ["100%", "40px"],
+                      "offset": [0, "50px"],
+                      "text": "设置",
+                      "font_size": "large"
+                    }
+                  },
+                  {
+                    "quit_button": {
+                      "type": "button",
+                      "size": ["100%", "40px"],
+                      "offset": [0, "100px"],
+                      "text": "退出游戏",
+                      "font_size": "large",
+                      "button_mappings": [
+                        {
+                          "from_button_id": "button.menu_quit"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

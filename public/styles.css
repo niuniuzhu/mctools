@@ -96,6 +96,18 @@ html[data-ui="liquid"] {
   --shadow: 0 28px 80px rgba(4, 12, 24, 0.42);
 }
 
+html[data-ui="milktea"] {
+  --bg-1: #f2e8d5;
+  --bg-2: #dfc9a8;
+  --panel: rgba(250, 238, 218, 0.58);
+  --panel-border: rgba(180, 135, 85, 0.30);
+  --text: #3a2518;
+  --muted: #7d5c3c;
+  --accent: #c07840;
+  --accent-strong: #8f5220;
+  --shadow: 0 6px 28px rgba(140, 90, 40, 0.16), 0 2px 0 rgba(180, 135, 85, 0.12);
+}
+
 .profile-card {
   display: flex;
   align-items: center;
@@ -266,6 +278,27 @@ h1 {
   color: var(--muted);
   font-size: 1.05rem;
   line-height: 1.75;
+}
+
+.version-warning-banner {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(248, 113, 113, 0.34);
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.34), rgba(249, 115, 22, 0.18));
+  box-shadow: 0 14px 32px rgba(127, 29, 29, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.version-warning-banner strong {
+  color: #fecaca;
+  font-size: 1rem;
+}
+
+.version-warning-banner span {
+  color: #ffe4d6;
+  line-height: 1.65;
 }
 
 .version-pill {
@@ -3257,3 +3290,202 @@ body.night-mode .captcha-preview {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── 奶茶主题 (milktea) ──────────────────────────────────────── */
+
+html[data-ui="milktea"] body {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255, 218, 165, 0.28), transparent 30%),
+    radial-gradient(circle at 80% 78%, rgba(220, 180, 120, 0.20), transparent 28%),
+    linear-gradient(160deg, #f2e8d5, #dfc9a8);
+  color: #3a2518;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+}
+
+html[data-ui="milktea"] body::before {
+  background-image:
+    linear-gradient(rgba(180, 135, 85, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 135, 85, 0.09) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55), transparent 80%);
+}
+
+html[data-ui="milktea"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 242, 214, 0.22), transparent 22%, transparent 80%, rgba(180, 135, 85, 0.10));
+}
+
+html[data-ui="milktea"] .hero-copy,
+html[data-ui="milktea"] .hero-card,
+html[data-ui="milktea"] .tool-card,
+html[data-ui="milktea"] .content-panel,
+html[data-ui="milktea"] .command-card,
+html[data-ui="milktea"] .generator-panel,
+html[data-ui="milktea"] .guide-card,
+html[data-ui="milktea"] .recipe-card,
+html[data-ui="milktea"] .coordinate-card,
+html[data-ui="milktea"] .result-card,
+html[data-ui="milktea"] .profile-card,
+html[data-ui="milktea"] .history-panel,
+html[data-ui="milktea"] .template-panel,
+html[data-ui="milktea"] .favorites-panel,
+html[data-ui="milktea"] .ai-panel,
+html[data-ui="milktea"] .executor-panel,
+html[data-ui="milktea"] .history-item,
+html[data-ui="milktea"] .template-item,
+html[data-ui="milktea"] .favorite-item,
+html[data-ui="milktea"] .saved-point-item,
+html[data-ui="milktea"] .utility-card {
+  border-radius: 20px;
+  border: 1.5px solid rgba(180, 135, 85, 0.30);
+  background: rgba(252, 243, 228, 0.56);
+  box-shadow: 0 6px 24px rgba(140, 90, 40, 0.12);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+
+html[data-ui="milktea"] .hero-card,
+html[data-ui="milktea"] .tool-card-active {
+  background: rgba(248, 236, 212, 0.62);
+}
+
+html[data-ui="milktea"] h1,
+html[data-ui="milktea"] h2,
+html[data-ui="milktea"] h3,
+html[data-ui="milktea"] strong {
+  color: #3a2518;
+}
+
+html[data-ui="milktea"] h1 {
+  text-shadow: 1px 1px 0 rgba(255, 240, 210, 0.9);
+}
+
+html[data-ui="milktea"] .lead,
+html[data-ui="milktea"] .tool-card-note,
+html[data-ui="milktea"] .toolbox-summary,
+html[data-ui="milktea"] .hero-card p,
+html[data-ui="milktea"] .hero-card ul,
+html[data-ui="milktea"] .guide-card p:last-child,
+html[data-ui="milktea"] .result-card,
+html[data-ui="milktea"] .avatar-status,
+html[data-ui="milktea"] .account-pill,
+html[data-ui="milktea"] .member-state,
+html[data-ui="milktea"] .vip-state,
+html[data-ui="milktea"] .profile-meta p,
+html[data-ui="milktea"] label {
+  color: #7d5c3c;
+}
+
+html[data-ui="milktea"] .version-pill,
+html[data-ui="milktea"] .account-pill,
+html[data-ui="milktea"] .command-vip-tag,
+html[data-ui="milktea"] .ai-lock {
+  border-radius: 10px;
+  border: 1.5px solid rgba(180, 135, 85, 0.35);
+  background: rgba(220, 185, 140, 0.20);
+  color: #5a3820;
+}
+
+html[data-ui="milktea"] .ghost-button,
+html[data-ui="milktea"] .upload-button,
+html[data-ui="milktea"] .ghost-link-button,
+html[data-ui="milktea"] .copy-btn.secondary,
+html[data-ui="milktea"] .history-delete,
+html[data-ui="milktea"] .text-button,
+html[data-ui="milktea"] .tab-button {
+  border-radius: 12px;
+  border: 1.5px solid rgba(180, 135, 85, 0.40);
+  background: rgba(220, 185, 140, 0.14);
+  color: #4a2e14;
+  box-shadow: none;
+}
+
+html[data-ui="milktea"] .ghost-button:hover,
+html[data-ui="milktea"] .ghost-link-button:hover {
+  background: rgba(220, 185, 140, 0.26);
+}
+
+html[data-ui="milktea"] .tool-enter-button,
+html[data-ui="milktea"] .copy-btn,
+html[data-ui="milktea"] .primary-button,
+html[data-ui="milktea"] .tab-button.active {
+  border-radius: 12px;
+  border: 1.5px solid rgba(120, 65, 18, 0.55);
+  background: linear-gradient(135deg, #c07840, #8f5220);
+  color: #fff5eb;
+  box-shadow: 0 3px 10px rgba(140, 80, 20, 0.28);
+}
+
+html[data-ui="milktea"] input,
+html[data-ui="milktea"] select,
+html[data-ui="milktea"] textarea {
+  border-radius: 12px;
+  border: 1.5px solid rgba(180, 135, 85, 0.40);
+  background: rgba(252, 244, 228, 0.42);
+  color: #3a2518;
+}
+
+html[data-ui="milktea"] .badge,
+html[data-ui="milktea"] .panel-label,
+html[data-ui="milktea"] .hero-card-label {
+  color: #8f5220;
+  letter-spacing: 0.05em;
+}
+
+html[data-ui="milktea"] .avatar-image,
+html[data-ui="milktea"] .avatar-fallback {
+  border-color: rgba(180, 135, 85, 0.40);
+}
+
+html[data-ui="milktea"] .avatar-fallback {
+  background: rgba(220, 185, 140, 0.40);
+}
+
+/* 主题切换按钮组 */
+.ui-theme-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.ui-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.ui-theme-btn:hover {
+  opacity: 0.82;
+  transform: translateY(-1px);
+}
+
+.ui-theme-btn.active {
+  outline: 2.5px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ui-theme-btn-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ui-theme-btn-dot--normal  { background: linear-gradient(135deg, #9fd7ff, #6faa43); }
+.ui-theme-btn-dot--milktea { background: linear-gradient(135deg, #f2e8d5, #c07840); }
+.ui-theme-btn-dot--classic { background: linear-gradient(135deg, #556b45, #d8c06b); }
+.ui-theme-btn-dot--end     { background: linear-gradient(135deg, #2b1243, #67e8f9); }
+.ui-theme-btn-dot--liquid  { background: linear-gradient(135deg, #173657, #b6f0ff); }

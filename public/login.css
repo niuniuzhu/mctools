@@ -8,6 +8,16 @@
   --accent-strong: #38bdf8;
 }
 
+html[data-ui="normal"] {
+  --bg-1: #d9ecff;
+  --bg-2: #f5fbff;
+  --panel: rgba(255, 255, 255, 0.82);
+  --text: #10233a;
+  --muted: #3a5878;
+  --accent: #0ea5e9;
+  --accent-strong: #0284c7;
+}
+
 html[data-ui="ore"] {
   --bg-1: #12171c;
   --bg-2: #202a33;
@@ -211,6 +221,79 @@ h1 {
   line-height: 1.75;
 }
 
+.dev-test-banner {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.42);
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.38), rgba(14, 116, 144, 0.24));
+  box-shadow: 0 14px 32px rgba(8, 47, 73, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dev-test-banner strong {
+  color: #bae6fd;
+  font-size: 1rem;
+}
+
+.dev-test-banner span {
+  color: #e0f2fe;
+  line-height: 1.65;
+}
+
+.dev-test-banner a {
+  color: #f0f9ff;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 2px;
+}
+
+.dev-test-banner a:hover {
+  color: #ffffff;
+}
+
+.deprecated-host-banner {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(251, 191, 36, 0.40);
+  background: linear-gradient(135deg, rgba(120, 90, 0, 0.38), rgba(251, 191, 36, 0.14));
+  box-shadow: 0 14px 32px rgba(120, 90, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.deprecated-host-banner strong {
+  color: #fde68a;
+  font-size: 1rem;
+}
+
+.deprecated-host-banner span {
+  color: #fef3c7;
+  line-height: 1.65;
+}
+
+.version-warning-banner {
+  display: grid;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(248, 113, 113, 0.34);
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.34), rgba(249, 115, 22, 0.18));
+  box-shadow: 0 14px 32px rgba(127, 29, 29, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.version-warning-banner strong {
+  color: #fecaca;
+  font-size: 1rem;
+}
+
+.version-warning-banner span {
+  color: #ffe4d6;
+  line-height: 1.65;
+}
+
 .version-pill {
   display: inline-flex;
   margin: 18px 0 0;
@@ -296,6 +379,58 @@ h1 {
   line-height: 1.65;
 }
 
+.auth-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 8, 18, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.auth-loading-overlay[hidden] {
+  display: none !important;
+}
+
+.auth-loading-card {
+  width: min(420px, calc(100vw - 32px));
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(9, 16, 29, 0.94), rgba(22, 50, 79, 0.9));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+}
+
+.auth-loading-card h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.auth-loading-card p:not(.panel-label) {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.auth-loading-bar {
+  overflow: hidden;
+  margin-top: 16px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.auth-loading-bar span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+}
+
 .preview-fixed-actions {
   display: flex;
   flex-wrap: wrap;
@@ -320,6 +455,46 @@ h1 {
 .preview-fixed-link-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #07111c;
+}
+
+.preview-login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(2, 8, 18, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.preview-login-dialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(9, 16, 29, 0.96), rgba(22, 50, 79, 0.92));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+}
+
+.preview-login-dialog h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+}
+
+.preview-login-dialog p:not(.panel-label) {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.preview-login-modal[hidden] {
+  display: none !important;
+}
+
+.preview-page-grid .auth-feature-card {
+  min-height: 154px;
 }
 
 .auth-highlights {

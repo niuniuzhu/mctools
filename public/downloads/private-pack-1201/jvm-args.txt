@@ -1,0 +1,20 @@
+# Minecraft 1.20.1 私人整合包 JVM 参数（Java 17）
+# 推荐内存 6G 起步；高配可 8G。
+
+-Xms2G
+-Xmx6G
+-XX:+UseG1GC
+-XX:+ParallelRefProcEnabled
+-XX:MaxGCPauseMillis=120
+-XX:+UnlockExperimentalVMOptions
+-XX:+DisableExplicitGC
+-XX:+AlwaysPreTouch
+-XX:G1NewSizePercent=20
+-XX:G1MaxNewSizePercent=60
+-XX:G1HeapRegionSize=16M
+-XX:G1ReservePercent=20
+-XX:InitiatingHeapOccupancyPercent=15
+-XX:SurvivorRatio=32
+-XX:+PerfDisableSharedMem
+-XX:MaxTenuringThreshold=1
+-Dfile.encoding=UTF-8

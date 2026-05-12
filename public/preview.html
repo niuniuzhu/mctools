@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -6,12 +6,12 @@
     <title>我的世界工具箱 - 公开预览</title>
     <script>
       try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
-        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
-        document.documentElement.dataset.ui = 'liquid';
+        document.documentElement.dataset.ui = 'normal';
       }
     </script>
     <link rel="stylesheet" href="/login.css" />
@@ -35,7 +35,7 @@
             <p class="auth-highlight-label">账号依赖</p>
           </article>
           <article class="auth-highlight-card">
-            <p class="auth-highlight-value">18</p>
+            <p class="auth-highlight-value">20</p>
             <p class="auth-highlight-label">模块方向</p>
           </article>
           <article class="auth-highlight-card">
@@ -83,6 +83,18 @@
               <span>账号资料、会员信息与兑换状态仍保留在登录后的正式界面中。</span>
               <a class="preview-link-button" href="/login.html">登录后进入正式界面</a>
             </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Official</p>
+              <strong>官方下载入口</strong>
+              <span>可在公开预览中先看网易版与国际版官网入口结构，实际跳转仍保持官方站点。</span>
+              <a class="preview-link-button" href="/preview-page.html?page=official-downloads.html">打开官网入口镜像</a>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Launch</p>
+              <strong>启动游戏中心</strong>
+              <span>可先看启动说明和入口布局，正式环境中再尝试打开启动器或游戏。</span>
+              <a class="preview-link-button" href="/preview-page.html?page=launch-game.html">打开启动中心镜像</a>
+            </article>
           </div>
         </section>
 
@@ -115,6 +127,45 @@
               <strong>新增下载中心预览</strong>
               <span>先看资源方向与版本说明，实际下载与账号状态依旧放在正式页中。</span>
             </article>
+          </div>
+        </section>
+
+        <section class="auth-feature-board" aria-label="全部页面公开镜像">
+          <div class="auth-feature-head">
+            <div>
+              <p class="auth-feature-kicker">All Pages</p>
+              <h2>全部页面公开镜像</h2>
+            </div>
+            <p class="auth-feature-note">打开后会复制正式页结构；点击功能按钮、提交和下载时会提示先登录。</p>
+          </div>
+          <div class="auth-feature-grid preview-page-grid">
+            <article class="auth-feature-card auth-feature-card-large">
+              <p class="auth-feature-tag">Home</p>
+              <strong>首页镜像</strong>
+              <span>复制分类首页结构，支持继续跳转到其他公开镜像页面。</span>
+              <a class="preview-link-button" href="/preview-page.html?page=index.html">打开首页镜像</a>
+            </article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Commands</p><strong>指令工作台</strong><span>查看正式页布局，按钮点击时会提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=commands.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Tutorial</p><strong>通关教程</strong><span>保留页面结构与导航，功能性操作改成登录提示。</span><a class="preview-link-button" href="/preview-page.html?page=tutorial.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Coords</p><strong>坐标工具</strong><span>未登录也能先看页面布局和说明区域。</span><a class="preview-link-button" href="/preview-page.html?page=coordinates.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Auto</p><strong>自动化教程</strong><span>复制自动化页面结构，交互按钮统一拦登录。</span><a class="preview-link-button" href="/preview-page.html?page=automation-guide.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Fun</p><strong>趣味实验室</strong><span>随机玩法结构完整保留，但不会在预览页执行。</span><a class="preview-link-button" href="/preview-page.html?page=fun.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Cloud</p><strong>云玩中心</strong><span>公开查看方案页面结构，操作按钮提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=cloud-play.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">FPS</p><strong>帧率测试</strong><span>镜像正式页外观，不在未登录状态跑真实测试。</span><a class="preview-link-button" href="/preview-page.html?page=fps-test.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Detect</p><strong>页面检测</strong><span>输入和按钮都会改成登录提示，先看界面结构。</span><a class="preview-link-button" href="/preview-page.html?page=page-detection.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">AI</p><strong>AI 问答</strong><span>公开镜像仅展示布局，不开放真实问答。</span><a class="preview-link-button" href="/preview-page.html?page=ai.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Recipes</p><strong>配方速查</strong><span>先看页面结构与入口布局。</span><a class="preview-link-button" href="/preview-page.html?page=recipes.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Build</p><strong>建筑实验室</strong><span>复制正式页样式和结构，按钮统一提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=build-lab.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Redstone</p><strong>红石实验室</strong><span>未登录先看布局，具体操作登录后使用。</span><a class="preview-link-button" href="/preview-page.html?page=redstone-lab.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Seed</p><strong>种子实验室</strong><span>镜像页面结构，交互不会在公开页执行。</span><a class="preview-link-button" href="/preview-page.html?page=seed-lab.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Server</p><strong>开服中心</strong><span>公开查看页面结构和说明卡片。</span><a class="preview-link-button" href="/preview-page.html?page=server-hub.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Survival</p><strong>生存看板</strong><span>保留页面视觉与布局，功能按钮会提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=survival-board.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Shader</p><strong>下载中心</strong><span>镜像正式页结构，但下载行为会被登录提示拦截。</span><a class="preview-link-button" href="/preview-page.html?page=shader-download.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Pack</p><strong>整合包中心</strong><span>公开先看内容结构，具体功能登录后可用。</span><a class="preview-link-button" href="/preview-page.html?page=pack-center.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Mods</p><strong>模组推荐库</strong><span>镜像正式页布局，未登录不执行功能操作。</span><a class="preview-link-button" href="/preview-page.html?page=mods.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Settings</p><strong>设置</strong><span>公开查看设置页结构，按钮点击时统一提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=settings.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Update</p><strong>更新日志</strong><span>复制正式更新页内容和布局。</span><a class="preview-link-button" href="/preview-page.html?page=update-log.html">打开镜像</a></article>
+            <article class="auth-feature-card"><p class="auth-feature-tag">Glass</p><strong>液态玻璃说明</strong><span>展示设计页结构与视觉说明。</span><a class="preview-link-button" href="/preview-page.html?page=ios-liquid-glass.html">打开镜像</a></article>
           </div>
         </section>
 

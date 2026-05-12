@@ -1,0 +1,580 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶的日常工具箱 - 打字练习</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .typing-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+
+      .typing-header h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .typing-controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .typing-btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: 2px solid var(--accent);
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .typing-btn:hover {
+        background: rgba(96, 165, 250, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .typing-btn.primary {
+        background: var(--accent);
+        color: #081225;
+      }
+
+      .typing-btn.primary:hover {
+        background: var(--accent-strong);
+      }
+
+      .typing-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .stat-card {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 16px;
+        text-align: center;
+      }
+
+      .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .typing-modes {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      .mode-btn {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        color: var(--text);
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+      }
+
+      .mode-btn:hover {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.1);
+      }
+
+      .mode-btn.active {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #081225;
+      }
+
+      .typing-container {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 32px;
+        margin-bottom: 32px;
+      }
+
+      .practice-text {
+        font-size: 1.3rem;
+        line-height: 1.8;
+        margin-bottom: 24px;
+        font-family: "Segoe UI Mono", monospace;
+        word-break: break-all;
+        min-height: 80px;
+      }
+
+      .practice-text .correct {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.1);
+      }
+
+      .practice-text .incorrect {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+      }
+
+      .practice-text .current {
+        background: var(--accent);
+        color: #081225;
+        animation: blink 0.6s infinite;
+      }
+
+      @keyframes blink {
+        0%, 49% {
+          opacity: 1;
+        }
+        50%, 100% {
+          opacity: 0.3;
+        }
+      }
+
+      .input-area {
+        margin-bottom: 24px;
+      }
+
+      .practice-input {
+        width: 100%;
+        min-height: 100px;
+        padding: 16px;
+        border-radius: 6px;
+        border: 2px solid var(--panel-border);
+        background: rgba(0, 0, 0, 0.2);
+        color: var(--text);
+        font-size: 1rem;
+        font-family: "Segoe UI Mono", monospace;
+        resize: vertical;
+        transition: border-color 0.3s ease;
+      }
+
+      .practice-input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      .result-section {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(0, 0, 0, 0.2);
+        padding: 24px;
+        display: none;
+      }
+
+      .result-section.show {
+        display: block;
+      }
+
+      .result-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--accent);
+      }
+
+      .result-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .result-item {
+        text-align: center;
+      }
+
+      .result-item-label {
+        font-size: 0.9rem;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .result-item-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-bottom: 12px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+        transition: width 0.3s ease;
+      }
+
+      .hint-text {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 16px;
+        line-height: 1.6;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+
+      .topbar a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+      }
+
+      .topbar a:hover {
+        color: var(--accent-strong);
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="typing-header">
+        <h1>⌨️ 打字练习</h1>
+        <div class="typing-controls">
+          <button class="typing-btn primary" id="startBtn">开始练习</button>
+          <button class="typing-btn" id="resetBtn">重置</button>
+          <button class="typing-btn" id="refreshTextBtn">换文本</button>
+        </div>
+      </section>
+
+      <section class="typing-stats">
+        <div class="stat-card">
+          <div class="stat-label">正确数</div>
+          <div class="stat-value" id="correctCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">错误数</div>
+          <div class="stat-value" id="wrongCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">速度 (WPM)</div>
+          <div class="stat-value" id="wpmValue">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">准确率</div>
+          <div class="stat-value" id="accuracyValue">100%</div>
+        </div>
+      </section>
+
+      <section style="margin-bottom: 32px;">
+        <div class="hint-text">
+          💡 选择练习模式：
+        </div>
+        <div class="typing-modes">
+          <button class="mode-btn active" data-mode="default">默认模式</button>
+          <button class="mode-btn" data-mode="english">纯英文</button>
+          <button class="mode-btn" data-mode="chinese">纯中文</button>
+          <button class="mode-btn" data-mode="mixed">中英混合</button>
+          <button class="mode-btn" data-mode="code">代码片段</button>
+        </div>
+      </section>
+
+      <section class="typing-container">
+        <div class="hint-text">
+          📝 将下面的文本输入到下方的输入框中：
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+        <div class="practice-text" id="practiceText">
+          点击"开始练习"按钮开始打字练习。注意观察下方输入框中的提示信息。
+        </div>
+
+        <div class="input-area">
+          <textarea 
+            class="practice-input" 
+            id="practiceInput" 
+            placeholder="点击这里开始输入..." 
+            disabled
+          ></textarea>
+        </div>
+
+        <button class="typing-btn primary" id="submitBtn" style="width: 100%;" disabled>提交答案</button>
+      </section>
+
+      <section class="result-section" id="resultSection">
+        <div class="result-title">🎉 完成！</div>
+        <div class="result-grid">
+          <div class="result-item">
+            <div class="result-item-label">总字数</div>
+            <div class="result-item-value" id="totalChars">0</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">正确字数</div>
+            <div class="result-item-value" id="correctChars">0</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">错误字数</div>
+            <div class="result-item-value" id="wrongChars">0</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">用时</div>
+            <div class="result-item-value" id="timeUsed">0s</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">速度</div>
+            <div class="result-item-value" id="finalWpm">0</div>
+          </div>
+          <div class="result-item">
+            <div class="result-item-label">准确率</div>
+            <div class="result-item-value" id="finalAccuracy">0%</div>
+          </div>
+        </div>
+        <button class="typing-btn primary" id="retryBtn" style="width: 100%;">再来一次</button>
+      </section>
+    </main>
+
+    <script>
+      const practiceTexts = {
+        default: [
+          "熟能生巧，打字亦然。每日坚持练习，定能大幅提升打字速度与准确度。",
+          "The quick brown fox jumps over the lazy dog. 快速的棕色狐狸跳过懒狗。",
+          "编程是一门艺术，需要耐心、细心和创意。Code is poetry in action.",
+          "在这个数字化时代，打字能力已成为必不可少的技能。",
+          "Success is not final, failure is not fatal. 成功不是终点，失败也不是致命的。"
+        ],
+        english: [
+          "The art of programming is learning from your mistakes and moving forward.",
+          "Every day is a new opportunity to improve yourself and grow as a person.",
+          "Practice makes perfect. Keep typing and soon you will master this skill."
+        ],
+        chinese: [
+          "持之以恒的努力，终将开花结果。",
+          "世上无难事，只要肯登攀。",
+          "机遇总是留给有准备的人。"
+        ],
+        mixed: [
+          "hello世界，welcome到这个typing练习工具。",
+          "Python是一门powerful的编程语言，适合初学者学习。",
+          "Let's practice typing together并提升我们的输入速度。"
+        ],
+        code: [
+          "const result = array.map(x => x * 2).filter(x => x > 10);",
+          "function fibonacci(n) { return n <= 1 ? n : fibonacci(n-1) + fibonacci(n-2); }",
+          "const promise = new Promise((resolve, reject) => { setTimeout(() => resolve('done'), 1000); });"
+        ]
+      };
+
+      let currentMode = 'default';
+      let currentText = '';
+      let startTime = null;
+      let isStarted = false;
+      let correctCount = 0;
+      let wrongCount = 0;
+
+      const practiceText = document.getElementById('practiceText');
+      const practiceInput = document.getElementById('practiceInput');
+      const startBtn = document.getElementById('startBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const refreshTextBtn = document.getElementById('refreshTextBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      const modeButtons = document.querySelectorAll('.mode-btn');
+      const resultSection = document.getElementById('resultSection');
+      const retryBtn = document.getElementById('retryBtn');
+
+      function loadNewText() {
+        const texts = practiceTexts[currentMode] || practiceTexts.default;
+        currentText = texts[Math.floor(Math.random() * texts.length)];
+        practiceText.textContent = currentText;
+        updateDisplay();
+      }
+
+      function startPractice() {
+        isStarted = true;
+        startTime = Date.now();
+        correctCount = 0;
+        wrongCount = 0;
+        practiceInput.disabled = false;
+        practiceInput.focus();
+        practiceInput.value = '';
+        startBtn.textContent = '练习中...';
+        startBtn.disabled = true;
+        submitBtn.disabled = false;
+        resultSection.classList.remove('show');
+        updateStats();
+      }
+
+      function reset() {
+        isStarted = false;
+        startTime = null;
+        practiceInput.disabled = true;
+        practiceInput.value = '';
+        startBtn.textContent = '开始练习';
+        startBtn.disabled = false;
+        submitBtn.disabled = true;
+        correctCount = 0;
+        wrongCount = 0;
+        resultSection.classList.remove('show');
+        updateDisplay();
+        updateStats();
+      }
+
+      function updateDisplay() {
+        const input = practiceInput.value;
+        let html = '';
+        
+        for (let i = 0; i < currentText.length; i++) {
+          if (i < input.length) {
+            if (input[i] === currentText[i]) {
+              html += `<span class="correct">${currentText[i]}</span>`;
+            } else {
+              html += `<span class="incorrect">${currentText[i]}</span>`;
+            }
+          } else if (i === input.length) {
+            html += `<span class="current">${currentText[i]}</span>`;
+          } else {
+            html += currentText[i];
+          }
+        }
+        practiceText.innerHTML = html;
+
+        const progress = Math.round((input.length / currentText.length) * 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+
+        if (input.length === currentText.length && input === currentText) {
+          submitBtn.textContent = '完成！';
+        }
+      }
+
+      function updateStats() {
+        if (!isStarted) {
+          document.getElementById('correctCount').textContent = '0';
+          document.getElementById('wrongCount').textContent = '0';
+          document.getElementById('wpmValue').textContent = '0';
+          document.getElementById('accuracyValue').textContent = '100%';
+          return;
+        }
+
+        const input = practiceInput.value;
+        let correct = 0;
+        let wrong = 0;
+
+        for (let i = 0; i < input.length; i++) {
+          if (input[i] === currentText[i]) {
+            correct++;
+          } else {
+            wrong++;
+          }
+        }
+
+        const elapsed = (Date.now() - startTime) / 1000 / 60;
+        const wpm = elapsed > 0 ? Math.round(correct / elapsed / 5) : 0;
+        const accuracy = input.length > 0 ? Math.round((correct / input.length) * 100) : 100;
+
+        document.getElementById('correctCount').textContent = correct;
+        document.getElementById('wrongCount').textContent = wrong;
+        document.getElementById('wpmValue').textContent = wpm;
+        document.getElementById('accuracyValue').textContent = accuracy + '%';
+      }
+
+      function showResult() {
+        const input = practiceInput.value;
+        const elapsed = (Date.now() - startTime) / 1000;
+        let correct = 0;
+        let wrong = 0;
+
+        for (let i = 0; i < input.length; i++) {
+          if (input[i] === currentText[i]) {
+            correct++;
+          } else {
+            wrong++;
+          }
+        }
+
+        const wpm = Math.round(correct / (elapsed / 60) / 5);
+        const accuracy = input.length > 0 ? Math.round((correct / input.length) * 100) : 0;
+
+        document.getElementById('totalChars').textContent = input.length;
+        document.getElementById('correctChars').textContent = correct;
+        document.getElementById('wrongChars').textContent = wrong;
+        document.getElementById('timeUsed').textContent = Math.round(elapsed) + 's';
+        document.getElementById('finalWpm').textContent = wpm;
+        document.getElementById('finalAccuracy').textContent = accuracy + '%';
+
+        resultSection.classList.add('show');
+        isStarted = false;
+        practiceInput.disabled = true;
+        startBtn.disabled = false;
+        startBtn.textContent = '开始练习';
+      }
+
+      modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          modeButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentMode = btn.dataset.mode;
+          reset();
+          loadNewText();
+        });
+      });
+
+      startBtn.addEventListener('click', startPractice);
+      resetBtn.addEventListener('click', reset);
+      refreshTextBtn.addEventListener('click', () => {
+        reset();
+        loadNewText();
+      });
+      submitBtn.addEventListener('click', showResult);
+      retryBtn.addEventListener('click', () => {
+        reset();
+        loadNewText();
+        startPractice();
+      });
+
+      practiceInput.addEventListener('input', () => {
+        updateDisplay();
+        if (isStarted) {
+          updateStats();
+        }
+      });
+
+      // 初始化
+      loadNewText();
+    </script>
+  </body>
+</html>

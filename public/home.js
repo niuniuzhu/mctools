@@ -58,6 +58,24 @@ const dailyRecommendationModules = [
     label: '我的世界页面检测',
     href: '/page-detection.html',
     note: '适合今天需要快速判断网页内容是否真和 Minecraft 相关，或者整理资料入口。'
+  },
+  {
+    key: 'officialDownloads',
+    label: '官方下载入口',
+    href: '/official-downloads.html',
+    note: '适合今天要找网易版或国际版官网，先把下载入口和版本选择找对。'
+  },
+  {
+    key: 'closedCategories',
+    label: '查看已关闭的分类',
+    href: '/closed-categories.html',
+    note: '适合今天想看看还有哪些模块暂未开放，以及后续可能会补哪些方向。'
+  },
+  {
+    key: 'launchGame',
+    label: '启动游戏中心',
+    href: '/launch-game.html',
+    note: '适合今天想直接开 Minecraft Launcher、尝试启动基岩版，或者排查为什么打不开。'
   }
 ];
 

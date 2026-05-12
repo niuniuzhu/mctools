@@ -1,0 +1,73 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 查看已关闭的分类</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>查看已关闭的分类</h1>
+          <p class="lead">这里集中展示当前暂未开放的分类。你可以先了解方向，等后续版本再看哪些会恢复或重做。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 beta1.15.0</div>
+            <div class="version-pill">模块：已关闭分类</div>
+            <a class="ghost-link-button" href="/index.html">返回首页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前状态</p>
+          <p class="toolbox-summary">这些分类目前只是入口关闭，不代表后续一定废弃；有些会重做，有些会合并到其他新页面。</p>
+          <p>适合想看路线图、确认哪些模块暂时不要点，或者给后续版本挑优先级的人。</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">当前关闭</p>
+            <h2>暂未开放的分类</h2>
+          </div>
+          <p class="tool-card-note">已关闭分类从首页主卡片区收拢到这里，避免首页信息过密。</p>
+        </div>
+        <div class="guide-grid">
+          <article class="guide-card">
+            <p class="panel-label">工具类</p>
+            <h2>AI 问答助手、查看配方</h2>
+            <p>AI 问答助手目前不开放独立入口；配方查询也暂时没有恢复到正式分类里。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">灵感类</p>
+            <h2>种子实验室、建筑灵感库、红石实验室</h2>
+            <p>这几类更适合后续重做成更完整的实验室或灵感系统，而不是继续维持旧入口。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">联机类</p>
+            <h2>联机房间面板、生存任务板</h2>
+            <p>联机策划和任务推进类功能暂时关闭，后续如果恢复，会优先改成更实用的多人协作工具。</p>
+          </article>
+          <article class="guide-card">
+            <p class="panel-label">资源类</p>
+            <h2>材质包与光影中心、模组推荐库</h2>
+            <p>这两类现阶段不再单独放首页，部分内容已经被下载中心、整合包或其他页面吸收。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

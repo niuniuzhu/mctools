@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 启动游戏中心</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+
+      function isNonDesktopDevice(override = {}) {
+        const userAgent = override.userAgent || navigator.userAgent || '';
+        const hasMobileToken = /Android|iPhone|iPad|iPod|HarmonyOS|Mobile|Windows Phone|Mobi/i.test(userAgent);
+        const coarsePointer = typeof override.coarsePointer === 'boolean'
+          ? override.coarsePointer
+          : window.matchMedia('(pointer: coarse)').matches;
+        const narrowScreen = typeof override.narrowScreen === 'boolean'
+          ? override.narrowScreen
+          : window.matchMedia('(max-width: 900px)').matches;
+
+        return hasMobileToken || (coarsePointer && narrowScreen);
+      }
+
+      window.isNonDesktopDevice = isNonDesktopDevice;
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const warning = document.querySelector('[data-launch-warning]');
+        const isNonDesktop = isNonDesktopDevice();
+
+        if (warning) {
+          warning.hidden = !isNonDesktop;
+        }
+
+        document.querySelectorAll('[data-desktop-launch]').forEach((link) => {
+          link.addEventListener('click', (event) => {
+            if (!isNonDesktopDevice()) {
+              return;
+            }
+
+            const href = link.getAttribute('href');
+            if (!href) {
+              return;
+            }
+
+            event.preventDefault();
+            const shouldContinue = window.confirm('当前检测到非电脑端，启动器协议可能会失败，或者唤起其他已关联的游戏。要继续尝试吗？');
+            if (shouldContinue) {
+              window.location.href = href;
+            }
+          });
+        });
+      });
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>启动游戏中心</h1>
+          <p class="lead">把网易版 Java 经典版、网易版基岩互通版、国际基岩版和 Minecraft 1.8 Web 的启动入口集中到一个地方。非电脑端点击本机协议时会先提示风险，避免误唤起其他游戏或直接启动失败。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 beta1.16.0</div>
+            <div class="version-pill">模块：启动游戏</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：启动</p>
+          <p class="toolbox-summary">优先帮你把正确的版本拉起来；如果浏览器或系统拦截协议，再退回官网下载页重新安装或手动启动。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 启动</p>
+            <h2>打开启动器与游戏</h2>
+          </div>
+          <p class="tool-card-note">协议型入口会优先直接唤起本机启动器或游戏；Web 入口可直接在浏览器打开。如果浏览器或系统拦截协议，再回官网补装或手动打开。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide" data-launch-warning hidden>
+            <p class="panel-label">设备提示</p>
+            <h2>当前像是非电脑端</h2>
+            <p>手机或平板上点击启动器协议时，可能启动失败，也可能唤起其他已关联游戏。建议优先在电脑端使用本页启动入口。</p>
+            <div class="fun-pack-list">
+              <div class="history-tag fun-pack-item">手机浏览器常会拦截自定义协议</div>
+              <div class="history-tag fun-pack-item">平板上可能无法识别 Minecraft Launcher</div>
+              <div class="history-tag fun-pack-item">已装多个沙盒游戏时，系统可能拉起别的应用</div>
+            </div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 1</p>
+            <h2>网易版 Java 经典版</h2>
+            <p>适合准备进入网易版 Java 经典版的玩家。主按钮会按你桌面快捷方式里记录的协议，优先尝试直接唤起本机启动器。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="fevergames://mygame/?gameId=1" data-desktop-launch>按桌面快捷方式启动</a>
+              <a class="copy-btn secondary" href="https://mc.163.com/" target="_blank" rel="noreferrer">打开网易版官网</a>
+            </div>
+            <div class="result-card">已按桌面快捷方式解析到的 fevergames 协议处理。如果本机 FeverGames 或网易启动环境已正确关联，就会直接进入；否则通常会无响应。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 2</p>
+            <h2>网易版基岩互通版</h2>
+            <p>适合准备进入网易版基岩互通版的玩家。主按钮会优先尝试直接打开已安装的游戏或启动环境。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="minecraft://" data-desktop-launch>直接启动游戏</a>
+              <a class="copy-btn secondary" href="https://mc.163.com/" target="_blank" rel="noreferrer">查看网易版说明</a>
+            </div>
+            <div class="result-card">如果系统已把该协议关联到互通版或兼容环境，会直接尝试启动；如果没关联，通常需要回官网重新安装。</div>
+          </article>
+          <article class="guide-card utility-card tool-card-disabled">
+            <p class="panel-label">入口 3</p>
+            <h2>国际 Java</h2>
+            <p>这个入口先关闭，不再从这里直接启动国际 Java。</p>
+            <div class="button-row">
+              <button type="button" class="copy-btn" disabled>国际 Java 已关闭</button>
+              <a class="copy-btn secondary" href="https://www.minecraft.net/download" target="_blank" rel="noreferrer">没装就去下载</a>
+            </div>
+            <div class="result-card">如果后面要重新开放，再把这里恢复为直接唤起 Minecraft Launcher 即可。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 4</p>
+            <h2>国际基岩版</h2>
+            <p>适合 Windows 上已经装好基岩版的设备，通过系统协议尝试直接拉起游戏。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="minecraft://" data-desktop-launch>尝试启动基岩版</a>
+              <a class="copy-btn secondary" href="https://www.minecraft.net/download" target="_blank" rel="noreferrer">去国际版下载页</a>
+            </div>
+            <div class="result-card">如果系统没有关联 minecraft:// 协议，说明当前机器还没有可用的基岩版安装环境，或者协议被其他应用接管。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 5</p>
+            <h2>Minecraft 1.8 Web 启动</h2>
+            <p>直接在浏览器打开 1.8.8 WASM 页面，无需本机启动器协议，适合快速体验或临时游玩。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="https://play.mcjs.cc/1.8.8wasm/" target="_blank" rel="noreferrer">打开 1.8 Web 启动页</a>
+              <a class="copy-btn secondary" href="https://play.mcjs.cc/" target="_blank" rel="noreferrer">打开 MCJS 主页</a>
+            </div>
+            <div class="result-card">该入口是纯网页启动，不依赖系统协议；如果打不开，通常是网络限制或浏览器兼容性问题。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">入口 6</p>
+            <h2>自研沙盒 1.20.1 风格</h2>
+            <p>这是工具箱内置的类 Minecraft 沙盒实验页，支持移动、挖掘、放置和本地存档，打开即玩。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/sandbox-1201.html">进入自研沙盒</a>
+              <a class="copy-btn secondary" href="/fps-test.html">先测一下帧率</a>
+            </div>
+            <div class="result-card">该入口属于自研演示，不依赖官方资源。建议使用桌面端浏览器体验更流畅。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">启动排错</p>
+            <h2>点了没反应时先看这里</h2>
+            <div class="fun-pack-list">
+              <div class="history-tag fun-pack-item">非电脑端：先看风险提示，再决定是否继续尝试</div>
+              <div class="history-tag fun-pack-item">浏览器拦截协议：换 Edge 或允许外部应用打开</div>
+              <div class="history-tag fun-pack-item">网易 Java 与国际启动器可能共用同一协议，取决于系统当前关联</div>
+              <div class="history-tag fun-pack-item">如果没装对应版本：回官网下载安装，再重试直接启动</div>
+            </div>
+            <div class="button-row">
+              <a class="copy-btn" href="/official-downloads.html">打开官方下载入口</a>
+              <a class="copy-btn secondary" href="https://mc.163.com/download/" target="_blank" rel="noreferrer">前往网易版下载页</a>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

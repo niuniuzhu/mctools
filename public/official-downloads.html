@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 官方下载入口</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>官方下载入口</h1>
+          <p class="lead">把网易版与国际版官网入口放到一个分类里，避免每次都重新搜。先确认自己玩的版本，再进入对应的官方站点下载或查看说明。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 beta1.16.0</div>
+            <div class="version-pill">模块：官方下载</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">当前模块：官网</p>
+          <p class="toolbox-summary">适合分不清网易版和国际版入口时快速定位，也适合作为分享给朋友的统一下载导航页。</p>
+          <div class="profile-card profile-card-inline">
+            <div class="avatar-wrap">
+              <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
+              <div class="avatar-fallback" data-avatar-fallback>头</div>
+            </div>
+            <div class="profile-meta">
+              <p class="panel-label">账号信息</p>
+              <strong data-profile-name>未登录</strong>
+              <div class="account-pill profile-pill" data-account-pill>当前账号：未加载</div>
+              <div class="profile-actions">
+                <button type="button" class="upload-button" data-avatar-trigger>上传头像</button>
+                <input type="file" accept="image/png,image/jpeg,image/webp" data-avatar-input hidden />
+                <button type="button" class="ghost-button compact-button" data-avatar-delete>删除头像</button>
+                <button type="button" class="ghost-button compact-button" data-logout>退出登录</button>
+              </div>
+              <p class="avatar-status" data-avatar-status hidden></p>
+            </div>
+          </div>
+          <p class="member-state" data-member-state>会员等级：普通用户</p>
+          <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 官网</p>
+            <h2>下载与说明入口</h2>
+          </div>
+          <p class="tool-card-note">以下跳转均为外部官方站点，新标签打开更稳妥。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 1</p>
+            <h2>网易版官网</h2>
+            <p>适合国服玩家，包含网易版客户端下载、版本活动和社区内容。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="https://mc.163.com/download/" target="_blank" rel="noreferrer">前往网易版下载</a>
+              <a class="copy-btn secondary" href="https://mc.163.com/" target="_blank" rel="noreferrer">打开网易版官网</a>
+            </div>
+            <div class="result-card">如果你平时使用网易启动器、手机国服或朋友都在网易版，一般从这里进入最合适。</div>
+          </article>
+          <article class="guide-card utility-card">
+            <p class="panel-label">入口 2</p>
+            <h2>国际版官网</h2>
+            <p>适合 Java 版、国际版基岩版玩家，也适合下载 Minecraft Launcher 和查看正版购买信息。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="https://www.minecraft.net/download" target="_blank" rel="noreferrer">前往国际版下载</a>
+              <a class="copy-btn secondary" href="https://www.minecraft.net/" target="_blank" rel="noreferrer">打开国际版官网</a>
+            </div>
+            <div class="result-card">如果你玩 Java 正版、微软生态里的基岩版，或者需要 Minecraft Launcher，一般从这里进入。</div>
+          </article>
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">选择建议</p>
+            <h2>先确认你要去哪一边</h2>
+            <div class="fun-pack-list">
+              <div class="history-tag fun-pack-item">玩网易国服：走网易版官网</div>
+              <div class="history-tag fun-pack-item">玩 Java 正版：走国际版官网</div>
+              <div class="history-tag fun-pack-item">要找 Minecraft Launcher：走国际版下载页</div>
+              <div class="history-tag fun-pack-item">朋友都在国服联机：优先网易版</div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

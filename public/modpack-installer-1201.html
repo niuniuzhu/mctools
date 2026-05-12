@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 1.20.1 整合包安装中心</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>1.20.1 私人整合包</h1>
+          <p class="lead">完整的 Fabric 1.20.1 整合包模板、安装指南、Mod 清单、JVM 参数和自动验证工具。按指南一步步组装，即可快速体验或私人分发。</p>
+          <div class="meta-row">
+            <div class="version-pill">模板版本：1.0.0</div>
+            <div class="version-pill">目标：Minecraft 1.20.1</div>
+            <div class="version-pill">加载器：Fabric 0.15.x</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/pack-center.html">返回材质包中心</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">模板资源</p>
+            <h2>快速下载模板文件</h2>
+          </div>
+          <p class="tool-card-note">这些文件可直接下载，或在浏览器中打开查看。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">第一步</p>
+            <h2>📖 阅读快速说明与完整指南</h2>
+            <p>了解目录结构、系统要求、下载流程和启动配置。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/private-pack-1201/README.txt" target="_blank" rel="noreferrer">打开快速说明</a>
+              <a class="copy-btn secondary" href="/downloads/private-pack-1201/install-guide.md" target="_blank" rel="noreferrer">打开完整安装指南</a>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">第二步</p>
+            <h2>📋 查看 Mod 清单与配置</h2>
+            <p>了解推荐的必选、优化、光影和 UI 模组列表，以及启动参数。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/private-pack-1201/mod-list.md" target="_blank" rel="noreferrer">打开 Mod 清单（推荐）</a>
+              <a class="copy-btn secondary" href="/downloads/private-pack-1201/jvm-args.txt" target="_blank" rel="noreferrer">打开 JVM 参数</a>
+            </div>
+            <div class="button-row">
+              <a class="copy-btn secondary" href="/downloads/private-pack-1201/modpack-manifest.json" target="_blank" rel="noreferrer">打开 Manifest（可编辑）</a>
+              <a class="copy-btn secondary" href="/downloads/private-pack-1201/changelog.txt" target="_blank" rel="noreferrer">打开版本记录</a>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">第三步</p>
+            <h2>🔧 下载与放置 Mod 文件</h2>
+            <p>按 Mod 清单从 Modrinth 或 CurseForge 下载，放入 mods 目录。建议先下载"必选 + 性能优化"组（共 5-7 个 mod）。</p>
+            <div class="result-card compact-result">
+              <strong>推荐下载平台：</strong><br>
+              🌐 Modrinth：https://modrinth.com（筛选 1.20.1 + Fabric）<br>
+              🌐 CurseForge：https://www.curseforge.com/minecraft/mods（筛选 1.20.1 + Fabric）
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">第四步</p>
+            <h2>✅ 运行检查脚本验证</h2>
+            <p>使用自动化脚本检查文件完整性、Java 版本、Mod 数量等。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/downloads/private-pack-1201/check-pack.ps1" target="_blank" rel="noreferrer">下载检查脚本（Windows PowerShell）</a>
+            </div>
+            <div class="result-card compact-result">
+              <strong>使用方法：</strong><br>
+              1. 将 check-pack.ps1 放在整合包根目录<br>
+              2. 右键打开 PowerShell：powershell -ExecutionPolicy Bypass -File check-pack.ps1<br>
+              3. 脚本会检查文件、Java 版本和 mod 数量
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">第五步</p>
+            <h2>🚀 配置启动器与启动</h2>
+            <p>选择你使用的启动器（PCL / HMCL / MultiMC），配置 Java、内存和 JVM 参数。</p>
+            <div class="result-card compact-result">
+              <strong>推荐配置：</strong><br>
+              🔹 Java：Java 17（关键）<br>
+              🔹 内存：6GB（中等）～ 8GB（推荐）<br>
+              🔹 JVM 参数：复制 jvm-args.txt 的全部内容<br>
+              🔹 首次启动后按需调整画质和距离
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">常见问题排查</p>
+            <h2>❌ 遇到问题？</h2>
+            <div class="fun-pack-list">
+              <div class="history-tag fun-pack-item">❓ 卡在加载界面 → 只保留"必选 + 性能优化"组启动，逐个添加其他 mod</div>
+              <div class="history-tag fun-pack-item">❓ 崩溃报告 → 查看 crash-report，删除冲突的 mod 或找兼容版本</div>
+              <div class="history-tag fun-pack-item">❓ 帧数很低 → 增加内存到 8GB、关闭光影、降低渲染距离</div>
+              <div class="history-tag fun-pack-item">❓ Java 错误 → 确认已安装 Java 17（不是 Java 8 或 11）</div>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">完整清单</p>
+            <h2>📦 整合包内容总览</h2>
+            <div class="result-card compact-result">
+              <strong>提供的文件：</strong><br>
+              ✅ README.txt - 快速说明<br>
+              ✅ install-guide.md - 完整 50 页安装指南<br>
+              ✅ mod-list.md - 推荐 Mod 分组清单<br>
+              ✅ modpack-manifest.json - 可编辑的清单模板<br>
+              ✅ jvm-args.txt - 优化的 Java 17 启动参数<br>
+              ✅ check-pack.ps1 - 自动检查验证脚本<br>
+              ✅ changelog.txt - 版本更新记录
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

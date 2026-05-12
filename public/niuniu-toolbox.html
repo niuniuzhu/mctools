@@ -1,0 +1,145 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶的日常工具箱</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .toolbox-header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+
+      .toolbox-header h1 {
+        font-size: 2.5rem;
+        margin: 0 0 12px;
+      }
+
+      .toolbox-header p {
+        font-size: 1.1rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .toolbox-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+      }
+
+      .category-card {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .category-card:hover {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.16);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+      }
+
+      .category-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+      }
+
+      .category-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .category-desc {
+        font-size: 0.95rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .topbar-nav {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+        align-items: center;
+      }
+
+      .topbar-nav a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .topbar-nav a:hover {
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent-strong);
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar-nav">
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="toolbox-header">
+        <h1>奶茶的日常工具箱 ☕</h1>
+        <p>选择下方分类快速进入对应的工具模块</p>
+      </section>
+
+      <section class="toolbox-categories">
+        <!-- 我的世界工具箱 -->
+        <a href="/index.html" class="category-card">
+          <div class="category-icon">🎮</div>
+          <h3 class="category-title">我的世界工具箱</h3>
+          <p class="category-desc">
+            指令生成、建筑参考、教程路线、坐标转换等 Minecraft 相关工具。20+ 分类，功能完整。
+          </p>
+        </a>
+
+        <!-- 奶茶实用工具箱 -->
+        <a href="/niuniu-utility.html" class="category-card">
+          <div class="category-icon">🛠️</div>
+          <h3 class="category-title">奶茶实用工具箱</h3>
+          <p class="category-desc">
+            打字练习、文本转换、时间管理、计算工具等日常工作辅助工具集。
+          </p>
+        </a>
+
+        <!-- 二维码生成器 -->
+        <div class="category-card" aria-disabled="true" style="opacity: 0.68; cursor: not-allowed;">
+          <div class="category-icon">📱</div>
+          <h3 class="category-title">二维码生成器</h3>
+          <p class="category-desc">
+            支持文本、链接、Wi-Fi 信息转二维码，后续会加入下载和配色能力。
+          </p>
+          <p class="category-desc" style="color: var(--accent); font-weight: 600;">未开放</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

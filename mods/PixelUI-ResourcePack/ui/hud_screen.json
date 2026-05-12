@@ -1,0 +1,115 @@
+{
+  "namespace": "ui",
+  "hud_screen": {
+    "type": "panel",
+    "size": ["100%", "100%"],
+    "offset": [0, 0],
+    "controls": [
+      {
+        "hotbar_panel": {
+          "type": "panel",
+          "size": ["184px", "22px"],
+          "offset": ["50% - 92px", "100% - 24px"],
+          "background": true,
+          "layer": 1,
+          "controls": [
+            {
+              "hotbar_background": {
+                "type": "image",
+                "texture": "ui/pixel_hotbar_background",
+                "size": ["100%", "100%"]
+              }
+            },
+            {
+              "hotbar_selection": {
+                "type": "image",
+                "texture": "ui/pixel_hotbar_selection",
+                "size": ["20px", "20px"],
+                "bindings": [
+                  {
+                    "binding_name": "#hotbar_offset",
+                    "binding_name_override": "#hotbar_offset"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "experience_panel": {
+          "type": "panel",
+          "size": ["182px", "5px"],
+          "offset": ["50% - 91px", "100% - 30px"],
+          "controls": [
+            {
+              "experience_bar": {
+                "type": "image",
+                "texture": "ui/pixel_experience_bar",
+                "size": ["100%", "100%"]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "health_panel": {
+          "type": "panel",
+          "size": ["81px", "9px"],
+          "offset": ["9px", "9px"],
+          "controls": [
+            {
+              "health_background": {
+                "type": "image",
+                "texture": "ui/pixel_health_background",
+                "size": ["100%", "100%"]
+              }
+            },
+            {
+              "health_bar": {
+                "type": "image",
+                "texture": "ui/pixel_health_bar",
+                "size": ["100% - 2px", "100% - 2px"],
+                "offset": ["1px", "1px"],
+                "bindings": [
+                  {
+                    "binding_name": "#health_percent"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "hunger_panel": {
+          "type": "panel",
+          "size": ["81px", "9px"],
+          "offset": ["100px", "9px"],
+          "controls": [
+            {
+              "hunger_background": {
+                "type": "image",
+                "texture": "ui/pixel_hunger_background",
+                "size": ["100%", "100%"]
+              }
+            },
+            {
+              "hunger_bar": {
+                "type": "image",
+                "texture": "ui/pixel_hunger_bar",
+                "size": ["100% - 2px", "100% - 2px"],
+                "offset": ["1px", "1px"],
+                "bindings": [
+                  {
+                    "binding_name": "#hunger_percent"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

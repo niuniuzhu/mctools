@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 登录</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'liquid';
+      }
+    </script>
+    <link rel="stylesheet" href="/login.css" />
+    <script defer src="/login.js"></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <div class="auth-orb auth-orb-left" aria-hidden="true"></div>
+      <div class="auth-orb auth-orb-right" aria-hidden="true"></div>
+      <section class="auth-card">
+        <p class="badge">Minecraft Toolbox</p>
+        <h1 data-maintenance-title>我的世界工具箱</h1>
+        <p class="lead">先登录或注册，再进入工具箱。当前提供 20 个分类入口，现阶段开放指令、教程、帧率测试、页面检测、趣味实验室、云玩中心、坐标、自动化入口、官网下载入口、启动游戏中心与光影下载中心；联机房间面板等其余分类按阶段开放。</p>
+        <div class="version-warning-banner" role="alert" aria-live="polite">
+          <strong>beta1.15.0 存在已知问题</strong>
+          <span>当前版本可能出现部分显示不同步或启动判断异常，登录后请优先查看页面内提示。</span>
+        </div>
+        <div class="meta-band">
+          <div class="version-pill" data-app-version>当前版本 正式版1.3.2</div>
+          <div class="version-pill glass-state-pill">统一下载中心风格</div>
+        </div>
+        <div class="preview-entry-row">
+          <button type="button" class="ghost-button preview-entry-button" disabled>公开预览已关闭</button>
+          <p class="preview-entry-note">当前版本已关闭公开预览入口，如需使用功能请直接登录正式界面。</p>
+        </div>
+
+        <section class="auth-highlights" aria-label="核心亮点">
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">20</p>
+            <p class="auth-highlight-label">分类入口</p>
+          </article>
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">13</p>
+            <p class="auth-highlight-label">趣味玩法</p>
+          </article>
+          <article class="auth-highlight-card">
+            <p class="auth-highlight-value">Night</p>
+            <p class="auth-highlight-label">统一夜间模式</p>
+          </article>
+        </section>
+
+        <section class="auth-feature-board" aria-label="登录页功能预览">
+          <div class="auth-feature-head">
+            <div>
+              <p class="auth-feature-kicker">进入后可用</p>
+              <h2>最近可玩的内容</h2>
+            </div>
+            <p class="auth-feature-note">先登录，再直达常用页面。</p>
+          </div>
+          <div class="auth-feature-grid">
+            <article class="auth-feature-card auth-feature-card-large">
+              <p class="auth-feature-tag">Fun Lab</p>
+              <strong>趣味实验室已扩展到 13 项</strong>
+              <span>包括宝藏坐标盲盒、Boss 台词、建筑主题签和生物群系任务书。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Shader Hub</p>
+              <strong>光影下载中心</strong>
+              <span>基岩版与 Java 版资源统一收口，未兑换时灰显锁定。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Commands</p>
+              <strong>常用指令与自动化</strong>
+              <span>快速查传送、坐标、流程辅助和实验功能。</span>
+            </article>
+            <article class="auth-feature-card">
+              <p class="auth-feature-tag">Settings</p>
+              <strong>账号、VIP 与更新日志</strong>
+              <span>设置页统一承接资格状态、版本信息和夜间显示模式。</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="auth-preview-gallery" aria-label="模块预览图">
+          <article class="auth-preview-card auth-preview-card-wide">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/index-hero.svg" alt="首页模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Home</p>
+              <strong>首页与分类入口</strong>
+              <span>登录后先进入总览页，常用模块、下载中心和实验入口统一从这里展开。</span>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/commands-hero.svg" alt="指令模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Commands</p>
+              <strong>指令面板</strong>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/coordinates-hero.svg" alt="坐标模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Coords</p>
+              <strong>坐标与导航</strong>
+            </div>
+          </article>
+          <article class="auth-preview-card">
+            <div class="auth-preview-image-frame">
+              <img src="/assets/tutorial-hero.svg" alt="教程模块预览" />
+            </div>
+            <div class="auth-preview-copy">
+              <p class="auth-preview-tag">Guide</p>
+              <strong>教程与入门</strong>
+            </div>
+          </article>
+        </section>
+
+        <section class="maintenance-unlock hidden" data-maintenance-unlock>
+          <p class="maintenance-unlock-label">入口已解锁</p>
+          <div class="special-entry-row">
+            <button type="button" class="ghost-button" data-developer-entry>开发者账号注册</button>
+          </div>
+        </section>
+
+        <div class="auth-tabs" role="tablist" aria-label="登录注册切换">
+          <button class="tab-button active" type="button" data-tab="login">登录</button>
+          <button class="tab-button" type="button" data-tab="register">注册</button>
+        </div>
+
+        <section class="auth-tab-status" data-tab-status>
+          <p class="auth-tab-status-tag" data-tab-status-tag>当前模式</p>
+          <strong data-tab-status-title>登录工具箱</strong>
+          <span data-tab-status-note>输入账号和密码后直接进入首页。</span>
+        </section>
+
+        <form class="auth-form" data-form="login">
+          <label>
+            用户名
+            <input type="text" name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <button type="submit" class="primary-button">登录</button>
+        </form>
+
+        <form class="auth-form hidden" data-form="register">
+          <label>
+            用户名
+            <input type="text" name="username" autocomplete="username" required minlength="3" maxlength="32" />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" autocomplete="new-password" required minlength="6" />
+          </label>
+          <section class="maintenance-register hidden" data-developer-register>
+            <div class="maintenance-register-head">
+              <p class="maintenance-register-title">开发者账号注册模式</p>
+              <button type="button" class="text-button" data-developer-exit>退出</button>
+            </div>
+            <p class="maintenance-register-note">可进入开发者控制台，并修改当前站点版本号等开发设置。</p>
+            <input type="hidden" name="registerAsDeveloper" value="0" data-developer-flag />
+            <label>
+              开发者授权码
+              <input type="password" name="developerSecret" autocomplete="off" data-developer-secret />
+            </label>
+          </section>
+          <button type="submit" class="primary-button">注册并进入</button>
+        </form>
+
+        <p class="message" data-message></p>
+      </section>
+
+      <section class="auth-loading-overlay" data-auth-loading hidden aria-live="polite" aria-label="登录加载中">
+        <div class="auth-loading-card">
+          <p class="panel-label">Loading</p>
+          <h2>正在进入工具箱</h2>
+          <p data-auth-loading-message>登录成功，正在同步账号状态与首页模块，请稍候 3 秒。</p>
+          <div class="auth-loading-bar">
+            <span data-auth-loading-progress></span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

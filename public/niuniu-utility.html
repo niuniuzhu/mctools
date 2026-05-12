@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .utility-header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+
+      .utility-header h1 {
+        font-size: 2.5rem;
+        margin: 0 0 12px;
+      }
+
+      .utility-header p {
+        font-size: 1.1rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 48px;
+      }
+
+      .tool-card {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .tool-card:hover:not(.disabled) {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.16);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+      }
+
+      .tool-card.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .tool-card.disabled:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--panel-border);
+        background: var(--panel);
+      }
+
+      .tool-icon {
+        font-size: 3rem;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+
+      .tool-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .tool-desc {
+        font-size: 0.95rem;
+        color: var(--muted);
+        margin: 0;
+        flex-grow: 1;
+      }
+
+      .tool-status {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+        border-radius: 4px;
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent);
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      .tool-card.disabled .tool-status {
+        background: rgba(173, 194, 226, 0.1);
+        color: var(--muted);
+      }
+
+      .topbar-nav {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .topbar-nav a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .topbar-nav a:hover {
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .badge-new {
+        display: inline-block;
+        background: var(--accent);
+        color: #081225;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 8px;
+      }
+
+      .info-section {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 32px;
+        margin-bottom: 48px;
+      }
+
+      .info-section h2 {
+        margin-top: 0;
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+      }
+
+      .info-section ul {
+        margin: 0;
+        padding-left: 24px;
+        color: var(--muted);
+        line-height: 2;
+      }
+
+      .info-section li {
+        margin-bottom: 12px;
+      }
+
+      .info-section strong {
+        color: var(--text);
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="topbar-nav">
+        <a href="/niuniu-toolbox.html">← 返回工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="utility-header">
+        <h1>奶茶实用工具箱 🛠️</h1>
+        <p>日常工作与学习的实用工具集</p>
+      </section>
+
+      <section class="tools-grid">
+        <!-- 打字练习 -->
+        <a href="/typing.html" class="tool-card">
+          <div class="tool-icon">⌨️</div>
+          <h3 class="tool-title">打字练习</h3>
+          <p class="tool-desc">
+            中英文混合打字练习，实时反馈、速度统计、多种模式。提升打字速度和准确率。
+          </p>
+          <div class="tool-status">已开放 <span class="badge-new">NEW</span></div>
+        </a>
+
+        <!-- 文本转换 -->
+        <div class="tool-card disabled">
+          <div class="tool-icon">📝</div>
+          <h3 class="tool-title">文本转换</h3>
+          <p class="tool-desc">
+            大小写转换、繁简互转、排版美化等文本处理工具。快速处理各种文本需求。
+          </p>
+          <div class="tool-status">未开放</div>
+        </div>
+
+        <!-- 时间管理 -->
+        <div class="tool-card disabled">
+          <div class="tool-icon">⏰</div>
+          <h3 class="tool-title">时间管理</h3>
+          <p class="tool-desc">
+            倒计时、番茄钟、日程规划、日历查看。科学管理时间，提高工作效率。
+          </p>
+          <div class="tool-status">未开放</div>
+        </div>
+
+        <!-- 计算器 -->
+        <a href="/calculator.html" class="tool-card">
+          <div class="tool-icon">🧮</div>
+          <h3 class="tool-title">计算器</h3>
+          <p class="tool-desc">
+            基础计算、单位转换、百分比计算、进制转换。满足日常计算需求。
+          </p>
+          <div class="tool-status">已开放 <span class="badge-new">NEW</span></div>
+        </a>
+
+        <!-- 娱乐助手 -->
+        <div class="tool-card disabled">
+          <div class="tool-icon">🎲</div>
+          <h3 class="tool-title">娱乐助手</h3>
+          <p class="tool-desc">
+            骰子、转盘、抽签、随机选择、今日运势。工作之余放松身心的小工具。
+          </p>
+          <div class="tool-status">未开放</div>
+        </div>
+
+        <!-- JSON 工具 -->
+        <div class="tool-card disabled">
+          <div class="tool-icon">📋</div>
+          <h3 class="tool-title">JSON 工具</h3>
+          <p class="tool-desc">
+            JSON 格式化、压缩、验证、转换。开发者必备的数据处理工具。
+          </p>
+          <div class="tool-status">未开放</div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2>💡 工具箱说明</h2>
+        <ul>
+          <li><strong>打字练习</strong> - 已开放。包含默认模式、纯英文、纯中文、中英混合、代码片段等 5 种练习模式，支持实时反馈和成绩统计。</li>
+          <li><strong>文本转换</strong> - 开发中。预计支持大小写转换、繁体简体互转、排版美化、代码格式化等功能。</li>
+          <li><strong>时间管理</strong> - 开发中。将集成倒计时、番茄工作法、日程规划、日历等功能。</li>
+          <li><strong>计算器</strong> - 已开放。当前支持基础四则运算、百分比、括号、小数输入和快速清空，后续再补单位转换与科学计算。</li>
+          <li><strong>娱乐助手</strong> - 开发中。提供骰子、转盘、随机抽签等娱乐功能。</li>
+          <li><strong>JSON 工具</strong> - 开发中。为开发者提供 JSON 格式化、验证、压缩等工具。</li>
+        </ul>
+      </section>
+
+      <section class="info-section">
+        <h2>🎯 功能特性</h2>
+        <ul>
+          <li><strong>统一界面</strong> - 所有工具共享统一的现代化界面设计</li>
+          <li><strong>主题支持</strong> - 支持多种主题切换（日间、液态、矿石、古典、末地）</li>
+          <li><strong>响应式设计</strong> - 完美适配桌面、平板和手机设备</li>
+          <li><strong>实时反馈</strong> - 各工具均提供实时的操作反馈和数据统计</li>
+          <li><strong>无需登录</strong> - 某些工具支持无需登录即可使用</li>
+          <li><strong>持续更新</strong> - 不断新增功能，优化用户体验</li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

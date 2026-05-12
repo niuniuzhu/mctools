@@ -12,11 +12,40 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const sourceAppVersion = '正式版1.3.2';
+const sourceAppVersion = 'beta1.15.0';
 let appVersion = sourceAppVersion;
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const developerRegistrationSecret = 'McTools2026!';
 const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
+const previewablePublicPages = new Set([
+  '/ai.html',
+  '/automation-guide.html',
+  '/build-lab.html',
+  '/cloud-play.html',
+  '/commands.html',
+  '/coordinates.html',
+  '/fps-test.html',
+  '/fun.html',
+  '/index.html',
+  '/ios-liquid-glass.html',
+  '/mods.html',
+  '/official-downloads.html',
+  '/pack-center.html',
+  '/page-detection.html',
+  '/recipes.html',
+  '/redstone-lab.html',
+  '/seed-lab.html',
+  '/server-hub.html',
+  '/settings.html',
+  '/shader-download.html',
+  '/sandbox-1201.html',
+  '/modpack-installer-1201.html',
+  '/extension-hub.html',
+  '/launch-game.html',
+  '/survival-board.html',
+  '/tutorial.html',
+  '/update-log.html'
+]);
 const vipOnlyCommandNames = new Set([
   'executeChain',
   'scoreboardObjective',
@@ -140,6 +169,11 @@ function sendJson(response, statusCode, payload, extraHeaders = {}) {
     ...extraHeaders
   });
   response.end(JSON.stringify(payload));
+}
+
+function sendHtml(response, statusCode, content) {
+  response.writeHead(statusCode, { 'Content-Type': 'text/html; charset=utf-8' });
+  response.end(content);
 }
 
 function sendFile(filePath, response) {
@@ -584,10 +618,15 @@ function handleLogin(request, response) {
         return;
       }
 
-      const user = db.prepare('SELECT username, password_hash FROM users WHERE username = ?').get(username);
+      const user = db.prepare('SELECT username, password_hash, is_developer FROM users WHERE username = ?').get(username);
 
       if (!user || !verifyPassword(password, user.password_hash)) {
         sendJson(response, 401, { message: '用户名或密码错误' });
+        return;
+      }
+
+      if (!Number(user.is_developer)) {
+        sendJson(response, 403, { message: '当前仅允许开发者账号登录' });
         return;
       }
 
@@ -1534,6 +1573,188 @@ function resolvePublicFilePath(pathname) {
   }
 }
 
+function getPreviewTargetPath(requestUrl) {
+  const rawUrl = String(requestUrl || '/');
+  const queryIndex = rawUrl.indexOf('?');
+  const search = queryIndex >= 0 ? rawUrl.slice(queryIndex + 1) : '';
+  const params = new URLSearchParams(search);
+  const page = String(params.get('page') || '').trim();
+
+  if (!page) {
+    return null;
+  }
+
+  const normalizedPath = page.startsWith('/') ? page : `/${page}`;
+  return previewablePublicPages.has(normalizedPath) ? normalizedPath : null;
+}
+
+function getPreviewPageLink(pathname, hash = '') {
+  return `/preview-page.html?page=${encodeURIComponent(pathname.replace(/^\//u, ''))}${hash || ''}`;
+}
+
+function rewritePreviewHref(rawHref) {
+  const href = String(rawHref || '').trim();
+
+  if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+    return { href, locked: false };
+  }
+
+  const baseUrl = `http://${host}:${port}`;
+  const parsed = new URL(href, baseUrl);
+
+  if (parsed.origin !== baseUrl) {
+    return { href, locked: false };
+  }
+
+  const normalizedPath = parsed.pathname === '/' ? '/index.html' : parsed.pathname;
+
+  if (
+    normalizedPath === '/login.html' ||
+    normalizedPath === '/preview.html' ||
+    normalizedPath === '/preview-page.html' ||
+    /^\/preview-[a-z0-9-]+\.html$/iu.test(normalizedPath)
+  ) {
+    return { href: `${normalizedPath}${parsed.search}${parsed.hash}`, locked: false };
+  }
+
+  if (previewablePublicPages.has(normalizedPath)) {
+    return { href: getPreviewPageLink(normalizedPath, parsed.hash), locked: false };
+  }
+
+  return { href: '#', locked: true };
+}
+
+function buildPreviewPageHtml(staticPath) {
+  const filePath = resolvePublicFilePath(staticPath);
+
+  if (!filePath) {
+    return null;
+  }
+
+  let html = fs.readFileSync(filePath, 'utf8');
+  const pageName = path.basename(staticPath, '.html');
+  const displayName = pageName === 'index' ? '首页' : pageName;
+
+  html = html.replace(/<script\b(?=[^>]*\bsrc=)[^>]*>\s*<\/script>/giu, '');
+  html = html.replace(/<title>(.*?)<\/title>/iu, '<title>我的世界工具箱 - 公开预览</title>');
+
+  if (!html.includes('/login.css')) {
+    html = html.replace('</head>', '    <link rel="stylesheet" href="/login.css" />\n  </head>');
+  }
+
+  html = html.replace(/href=(['"])(.*?)\1/giu, (match, quote, href) => {
+    const next = rewritePreviewHref(href);
+    const lockedAttribute = next.locked ? ' data-preview-locked-link="true"' : '';
+    return `href=${quote}${next.href}${quote}${lockedAttribute}`;
+  });
+
+  html = html.replace(/<form\b([^>]*)>/giu, '<form$1 data-preview-locked-form="true">');
+
+  const previewBanner = `
+      <section class="preview-lock-banner">
+        <p class="panel-label">公开镜像</p>
+        <h2>当前页是 ${displayName} 的公开预览复制页</h2>
+        <p>页面结构和导航已开放浏览，但按钮、提交、下载与写入类操作都会提示先登录。你可以继续逛其他预览页，真正执行功能时再回登录页。</p>
+      </section>
+`;
+
+  if (/<main\b[^>]*>/iu.test(html)) {
+    html = html.replace(/<main\b([^>]*)>/iu, `<main$1>${previewBanner}`);
+  }
+
+  const previewOverlay = `
+      <aside class="preview-fixed-tip" aria-label="登录提示">
+        <strong>这是公开镜像页</strong>
+        <p>你可以浏览页面结构和说明，但所有功能操作、提交、写入和下载都需要登录后使用。</p>
+        <div class="preview-fixed-actions">
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">立即登录</a>
+          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+        </div>
+      </aside>
+      <div class="preview-login-modal" hidden data-preview-modal>
+        <div class="preview-login-dialog">
+          <p class="panel-label">需要登录</p>
+          <h2>预览页不开放真实功能操作</h2>
+          <p>当前公开镜像只复制页面结构。点击按钮、提交表单、下载资源或执行模块功能时，需要先登录正式界面。</p>
+          <div class="preview-fixed-actions">
+            <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html" data-preview-allow="true">前往登录</a>
+            <button type="button" class="preview-fixed-link" data-preview-modal-close data-preview-allow="true">继续浏览</button>
+          </div>
+        </div>
+      </div>
+      <script>
+        (function () {
+          const modal = document.querySelector('[data-preview-modal]');
+          const closeModal = () => {
+            if (modal) {
+              modal.hidden = true;
+            }
+          };
+          const openModal = () => {
+            if (modal) {
+              modal.hidden = false;
+            }
+          };
+
+          document.addEventListener('click', (event) => {
+            const closeButton = event.target.closest('[data-preview-modal-close]');
+            if (closeButton) {
+              event.preventDefault();
+              closeModal();
+              return;
+            }
+
+            if (event.target === modal) {
+              closeModal();
+              return;
+            }
+
+            const anchor = event.target.closest('a[href]');
+            if (anchor && !anchor.dataset.previewAllow && anchor.dataset.previewLockedLink === 'true') {
+              event.preventDefault();
+              openModal();
+              return;
+            }
+
+            const button = event.target.closest('button');
+            if (button && !button.dataset.previewAllow) {
+              event.preventDefault();
+              openModal();
+            }
+          });
+
+          document.addEventListener('submit', (event) => {
+            if (event.target.matches('[data-preview-locked-form]')) {
+              event.preventDefault();
+              openModal();
+            }
+          });
+
+          document.addEventListener('focusin', (event) => {
+            const field = event.target.closest('input, textarea, select');
+            if (!field || field.dataset.previewAllow || field.disabled || field.readOnly) {
+              return;
+            }
+
+            if (field.form && field.form.matches('[data-preview-locked-form]')) {
+              field.blur();
+              openModal();
+            }
+          });
+
+          document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+              closeModal();
+            }
+          });
+        })();
+      </script>
+    </body>`;
+
+  html = html.replace('</body>', previewOverlay);
+  return html;
+}
+
 const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
   cleanupExpiredCaptchas();
@@ -1547,8 +1768,20 @@ const server = http.createServer((request, response) => {
   }
 
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
-  const isPublicPreviewPage = pathname === '/preview.html' || /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);
+  const isPublicPreviewPage =
+    pathname === '/preview.html' ||
+    pathname === '/preview-page.html' ||
+    /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);
   const isPublicLoginDependency = pathname.startsWith('/assets/') || pathname === '/styles.css';
+
+  if (pathname.startsWith('/preview')) {
+    console.log('[preview-debug]', JSON.stringify({
+      pathname,
+      method: request.method,
+      isPublicPreviewPage,
+      hasSession: Boolean(session)
+    }));
+  }
 
   if (request.method === 'POST' && pathname === '/api/register') {
     handleRegister(request, response);
@@ -1645,6 +1878,17 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (
+    request.method === 'GET' && (
+      pathname === '/preview.html' ||
+      pathname === '/preview-page.html' ||
+      /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname)
+    )
+  ) {
+    redirectToLogin(response);
+    return;
+  }
+
   if (request.method === 'GET' && pathname === '/api/commands') {
     handleListCommands(request, response);
     return;
@@ -1652,6 +1896,17 @@ const server = http.createServer((request, response) => {
 
   const staticPath = pathname === '/' ? '/index.html' : pathname;
   const publicFilePath = resolvePublicFilePath(staticPath);
+
+  if (pathname === '/extension-hub.html') {
+    console.log('[extension-debug]', JSON.stringify({
+      pathname,
+      staticPath,
+      publicFilePath,
+      publicDir,
+      safePath: resolveSafePublicPath(staticPath),
+      hasSession: Boolean(session)
+    }));
+  }
 
   if (publicFilePath && !isLoginAsset && !isPublicPreviewPage && !isPublicLoginDependency) {
     if (!session) {

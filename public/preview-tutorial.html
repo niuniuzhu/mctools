@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -6,12 +6,12 @@
     <title>我的世界工具箱 - 教程预览</title>
     <script>
       try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
-        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
-        document.documentElement.dataset.ui = 'liquid';
+        document.documentElement.dataset.ui = 'normal';
       }
     </script>
     <link rel="stylesheet" href="/styles.css" />

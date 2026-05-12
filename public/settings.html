@@ -4,11 +4,98 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>我的世界工具箱 - 设置</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
     <link rel="stylesheet" href="/styles.css" />
+    <style>
+      @keyframes settingsGridDrift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+
+        100% {
+          transform: translate3d(28px, 28px, 0);
+        }
+      }
+
+      @keyframes settingsGlowFloat {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+          opacity: 0.42;
+        }
+
+        50% {
+          transform: translate3d(0, 12px, 0) scale(1.04);
+          opacity: 0.72;
+        }
+      }
+
+      body.settings-toolbox-page {
+        overflow-x: hidden;
+      }
+
+      body.settings-toolbox-page::before {
+        content: "";
+        position: fixed;
+        inset: -28px;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+        background-size: 28px 28px;
+        animation: settingsGridDrift 18s linear infinite;
+        opacity: 0.9;
+      }
+
+      body.settings-toolbox-page::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 24%),
+          radial-gradient(circle at 84% 22%, rgba(255, 255, 255, 0.18), transparent 26%),
+          radial-gradient(circle at 74% 78%, color-mix(in srgb, var(--accent-strong) 18%, transparent), transparent 24%);
+        animation: settingsGlowFloat 8s ease-in-out infinite;
+      }
+
+      .settings-toolbox-page .hero-copy,
+      .settings-toolbox-page .hero-card,
+      .settings-toolbox-page .content-panel,
+      .settings-toolbox-page .settings-card,
+      .settings-toolbox-page .settings-visual-card {
+        border-radius: 8px;
+        border-width: 2px;
+        transition: all 0.3s ease;
+      }
+
+      .settings-toolbox-page .hero-copy:hover,
+      .settings-toolbox-page .hero-card:hover,
+      .settings-toolbox-page .content-panel:hover,
+      .settings-toolbox-page .settings-card:hover,
+      .settings-toolbox-page .settings-visual-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+      }
+
+      .settings-toolbox-page .workspace-nav .ghost-link-button {
+        border-radius: 4px;
+      }
+    </style>
     <script defer src="/app.js"></script>
     <script defer src="/home.js"></script>
   </head>
-  <body>
+  <body class="settings-toolbox-page">
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
@@ -21,7 +108,7 @@
             <div class="version-pill" data-display-mode-text>当前模式：晚上</div>
           </div>
           <div class="workspace-nav">
-            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+            <a class="ghost-link-button" href="/niuniu-toolbox.html">返回选择界面</a>
           </div>
         </div>
         <div class="hero-card">
@@ -78,6 +165,29 @@
             <div class="mode-toggle-row">
               <button type="button" class="ghost-button mode-toggle-button" data-display-mode-button="day" aria-pressed="false" disabled>白天已关闭</button>
               <button type="button" class="ghost-button mode-toggle-button" data-display-mode-button="night" aria-pressed="true">当前为晚上</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">界面主题</p>
+            <h2>选择主题风格</h2>
+            <p class="tool-card-note">切换后立即生效，偏好会保存到本地。</p>
+            <div class="ui-theme-switcher">
+              <button type="button" class="ui-theme-btn" data-ui-theme-btn="normal" aria-pressed="false">
+                <span class="ui-theme-btn-dot ui-theme-btn-dot--normal"></span>我的世界
+              </button>
+              <button type="button" class="ui-theme-btn" data-ui-theme-btn="milktea" aria-pressed="false">
+                <span class="ui-theme-btn-dot ui-theme-btn-dot--milktea"></span>奶茶
+              </button>
+              <button type="button" class="ui-theme-btn" data-ui-theme-btn="classic" aria-pressed="false">
+                <span class="ui-theme-btn-dot ui-theme-btn-dot--classic"></span>经典草地
+              </button>
+              <button type="button" class="ui-theme-btn" data-ui-theme-btn="end" aria-pressed="false">
+                <span class="ui-theme-btn-dot ui-theme-btn-dot--end"></span>末地
+              </button>
+              <button type="button" class="ui-theme-btn" data-ui-theme-btn="liquid" aria-pressed="false">
+                <span class="ui-theme-btn-dot ui-theme-btn-dot--liquid"></span>液态玻璃
+              </button>
             </div>
           </article>
 

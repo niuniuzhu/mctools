@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的世界工具箱 - 登录</title>
+    <title>奶茶的实用工具箱 - 登录</title>
     <script>
       try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'liquid';
-        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'liquid';
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? 'normal' : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
-        document.documentElement.dataset.ui = 'liquid';
+        document.documentElement.dataset.ui = 'normal';
       }
     </script>
     <link rel="stylesheet" href="/login.css" />
@@ -22,21 +22,25 @@
       <div class="auth-orb auth-orb-left" aria-hidden="true"></div>
       <div class="auth-orb auth-orb-right" aria-hidden="true"></div>
       <section class="auth-card">
-        <p class="badge">Minecraft Toolbox</p>
-        <h1 data-maintenance-title>我的世界工具箱</h1>
-        <p class="lead">先登录或注册，再进入工具箱。当前提供 18 个分类入口，现阶段开放指令、教程、帧率测试、页面检测、趣味实验室、云玩中心、坐标、自动化入口与光影下载中心，其余分类按阶段开放。</p>
+        <p class="badge">Niuniu Utility Toolbox</p>
+        <h1 data-maintenance-title>奶茶的实用工具箱</h1>
+        <p class="lead">先登录或注册，再进入工具箱。当前提供打字练习、文本转换、时间管理等实用工具，满足日常工作与学习需求。</p>
+        <div class="dev-test-banner" role="alert" aria-live="polite">
+          <strong>当前页面为开发者测试版本</strong>
+          <span>请前往 <a href="http://115.29.198.193:3000/index.html" target="_blank" rel="noopener noreferrer">http://115.29.198.193:3000/index.html</a> 使用正式版。</span>
+        </div>
         <div class="meta-band">
           <div class="version-pill" data-app-version>当前版本 正式版1.3.2</div>
           <div class="version-pill glass-state-pill">统一下载中心风格</div>
         </div>
         <div class="preview-entry-row">
-          <a class="ghost-button preview-entry-button" href="/preview.html">进入公开预览</a>
-          <p class="preview-entry-note">不需要登录，仅查看公开介绍与模块预览。</p>
+          <button type="button" class="ghost-button preview-entry-button" disabled>公开预览已关闭</button>
+          <p class="preview-entry-note">当前版本已关闭公开预览入口，如需使用功能请直接登录正式界面。</p>
         </div>
 
         <section class="auth-highlights" aria-label="核心亮点">
           <article class="auth-highlight-card">
-            <p class="auth-highlight-value">18</p>
+            <p class="auth-highlight-value">20</p>
             <p class="auth-highlight-label">分类入口</p>
           </article>
           <article class="auth-highlight-card">
@@ -44,8 +48,8 @@
             <p class="auth-highlight-label">趣味玩法</p>
           </article>
           <article class="auth-highlight-card">
-            <p class="auth-highlight-value">Night</p>
-            <p class="auth-highlight-label">统一夜间模式</p>
+            <p class="auth-highlight-value">Day</p>
+            <p class="auth-highlight-label">统一日间模式</p>
           </article>
         </section>
 
@@ -176,6 +180,17 @@
         </form>
 
         <p class="message" data-message></p>
+      </section>
+
+      <section class="auth-loading-overlay" data-auth-loading hidden aria-live="polite" aria-label="登录加载中">
+        <div class="auth-loading-card">
+          <p class="panel-label">Loading</p>
+          <h2>正在进入工具箱</h2>
+          <p data-auth-loading-message>登录成功，正在同步账号状态与首页模块，请稍候 3 秒。</p>
+          <div class="auth-loading-bar">
+            <span data-auth-loading-progress></span>
+          </div>
+        </div>
       </section>
     </main>
   </body>

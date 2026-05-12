@@ -14,9 +14,13 @@ const tabStatus = document.querySelector('[data-tab-status]');
 const tabStatusTag = document.querySelector('[data-tab-status-tag]');
 const tabStatusTitle = document.querySelector('[data-tab-status-title]');
 const tabStatusNote = document.querySelector('[data-tab-status-note]');
+const authLoadingOverlay = document.querySelector('[data-auth-loading]');
+const authLoadingMessage = document.querySelector('[data-auth-loading-message]');
+const authLoadingProgress = document.querySelector('[data-auth-loading-progress]');
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;
 const maintenanceUnlockWindowMs = 1800;
+const loginRedirectDelayMs = 3000;
 
 let specialRegisterMode = 'normal';
 let maintenanceTitleClickCount = 0;
@@ -120,6 +124,30 @@ function setMessage(text, isError = false) {
   message.style.color = isError ? '#fca5a5' : '#7dd3fc';
 }
 
+function showAuthLoading(tabName) {
+  if (!authLoadingOverlay) {
+    return;
+  }
+
+  authLoadingOverlay.hidden = false;
+  if (authLoadingMessage) {
+    authLoadingMessage.textContent = tabName === 'register'
+      ? '注册成功，正在创建账号资料并进入首页，请稍候 3 秒。'
+      : '登录成功，正在同步账号状态与首页模块，请稍候 3 秒。';
+  }
+
+  if (authLoadingProgress) {
+    authLoadingProgress.style.transition = 'none';
+    authLoadingProgress.style.width = '0%';
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        authLoadingProgress.style.transition = `width ${loginRedirectDelayMs}ms linear`;
+        authLoadingProgress.style.width = '100%';
+      });
+    });
+  }
+}
+
 function updateTabStatus(tabName) {
   if (!tabStatus || !tabStatusTag || !tabStatusTitle || !tabStatusNote) {
     return;
@@ -181,9 +209,10 @@ async function submitForm(event) {
     }
 
     setMessage(result.message || '成功');
+    showAuthLoading(tabName);
     window.setTimeout(() => {
-      window.location.href = '/index.html';
-    }, 300);
+      window.location.href = '/niuniu-toolbox.html';
+    }, loginRedirectDelayMs);
   } catch {
     setMessage('网络请求失败，请稍后重试', true);
   }

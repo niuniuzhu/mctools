@@ -922,14 +922,17 @@ const WORKBENCH_PAGE_MODULES = {
   '/survival-board.html': { key: 'survivalBoard', label: '生存看板' },
   '/pack-center.html': { key: 'packCenter', label: '整合包中心' },
   '/mods.html': { key: 'mods', label: '模组推荐库' },
+  '/closed-categories.html': { key: 'closedCategories', label: '查看已关闭的分类' },
+  '/official-downloads.html': { key: 'officialDownloads', label: '官方下载入口' },
   '/fps-test.html': { key: 'fpsTest', label: '帧率测试' },
+  '/launch-game.html': { key: 'launchGame', label: '启动游戏中心' },
   '/page-detection.html': { key: 'pageDetection', label: '页面识别' },
   '/ai.html': { key: 'ai', label: 'AI 问答' }
 };
 
 const SHADER_HUB_REDEEM_CODE = 'MCTOOLS-SHADER-2026';
-const DEFAULT_UI_THEME = 'liquid';
-const ALLOWED_UI_THEMES = new Set(['normal', 'classic', 'end', 'liquid']);
+const DEFAULT_UI_THEME = 'milktea';
+const ALLOWED_UI_THEMES = new Set(['normal', 'milktea', 'classic', 'end', 'liquid']);
 
 function getPreferredUiTheme() {
   try {
@@ -3455,6 +3458,26 @@ const historyClearButton = document.querySelector('[data-history-clear]');
 
 initializeDisplayModeControls();
 initializeShaderHubAccessControls();
+initializeUiThemeControls();
+
+function initializeUiThemeControls() {
+  function refresh() {
+    const current = getPreferredUiTheme();
+    document.querySelectorAll('[data-ui-theme-btn]').forEach((btn) => {
+      const isActive = btn.getAttribute('data-ui-theme-btn') === current;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+  refresh();
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-ui-theme-btn]');
+    if (!btn) return;
+    const theme = btn.getAttribute('data-ui-theme-btn');
+    setUiTheme(theme);
+    refresh();
+  });
+}
 
 if (commandPicker && commandHost) {
   renderSelectedCommand(commandPicker.value, commandHost);

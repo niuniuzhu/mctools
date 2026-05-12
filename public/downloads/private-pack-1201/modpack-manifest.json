@@ -1,0 +1,42 @@
+{
+  "name": "MC 1.20.1 Private Pack",
+  "version": "1.0.0-private",
+  "minecraftVersion": "1.20.1",
+  "loader": {
+    "type": "fabric",
+    "versionHint": "0.15.x"
+  },
+  "java": {
+    "majorVersion": 17,
+    "recommendedMemoryMb": 6144
+  },
+  "author": "Toolbox User",
+  "visibility": "private",
+  "profile": {
+    "focus": "performance-and-survival",
+    "targetFps": "60+",
+    "shaderTier": "optional"
+  },
+  "includedFolders": [
+    "mods",
+    "config",
+    "resourcepacks",
+    "shaderpacks"
+  ],
+  "requiredMods": [
+    "Fabric API",
+    "Sodium",
+    "Lithium",
+    "Starlight",
+    "Iris (optional when using shaders)",
+    "Mod Menu"
+  ],
+  "optionalMods": [
+    "Continuity",
+    "LambDynamicLights",
+    "Entity Culling",
+    "FerriteCore",
+    "ImmediatelyFast"
+  ],
+  "notes": "Do not redistribute paid or unauthorized assets. Fill exact mod file names before sharing."
+}

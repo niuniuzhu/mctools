@@ -1,0 +1,73 @@
+{
+  "namespace": "ui",
+  "pause_screen": {
+    "type": "screen",
+    "screen_size": ["100%", "100%"],
+    "controls": [
+      {
+        "main_panel": {
+          "type": "panel",
+          "size": ["100%", "100%"],
+          "controls": [
+            {
+              "background_overlay": {
+                "type": "image",
+                "texture": "ui/pixel_overlay",
+                "size": ["100%", "100%"],
+                "color": [0, 0, 0, 0.6]
+              }
+            },
+            {
+              "pause_panel": {
+                "type": "panel",
+                "size": ["300px", "300px"],
+                "offset": ["50% - 150px", "50% - 150px"],
+                "background": true,
+                "controls": [
+                  {
+                    "pause_title": {
+                      "type": "label",
+                      "text": "奶茶时间",
+                      "font_size": "large",
+                      "color": "#F7E8D0",
+                      "anchor_from": "center",
+                      "anchor_to": "center",
+                      "offset": [0, "20px"]
+                    }
+                  },
+                  {
+                    "continue_button": {
+                      "type": "button",
+                      "size": ["250px", "40px"],
+                      "offset": ["25px", "70px"],
+                      "text": "继续游戏",
+                      "font_size": "large"
+                    }
+                  },
+                  {
+                    "settings_button": {
+                      "type": "button",
+                      "size": ["250px", "40px"],
+                      "offset": ["25px", "120px"],
+                      "text": "游戏设置",
+                      "font_size": "large"
+                    }
+                  },
+                  {
+                    "quit_button": {
+                      "type": "button",
+                      "size": ["250px", "40px"],
+                      "offset": ["25px", "170px"],
+                      "text": "退出到主菜单",
+                      "font_size": "large"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的世界工具箱 - 自研与扩展工具中心</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Minecraft Toolbox</p>
+          <h1>自研与扩展工具中心</h1>
+          <p class="lead">包含工具箱自研的沙盒、私人整合包、Web 版启动等扩展功能。这些工具不使用官方资源，可以直接体验、修改或用于私人分发。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 beta1.15.0</div>
+            <div class="version-pill">模块：自研与扩展工具</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">工具箱 · 扩展</p>
+            <h2>自研工具与启动方案</h2>
+          </div>
+          <p class="tool-card-note">所有工具都是自研实现，不含第三方官方资源。可直接使用、私人分发或继续开发。</p>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">工具 1</p>
+            <h2>自研沙盒 1.20.1 风格</h2>
+            <p>纯浏览器实现的类 Minecraft 沙盒。支持 WASD 移动、左键挖掘、右键放置、快捷栏切换、昼夜循环和本地自动存档。无需本机启动器，打开即玩。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/sandbox-1201.html">进入自研沙盒</a>
+              <a class="copy-btn secondary" href="/fps-test.html">先测一下帧率</a>
+            </div>
+            <div class="result-card">
+              <strong>特性：</strong><br>
+              ✅ 纯网页实现，无需安装<br>
+              ✅ WASD 移动 + 鼠标左右键挖掘/放置<br>
+              ✅ 草、土、石、木、水 5 种基础方块<br>
+              ✅ 程序化地形生成（支持种子）<br>
+              ✅ 本地 localStorage 自动存档<br>
+              ✅ 60FPS 流畅渲染与白天/黑夜循环<br>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">工具 2</p>
+            <h2>整合包模板与安装指引</h2>
+            <p>为 Fabric 1.20.1 提供完整的整合包组装模板。包含预设的 mod 列表、安装指南、JVM 参数优化和验证脚本。可以直接用于个人项目或私人分发。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/modpack-installer-1201.html">打开整合包中心</a>
+              <a class="copy-btn secondary" href="/downloads/private-pack-1201/">查看模板文件</a>
+            </div>
+            <div class="result-card">
+              <strong>包含内容：</strong><br>
+              ✅ Fabric 1.20.1 基础配置<br>
+              ✅ 50+ 页详细安装指南<br>
+              ✅ 分类 mod 推荐（Sodium、Lithium 等）<br>
+              ✅ Java G1GC 优化参数（6GB 内存）<br>
+              ✅ PowerShell 自动验证脚本<br>
+              ✅ 可编辑的清单与版本文件<br>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card utility-card-wide">
+            <p class="panel-label">工具 3</p>
+            <h2>Web 版快速启动器</h2>
+            <p>无需本地启动器的 Web 版启动工具。支持快速打开 Minecraft Launcher 和基岩版，并提供常见问题排查指引。适合多设备快速启动游戏。</p>
+            <div class="button-row">
+              <a class="copy-btn" href="/launch-game.html">打开启动中心</a>
+              <a class="copy-btn secondary" href="/commands.html">查看指令辅助</a>
+            </div>
+            <div class="result-card">
+              <strong>功能：</strong><br>
+              ✅ 一键启动 Java 版启动器<br>
+              ✅ 基岩版快速打开<br>
+              ✅ 设备检查与故障排查<br>
+              ✅ 常见问题 FAQ<br>
+              ✅ 多系统支持（Windows / macOS）<br>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">技术细节</p>
+            <h2>实现说明</h2>
+          </div>
+        </div>
+        <div class="utility-grid">
+          <article class="guide-card">
+            <p class="panel-label">沙盒 · 技术</p>
+            <h2>地形生成与渲染</h2>
+            <p>使用 Perlin 噪声进行程序化地形生成，采用 Canvas 2D API 进行实时渲染。支持摄像机偏移与视野范围限制，确保移动时流畅体验。</p>
+          </article>
+
+          <article class="guide-card">
+            <p class="panel-label">沙盒 · 功能</p>
+            <h2>玩法系统</h2>
+            <p>支持 WASD 移动、按住 Shift 冲刺、左键挖掘、右键放置。快捷栏支持鼠标滚轮或数字键切换。所有状态通过 localStorage 自动保存。</p>
+          </article>
+
+          <article class="guide-card">
+            <p class="panel-label">整合包 · 资源</p>
+            <h2>模板文件集合</h2>
+            <p>7 个完整文件提供了从配置、安装指南到自动化验证的全套支持。所有文件均可编辑，适合个人修改或团队协作。</p>
+          </article>
+
+          <article class="guide-card">
+            <p class="panel-label">启动器 · 集成</p>
+            <h2>跨系统支持</h2>
+            <p>通过 Web 标准实现启动器检测与快速启动。不依赖特定操作系统，移动访问时提供友好的提示与降级方案。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">开发与分发</p>
+            <h2>自研工具的使用协议</h2>
+          </div>
+        </div>
+        <div class="result-card">
+          <p>这些工具是工具箱的自研开发，采用以下使用方式：</p>
+          <ul style="margin: 1rem 0; padding-left: 2rem;">
+            <li><strong>直接使用：</strong>在这个网站上开箱即用，无需任何额外配置。</li>
+            <li><strong>本地修改：</strong>下载整合包模板文件后，可以自由编辑与优化，适合个人项目。</li>
+            <li><strong>私人分发：</strong>可将修改后的工具或整合包用于小范围分发或内部项目，但需标注来源。</li>
+            <li><strong>不包含官方资源：</strong>所有工具均不包含 Mojang 或 Microsoft 的官方资源，完全独立实现。</li>
+            <li><strong>持续开发：</strong>这些工具会定期更新与优化，欢迎反馈与建议。</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
