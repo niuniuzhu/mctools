@@ -944,20 +944,12 @@ function getPreferredUiTheme() {
 }
 
 function getShaderHubState() {
-  const state = readScopedStorage('shader-hub-access', { qualified: false });
-
-  if (!state || typeof state !== 'object' || Array.isArray(state)) {
-    return { qualified: false };
-  }
-
-  return {
-    qualified: Boolean(state.qualified)
-  };
+  return { qualified: true };
 }
 
 function setShaderHubState(nextState) {
   writeScopedStorage('shader-hub-access', {
-    qualified: Boolean(nextState && nextState.qualified)
+    qualified: true
   });
 }
 
@@ -974,7 +966,7 @@ function setUiTheme(themeName) {
 }
 
 function renderShaderHubAccess() {
-  const state = currentMe ? getShaderHubState() : { qualified: false };
+  const state = { qualified: true };
   const status = document.querySelector('[data-shader-hub-status]');
   const message = document.querySelector('[data-shader-hub-message]');
   const codeInput = document.querySelector('[data-shader-hub-code]');
@@ -991,42 +983,39 @@ function renderShaderHubAccess() {
   }
 
   if (message) {
-    message.textContent = state.qualified
-      ? '当前账号已获得光影下载中心资格，可直接进入下载页面。'
-      : '输入独立兑换码后即可开放光影下载中心。';
+    message.textContent = '当前账号可直接进入光影下载中心，无需兑换码。';
   }
 
   if (codeInput) {
-    codeInput.disabled = state.qualified;
-    if (state.qualified) {
-      codeInput.value = '';
-    }
+    codeInput.disabled = true;
+    codeInput.value = '';
   }
 
   if (redeemButton) {
-    redeemButton.disabled = state.qualified;
+    redeemButton.disabled = true;
   }
 
   if (actions) {
-    actions.classList.toggle('hidden', !state.qualified);
+    actions.classList.remove('hidden');
   }
 
   if (revokeButton) {
-    revokeButton.disabled = !state.qualified;
+    revokeButton.disabled = true;
+    revokeButton.hidden = true;
   }
 
   if (lockedPanel) {
-    lockedPanel.classList.toggle('hidden', state.qualified);
+    lockedPanel.classList.add('hidden');
   }
 
   if (contentPanel) {
-    contentPanel.classList.toggle('shader-hub-disabled', !state.qualified);
-    contentPanel.setAttribute('aria-disabled', state.qualified ? 'false' : 'true');
+    contentPanel.classList.remove('shader-hub-disabled');
+    contentPanel.setAttribute('aria-disabled', 'false');
   }
 
   if (pageStatus) {
-    pageStatus.textContent = state.qualified ? '权限：已开放下载' : '权限：需兑换码开放';
-    pageStatus.classList.toggle('vip-active', state.qualified);
+    pageStatus.textContent = '权限：已开放下载';
+    pageStatus.classList.add('vip-active');
   }
 }
 
@@ -1034,52 +1023,11 @@ function initializeShaderHubAccessControls() {
   const redeemButton = document.querySelector('[data-shader-hub-redeem]');
   const revokeButton = document.querySelector('[data-shader-hub-revoke]');
   const codeInput = document.querySelector('[data-shader-hub-code]');
-  const message = document.querySelector('[data-shader-hub-message]');
   const lockedPanel = document.querySelector('[data-shader-hub-locked]');
   const contentPanel = document.querySelector('[data-shader-hub-content]');
 
   if (!redeemButton && !revokeButton && !lockedPanel && !contentPanel) {
     return;
-  }
-
-  if (redeemButton && codeInput) {
-    redeemButton.addEventListener('click', () => {
-      const normalizedCode = String(codeInput.value || '').trim().toUpperCase();
-
-      if (normalizedCode !== SHADER_HUB_REDEEM_CODE) {
-        if (message) {
-          message.textContent = '兑换码无效，光影下载中心仍未开放。';
-        }
-        return;
-      }
-
-      setShaderHubState({ qualified: true });
-
-      if (message) {
-        message.textContent = '兑换成功，光影下载中心已开放。';
-      }
-
-      renderShaderHubAccess();
-    });
-
-    codeInput.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        redeemButton.click();
-      }
-    });
-  }
-
-  if (revokeButton) {
-    revokeButton.addEventListener('click', () => {
-      setShaderHubState({ qualified: false });
-
-      if (message) {
-        message.textContent = '已取消光影下载中心资格。';
-      }
-
-      renderShaderHubAccess();
-    });
   }
 
   renderShaderHubAccess();
@@ -3331,6 +3279,28 @@ async function handleLogout() {
   window.location.href = '/login.html';
 }
 
+async function changePassword(currentPassword, nextPassword, confirmPassword) {
+  const response = await fetch('/api/account/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      currentPassword,
+      nextPassword,
+      confirmPassword
+    })
+  });
+
+  const result = await response.json().catch(() => ({ message: '修改密码失败' }));
+
+  if (!response.ok) {
+    const error = new Error(result.message || '修改密码失败');
+    error.status = response.status;
+    throw error;
+  }
+
+  return result;
+}
+
 async function generateAi() {
   const promptInput = document.querySelector('[data-ai-prompt]');
   const output = document.querySelector('[data-ai-output]');
@@ -3455,6 +3425,11 @@ const aiCopyButton = document.querySelector('[data-ai-copy]');
 const executorRunButton = document.querySelector('[data-executor-run]');
 const executorCopyButton = document.querySelector('[data-executor-copy]');
 const historyClearButton = document.querySelector('[data-history-clear]');
+const passwordCurrentInput = document.querySelector('[data-password-current]');
+const passwordNextInput = document.querySelector('[data-password-next]');
+const passwordConfirmInput = document.querySelector('[data-password-confirm]');
+const passwordSubmitButton = document.querySelector('[data-password-submit]');
+const passwordMessage = document.querySelector('[data-password-message]');
 
 initializeDisplayModeControls();
 initializeShaderHubAccessControls();
@@ -3615,6 +3590,36 @@ if (svipPurchaseButton) {
       updateVipState(result);
     } catch {
       window.location.href = '/login.html';
+    }
+  });
+}
+
+if (passwordSubmitButton && passwordCurrentInput && passwordNextInput && passwordConfirmInput) {
+  passwordSubmitButton.addEventListener('click', async () => {
+    const currentPassword = passwordCurrentInput.value;
+    const nextPassword = passwordNextInput.value;
+    const confirmPassword = passwordConfirmInput.value;
+
+    if (passwordMessage) {
+      passwordMessage.textContent = '正在提交修改密码请求...';
+    }
+
+    try {
+      const result = await changePassword(currentPassword, nextPassword, confirmPassword);
+      passwordCurrentInput.value = '';
+      passwordNextInput.value = '';
+      passwordConfirmInput.value = '';
+      if (passwordMessage) {
+        passwordMessage.textContent = result.message || '密码已更新';
+      }
+    } catch (error) {
+      if (error.status === 401) {
+        window.location.href = '/login.html';
+        return;
+      }
+      if (passwordMessage) {
+        passwordMessage.textContent = error.message || '修改密码失败';
+      }
     }
   });
 }

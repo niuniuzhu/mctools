@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶的日常工具箱 - 二维码生成器</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .qr-topbar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .qr-topbar a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .qr-topbar a:hover {
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .qr-header {
+        margin-bottom: 28px;
+      }
+
+      .qr-header h1 {
+        margin: 0 0 10px;
+        font-size: 2rem;
+      }
+
+      .qr-header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .qr-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+        gap: 24px;
+      }
+
+      .qr-panel,
+      .qr-preview {
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 24px;
+      }
+
+      .qr-label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .qr-textarea,
+      .qr-input,
+      .qr-select {
+        width: 100%;
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        padding: 12px 14px;
+        font: inherit;
+      }
+
+      .qr-textarea {
+        min-height: 136px;
+        resize: vertical;
+      }
+
+      .qr-config {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin: 18px 0;
+      }
+
+      .qr-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .qr-btn {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--text);
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .qr-btn:hover {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.18);
+        transform: translateY(-2px);
+      }
+
+      .qr-btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #081225;
+      }
+
+      .qr-btn.primary:hover {
+        background: var(--accent-strong);
+      }
+
+      .qr-image-wrap {
+        display: grid;
+        place-items: center;
+        min-height: 320px;
+        border-radius: 12px;
+        border: 2px dashed var(--panel-border);
+        background: rgba(255, 255, 255, 0.04);
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .qr-image-wrap img {
+        width: min(100%, 320px);
+        height: auto;
+        display: block;
+        background: #fff;
+        border-radius: 12px;
+      }
+
+      .qr-placeholder {
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.8;
+      }
+
+      .qr-status {
+        min-height: 24px;
+        color: var(--muted);
+      }
+
+      .qr-tips {
+        margin-top: 18px;
+        padding-left: 20px;
+        color: var(--muted);
+        line-height: 1.9;
+      }
+
+      @media (max-width: 900px) {
+        .qr-shell,
+        .qr-config {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="qr-topbar">
+        <a href="/niuniu-toolbox.html">← 返回工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="qr-header">
+        <h1>二维码生成器 📱</h1>
+        <p>支持文本、链接、联系方式和 Wi-Fi 信息快速生成二维码，并可直接下载。</p>
+      </section>
+
+      <section class="qr-shell">
+        <div class="qr-panel">
+          <label class="qr-label" for="qr-content">输入内容</label>
+          <textarea id="qr-content" class="qr-textarea" placeholder="输入文本、网址、邮箱、电话号码或 Wi-Fi 信息"></textarea>
+
+          <div class="qr-config">
+            <div>
+              <label class="qr-label" for="qr-size">二维码尺寸</label>
+              <select id="qr-size" class="qr-select">
+                <option value="200">200 × 200</option>
+                <option value="300" selected>300 × 300</option>
+                <option value="400">400 × 400</option>
+                <option value="500">500 × 500</option>
+              </select>
+            </div>
+            <div>
+              <label class="qr-label" for="qr-preset">快捷模板</label>
+              <select id="qr-preset" class="qr-select">
+                <option value="">请选择</option>
+                <option value="https://niuniu-toolbox.example">网址</option>
+                <option value="mailto:hello@example.com">邮箱</option>
+                <option value="tel:13800138000">电话</option>
+                <option value="WIFI:T:WPA;S:MyWiFi;P:12345678;;">Wi-Fi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="qr-actions">
+            <button type="button" class="qr-btn primary" data-generate>生成二维码</button>
+            <button type="button" class="qr-btn" data-download>下载图片</button>
+            <button type="button" class="qr-btn" data-clear>清空</button>
+          </div>
+
+          <ul class="qr-tips">
+            <li>网址建议带上 <strong>https://</strong>，扫描时会直接识别为链接。</li>
+            <li>Wi-Fi 格式示例：<strong>WIFI:T:WPA;S:你的WiFi名;P:密码;;</strong></li>
+            <li>下载按钮会保存当前预览图，不需要再次生成。</li>
+          </ul>
+        </div>
+
+        <aside class="qr-preview">
+          <div class="qr-image-wrap" data-qr-image-wrap>
+            <div class="qr-placeholder" data-qr-placeholder>
+              输入内容后点击“生成二维码”<br />
+              这里会显示预览图
+            </div>
+          </div>
+          <div class="qr-status" data-qr-status>等待生成</div>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const contentInput = document.querySelector('#qr-content');
+        const sizeSelect = document.querySelector('#qr-size');
+        const presetSelect = document.querySelector('#qr-preset');
+        const generateButton = document.querySelector('[data-generate]');
+        const downloadButton = document.querySelector('[data-download]');
+        const clearButton = document.querySelector('[data-clear]');
+        const imageWrap = document.querySelector('[data-qr-image-wrap]');
+        const placeholder = document.querySelector('[data-qr-placeholder]');
+        const status = document.querySelector('[data-qr-status]');
+        let currentQrUrl = '';
+
+        function setStatus(text) {
+          status.textContent = text;
+        }
+
+        function buildQrUrl(content, size) {
+          const encoded = encodeURIComponent(content);
+          return 'https://api.qrserver.com/v1/create-qr-code/?data=' + encoded + '&size=' + size + 'x' + size + '&margin=12';
+        }
+
+        function renderQr(url) {
+          imageWrap.innerHTML = '';
+          const image = document.createElement('img');
+          image.src = url;
+          image.alt = '二维码预览';
+          image.loading = 'lazy';
+          image.addEventListener('load', () => setStatus('二维码已生成'));
+          image.addEventListener('error', () => {
+            setStatus('二维码加载失败，请检查网络后重试');
+            imageWrap.innerHTML = '';
+            imageWrap.appendChild(placeholder);
+            placeholder.hidden = false;
+          });
+          imageWrap.appendChild(image);
+          placeholder.hidden = true;
+        }
+
+        function generateQr() {
+          const content = contentInput.value.trim();
+          const size = sizeSelect.value;
+
+          if (!content) {
+            setStatus('请先输入要编码的内容');
+            return;
+          }
+
+          currentQrUrl = buildQrUrl(content, size);
+          renderQr(currentQrUrl);
+          setStatus('正在生成二维码...');
+        }
+
+        generateButton.addEventListener('click', generateQr);
+
+        downloadButton.addEventListener('click', () => {
+          if (!currentQrUrl) {
+            setStatus('请先生成二维码');
+            return;
+          }
+
+          const link = document.createElement('a');
+          link.href = currentQrUrl;
+          link.download = 'niuniu-qrcode.png';
+          link.target = '_blank';
+          link.rel = 'noopener';
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          setStatus('已触发下载');
+        });
+
+        clearButton.addEventListener('click', () => {
+          contentInput.value = '';
+          presetSelect.value = '';
+          currentQrUrl = '';
+          imageWrap.innerHTML = '';
+          imageWrap.appendChild(placeholder);
+          placeholder.hidden = false;
+          setStatus('已清空');
+        });
+
+        presetSelect.addEventListener('change', () => {
+          if (presetSelect.value) {
+            contentInput.value = presetSelect.value;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

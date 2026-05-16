@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 文本转换</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .tool-topbar,.tool-actions,.tool-grid { display:flex; gap:16px; flex-wrap:wrap; }
+      .tool-topbar { margin-bottom:32px; }
+      .tool-topbar a { color: var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
+      .tool-topbar a:hover { background: rgba(96,165,250,0.1); }
+      .tool-shell { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(280px,0.9fr); gap:24px; }
+      .tool-panel,.tool-side { border-radius:10px; border:2px solid var(--panel-border); background:var(--panel); padding:24px; }
+      .tool-panel h1,.tool-side h2 { margin-top:0; }
+      .tool-textarea { width:100%; min-height:260px; resize:vertical; border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.08); color:var(--text); padding:14px 16px; font:inherit; }
+      .tool-btn { border-radius:8px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.1); color:var(--text); padding:10px 16px; font-weight:600; cursor:pointer; }
+      .tool-btn:hover { border-color:var(--accent); background:rgba(96,165,250,0.18); }
+      .tool-btn.primary { background:var(--accent); color:#081225; border-color:var(--accent); }
+      .tool-btn.secondary { background:rgba(244,114,182,0.14); border-color:rgba(244,114,182,0.24); }
+      .tool-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:18px; }
+      .stat-card { border-radius:10px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.08); padding:14px; }
+      .stat-card strong { display:block; color:var(--muted); margin-bottom:8px; }
+      .stat-card span { font-size:1.4rem; font-weight:700; }
+      .tool-side ul { margin:0; padding-left:20px; color:var(--muted); line-height:1.9; }
+      .tool-message { min-height:24px; margin-top:12px; color:var(--muted); }
+      @media (max-width: 900px) { .tool-shell,.tool-stats { grid-template-columns:1fr; } }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="tool-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+      <section class="tool-shell">
+        <section class="tool-panel">
+          <h1>文本转换 📝</h1>
+          <p class="tool-card-note">支持大小写、去重、去空行、标题格式、常用繁简转换、Markdown 清理、代码整理和文本统计。</p>
+          <textarea class="tool-textarea" data-text-source placeholder="输入需要转换或整理的文本"></textarea>
+          <div class="tool-actions" style="margin-top:16px;">
+            <button type="button" class="tool-btn" data-text-action="upper">转大写</button>
+            <button type="button" class="tool-btn" data-text-action="lower">转小写</button>
+            <button type="button" class="tool-btn" data-text-action="trim">去首尾空格</button>
+            <button type="button" class="tool-btn" data-text-action="dedupe">去重行</button>
+            <button type="button" class="tool-btn" data-text-action="clean-lines">去空行</button>
+            <button type="button" class="tool-btn" data-text-action="title">标题格式</button>
+            <button type="button" class="tool-btn secondary" data-text-action="simplified">转简体</button>
+            <button type="button" class="tool-btn secondary" data-text-action="traditional">转繁体</button>
+            <button type="button" class="tool-btn" data-text-action="markdown-clean">Markdown 清理</button>
+            <button type="button" class="tool-btn" data-text-action="code-tidy">代码整理</button>
+            <button type="button" class="tool-btn primary" data-text-action="copy">复制结果</button>
+            <button type="button" class="tool-btn" data-text-action="clear">清空</button>
+          </div>
+          <div class="tool-message" data-text-message></div>
+          <div class="tool-stats">
+            <div class="stat-card"><strong>字符数</strong><span data-text-char-count>0</span></div>
+            <div class="stat-card"><strong>单词数</strong><span data-text-word-count>0</span></div>
+            <div class="stat-card"><strong>行数</strong><span data-text-line-count>0</span></div>
+          </div>
+        </section>
+        <aside class="tool-side">
+          <h2>当前支持</h2>
+          <ul>
+            <li>整段转大写、转小写</li>
+            <li>去除每行首尾空格</li>
+            <li>按行去重与去空行</li>
+            <li>英文标题格式化</li>
+            <li>常用繁体与简体双向转换</li>
+            <li>Markdown 转纯文本清理</li>
+            <li>JSON 优先的代码整理与缩进修复</li>
+            <li>字符数、单词数、行数统计</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const source = document.querySelector('[data-text-source]');
+        const charCount = document.querySelector('[data-text-char-count]');
+        const wordCount = document.querySelector('[data-text-word-count]');
+        const lineCount = document.querySelector('[data-text-line-count]');
+        const message = document.querySelector('[data-text-message]');
+        const traditionalToSimplified = {
+          '體': '体','學': '学','習': '习','轉': '转','換': '换','標': '标','題': '题','這': '这','個': '个','為': '为','後': '后','開': '开','關': '关','閉': '闭','輸': '输','與': '与','頁': '页','點': '点','選': '选','項': '项','單': '单','雙': '双','線': '线','碼': '码','號': '号','從': '从','資': '资','產': '产','顯': '显','測': '测','試': '试','級': '级','務': '务','處': '处','內': '内','專': '专','業': '业','貝': '贝','們': '们','請': '请','將': '将','對': '对','溫': '温','華': '华','簡': '简','複': '复','製': '制','舉': '举','籤': '签','隨': '随','機': '机','壓': '压','縮': '缩','驗': '验','證': '证','數': '数','據': '据','實': '实','際': '际','錄': '录','網': '网','設': '设','置': '置','龍': '龙','風': '风','雲': '云','氣': '气','樂': '乐'
+        };
+        const simplifiedToTraditional = Object.fromEntries(Object.entries(traditionalToSimplified).map(([traditional, simplified]) => [simplified, traditional]));
+
+        function updateStats() {
+          const value = source.value;
+          charCount.textContent = String(value.length);
+          wordCount.textContent = String((value.trim().match(/\S+/g) || []).length);
+          lineCount.textContent = String(value ? value.split(/\r?\n/).length : 0);
+        }
+
+        function setMessage(text) {
+          message.textContent = text;
+        }
+
+        function toTitleCase(text) {
+          return text.replace(/\w\S*/g, (part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase());
+        }
+
+        function convertByMap(text, dictionary) {
+          return Array.from(text).map((char) => dictionary[char] || char).join('');
+        }
+
+        function cleanMarkdown(text) {
+          return text
+            .replace(/```[\s\S]*?```/g, (block) => block.replace(/```/g, '').trim())
+            .replace(/^#{1,6}\s*/gm, '')
+            .replace(/^>\s?/gm, '')
+            .replace(/^\s*[-*+]\s+/gm, '')
+            .replace(/^\s*\d+\.\s+/gm, '')
+            .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '$1')
+            .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+            .replace(/`([^`]+)`/g, '$1')
+            .replace(/\*\*([^*]+)\*\*/g, '$1')
+            .replace(/__([^_]+)__/g, '$1')
+            .replace(/~~([^~]+)~~/g, '$1')
+            .replace(/[\t ]+$/gm, '')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+        }
+
+        function tidyCode(text) {
+          const trimmed = text.replace(/\r\n/g, '\n').trim();
+          if (!trimmed) {
+            return '';
+          }
+
+          try {
+            return JSON.stringify(JSON.parse(trimmed), null, 2);
+          } catch {
+            const lines = trimmed.split('\n');
+            let indentLevel = 0;
+            return lines.map((line) => {
+              const normalized = line.replace(/\t/g, '  ').trim();
+              if (!normalized) {
+                return '';
+              }
+              if (/^[\}\]\)]/.test(normalized)) {
+                indentLevel = Math.max(0, indentLevel - 1);
+              }
+              const output = `${'  '.repeat(indentLevel)}${normalized}`;
+              if (/[\{\[\(]$/.test(normalized)) {
+                indentLevel += 1;
+              }
+              return output;
+            }).join('\n').replace(/\n{3,}/g, '\n\n');
+          }
+        }
+
+        document.addEventListener('click', async (event) => {
+          const button = event.target.closest('[data-text-action]');
+          if (!button) return;
+          const action = button.getAttribute('data-text-action');
+          const current = source.value;
+
+          if (action === 'upper') source.value = current.toUpperCase();
+          if (action === 'lower') source.value = current.toLowerCase();
+          if (action === 'trim') source.value = current.split(/\r?\n/).map((line) => line.trim()).join('\n');
+          if (action === 'dedupe') source.value = Array.from(new Set(current.split(/\r?\n/))).join('\n');
+          if (action === 'clean-lines') source.value = current.split(/\r?\n/).filter((line) => line.trim()).join('\n');
+          if (action === 'title') source.value = toTitleCase(current);
+          if (action === 'simplified') source.value = convertByMap(current, traditionalToSimplified);
+          if (action === 'traditional') source.value = convertByMap(current, simplifiedToTraditional);
+          if (action === 'markdown-clean') source.value = cleanMarkdown(current);
+          if (action === 'code-tidy') source.value = tidyCode(current);
+          if (action === 'clear') source.value = '';
+          if (action === 'copy') {
+            await navigator.clipboard.writeText(source.value).catch(() => {});
+            setMessage('已复制到剪贴板');
+          } else if (action === 'simplified' || action === 'traditional') {
+            setMessage('已完成常用繁简转换');
+          } else if (action === 'markdown-clean') {
+            setMessage('已清理 Markdown 标记');
+          } else if (action === 'code-tidy') {
+            setMessage('已完成代码整理');
+          } else if (action === 'clear') {
+            setMessage('内容已清空');
+          } else {
+            setMessage('已应用文本处理');
+          }
+          updateStats();
+        });
+
+        source.addEventListener('input', () => {
+          updateStats();
+          if (message.textContent) {
+            setMessage('');
+          }
+        });
+        updateStats();
+      })();
+    </script>
+  </body>
+</html>

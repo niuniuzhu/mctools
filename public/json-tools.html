@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - JSON 工具</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .json-topbar,.json-actions { display:flex; gap:16px; flex-wrap:wrap; }
+      .json-topbar { margin-bottom:32px; }
+      .json-topbar a { color:var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
+      .json-shell { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(280px,0.9fr); gap:24px; }
+      .json-panel,.json-side { border-radius:10px; border:2px solid var(--panel-border); background:var(--panel); padding:24px; }
+      .json-textarea { width:100%; min-height:240px; resize:vertical; border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.08); color:var(--text); padding:14px 16px; font:inherit; }
+      .json-actions { margin:16px 0; }
+      .json-btn { border-radius:8px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.1); color:var(--text); padding:10px 16px; font-weight:600; cursor:pointer; }
+      .json-btn:hover { border-color:var(--accent); background:rgba(96,165,250,0.18); }
+      .json-btn.primary { background:var(--accent); color:#081225; border-color:var(--accent); }
+      .json-status { min-height:24px; margin-bottom:12px; }
+      .json-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:16px; }
+      .json-stat { border-radius:10px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.08); padding:14px; }
+      .json-stat strong { display:block; color:var(--muted); margin-bottom:8px; }
+      .json-stat span { font-size:1.3rem; font-weight:700; }
+      .json-side ul { margin:0; padding-left:20px; color:var(--muted); line-height:1.9; }
+      @media (max-width: 900px) { .json-shell,.json-stats { grid-template-columns:1fr; } }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="json-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+      <section class="json-shell">
+        <section class="json-panel">
+          <h1>JSON 工具 📋</h1>
+          <p class="tool-card-note">把 JSON 粘进来后可以格式化、压缩、校验，并查看结构统计。</p>
+          <textarea class="json-textarea" data-json-input placeholder='例如：{"name":"niuniu","tools":[1,2,3]}'></textarea>
+          <div class="json-actions">
+            <button type="button" class="json-btn primary" data-json-action="format">格式化</button>
+            <button type="button" class="json-btn" data-json-action="minify">压缩</button>
+            <button type="button" class="json-btn" data-json-action="validate">校验</button>
+            <button type="button" class="json-btn" data-json-action="copy">复制结果</button>
+            <button type="button" class="json-btn" data-json-action="clear">清空</button>
+          </div>
+          <div class="json-status" data-json-status>等待输入 JSON</div>
+          <textarea class="json-textarea" data-json-output placeholder="处理结果会显示在这里" readonly></textarea>
+          <div class="json-stats">
+            <div class="json-stat"><strong>根类型</strong><span data-json-root-type>-</span></div>
+            <div class="json-stat"><strong>键数量</strong><span data-json-key-count>0</span></div>
+            <div class="json-stat"><strong>层级深度</strong><span data-json-depth>0</span></div>
+          </div>
+        </section>
+        <aside class="json-side">
+          <h2>当前支持</h2>
+          <ul>
+            <li>一键格式化为 2 空格缩进</li>
+            <li>压缩为单行 JSON</li>
+            <li>结构合法性校验</li>
+            <li>统计根类型、键数量和深度</li>
+            <li>复制处理结果</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const input = document.querySelector('[data-json-input]');
+        const output = document.querySelector('[data-json-output]');
+        const status = document.querySelector('[data-json-status]');
+        const rootType = document.querySelector('[data-json-root-type]');
+        const keyCount = document.querySelector('[data-json-key-count]');
+        const depth = document.querySelector('[data-json-depth]');
+
+        function countKeys(value) {
+          if (!value || typeof value !== 'object') return 0;
+          if (Array.isArray(value)) return value.reduce((sum, item) => sum + countKeys(item), 0);
+          return Object.keys(value).length + Object.values(value).reduce((sum, item) => sum + countKeys(item), 0);
+        }
+
+        function getDepth(value) {
+          if (!value || typeof value !== 'object') return 0;
+          const values = Array.isArray(value) ? value : Object.values(value);
+          if (!values.length) return 1;
+          return 1 + Math.max(...values.map(getDepth));
+        }
+
+        function parseInput() {
+          return JSON.parse(input.value);
+        }
+
+        function updateStats(parsed) {
+          rootType.textContent = Array.isArray(parsed) ? 'array' : parsed === null ? 'null' : typeof parsed;
+          keyCount.textContent = String(countKeys(parsed));
+          depth.textContent = String(getDepth(parsed));
+        }
+
+        function resetStats() {
+          rootType.textContent = '-';
+          keyCount.textContent = '0';
+          depth.textContent = '0';
+        }
+
+        document.addEventListener('click', async (event) => {
+          const button = event.target.closest('[data-json-action]');
+          if (!button) return;
+          const action = button.getAttribute('data-json-action');
+
+          if (action === 'clear') {
+            input.value = '';
+            output.value = '';
+            status.textContent = '已清空';
+            resetStats();
+            return;
+          }
+
+          if (action === 'copy') {
+            await navigator.clipboard.writeText(output.value || input.value).catch(() => {});
+            status.textContent = '已复制结果';
+            return;
+          }
+
+          try {
+            const parsed = parseInput();
+            updateStats(parsed);
+            if (action === 'format') {
+              output.value = JSON.stringify(parsed, null, 2);
+              status.textContent = 'JSON 格式化完成';
+            }
+            if (action === 'minify') {
+              output.value = JSON.stringify(parsed);
+              status.textContent = 'JSON 压缩完成';
+            }
+            if (action === 'validate') {
+              output.value = JSON.stringify(parsed, null, 2);
+              status.textContent = 'JSON 校验通过';
+            }
+          } catch (error) {
+            output.value = '';
+            resetStats();
+            status.textContent = error.message || 'JSON 无效';
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

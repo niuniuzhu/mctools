@@ -17,14 +17,40 @@ const tabStatusNote = document.querySelector('[data-tab-status-note]');
 const authLoadingOverlay = document.querySelector('[data-auth-loading]');
 const authLoadingMessage = document.querySelector('[data-auth-loading-message]');
 const authLoadingProgress = document.querySelector('[data-auth-loading-progress]');
+const previewEntryRow = document.querySelector('.preview-entry-row');
 const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
 const maintenanceUnlockClickTarget = 10;
 const maintenanceUnlockWindowMs = 1800;
-const loginRedirectDelayMs = 3000;
+const loginRedirectDelayMs = 0;
+const loginPageVersion = '正式版1.4';
 
 let specialRegisterMode = 'normal';
 let maintenanceTitleClickCount = 0;
 let maintenanceUnlockResetTimer = null;
+
+function isOfficialPublicLogin() {
+  return window.location.protocol === 'http:' && window.location.host === '115.29.198.193:3000' && window.location.pathname === '/login.html';
+}
+
+function applyLoginEnvironmentState() {
+  if (!isOfficialPublicLogin()) {
+    return;
+  }
+
+   if (previewEntryRow) {
+    previewEntryRow.hidden = true;
+  }
+
+  if (maintenanceUnlock) {
+    maintenanceUnlock.hidden = true;
+  }
+
+  if (developerRegisterPanel) {
+    developerRegisterPanel.classList.add('hidden');
+  }
+
+  setSpecialRegisterMode('normal');
+}
 
 function applyAppVersion(version) {
   document.querySelectorAll('[data-app-version]').forEach((element) => {
@@ -125,6 +151,10 @@ function setMessage(text, isError = false) {
 }
 
 function showAuthLoading(tabName) {
+  if (loginRedirectDelayMs <= 0) {
+    return;
+  }
+
   if (!authLoadingOverlay) {
     return;
   }
@@ -132,8 +162,8 @@ function showAuthLoading(tabName) {
   authLoadingOverlay.hidden = false;
   if (authLoadingMessage) {
     authLoadingMessage.textContent = tabName === 'register'
-      ? '注册成功，正在创建账号资料并进入首页，请稍候 3 秒。'
-      : '登录成功，正在同步账号状态与首页模块，请稍候 3 秒。';
+      ? '注册成功，正在创建账号资料并进入首页。'
+      : '登录成功，正在同步账号状态与首页模块。';
   }
 
   if (authLoadingProgress) {
@@ -210,6 +240,11 @@ async function submitForm(event) {
 
     setMessage(result.message || '成功');
     showAuthLoading(tabName);
+    if (loginRedirectDelayMs <= 0) {
+      window.location.href = '/niuniu-toolbox.html';
+      return;
+    }
+
     window.setTimeout(() => {
       window.location.href = '/niuniu-toolbox.html';
     }, loginRedirectDelayMs);
@@ -224,6 +259,10 @@ tabButtons.forEach((button) => {
 
 if (maintenanceTitle) {
   maintenanceTitle.addEventListener('click', () => {
+    if (isOfficialPublicLogin()) {
+      return;
+    }
+
     maintenanceTitleClickCount += 1;
 
     if (maintenanceUnlockResetTimer) {
@@ -259,6 +298,9 @@ if (developerExitButton) {
 forms.forEach((form) => {
   form.addEventListener('submit', submitForm);
 });
+
+applyLoginEnvironmentState();
+applyAppVersion(loginPageVersion);
 
 setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
 setSpecialRegisterMode('normal');

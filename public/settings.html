@@ -101,7 +101,7 @@
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
           <h1>设置</h1>
-          <p class="lead">统一管理账号信息、VIP 购买、夜间显示模式与更新日志入口，避免主页信息过满。</p>
+          <p class="lead">统一管理账号信息、VIP 购买、夜间显示模式与常用工具入口，避免主页信息过满。</p>
           <div class="meta-row">
             <div class="version-pill" data-app-version>当前版本 正式版1.3.2</div>
             <div class="version-pill">模块：设置</div>
@@ -113,17 +113,17 @@
         </div>
         <div class="hero-card">
           <p class="hero-card-label">设置概览</p>
-          <p class="toolbox-summary">这里现在承接主页原来的账号与会员区域，同时保留夜间显示模式。更新日志也改为从这里进入。</p>
+          <p class="toolbox-summary">这里现在承接主页原来的账号与会员区域，同时保留夜间显示模式，并补充常用工具的快捷入口。</p>
           <div class="settings-visual-stack" aria-label="设置页功能预览">
             <a class="settings-visual-card" href="/shader-download.html">
               <img src="/assets/shader-previews/midlight-bedrock-preview.png" alt="下载中心预览" />
               <strong>下载资格与视觉测试</strong>
               <span>资格兑换、风格切换、下载入口都在这里统一管理。</span>
             </a>
-            <a class="settings-visual-card" href="/update-log.html">
-              <img src="/assets/index-hero.svg" alt="更新日志预览" />
-              <strong>版本与更新</strong>
-              <span>查看版本变化、当前限制和最近新增的功能调整。</span>
+            <a class="settings-visual-card" href="/time-management.html">
+              <img src="/assets/index-hero.svg" alt="时间管理预览" />
+              <strong>时间管理</strong>
+              <span>直接进入专注计时、倒计时和今日任务清单，减少在主页之间来回切换。</span>
             </a>
           </div>
         </div>
@@ -155,6 +155,21 @@
             <div class="settings-actions">
               <button type="button" class="ghost-button" data-vip-purchase>购买 VIP 10 元</button>
               <button type="button" class="ghost-button" data-svip-purchase>购买 SVIP 25 元</button>
+            </div>
+          </article>
+
+          <article class="guide-card utility-card settings-card settings-card-wide">
+            <p class="panel-label">账号安全</p>
+            <h2>修改密码</h2>
+            <p class="tool-card-note">输入当前密码后设置新密码，新密码长度至少 6 位。</p>
+            <div class="redeem-code-row">
+              <input type="password" data-password-current placeholder="当前密码" autocomplete="current-password" />
+              <input type="password" data-password-next placeholder="新密码" autocomplete="new-password" />
+              <input type="password" data-password-confirm placeholder="确认新密码" autocomplete="new-password" />
+            </div>
+            <p class="tool-card-note" data-password-message>修改后当前登录状态保持不变。</p>
+            <div class="settings-actions">
+              <button type="button" class="ghost-button" data-password-submit>修改密码</button>
             </div>
           </article>
 
@@ -193,9 +208,10 @@
 
           <article class="guide-card utility-card settings-card settings-card-wide">
             <p class="panel-label">其他入口</p>
-            <h2>日志与页面跳转</h2>
+            <h2>工具与状态</h2>
+            <p class="tool-card-note">时间管理已开放，可直接从这里进入；旧的更新日志路径会自动跳回设置页。</p>
             <div class="settings-actions">
-              <a class="ghost-link-button" href="/update-log.html">进入更新日志</a>
+              <a class="ghost-link-button" href="/time-management.html">进入时间管理</a>
             </div>
           </article>
 
@@ -243,17 +259,12 @@
 
           <article class="guide-card utility-card settings-card settings-card-wide">
             <p class="panel-label">光影下载中心</p>
-            <h2>兑换码开放下载</h2>
-            <p class="tool-card-note">这里使用独立兑换码，不与液态玻璃测试资格共用。兑换成功后，当前账号才会开放光影下载中心。</p>
-            <div class="account-pill" data-shader-hub-status>下载中心：未开放</div>
-            <div class="redeem-code-row">
-              <input type="text" data-shader-hub-code placeholder="输入光影下载中心兑换码" autocomplete="off" />
-              <button type="button" class="ghost-button" data-shader-hub-redeem>开放下载中心</button>
-            </div>
-            <p class="tool-card-note" data-shader-hub-message>输入独立兑换码后即可开放光影下载中心。</p>
-            <div class="settings-actions hidden" data-shader-hub-actions>
+            <h2>默认开放下载</h2>
+            <p class="tool-card-note">光影下载中心现已默认开放，不再需要单独兑换码，登录后可直接进入下载页面。</p>
+            <div class="account-pill" data-shader-hub-status>下载中心：已开放</div>
+            <p class="tool-card-note" data-shader-hub-message>当前账号可直接进入光影下载中心，无需兑换码。</p>
+            <div class="settings-actions" data-shader-hub-actions>
               <a class="ghost-link-button" href="/shader-download.html">进入下载中心</a>
-              <button type="button" class="ghost-button" data-shader-hub-revoke>取消下载资格</button>
             </div>
           </article>
 

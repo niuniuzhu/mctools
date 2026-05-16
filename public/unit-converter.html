@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 单位换算</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .converter-topbar,.converter-row,.converter-results { display:flex; gap:16px; flex-wrap:wrap; }
+      .converter-topbar { margin-bottom:32px; }
+      .converter-topbar a { color:var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
+      .converter-shell { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,0.8fr); gap:24px; }
+      .converter-panel,.converter-side { border-radius:10px; border:2px solid var(--panel-border); background:var(--panel); padding:24px; }
+      .converter-input,.converter-select { flex:1 1 180px; border-radius:8px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.08); color:var(--text); padding:12px 14px; font:inherit; }
+      .result-cardx { flex:1 1 220px; border-radius:10px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.08); padding:16px; }
+      .result-cardx strong { display:block; color:var(--muted); margin-bottom:8px; }
+      .result-cardx span { font-size:1.3rem; font-weight:700; }
+      @media (max-width: 900px) { .converter-shell { grid-template-columns:1fr; } }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="converter-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+      <section class="converter-shell">
+        <section class="converter-panel">
+          <h1>单位换算 📏</h1>
+          <p class="tool-card-note">支持长度、重量、温度、面积四类常用换算，输入后自动联动结果。</p>
+          <div class="converter-row">
+            <select class="converter-select" data-unit-category>
+              <option value="length">长度</option>
+              <option value="weight">重量</option>
+              <option value="temperature">温度</option>
+              <option value="area">面积</option>
+            </select>
+            <input class="converter-input" type="number" step="any" value="1" data-unit-value placeholder="输入数值" />
+            <select class="converter-select" data-unit-from></select>
+          </div>
+          <div class="converter-results" style="margin-top:18px;" data-unit-results></div>
+        </section>
+        <aside class="converter-side">
+          <h2>当前支持</h2>
+          <ul>
+            <li>长度：毫米、厘米、米、千米</li>
+            <li>重量：克、千克、吨、磅</li>
+            <li>温度：摄氏、华氏、开尔文</li>
+            <li>面积：平方米、平方千米、公顷、亩</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const categorySelect = document.querySelector('[data-unit-category]');
+        const valueInput = document.querySelector('[data-unit-value]');
+        const fromSelect = document.querySelector('[data-unit-from]');
+        const resultsHost = document.querySelector('[data-unit-results]');
+        const units = {
+          length: {
+            mm: { label: '毫米', toBase: (v) => v / 1000, fromBase: (v) => v * 1000 },
+            cm: { label: '厘米', toBase: (v) => v / 100, fromBase: (v) => v * 100 },
+            m: { label: '米', toBase: (v) => v, fromBase: (v) => v },
+            km: { label: '千米', toBase: (v) => v * 1000, fromBase: (v) => v / 1000 }
+          },
+          weight: {
+            g: { label: '克', toBase: (v) => v / 1000, fromBase: (v) => v * 1000 },
+            kg: { label: '千克', toBase: (v) => v, fromBase: (v) => v },
+            ton: { label: '吨', toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+            lb: { label: '磅', toBase: (v) => v * 0.45359237, fromBase: (v) => v / 0.45359237 }
+          },
+          temperature: {
+            c: { label: '摄氏度', toBase: (v) => v, fromBase: (v) => v },
+            f: { label: '华氏度', toBase: (v) => (v - 32) / 1.8, fromBase: (v) => v * 1.8 + 32 },
+            k: { label: '开尔文', toBase: (v) => v - 273.15, fromBase: (v) => v + 273.15 }
+          },
+          area: {
+            sqm: { label: '平方米', toBase: (v) => v, fromBase: (v) => v },
+            sqkm: { label: '平方千米', toBase: (v) => v * 1000000, fromBase: (v) => v / 1000000 },
+            hectare: { label: '公顷', toBase: (v) => v * 10000, fromBase: (v) => v / 10000 },
+            mu: { label: '亩', toBase: (v) => v * 666.6666667, fromBase: (v) => v / 666.6666667 }
+          }
+        };
+
+        function fillUnits() {
+          const category = categorySelect.value;
+          fromSelect.innerHTML = Object.entries(units[category]).map(([key, item]) => `<option value="${key}">${item.label}</option>`).join('');
+        }
+
+        function renderResults() {
+          const category = categorySelect.value;
+          const unitMap = units[category];
+          const input = Number(valueInput.value);
+          if (!Number.isFinite(input)) {
+            resultsHost.innerHTML = '<div class="result-cardx"><strong>提示</strong><span>请输入有效数字</span></div>';
+            return;
+          }
+          const base = unitMap[fromSelect.value].toBase(input);
+          resultsHost.innerHTML = Object.entries(unitMap).map(([key, item]) => `
+            <div class="result-cardx">
+              <strong>${item.label}</strong>
+              <span>${item.fromBase(base).toFixed(6).replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1')}</span>
+            </div>
+          `).join('');
+        }
+
+        categorySelect.addEventListener('change', () => { fillUnits(); renderResults(); });
+        fromSelect.addEventListener('change', renderResults);
+        valueInput.addEventListener('input', renderResults);
+        fillUnits();
+        renderResults();
+      })();
+    </script>
+  </body>
+</html>

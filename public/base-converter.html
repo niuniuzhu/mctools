@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 进制转换</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .base-topbar,.base-row { display:flex; gap:16px; flex-wrap:wrap; }
+      .base-topbar { margin-bottom:32px; }
+      .base-topbar a { color:var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
+      .base-shell { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,0.8fr); gap:24px; }
+      .base-panel,.base-side { border-radius:10px; border:2px solid var(--panel-border); background:var(--panel); padding:24px; }
+      .base-input,.base-select { flex:1 1 180px; border-radius:8px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.08); color:var(--text); padding:12px 14px; font:inherit; }
+      .base-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; }
+      .base-card { border-radius:10px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.08); padding:16px; }
+      .base-card strong { display:block; color:var(--muted); margin-bottom:8px; }
+      .base-card code { display:block; word-break:break-all; font-size:1.05rem; }
+      .base-error { margin-top:14px; color:#ef4444; min-height:24px; }
+      @media (max-width: 900px) { .base-shell,.base-grid { grid-template-columns:1fr; } }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="base-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+      <section class="base-shell">
+        <section class="base-panel">
+          <h1>进制转换 🔢</h1>
+          <p class="tool-card-note">输入任意二、八、十、十六进制数值，自动联动显示其他进制与字符编码。</p>
+          <div class="base-row">
+            <select class="base-select" data-base-type>
+              <option value="2">二进制</option>
+              <option value="8">八进制</option>
+              <option value="10" selected>十进制</option>
+              <option value="16">十六进制</option>
+            </select>
+            <input class="base-input" type="text" value="255" data-base-value placeholder="输入数字" />
+          </div>
+          <div class="base-error" data-base-error></div>
+          <div class="base-grid">
+            <div class="base-card"><strong>二进制</strong><code data-base-out="2"></code></div>
+            <div class="base-card"><strong>八进制</strong><code data-base-out="8"></code></div>
+            <div class="base-card"><strong>十进制</strong><code data-base-out="10"></code></div>
+            <div class="base-card"><strong>十六进制</strong><code data-base-out="16"></code></div>
+            <div class="base-card"><strong>ASCII / Unicode</strong><code data-base-char></code></div>
+          </div>
+        </section>
+        <aside class="base-side">
+          <h2>说明</h2>
+          <ul>
+            <li>支持输入整数，不处理小数与负数前缀格式化</li>
+            <li>十六进制可直接输入 `ff`，无需 `0x`</li>
+            <li>会额外显示当前数值对应的字符</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const typeSelect = document.querySelector('[data-base-type]');
+        const valueInput = document.querySelector('[data-base-value]');
+        const errorEl = document.querySelector('[data-base-error]');
+        const outputs = {
+          2: document.querySelector('[data-base-out="2"]'),
+          8: document.querySelector('[data-base-out="8"]'),
+          10: document.querySelector('[data-base-out="10"]'),
+          16: document.querySelector('[data-base-out="16"]')
+        };
+        const charOutput = document.querySelector('[data-base-char]');
+
+        function render() {
+          const radix = Number(typeSelect.value);
+          const raw = valueInput.value.trim();
+          if (!raw) {
+            Object.values(outputs).forEach((el) => { el.textContent = ''; });
+            charOutput.textContent = '';
+            errorEl.textContent = '';
+            return;
+          }
+          const normalized = radix === 16 ? raw.replace(/^0x/i, '') : raw;
+          const parsed = Number.parseInt(normalized, radix);
+          if (!Number.isFinite(parsed) || (normalized && parsed.toString(radix).toLowerCase() !== normalized.toLowerCase().replace(/^0+([0-9a-f]+)/i, '$1') && !(parsed === 0 && /^0+$/.test(normalized)))) {
+            errorEl.textContent = '输入内容和当前进制不匹配';
+            return;
+          }
+          errorEl.textContent = '';
+          outputs[2].textContent = parsed.toString(2);
+          outputs[8].textContent = parsed.toString(8);
+          outputs[10].textContent = parsed.toString(10);
+          outputs[16].textContent = parsed.toString(16).toUpperCase();
+          charOutput.textContent = parsed >= 32 && parsed <= 1114111 ? String.fromCodePoint(parsed) : '不可显示字符';
+        }
+
+        typeSelect.addEventListener('change', render);
+        valueInput.addEventListener('input', render);
+        render();
+      })();
+    </script>
+  </body>
+</html>

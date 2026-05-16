@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 娱乐助手</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .fun-topbar,.fun-actions,.fun-mini-actions,.fun-group-row,.fun-meta-row { display:flex; gap:16px; flex-wrap:wrap; }
+      .fun-topbar { margin-bottom:32px; }
+      .fun-topbar a { color:var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
+      .fun-shell { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,0.85fr); gap:24px; }
+      .fun-panel,.fun-side { border-radius:10px; border:2px solid var(--panel-border); background:var(--panel); padding:24px; }
+      .fun-textarea,.fun-select { width:100%; border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.08); color:var(--text); padding:12px 14px; font:inherit; }
+      .fun-textarea { min-height:180px; resize:vertical; }
+      .fun-btn { border-radius:8px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.1); color:var(--text); padding:10px 16px; font-weight:600; cursor:pointer; }
+      .fun-btn:hover { border-color:var(--accent); background:rgba(96,165,250,0.18); }
+      .fun-btn.primary { background:var(--accent); color:#081225; border-color:var(--accent); }
+      .fun-wheel-wrap { display:grid; place-items:center; margin:22px 0; position:relative; }
+      .fun-wheel-stage { width:min(320px, 70vw); aspect-ratio:1; position:relative; }
+      .fun-wheel { width:100%; aspect-ratio:1; border-radius:50%; border:8px solid rgba(255,255,255,0.14); transition:transform 4s cubic-bezier(.15,.7,.12,1); background:conic-gradient(#60a5fa 0 25%, #f59e0b 25% 50%, #34d399 50% 75%, #fb7185 75% 100%); position:relative; overflow:hidden; }
+      .fun-wheel::before { content:''; position:absolute; inset:50% auto auto 50%; width:26px; height:26px; border-radius:50%; background:var(--text); transform:translate(-50%, -50%); }
+      .fun-wheel-label-layer { position:absolute; inset:0; pointer-events:none; transition:transform 4s cubic-bezier(.15,.7,.12,1); }
+      .fun-wheel-label { position:absolute; left:50%; top:50%; width:38%; transform-origin:0 0; color:#fff; font-size:0.76rem; font-weight:700; text-align:right; text-shadow:0 1px 4px rgba(0,0,0,0.45); }
+      .fun-wheel-label-text { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform-origin:center; }
+      .fun-wheel-pointer { width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:24px solid var(--accent); margin:0 auto 12px; }
+      .fun-result,.fun-mini-result { min-height:26px; color:var(--text); font-weight:600; }
+      .fun-chip-list { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+      .fun-chip { padding:6px 10px; border-radius:999px; background:rgba(96,165,250,0.12); color:var(--accent); font-size:0.88rem; }
+      .fun-meta-pill { padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.06); color:var(--muted); font-size:0.88rem; }
+      .fun-mini-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:18px; }
+      .fun-mini-card { border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.05); padding:16px; }
+      .fun-mini-card strong { display:block; margin-bottom:12px; }
+      .fun-group-panel { margin-top:20px; border-radius:10px; border:2px solid var(--panel-border); background:rgba(96,165,250,0.06); padding:18px; }
+      .fun-group-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:14px; }
+      .fun-group-card { border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.05); padding:14px; }
+      .fun-group-card strong { display:block; margin-bottom:10px; }
+      .fun-group-card ul { margin:0; padding-left:18px; line-height:1.8; color:var(--muted); }
+      .fun-group-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+      .fun-side ul { margin:0; padding-left:20px; color:var(--muted); line-height:1.9; }
+      @media (max-width: 900px) { .fun-shell,.fun-mini-grid,.fun-group-grid { grid-template-columns:1fr; } }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="fun-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+      <section class="fun-shell">
+        <section class="fun-panel">
+          <h1>娱乐助手 🎲</h1>
+          <p class="tool-card-note">输入候选项后可以抽签、随机点名、转盘选择，也附带骰子、抛硬币和今日运势。</p>
+          <textarea class="fun-textarea" data-fun-options placeholder="每行一个选项，例如：&#10;奶茶&#10;咖啡&#10;果汁&#10;可乐"></textarea>
+          <div class="fun-actions" style="margin-top:16px;">
+            <button type="button" class="fun-btn primary" data-fun-action="pick-one">随机抽 1 个</button>
+            <button type="button" class="fun-btn" data-fun-action="pick-three">随机抽 3 个</button>
+            <button type="button" class="fun-btn" data-fun-action="shuffle">随机排序</button>
+            <button type="button" class="fun-btn" data-fun-action="spin">转盘选择</button>
+          </div>
+          <div class="fun-meta-row" style="margin-top:12px;">
+            <div class="fun-meta-pill" data-fun-option-count>当前候选：0 项</div>
+            <div class="fun-meta-pill" data-fun-group-hint>建议至少输入 4 人再分组</div>
+          </div>
+          <div class="fun-wheel-wrap">
+            <div class="fun-wheel-pointer"></div>
+            <div class="fun-wheel-stage">
+              <div class="fun-wheel" data-fun-wheel></div>
+              <div class="fun-wheel-label-layer" data-fun-wheel-labels></div>
+            </div>
+          </div>
+          <div class="fun-result" data-fun-result>等待你输入选项后开始随机。</div>
+          <div class="fun-chip-list" data-fun-chip-list></div>
+
+          <section class="fun-group-panel">
+            <strong>多人分组</strong>
+            <div class="fun-group-row" style="margin-top:12px;">
+              <select class="fun-select" data-fun-group-count>
+                <option value="2">分成 2 组</option>
+                <option value="3">分成 3 组</option>
+                <option value="4">分成 4 组</option>
+                <option value="5">分成 5 组</option>
+                <option value="6">分成 6 组</option>
+              </select>
+              <button type="button" class="fun-btn" data-fun-action="group">随机分组</button>
+            </div>
+            <div class="fun-result" data-fun-group-result>输入多人名单后可一键随机分组。</div>
+            <div class="fun-group-actions">
+              <button type="button" class="fun-btn" data-fun-action="copy-group">复制分组结果</button>
+              <button type="button" class="fun-btn" data-fun-action="clear-group">清空分组展示</button>
+            </div>
+            <div class="fun-group-grid" data-fun-group-grid></div>
+          </section>
+
+          <div class="fun-mini-grid">
+            <article class="fun-mini-card">
+              <strong>骰子</strong>
+              <div class="fun-mini-actions">
+                <select class="fun-select" data-dice-sides>
+                  <option value="6">6 面</option>
+                  <option value="20">20 面</option>
+                  <option value="100">100 面</option>
+                </select>
+                <button type="button" class="fun-btn" data-fun-action="dice">投掷</button>
+              </div>
+              <div class="fun-mini-result" data-dice-result>等待投掷</div>
+            </article>
+            <article class="fun-mini-card">
+              <strong>抛硬币</strong>
+              <div class="fun-mini-actions">
+                <button type="button" class="fun-btn" data-fun-action="coin">抛一次</button>
+              </div>
+              <div class="fun-mini-result" data-coin-result>等待开始</div>
+            </article>
+            <article class="fun-mini-card">
+              <strong>今日运势</strong>
+              <div class="fun-mini-actions">
+                <button type="button" class="fun-btn" data-fun-action="fortune">查看</button>
+              </div>
+              <div class="fun-mini-result" data-fortune-result>点击查看今日运势</div>
+            </article>
+          </div>
+        </section>
+        <aside class="fun-side">
+          <h2>当前支持</h2>
+          <ul>
+            <li>随机抽签和随机点名</li>
+            <li>转盘模式选择一个结果并显示扇区文字</li>
+            <li>选项随机重排</li>
+            <li>多人名单随机分组</li>
+            <li>6 / 20 / 100 面骰子</li>
+            <li>抛硬币与今日运势</li>
+          </ul>
+        </aside>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const optionsInput = document.querySelector('[data-fun-options]');
+        const result = document.querySelector('[data-fun-result]');
+        const chipList = document.querySelector('[data-fun-chip-list]');
+        const wheel = document.querySelector('[data-fun-wheel]');
+        const wheelLabels = document.querySelector('[data-fun-wheel-labels]');
+        const optionCount = document.querySelector('[data-fun-option-count]');
+        const groupHint = document.querySelector('[data-fun-group-hint]');
+        const groupCount = document.querySelector('[data-fun-group-count]');
+        const groupResult = document.querySelector('[data-fun-group-result]');
+        const groupGrid = document.querySelector('[data-fun-group-grid]');
+        const diceSides = document.querySelector('[data-dice-sides]');
+        const diceResult = document.querySelector('[data-dice-result]');
+        const coinResult = document.querySelector('[data-coin-result]');
+        const fortuneResult = document.querySelector('[data-fortune-result]');
+        const wheelColors = ['#60a5fa', '#f59e0b', '#34d399', '#fb7185', '#a78bfa', '#f97316', '#22c55e', '#06b6d4'];
+        let wheelRotation = 0;
+        let lastGroups = [];
+
+        function getOptions() {
+          return optionsInput.value.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean);
+        }
+
+        function updateMeta(items) {
+          optionCount.textContent = `当前候选：${items.length} 项`;
+          const safeGroupCount = Math.min(Math.max(2, items.length || 2), 6);
+          if (Number(groupCount.value) > safeGroupCount) {
+            groupCount.value = String(safeGroupCount);
+          }
+          groupHint.textContent = items.length < 2
+            ? '至少输入 2 人才能分组'
+            : `当前最多建议分成 ${Math.min(items.length, 6)} 组`;
+        }
+
+        function renderChips(items) {
+          chipList.innerHTML = items.map((item) => `<span class="fun-chip">${item}</span>`).join('');
+        }
+
+        function renderWheel(items) {
+          const safeItems = items.length ? items : ['等待输入'];
+          const segment = 100 / safeItems.length;
+          let start = 0;
+          const gradient = safeItems.map((_, index) => {
+            const end = start + segment;
+            const chunk = `${wheelColors[index % wheelColors.length]} ${start}% ${end}%`;
+            start = end;
+            return chunk;
+          }).join(', ');
+          wheel.style.background = `conic-gradient(${gradient})`;
+          wheelLabels.innerHTML = safeItems.map((item, index) => {
+            const angle = 360 / safeItems.length;
+            const rotation = index * angle + angle / 2 - 90;
+            const label = item.length > 8 ? `${item.slice(0, 8)}...` : item;
+            const textRotation = rotation > 90 && rotation < 270 ? 180 : 0;
+            return `<span class="fun-wheel-label" style="transform: rotate(${rotation}deg) translate(22px, -50%)"><span class="fun-wheel-label-text" style="transform: rotate(${textRotation}deg)">${label}</span></span>`;
+          }).join('');
+          renderChips(safeItems);
+          updateMeta(items);
+        }
+
+        function pickRandom(count) {
+          const items = getOptions();
+          if (!items.length) {
+            result.textContent = '请先输入至少一个选项';
+            return;
+          }
+          const pool = [...items];
+          const chosen = [];
+          while (pool.length && chosen.length < count) {
+            const index = Math.floor(Math.random() * pool.length);
+            chosen.push(pool.splice(index, 1)[0]);
+          }
+          result.textContent = `结果：${chosen.join('、')}`;
+        }
+
+        function shuffleItems() {
+          const items = getOptions();
+          if (!items.length) {
+            result.textContent = '请先输入至少一个选项';
+            return;
+          }
+          for (let index = items.length - 1; index > 0; index -= 1) {
+            const randomIndex = Math.floor(Math.random() * (index + 1));
+            [items[index], items[randomIndex]] = [items[randomIndex], items[index]];
+          }
+          result.textContent = `随机排序：${items.join('、')}`;
+          renderWheel(items);
+        }
+
+        function spinWheel() {
+          const items = getOptions();
+          if (!items.length) {
+            result.textContent = '请先输入至少一个选项';
+            return;
+          }
+          renderWheel(items);
+          const chosenIndex = Math.floor(Math.random() * items.length);
+          const perItem = 360 / items.length;
+          const landing = 360 - chosenIndex * perItem - perItem / 2;
+          wheelRotation += 360 * 6 + landing;
+          wheel.style.transform = `rotate(${wheelRotation}deg)`;
+          wheelLabels.style.transform = `rotate(${wheelRotation}deg)`;
+          window.setTimeout(() => {
+            result.textContent = `转盘结果：${items[chosenIndex]}`;
+          }, 4000);
+        }
+
+        function renderGroups(groups) {
+          lastGroups = groups;
+          groupGrid.innerHTML = groups.map((members, index) => `
+            <article class="fun-group-card">
+              <strong>第 ${index + 1} 组</strong>
+              <ul>${members.map((member) => `<li>${member}</li>`).join('') || '<li>暂无成员</li>'}</ul>
+            </article>
+          `).join('');
+        }
+
+        async function copyGroups() {
+          if (!lastGroups.length) {
+            groupResult.textContent = '当前还没有分组结果可复制';
+            return;
+          }
+          const text = lastGroups.map((members, index) => `第 ${index + 1} 组：${members.join('、') || '暂无成员'}`).join('\n');
+          await navigator.clipboard.writeText(text).catch(() => {});
+          groupResult.textContent = '分组结果已复制';
+        }
+
+        function clearGroups() {
+          lastGroups = [];
+          groupGrid.innerHTML = '';
+          groupResult.textContent = '已清空分组展示';
+        }
+
+        function groupItems() {
+          const items = getOptions();
+          if (!items.length) {
+            groupResult.textContent = '请先输入至少两名成员';
+            groupGrid.innerHTML = '';
+            lastGroups = [];
+            return;
+          }
+          if (items.length < 2) {
+            groupResult.textContent = '至少需要两名成员才能分组';
+            groupGrid.innerHTML = '';
+            lastGroups = [];
+            return;
+          }
+          const groupTotal = Math.min(Number(groupCount.value), items.length);
+          const shuffled = [...items];
+          for (let index = shuffled.length - 1; index > 0; index -= 1) {
+            const randomIndex = Math.floor(Math.random() * (index + 1));
+            [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+          }
+          const groups = Array.from({ length: groupTotal }, () => []);
+          shuffled.forEach((item, index) => {
+            groups[index % groupTotal].push(item);
+          });
+          groupResult.textContent = `已完成 ${shuffled.length} 人随机分成 ${groupTotal} 组`;
+          renderGroups(groups);
+        }
+
+        document.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-fun-action]');
+          if (!button) return;
+          const action = button.getAttribute('data-fun-action');
+          if (action === 'pick-one') pickRandom(1);
+          if (action === 'pick-three') pickRandom(3);
+          if (action === 'shuffle') shuffleItems();
+          if (action === 'spin') spinWheel();
+          if (action === 'group') groupItems();
+          if (action === 'copy-group') copyGroups();
+          if (action === 'clear-group') clearGroups();
+          if (action === 'dice') {
+            const sides = Number(diceSides.value);
+            diceResult.textContent = `投掷结果：${Math.floor(Math.random() * sides) + 1}`;
+          }
+          if (action === 'coin') {
+            coinResult.textContent = Math.random() > 0.5 ? '结果：正面' : '结果：反面';
+          }
+          if (action === 'fortune') {
+            const fortunes = ['大吉：适合开新坑', '中吉：保持当前节奏', '小吉：适合摸鱼放松', '平：稳住就是胜利', '惊喜：今天可能有好运消息'];
+            fortuneResult.textContent = fortunes[Math.floor(Math.random() * fortunes.length)];
+          }
+        });
+
+        optionsInput.addEventListener('input', () => renderWheel(getOptions()));
+        renderWheel([]);
+      })();
+    </script>
+  </body>
+</html>

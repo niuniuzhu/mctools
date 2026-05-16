@@ -12,7 +12,7 @@ const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
-const sourceAppVersion = 'beta1.15.0';
+const sourceAppVersion = '正式版1.4';
 let appVersion = sourceAppVersion;
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const developerRegistrationSecret = 'McTools2026!';
@@ -22,8 +22,15 @@ const previewablePublicPages = new Set([
   '/automation-guide.html',
   '/build-lab.html',
   '/cloud-play.html',
+  '/text-converter.html',
+  '/unit-converter.html',
+  '/base-converter.html',
+  '/entertainment-assistant.html',
+  '/json-tools.html',
+  '/calculator.html',
   '/commands.html',
   '/coordinates.html',
+  '/qrcode-generator.html',
   '/fps-test.html',
   '/fun.html',
   '/index.html',
@@ -39,12 +46,12 @@ const previewablePublicPages = new Set([
   '/settings.html',
   '/shader-download.html',
   '/sandbox-1201.html',
+  '/time-management.html',
   '/modpack-installer-1201.html',
   '/extension-hub.html',
   '/launch-game.html',
   '/survival-board.html',
-  '/tutorial.html',
-  '/update-log.html'
+  '/tutorial.html'
 ]);
 const vipOnlyCommandNames = new Set([
   'executeChain',
@@ -429,6 +436,16 @@ function redirectToIndex(response) {
   response.end();
 }
 
+function redirectToSettings(response) {
+  response.writeHead(302, { Location: '/settings.html' });
+  response.end();
+}
+
+function isOfficialPublicHost(request) {
+  const hostHeader = String(request.headers.host || '').trim().toLowerCase();
+  return hostHeader === '115.29.198.193:3000' || hostHeader === '115.29.198.193';
+}
+
 function getSettingValue(settingKey, fallbackValue = '') {
   const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get(settingKey);
   return row ? String(row.value) : fallbackValue;
@@ -612,6 +629,7 @@ function handleLogin(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const bypassDeveloperRestriction = isOfficialPublicHost(request);
 
       if (!username || !password) {
         sendJson(response, 400, { message: '请输入用户名和密码' });
@@ -625,7 +643,7 @@ function handleLogin(request, response) {
         return;
       }
 
-      if (!Number(user.is_developer)) {
+      if (!bypassDeveloperRestriction && !Number(user.is_developer)) {
         sendJson(response, 403, { message: '当前仅允许开发者账号登录' });
         return;
       }
@@ -658,6 +676,61 @@ function handleLogout(request, response) {
 
   clearSessionCookie(response);
   sendJson(response, 200, { message: '已退出登录' });
+}
+
+function handlePasswordChange(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const currentPassword = String(body.currentPassword || '');
+      const nextPassword = String(body.nextPassword || '');
+      const confirmPassword = String(body.confirmPassword || '');
+
+      if (!currentPassword || !nextPassword || !confirmPassword) {
+        sendJson(response, 400, { message: '请完整填写当前密码、新密码和确认密码' });
+        return;
+      }
+
+      if (nextPassword.length < 6) {
+        sendJson(response, 400, { message: '新密码长度至少 6 位' });
+        return;
+      }
+
+      if (nextPassword !== confirmPassword) {
+        sendJson(response, 400, { message: '两次输入的新密码不一致' });
+        return;
+      }
+
+      const user = db.prepare('SELECT password_hash FROM users WHERE username = ?').get(session.username);
+
+      if (!user || !verifyPassword(currentPassword, user.password_hash)) {
+        sendJson(response, 401, { message: '当前密码错误' });
+        return;
+      }
+
+      if (verifyPassword(nextPassword, user.password_hash)) {
+        sendJson(response, 400, { message: '新密码不能与当前密码相同' });
+        return;
+      }
+
+      db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(hashPassword(nextPassword), session.username);
+
+      sendJson(response, 200, {
+        message: '密码修改成功',
+        username: session.username,
+        version: appVersion
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
 }
 
 function getVipInfo(username) {
@@ -809,6 +882,12 @@ function handleDeveloperVersionRead(request, response) {
   sendJson(response, 200, {
     version: appVersion,
     username: session.username
+  });
+}
+
+function handlePublicVersionRead(request, response) {
+  sendJson(response, 200, {
+    version: appVersion
   });
 }
 
@@ -1798,6 +1877,11 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && pathname === '/api/account/password') {
+    handlePasswordChange(request, response);
+    return;
+  }
+
   if (request.method === 'POST' && pathname === '/api/commands') {
     handleSaveCommand(request, response);
     return;
@@ -1868,6 +1952,11 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'GET' && pathname === '/api/app-version') {
+    handlePublicVersionRead(request, response);
+    return;
+  }
+
   if (request.method === 'POST' && pathname === '/api/developer/version') {
     handleDeveloperVersionSave(request, response);
     return;
@@ -1891,6 +1980,11 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'GET' && pathname === '/api/commands') {
     handleListCommands(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/update-log.html') {
+    redirectToSettings(response);
     return;
   }
 

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 时间管理</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .time-topbar {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 32px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .time-topbar a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 8px 16px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+      }
+
+      .time-topbar a:hover {
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .time-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+      }
+
+      .time-header h1 {
+        margin: 0 0 10px;
+        font-size: 2rem;
+      }
+
+      .time-header p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .time-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+        gap: 24px;
+      }
+
+      .time-panel {
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 24px;
+      }
+
+      .time-panel h2 {
+        margin: 0 0 16px;
+        font-size: 1.2rem;
+      }
+
+      .time-panel:fullscreen {
+        display: grid;
+        align-content: center;
+        gap: 24px;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        border: none;
+        border-radius: 0;
+        padding: 48px;
+        background: linear-gradient(180deg, rgba(9, 15, 30, 0.98), rgba(17, 24, 39, 0.98));
+      }
+
+      .time-panel:fullscreen .timer-display {
+        font-size: clamp(4.8rem, 14vw, 10rem);
+      }
+
+      .time-panel:fullscreen .clock-value {
+        font-size: clamp(2.6rem, 8vw, 5.2rem);
+      }
+
+      .time-panel:fullscreen .timer-status::after {
+        content: '  按 Esc 退出全屏';
+        color: var(--accent);
+      }
+
+      .clock-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .clock-card {
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: rgba(96, 165, 250, 0.08);
+        padding: 18px;
+      }
+
+      .clock-card strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+      }
+
+      .clock-value {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .timer-display {
+        font-size: clamp(2.6rem, 8vw, 4.4rem);
+        line-height: 1;
+        font-weight: 800;
+        margin: 8px 0 20px;
+      }
+
+      .timer-status {
+        min-height: 24px;
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+
+      .timer-row,
+      .task-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .timer-input,
+      .task-input,
+      .task-select {
+        flex: 1 1 180px;
+        min-width: 0;
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        padding: 12px 14px;
+        font: inherit;
+      }
+
+      .time-btn,
+      .preset-btn {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(96, 165, 250, 0.1);
+        color: var(--text);
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .time-btn:hover,
+      .preset-btn:hover,
+      .preset-btn[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.18);
+        transform: translateY(-2px);
+      }
+
+      .time-btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #081225;
+      }
+
+      .time-btn.primary:hover {
+        background: var(--accent-strong);
+      }
+
+      .preset-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .task-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .task-filter-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .task-filter-chip {
+        border-radius: 999px;
+        border: 2px solid var(--panel-border);
+        background: rgba(96, 165, 250, 0.08);
+        color: var(--text);
+        padding: 8px 14px;
+        font-size: 0.92rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+
+      .task-filter-chip:hover,
+      .task-filter-chip[aria-pressed="true"] {
+        border-color: var(--accent);
+        background: rgba(96, 165, 250, 0.18);
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .task-item.done .task-text {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
+      .task-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .task-text {
+        word-break: break-word;
+      }
+
+      .task-category-pill {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.78rem;
+        color: var(--accent);
+        background: rgba(96, 165, 250, 0.12);
+      }
+
+      .task-empty {
+        color: var(--muted);
+      }
+
+      @media (max-width: 900px) {
+        .time-layout,
+        .clock-grid,
+        .preset-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="time-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="time-header">
+        <div>
+          <h1>时间管理 ⏰</h1>
+          <p>把时钟、专注计时、倒计时和今日任务放在一个页面里，减少来回切换。</p>
+        </div>
+      </section>
+
+      <section class="time-layout">
+        <div class="time-panel" data-time-focus-panel>
+          <h2>当前时间</h2>
+          <div class="clock-grid">
+            <div class="clock-card">
+              <strong>现在时间</strong>
+              <div class="clock-value" data-clock-time>00:00:00</div>
+            </div>
+            <div class="clock-card">
+              <strong>今天日期</strong>
+              <div class="clock-value" data-clock-date style="font-size: 1.4rem;">2026/05/12</div>
+            </div>
+          </div>
+
+          <h2>专注计时</h2>
+          <div class="preset-grid">
+            <button type="button" class="preset-btn" data-preset-minutes="25">番茄 25 分钟</button>
+            <button type="button" class="preset-btn" data-preset-minutes="5">短休息 5 分钟</button>
+            <button type="button" class="preset-btn" data-preset-minutes="15">整理 15 分钟</button>
+            <button type="button" class="preset-btn" data-preset-minutes="45">深度 45 分钟</button>
+          </div>
+
+          <div class="timer-row">
+            <input class="timer-input" type="number" min="1" max="240" step="1" value="25" data-custom-minutes placeholder="自定义分钟数" />
+            <button type="button" class="time-btn" data-apply-custom>应用时长</button>
+          </div>
+
+          <div class="timer-display" data-timer-display>25:00</div>
+          <div class="timer-status" data-timer-status>已载入 25 分钟专注时长</div>
+
+          <div class="timer-row">
+            <button type="button" class="time-btn primary" data-timer-start>开始</button>
+            <button type="button" class="time-btn" data-timer-pause>暂停</button>
+            <button type="button" class="time-btn" data-timer-reset>重置</button>
+          </div>
+        </div>
+
+        <aside class="time-panel">
+          <h2>今日任务</h2>
+          <div class="task-row">
+            <input class="task-input" type="text" maxlength="80" data-task-input placeholder="输入今天要完成的一件事" />
+            <select class="task-select" data-task-category>
+              <option value="work">工作</option>
+              <option value="study">学习</option>
+              <option value="life">生活</option>
+              <option value="other">其他</option>
+            </select>
+            <button type="button" class="time-btn primary" data-task-add>添加</button>
+          </div>
+          <div class="task-filter-row" data-task-filters>
+            <button type="button" class="task-filter-chip" data-task-filter="all" aria-pressed="true">全部</button>
+            <button type="button" class="task-filter-chip" data-task-filter="work" aria-pressed="false">工作</button>
+            <button type="button" class="task-filter-chip" data-task-filter="study" aria-pressed="false">学习</button>
+            <button type="button" class="task-filter-chip" data-task-filter="life" aria-pressed="false">生活</button>
+            <button type="button" class="task-filter-chip" data-task-filter="other" aria-pressed="false">其他</button>
+          </div>
+          <ul class="task-list" data-task-list></ul>
+          <p class="task-empty" data-task-empty>还没有任务，先添加一项今天最重要的事。</p>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const clockTime = document.querySelector('[data-clock-time]');
+        const clockDate = document.querySelector('[data-clock-date]');
+        const timerDisplay = document.querySelector('[data-timer-display]');
+        const timerStatus = document.querySelector('[data-timer-status]');
+        const timeFocusPanel = document.querySelector('[data-time-focus-panel]');
+        const customMinutesInput = document.querySelector('[data-custom-minutes]');
+        const taskInput = document.querySelector('[data-task-input]');
+        const taskCategoryInput = document.querySelector('[data-task-category]');
+        const taskList = document.querySelector('[data-task-list]');
+        const taskEmpty = document.querySelector('[data-task-empty]');
+        const presets = Array.from(document.querySelectorAll('[data-preset-minutes]'));
+        const filterButtons = Array.from(document.querySelectorAll('[data-task-filter]'));
+        const storageKey = 'mctools-time-tasks';
+        const taskCategoryLabels = {
+          work: '工作',
+          study: '学习',
+          life: '生活',
+          other: '其他'
+        };
+
+        let timerDuration = 25 * 60;
+        let remainingSeconds = timerDuration;
+        let timerId = null;
+        let tasks = [];
+        let currentTaskFilter = 'all';
+
+        function pad(value) {
+          return String(value).padStart(2, '0');
+        }
+
+        function formatRemaining(seconds) {
+          const safe = Math.max(0, seconds);
+          const minutes = Math.floor(safe / 60);
+          const restSeconds = safe % 60;
+          return pad(minutes) + ':' + pad(restSeconds);
+        }
+
+        function updateClock() {
+          const now = new Date();
+          clockTime.textContent = [pad(now.getHours()), pad(now.getMinutes()), pad(now.getSeconds())].join(':');
+          clockDate.textContent = now.getFullYear() + '/' + pad(now.getMonth() + 1) + '/' + pad(now.getDate());
+        }
+
+        function updateTimerDisplay() {
+          timerDisplay.textContent = formatRemaining(remainingSeconds);
+        }
+
+        function setPreset(minutes) {
+          timerDuration = minutes * 60;
+          remainingSeconds = timerDuration;
+          customMinutesInput.value = String(minutes);
+          updateTimerDisplay();
+          timerStatus.textContent = '已载入 ' + minutes + ' 分钟专注时长';
+          presets.forEach((button) => {
+            button.setAttribute('aria-pressed', String(Number(button.getAttribute('data-preset-minutes')) === minutes));
+          });
+          if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+          }
+        }
+
+        function startTimer() {
+          if (timerId) {
+            return;
+          }
+
+          if (document.fullscreenElement !== timeFocusPanel && typeof timeFocusPanel.requestFullscreen === 'function') {
+            timeFocusPanel.requestFullscreen().catch(() => {});
+          }
+
+          if (remainingSeconds <= 0) {
+            remainingSeconds = timerDuration;
+          }
+          timerStatus.textContent = '计时进行中';
+          timerId = window.setInterval(() => {
+            remainingSeconds -= 1;
+            updateTimerDisplay();
+            if (remainingSeconds <= 0) {
+              clearInterval(timerId);
+              timerId = null;
+              remainingSeconds = 0;
+              updateTimerDisplay();
+              timerStatus.textContent = '时间到，可以休息一下了';
+            }
+          }, 1000);
+        }
+
+        function exitTimeFocusFullscreen() {
+          if (document.fullscreenElement === timeFocusPanel && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+        }
+
+        function pauseTimer() {
+          if (!timerId) {
+            exitTimeFocusFullscreen();
+            return;
+          }
+          clearInterval(timerId);
+          timerId = null;
+          timerStatus.textContent = '计时已暂停';
+          exitTimeFocusFullscreen();
+        }
+
+        function resetTimer() {
+          if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+          }
+          remainingSeconds = timerDuration;
+          updateTimerDisplay();
+          timerStatus.textContent = '已重置到当前时长';
+          exitTimeFocusFullscreen();
+        }
+
+        function saveTasks() {
+          localStorage.setItem(storageKey, JSON.stringify(tasks));
+        }
+
+        function getCategoryLabel(category) {
+          return taskCategoryLabels[category] || taskCategoryLabels.other;
+        }
+
+        function getVisibleTasks() {
+          if (currentTaskFilter === 'all') {
+            return tasks;
+          }
+          return tasks.filter((task) => task.category === currentTaskFilter);
+        }
+
+        function updateTaskFilterButtons() {
+          filterButtons.forEach((button) => {
+            button.setAttribute('aria-pressed', String(button.getAttribute('data-task-filter') === currentTaskFilter));
+          });
+        }
+
+        function renderTasks() {
+          taskList.innerHTML = '';
+          const visibleTasks = getVisibleTasks();
+          taskEmpty.hidden = visibleTasks.length > 0;
+          taskEmpty.textContent = currentTaskFilter === 'all'
+            ? '还没有任务，先添加一项今天最重要的事。'
+            : '当前分类下还没有任务，可以先添加一项。';
+          visibleTasks.forEach((task) => {
+            const item = document.createElement('li');
+            item.className = 'task-item' + (task.done ? ' done' : '');
+
+            const meta = document.createElement('div');
+            meta.className = 'task-meta';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = task.done;
+            checkbox.addEventListener('change', () => {
+              task.done = checkbox.checked;
+              saveTasks();
+              renderTasks();
+            });
+
+            const text = document.createElement('span');
+            text.className = 'task-text';
+            text.textContent = task.text;
+
+            const category = document.createElement('span');
+            category.className = 'task-category-pill';
+            category.textContent = getCategoryLabel(task.category);
+
+            meta.appendChild(checkbox);
+            meta.appendChild(text);
+            meta.appendChild(category);
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'time-btn';
+            removeButton.textContent = '删除';
+            removeButton.addEventListener('click', () => {
+              tasks = tasks.filter((entry) => entry.id !== task.id);
+              saveTasks();
+              renderTasks();
+            });
+
+            item.appendChild(meta);
+            item.appendChild(removeButton);
+            taskList.appendChild(item);
+          });
+        }
+
+        function loadTasks() {
+          try {
+            const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            tasks = Array.isArray(stored)
+              ? stored.map((task) => ({
+                  id: task.id,
+                  text: String(task.text || '').trim(),
+                  done: Boolean(task.done),
+                  category: String(task.category || 'other')
+                })).filter((task) => task.text)
+              : [];
+          } catch {
+            tasks = [];
+          }
+          updateTaskFilterButtons();
+          renderTasks();
+        }
+
+        presets.forEach((button) => {
+          button.addEventListener('click', () => {
+            setPreset(Number(button.getAttribute('data-preset-minutes')));
+          });
+        });
+
+        document.querySelector('[data-apply-custom]').addEventListener('click', () => {
+          const minutes = Number(customMinutesInput.value);
+          if (!Number.isFinite(minutes) || minutes < 1 || minutes > 240) {
+            timerStatus.textContent = '请输入 1 到 240 之间的分钟数';
+            return;
+          }
+          setPreset(minutes);
+        });
+
+        document.querySelector('[data-timer-start]').addEventListener('click', startTimer);
+        document.querySelector('[data-timer-pause]').addEventListener('click', pauseTimer);
+        document.querySelector('[data-timer-reset]').addEventListener('click', resetTimer);
+
+        document.querySelector('[data-task-add]').addEventListener('click', () => {
+          const text = taskInput.value.trim();
+          const category = String(taskCategoryInput.value || 'other');
+          if (!text) {
+            return;
+          }
+          tasks.unshift({ id: Date.now(), text, done: false, category });
+          taskInput.value = '';
+          saveTasks();
+          renderTasks();
+        });
+
+        filterButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            currentTaskFilter = button.getAttribute('data-task-filter') || 'all';
+            updateTaskFilterButtons();
+            renderTasks();
+          });
+        });
+
+        taskInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            document.querySelector('[data-task-add]').click();
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && document.fullscreenElement === timeFocusPanel && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+        });
+
+        updateClock();
+        window.setInterval(updateClock, 1000);
+        setPreset(25);
+        loadTasks();
+      })();
+    </script>
+  </body>
+</html>
