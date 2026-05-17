@@ -3155,7 +3155,7 @@ function updateVipState(me) {
     aiTierMessage.textContent = isVipPaused
       ? 'VIP 暂停中：当前账号可直接使用 AI 相关功能。'
       : hasSvipAccess
-      ? '服务端会优先尝试调用 Gemini 3.1 Pro，失败后自动回退到可用模型。'
+      ? '服务端会优先尝试调用 DeepSeek Chat，失败后自动回退到可用模型。'
       : 'SVIP 专享问答：可直接询问指令、玩法、红石、服务器配置等问题。';
   }
 

@@ -1,4 +1,4 @@
 {
-  "geminiApiKey": "AIzaSyAARaMEa8H8BilyFeZZcXRTd4CXLrcbO4k",
-  "geminiModel": "gemini-3.1-pro"
+  "deepseekApiKey": "",
+  "deepseekModel": "deepseek-chat"
 }

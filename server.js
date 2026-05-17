@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -54,7 +54,9 @@ const previewablePublicPages = new Set([
   '/extension-hub.html',
   '/launch-game.html',
   '/survival-board.html',
-  '/tutorial.html'
+  '/tutorial.html',
+  '/niuniu-toolbox.html',
+  '/niuniu-utility.html'
 ]);
 const vipOnlyCommandNames = new Set([
   'executeChain',
@@ -776,11 +778,11 @@ function hasSvipFeatureAccess(vipInfo) {
 }
 
 function getAiMaintenanceMessage() {
-  return 'AI 助手维护中，预计 17:40 后恢复';
+  return 'AI 助手已恢复可用';
 }
 
 function isAiUnderMaintenance() {
-  return Date.now() < aiMaintenanceEndsAt.getTime();
+  return false;
 }
 
 function getAvatarUrl(username) {
@@ -1377,47 +1379,48 @@ function handleAiGenerate(request, response) {
     });
 }
 
-async function callGeminiAnswer(question) {
-  const apiKey = getConfiguredValue('GEMINI_API_KEY', 'geminiApiKey');
+async function callDeepSeekAnswer(question) {
+  const apiKey = getConfiguredValue('DEEPSEEK_API_KEY', 'deepseekApiKey');
 
   if (!apiKey) {
-    throw new Error('服务器未配置 Gemini API Key，请先填写 config/api-keys.json');
+    throw new Error('服务器未配置 DeepSeek API Key，请先填写 config/api-keys.json');
   }
 
-  const requestedModel = getConfiguredValue('GEMINI_MODEL', 'geminiModel');
+  const requestedModel = getConfiguredValue('DEEPSEEK_MODEL', 'deepseekModel');
   const candidateModels = requestedModel
     ? [requestedModel]
-    : ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
+    : ['deepseek-chat', 'deepseek-reasoner'];
 
   let lastError = null;
 
   for (const modelName of candidateModels) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent`,
+        'https://api.deepseek.com/chat/completions',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
+            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            contents: [
+            model: modelName,
+            messages: [
+              {
+                role: 'system',
+                content: [
+                  '你是"我的世界工具箱"的 SVIP AI 助手。',
+                  '请始终使用简体中文回答。',
+                  '优先回答 Minecraft 指令、玩法、红石、配方、坐标、服务器管理相关问题。',
+                  '如果问题适合给步骤，请给简洁步骤；如果适合给命令，请给可直接复制的命令。'
+                ].join('\n')
+              },
               {
                 role: 'user',
-                parts: [
-                  {
-                    text: [
-                      '你是“我的世界工具箱”的 SVIP AI 助手。',
-                      '请始终使用简体中文回答。',
-                      '优先回答 Minecraft 指令、玩法、红石、配方、坐标、服务器管理相关问题。',
-                      '如果问题适合给步骤，请给简洁步骤；如果适合给命令，请给可直接复制的命令。',
-                      `用户问题：${question}`
-                    ].join('\n')
-                  }
-                ]
+                content: question
               }
-            ]
+            ],
+            stream: false
           })
         }
       );
@@ -1427,16 +1430,12 @@ async function callGeminiAnswer(question) {
       if (!response.ok) {
         const errorMessage = result && result.error && result.error.message
           ? result.error.message
-          : `Gemini 请求失败（${response.status}）`;
+          : `DeepSeek 请求失败（${response.status}）`;
         lastError = new Error(`${modelName}: ${errorMessage}`);
         continue;
       }
 
-      const parts = (((result || {}).candidates || [])[0] || {}).content?.parts || [];
-      const answer = parts
-        .map((part) => (part && typeof part.text === 'string' ? part.text : ''))
-        .join('\n')
-        .trim();
+      const answer = ((result.choices || [])[0] || {}).message?.content?.trim() || '';
 
       if (!answer) {
         lastError = new Error(`${modelName}: 模型未返回文本内容`);
@@ -1452,7 +1451,7 @@ async function callGeminiAnswer(question) {
     }
   }
 
-  throw lastError || new Error('Gemini 调用失败');
+  throw lastError || new Error('DeepSeek 调用失败');
 }
 
 function handleAiChat(request, response) {
@@ -1487,7 +1486,7 @@ function handleAiChat(request, response) {
         return;
       }
 
-      const result = await callGeminiAnswer(question);
+      const result = await callDeepSeekAnswer(question);
       sendJson(response, 200, {
         message: 'AI 回复成功',
         answer: result.answer,
@@ -1927,6 +1926,7 @@ const server = http.createServer((request, response) => {
 
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
   const isPublicPreviewPage =
+    previewablePublicPages.has(pathname) ||
     pathname === '/preview.html' ||
     pathname === '/preview-page.html' ||
     /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);

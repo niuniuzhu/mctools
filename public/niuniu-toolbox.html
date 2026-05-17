@@ -60,9 +60,9 @@
 
       .category-card:hover {
         border-color: var(--accent);
-        background: rgba(96, 165, 250, 0.16);
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+        box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 20%, transparent);
       }
 
       .category-card.locked:hover {
@@ -117,7 +117,7 @@
       }
 
       .topbar-nav a:hover {
-        background: rgba(96, 165, 250, 0.1);
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
         color: var(--accent-strong);
       }
     </style>
@@ -159,7 +159,7 @@
           <p class="category-desc">
             AI 问答与智能建议入口已迁移到这里统一管理。
           </p>
-          <p class="category-desc" style="color: var(--muted); font-weight: 600;">维护中，预计 17:40 后恢复</p>
+          <p class="category-desc" style="color: var(--accent); font-weight: 600;">已开放</p>
         </a>
 
         <!-- 二维码生成器 -->
@@ -192,6 +192,19 @@
           </p>
           <p class="category-desc" style="color: var(--muted); font-weight: 600;">未开放</p>
         </div>
+
+        <!-- 小游戏分类 -->
+        <a href="/coin-collector.html" class="category-card">
+          <div class="category-icon">🕹️</div>
+          <h3 class="category-title">小游戏</h3>
+          <p class="category-desc">
+            移动角色拾取金币获取分数，支持键盘方向键与 WASD 控制。开局即玩。
+          </p>
+          <ul class="category-subitems">
+            <li>吃金币</li>
+          </ul>
+          <p class="category-desc" style="color: var(--accent); font-weight: 600;">已开放</p>
+        </a>
       </section>
     </main>
   </body>
