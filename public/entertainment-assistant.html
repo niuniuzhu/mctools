@@ -16,7 +16,7 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <style>
-      .fun-topbar,.fun-actions,.fun-mini-actions,.fun-group-row,.fun-meta-row { display:flex; gap:16px; flex-wrap:wrap; }
+      .fun-topbar,.fun-actions,.fun-mini-actions,.fun-group-row,.fun-meta-row,.fun-history-actions,.fun-audio-row { display:flex; gap:16px; flex-wrap:wrap; }
       .fun-topbar { margin-bottom:32px; }
       .fun-topbar a { color:var(--accent); text-decoration:none; padding:8px 16px; border-radius:4px; }
       .fun-shell { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,0.85fr); gap:24px; }
@@ -29,15 +29,27 @@
       .fun-wheel-wrap { display:grid; place-items:center; margin:22px 0; position:relative; }
       .fun-wheel-stage { width:min(320px, 70vw); aspect-ratio:1; position:relative; }
       .fun-wheel { width:100%; aspect-ratio:1; border-radius:50%; border:8px solid rgba(255,255,255,0.14); transition:transform 4s cubic-bezier(.15,.7,.12,1); background:conic-gradient(#60a5fa 0 25%, #f59e0b 25% 50%, #34d399 50% 75%, #fb7185 75% 100%); position:relative; overflow:hidden; }
+      .fun-wheel-stage::before { content:''; position:absolute; inset:-14px; border-radius:50%; background:radial-gradient(circle, rgba(96,165,250,0.26) 0%, rgba(96,165,250,0.12) 35%, transparent 70%); opacity:0; transform:scale(0.9); pointer-events:none; }
+      .fun-wheel-stage::after { content:''; position:absolute; inset:10%; border-radius:50%; border:2px dashed rgba(255,255,255,0.22); opacity:0.4; pointer-events:none; }
+      .fun-wheel-stage.is-spinning::before { animation:funWheelPulse 0.9s ease-in-out infinite; }
+      .fun-wheel-stage.is-spinning::after { animation:funWheelOrbit 6s linear infinite; }
+      .fun-wheel-stage.is-winning::before { animation:funWheelWin 0.85s ease-out 2; }
       .fun-wheel::before { content:''; position:absolute; inset:50% auto auto 50%; width:26px; height:26px; border-radius:50%; background:var(--text); transform:translate(-50%, -50%); }
       .fun-wheel-label-layer { position:absolute; inset:0; pointer-events:none; transition:transform 4s cubic-bezier(.15,.7,.12,1); }
       .fun-wheel-label { position:absolute; left:50%; top:50%; width:38%; transform-origin:0 0; color:#fff; font-size:0.76rem; font-weight:700; text-align:right; text-shadow:0 1px 4px rgba(0,0,0,0.45); }
       .fun-wheel-label-text { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transform-origin:center; }
       .fun-wheel-pointer { width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:24px solid var(--accent); margin:0 auto 12px; }
+      .fun-wheel-pointer.is-spinning { animation:funPointerTick 0.16s ease-in-out infinite alternate; filter:drop-shadow(0 0 8px rgba(96,165,250,0.5)); }
+      .fun-wheel-pointer.is-winning { animation:funPointerCelebrate 0.5s ease-out 3; }
+      .fun-result.is-highlight { animation:funResultFlash 0.7s ease-out 2; }
       .fun-result,.fun-mini-result { min-height:26px; color:var(--text); font-weight:600; }
       .fun-chip-list { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
       .fun-chip { padding:6px 10px; border-radius:999px; background:rgba(96,165,250,0.12); color:var(--accent); font-size:0.88rem; }
       .fun-meta-pill { padding:6px 10px; border-radius:999px; background:rgba(255,255,255,0.06); color:var(--muted); font-size:0.88rem; }
+      .fun-audio-toggle { display:inline-flex; align-items:center; gap:10px; border-radius:999px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.05); color:var(--text); padding:8px 14px; cursor:pointer; }
+      .fun-audio-toggle.is-enabled { border-color:rgba(253,230,138,0.45); background:rgba(253,230,138,0.12); color:#fde68a; }
+      .fun-audio-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.22); box-shadow:0 0 0 0 rgba(253,230,138,0); transition:all 0.2s ease; }
+      .fun-audio-toggle.is-enabled .fun-audio-dot { background:#fde68a; box-shadow:0 0 12px rgba(253,230,138,0.65); }
       .fun-mini-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:18px; }
       .fun-mini-card { border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.05); padding:16px; }
       .fun-mini-card strong { display:block; margin-bottom:12px; }
@@ -47,7 +59,40 @@
       .fun-group-card strong { display:block; margin-bottom:10px; }
       .fun-group-card ul { margin:0; padding-left:18px; line-height:1.8; color:var(--muted); }
       .fun-group-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+      .fun-btn[disabled] { cursor:not-allowed; opacity:0.6; border-color:rgba(255,255,255,0.1); background:rgba(255,255,255,0.05); }
+      .fun-history-panel { margin-top:20px; border-radius:10px; border:2px solid var(--panel-border); background:rgba(251,191,36,0.06); padding:18px; }
+      .fun-history-list { margin-top:14px; display:grid; gap:10px; }
+      .fun-history-item { border-radius:10px; border:2px solid var(--panel-border); background:rgba(255,255,255,0.05); padding:12px 14px; }
+      .fun-history-item strong { display:block; margin-bottom:6px; color:var(--accent); }
+      .fun-history-item span { display:block; color:var(--muted); font-size:0.88rem; margin-top:6px; }
       .fun-side ul { margin:0; padding-left:20px; color:var(--muted); line-height:1.9; }
+      @keyframes funWheelPulse {
+        0% { opacity:0.18; transform:scale(0.92); }
+        50% { opacity:0.6; transform:scale(1.03); }
+        100% { opacity:0.18; transform:scale(0.92); }
+      }
+      @keyframes funWheelOrbit {
+        0% { transform:rotate(0deg); }
+        100% { transform:rotate(360deg); }
+      }
+      @keyframes funWheelWin {
+        0% { opacity:0.85; transform:scale(0.94); }
+        100% { opacity:0; transform:scale(1.12); }
+      }
+      @keyframes funPointerTick {
+        0% { transform:translateY(0); }
+        100% { transform:translateY(6px); }
+      }
+      @keyframes funPointerCelebrate {
+        0% { transform:translateY(0) scale(1); }
+        50% { transform:translateY(4px) scale(1.12); }
+        100% { transform:translateY(0) scale(1); }
+      }
+      @keyframes funResultFlash {
+        0% { color:var(--text); text-shadow:none; }
+        50% { color:#fde68a; text-shadow:0 0 12px rgba(253,230,138,0.55); }
+        100% { color:var(--text); text-shadow:none; }
+      }
       @media (max-width: 900px) { .fun-shell,.fun-mini-grid,.fun-group-grid { grid-template-columns:1fr; } }
     </style>
     <script defer src="/app.js"></script>
@@ -67,11 +112,17 @@
             <button type="button" class="fun-btn primary" data-fun-action="pick-one">随机抽 1 个</button>
             <button type="button" class="fun-btn" data-fun-action="pick-three">随机抽 3 个</button>
             <button type="button" class="fun-btn" data-fun-action="shuffle">随机排序</button>
-            <button type="button" class="fun-btn" data-fun-action="spin">转盘选择</button>
+            <button type="button" class="fun-btn" data-fun-action="spin" data-fun-spin-button>转盘选择</button>
           </div>
           <div class="fun-meta-row" style="margin-top:12px;">
             <div class="fun-meta-pill" data-fun-option-count>当前候选：0 项</div>
             <div class="fun-meta-pill" data-fun-group-hint>建议至少输入 4 人再分组</div>
+          </div>
+          <div class="fun-audio-row" style="margin-top:12px;">
+            <button type="button" class="fun-audio-toggle" data-fun-audio-toggle aria-pressed="false">
+              <span class="fun-audio-dot"></span>
+              <span data-fun-audio-label>转盘音效：关闭</span>
+            </button>
           </div>
           <div class="fun-wheel-wrap">
             <div class="fun-wheel-pointer"></div>
@@ -101,6 +152,15 @@
               <button type="button" class="fun-btn" data-fun-action="clear-group">清空分组展示</button>
             </div>
             <div class="fun-group-grid" data-fun-group-grid></div>
+          </section>
+
+          <section class="fun-history-panel">
+            <strong>结果历史</strong>
+            <div class="fun-history-actions" style="margin-top:12px;">
+              <button type="button" class="fun-btn" data-fun-action="clear-history">清空历史</button>
+            </div>
+            <div class="fun-result" data-fun-history-status>抽签、转盘和分组结果会显示在这里。</div>
+            <div class="fun-history-list" data-fun-history-list></div>
           </section>
 
           <div class="fun-mini-grid">
@@ -152,11 +212,18 @@
         const chipList = document.querySelector('[data-fun-chip-list]');
         const wheel = document.querySelector('[data-fun-wheel]');
         const wheelLabels = document.querySelector('[data-fun-wheel-labels]');
+        const wheelStage = document.querySelector('.fun-wheel-stage');
+        const wheelPointer = document.querySelector('.fun-wheel-pointer');
+        const spinButton = document.querySelector('[data-fun-spin-button]');
+        const audioToggle = document.querySelector('[data-fun-audio-toggle]');
+        const audioLabel = document.querySelector('[data-fun-audio-label]');
         const optionCount = document.querySelector('[data-fun-option-count]');
         const groupHint = document.querySelector('[data-fun-group-hint]');
         const groupCount = document.querySelector('[data-fun-group-count]');
         const groupResult = document.querySelector('[data-fun-group-result]');
         const groupGrid = document.querySelector('[data-fun-group-grid]');
+        const historyStatus = document.querySelector('[data-fun-history-status]');
+        const historyList = document.querySelector('[data-fun-history-list]');
         const diceSides = document.querySelector('[data-dice-sides]');
         const diceResult = document.querySelector('[data-dice-result]');
         const coinResult = document.querySelector('[data-coin-result]');
@@ -164,6 +231,11 @@
         const wheelColors = ['#60a5fa', '#f59e0b', '#34d399', '#fb7185', '#a78bfa', '#f97316', '#22c55e', '#06b6d4'];
         let wheelRotation = 0;
         let lastGroups = [];
+        let historyEntries = [];
+        let isSpinning = false;
+        let audioEnabled = false;
+        let audioContext = null;
+        let spinAudioTimer = null;
 
         function getOptions() {
           return optionsInput.value.split(/\r?\n|,/).map((item) => item.trim()).filter(Boolean);
@@ -178,6 +250,124 @@
           groupHint.textContent = items.length < 2
             ? '至少输入 2 人才能分组'
             : `当前最多建议分成 ${Math.min(items.length, 6)} 组`;
+        }
+
+        function updateSpinButton() {
+          spinButton.disabled = isSpinning;
+          spinButton.textContent = isSpinning ? '转盘旋转中...' : '转盘选择';
+        }
+
+        function updateAudioToggle() {
+          audioToggle.classList.toggle('is-enabled', audioEnabled);
+          audioToggle.setAttribute('aria-pressed', String(audioEnabled));
+          audioLabel.textContent = audioEnabled ? '转盘音效：开启' : '转盘音效：关闭';
+        }
+
+        function ensureAudioContext() {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return null;
+          if (!audioContext) {
+            audioContext = new AudioContextClass();
+          }
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+          }
+          return audioContext;
+        }
+
+        function playTone(frequency, duration, volume) {
+          if (!audioEnabled) return;
+          const context = ensureAudioContext();
+          if (!context) return;
+          const oscillator = context.createOscillator();
+          const gainNode = context.createGain();
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(frequency, context.currentTime);
+          gainNode.gain.setValueAtTime(volume, context.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
+          oscillator.connect(gainNode);
+          gainNode.connect(context.destination);
+          oscillator.start();
+          oscillator.stop(context.currentTime + duration);
+        }
+
+        function startSpinAudio() {
+          if (!audioEnabled || spinAudioTimer) return;
+          playTone(780, 0.06, 0.03);
+          spinAudioTimer = window.setInterval(() => {
+            playTone(680 + Math.random() * 120, 0.05, 0.025);
+          }, 140);
+        }
+
+        function stopSpinAudio(playFinishTone = false) {
+          if (spinAudioTimer) {
+            window.clearInterval(spinAudioTimer);
+            spinAudioTimer = null;
+          }
+          if (playFinishTone && audioEnabled) {
+            playTone(880, 0.09, 0.04);
+            window.setTimeout(() => playTone(1180, 0.14, 0.035), 90);
+          }
+        }
+
+        function setSpinAnimationState(spinning) {
+          wheelStage.classList.toggle('is-spinning', spinning);
+          wheelPointer.classList.toggle('is-spinning', spinning);
+          if (!spinning) {
+            wheelPointer.classList.remove('is-winning');
+            wheelStage.classList.remove('is-winning');
+          }
+        }
+
+        function triggerWinAnimation() {
+          wheelStage.classList.remove('is-winning');
+          wheelPointer.classList.remove('is-winning');
+          result.classList.remove('is-highlight');
+          void wheelStage.offsetWidth;
+          wheelStage.classList.add('is-winning');
+          wheelPointer.classList.add('is-winning');
+          result.classList.add('is-highlight');
+          window.setTimeout(() => {
+            wheelStage.classList.remove('is-winning');
+            wheelPointer.classList.remove('is-winning');
+            result.classList.remove('is-highlight');
+          }, 1500);
+        }
+
+        function formatNow() {
+          return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        function renderHistory() {
+          historyList.innerHTML = historyEntries.map((entry) => `
+            <article class="fun-history-item">
+              <strong>${entry.type}</strong>
+              <div>${entry.content}</div>
+              <span>${entry.time}</span>
+            </article>
+          `).join('');
+        }
+
+        function pushHistory(type, content) {
+          historyEntries = [{ type, content, time: formatNow() }, ...historyEntries].slice(0, 8);
+          historyStatus.textContent = `最近记录已更新，共 ${historyEntries.length} 条`;
+          renderHistory();
+        }
+
+        function clearHistory() {
+          historyEntries = [];
+          historyList.innerHTML = '';
+          historyStatus.textContent = '历史记录已清空';
+        }
+
+        function toggleAudio() {
+          audioEnabled = !audioEnabled;
+          updateAudioToggle();
+          if (!audioEnabled) {
+            stopSpinAudio(false);
+          } else {
+            ensureAudioContext();
+          }
         }
 
         function renderChips(items) {
@@ -218,7 +408,9 @@
             const index = Math.floor(Math.random() * pool.length);
             chosen.push(pool.splice(index, 1)[0]);
           }
-          result.textContent = `结果：${chosen.join('、')}`;
+          const text = `结果：${chosen.join('、')}`;
+          result.textContent = text;
+          pushHistory(count === 1 ? '随机抽 1 个' : '随机抽 3 个', text);
         }
 
         function shuffleItems() {
@@ -236,12 +428,21 @@
         }
 
         function spinWheel() {
+          if (isSpinning) {
+            result.textContent = '转盘仍在旋转中，请稍后再试';
+            return;
+          }
           const items = getOptions();
           if (!items.length) {
             result.textContent = '请先输入至少一个选项';
             return;
           }
           renderWheel(items);
+          isSpinning = true;
+          updateSpinButton();
+          setSpinAnimationState(true);
+          startSpinAudio();
+          result.textContent = '转盘旋转中，请等待结果...';
           const chosenIndex = Math.floor(Math.random() * items.length);
           const perItem = 360 / items.length;
           const landing = 360 - chosenIndex * perItem - perItem / 2;
@@ -249,7 +450,14 @@
           wheel.style.transform = `rotate(${wheelRotation}deg)`;
           wheelLabels.style.transform = `rotate(${wheelRotation}deg)`;
           window.setTimeout(() => {
-            result.textContent = `转盘结果：${items[chosenIndex]}`;
+            const text = `转盘结果：${items[chosenIndex]}`;
+            result.textContent = text;
+            pushHistory('转盘选择', text);
+            isSpinning = false;
+            updateSpinButton();
+            setSpinAnimationState(false);
+            stopSpinAudio(true);
+            triggerWinAnimation();
           }, 4000);
         }
 
@@ -305,6 +513,7 @@
           });
           groupResult.textContent = `已完成 ${shuffled.length} 人随机分成 ${groupTotal} 组`;
           renderGroups(groups);
+          pushHistory('多人分组', lastGroups.map((members, index) => `第 ${index + 1} 组：${members.join('、') || '暂无成员'}`).join(' / '));
         }
 
         document.addEventListener('click', (event) => {
@@ -315,9 +524,11 @@
           if (action === 'pick-three') pickRandom(3);
           if (action === 'shuffle') shuffleItems();
           if (action === 'spin') spinWheel();
+          if (action === 'toggle-audio') toggleAudio();
           if (action === 'group') groupItems();
           if (action === 'copy-group') copyGroups();
           if (action === 'clear-group') clearGroups();
+          if (action === 'clear-history') clearHistory();
           if (action === 'dice') {
             const sides = Number(diceSides.value);
             diceResult.textContent = `投掷结果：${Math.floor(Math.random() * sides) + 1}`;
@@ -332,6 +543,9 @@
         });
 
         optionsInput.addEventListener('input', () => renderWheel(getOptions()));
+        audioToggle.addEventListener('click', toggleAudio);
+        updateAudioToggle();
+        updateSpinButton();
         renderWheel([]);
       })();
     </script>

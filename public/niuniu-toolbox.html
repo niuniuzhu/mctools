@@ -53,11 +53,23 @@
         color: inherit;
       }
 
+      .category-card.locked {
+        cursor: not-allowed;
+        opacity: 0.86;
+      }
+
       .category-card:hover {
         border-color: var(--accent);
         background: rgba(96, 165, 250, 0.16);
         transform: translateY(-4px);
         box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+      }
+
+      .category-card.locked:hover {
+        border-color: var(--panel-border);
+        background: var(--panel);
+        transform: none;
+        box-shadow: none;
       }
 
       .category-icon {
@@ -75,6 +87,17 @@
         font-size: 0.95rem;
         color: var(--muted);
         margin: 0;
+      }
+
+      .category-subitems {
+        margin: 4px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .category-subitems li {
+        font-size: 0.92rem;
       }
 
       .topbar-nav {
@@ -130,6 +153,15 @@
           </p>
         </a>
 
+        <a href="/ai.html" class="category-card">
+          <div class="category-icon">🤖</div>
+          <h3 class="category-title">AI 助手</h3>
+          <p class="category-desc">
+            AI 问答与智能建议入口已迁移到这里统一管理。
+          </p>
+          <p class="category-desc" style="color: var(--muted); font-weight: 600;">维护中，预计 17:40 后恢复</p>
+        </a>
+
         <!-- 二维码生成器 -->
         <a href="/qrcode-generator.html" class="category-card">
           <div class="category-icon">📱</div>
@@ -139,6 +171,27 @@
           </p>
           <p class="category-desc" style="color: var(--accent); font-weight: 600;">已开放</p>
         </a>
+
+        <div class="category-card locked" aria-disabled="true">
+          <div class="category-icon">💻</div>
+          <h3 class="category-title">设备分类</h3>
+          <p class="category-desc">
+            聚合设备相关工具入口，当前先收拢到这里统一管理开放状态。
+          </p>
+          <ul class="category-subitems">
+            <li>帧率检测（未开放）</li>
+          </ul>
+          <p class="category-desc" style="color: var(--muted); font-weight: 600;">未开放</p>
+        </div>
+
+        <div class="category-card locked" aria-disabled="true">
+          <div class="category-icon">🖥️</div>
+          <h3 class="category-title">帧率检测</h3>
+          <p class="category-desc">
+            已从我的世界工具箱迁移到当前页面，现阶段暂未开放。
+          </p>
+          <p class="category-desc" style="color: var(--muted); font-weight: 600;">未开放</p>
+        </div>
       </section>
     </main>
   </body>

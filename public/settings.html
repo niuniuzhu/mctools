@@ -91,12 +91,25 @@
       .settings-toolbox-page .workspace-nav .ghost-link-button {
         border-radius: 4px;
       }
+
+      .maintenance-banner {
+        border-radius: 8px;
+        border: 2px solid var(--panel-border);
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--text);
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-weight: 600;
+      }
     </style>
     <script defer src="/app.js"></script>
     <script defer src="/home.js"></script>
   </head>
   <body class="settings-toolbox-page">
     <main class="shell">
+      <section class="maintenance-banner">
+        维护通知：设置页面已开始维护，预计维护至 17:40。
+      </section>
       <section class="hero">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>

@@ -2649,7 +2649,7 @@ function isVipOnlyCommand(commandName) {
 }
 
 function hasVipCommandAccess(commandName) {
-  return !isVipOnlyCommand(commandName) || Boolean(currentMe && currentMe.vipPurchased);
+  return !isVipOnlyCommand(commandName) || Boolean(currentMe && (currentMe.vipPurchased || currentMe.vipPaused));
 }
 
 function setCommandAccessMessage(text) {
@@ -3071,19 +3071,26 @@ function updateVipState(me) {
   const vipCategoryLink = document.querySelector('[data-vip-category-link]');
   const vipCategoryNote = document.querySelector('[data-vip-category-note]');
   const accountPill = document.querySelector('[data-account-pill]');
+  const isVipPaused = Boolean(me.vipPaused);
   const isVipActive = Boolean(me.vipPurchased);
   const isSvipActive = Boolean(me.svipPurchased);
+  const hasVipAccess = isVipPaused || isVipActive;
+  const hasSvipAccess = isVipPaused || isSvipActive;
 
   if (memberState) {
     memberState.classList.toggle('vip-active', isVipActive);
     memberState.classList.toggle('svip-active', isSvipActive);
-    memberState.textContent = `会员等级：${me.membershipLevel === 'SVIP' ? 'SVIP' : me.membershipLevel === 'VIP' ? 'VIP' : '普通用户'}`;
+    memberState.textContent = isVipPaused
+      ? '会员等级：普通用户（VIP 已暂停）'
+      : `会员等级：${me.membershipLevel === 'SVIP' ? 'SVIP' : me.membershipLevel === 'VIP' ? 'VIP' : '普通用户'}`;
   }
 
   if (vipState) {
     vipState.classList.toggle('vip-active', isVipActive);
     vipState.classList.toggle('svip-active', isSvipActive);
-    vipState.textContent = isSvipActive
+    vipState.textContent = isVipPaused
+      ? 'VIP 状态：系统暂时关闭（原会员能力已临时开放）'
+      : isSvipActive
       ? `VIP 状态：已升级为 SVIP（30 元，${me.svipPurchasedAt || '已记录'}）`
       : isVipActive
       ? `VIP 状态：已开通（10 元，${me.vipPurchasedAt || '已记录'}）`
@@ -3105,94 +3112,104 @@ function updateVipState(me) {
   }
 
   if (purchaseButton) {
-    purchaseButton.classList.toggle('vip-button-active', isVipActive && !isSvipActive);
-    purchaseButton.textContent = isVipActive ? 'VIP 已开通' : '购买 VIP 10 元';
-    purchaseButton.disabled = isVipActive;
+    purchaseButton.classList.toggle('vip-button-active', isVipActive && !isSvipActive && !isVipPaused);
+    purchaseButton.textContent = isVipPaused ? 'VIP 暂停中' : isVipActive ? 'VIP 已开通' : '购买 VIP 10 元';
+    purchaseButton.disabled = isVipActive || isVipPaused;
+    purchaseButton.hidden = isVipPaused;
   }
 
   if (svipPurchaseButton) {
     svipPurchaseButton.classList.toggle('svip-button-active', isSvipActive);
-    svipPurchaseButton.textContent = isSvipActive
+    svipPurchaseButton.textContent = isVipPaused
+      ? 'SVIP 暂停中'
+      : isSvipActive
       ? 'SVIP 已开通'
       : isVipActive
       ? '升级 SVIP 10 元'
       : '购买 SVIP 25 元';
-    svipPurchaseButton.disabled = isSvipActive;
+    svipPurchaseButton.disabled = isSvipActive || isVipPaused;
+    svipPurchaseButton.hidden = isVipPaused;
   }
 
   if (aiPanel) {
-    aiPanel.classList.toggle('locked', !isSvipActive);
+    aiPanel.classList.toggle('locked', !hasSvipAccess);
     aiPanel.classList.toggle('vip-enabled', false);
-    aiPanel.classList.toggle('svip-enabled', isSvipActive);
+    aiPanel.classList.toggle('svip-enabled', hasSvipAccess);
   }
 
   if (aiLock) {
     aiLock.classList.toggle('vip-active', false);
-    aiLock.classList.toggle('svip-active', isSvipActive);
-    aiLock.textContent = isSvipActive ? 'SVIP AI 已解锁' : '仅 SVIP 可使用';
+    aiLock.classList.toggle('svip-active', hasSvipAccess);
+    aiLock.textContent = isVipPaused ? 'VIP 暂停中，AI 已临时开放' : hasSvipAccess ? 'SVIP AI 已解锁' : '仅 SVIP 可使用';
   }
 
   if (aiMessage) {
-    aiMessage.textContent = isSvipActive
+    aiMessage.textContent = isVipPaused
+      ? 'VIP 体系暂停期间，AI 功能临时开放。'
+      : hasSvipAccess
       ? '你可以直接提问，AI 会返回中文答案。'
       : '升级 SVIP 后即可使用 AI 问答助手';
   }
 
   if (aiTierMessage) {
-    aiTierMessage.textContent = isSvipActive
+    aiTierMessage.textContent = isVipPaused
+      ? 'VIP 暂停中：当前账号可直接使用 AI 相关功能。'
+      : hasSvipAccess
       ? '服务端会优先尝试调用 Gemini 3.1 Pro，失败后自动回退到可用模型。'
       : 'SVIP 专享问答：可直接询问指令、玩法、红石、服务器配置等问题。';
   }
 
   if (aiPrompt) {
-    aiPrompt.disabled = !isSvipActive;
+    aiPrompt.disabled = !hasSvipAccess;
   }
 
   if (aiGenerateButton) {
-    aiGenerateButton.disabled = !isSvipActive;
+    aiGenerateButton.disabled = !hasSvipAccess;
   }
 
   if (aiCopyButton) {
-    aiCopyButton.disabled = !isSvipActive;
+    aiCopyButton.disabled = !hasSvipAccess;
   }
 
   if (executorPanel) {
-    executorPanel.classList.toggle('locked', !isSvipActive);
-    executorPanel.classList.toggle('svip-enabled', isSvipActive);
+    executorPanel.classList.toggle('locked', !hasSvipAccess);
+    executorPanel.classList.toggle('svip-enabled', hasSvipAccess);
   }
 
   if (executorLock) {
-    executorLock.classList.toggle('svip-active', isSvipActive);
-    executorLock.textContent = isSvipActive ? 'SVIP 指令执行器已解锁' : '仅 SVIP 可使用';
+    executorLock.classList.toggle('svip-active', hasSvipAccess);
+    executorLock.textContent = isVipPaused ? 'VIP 暂停中，执行器已临时开放' : hasSvipAccess ? 'SVIP 指令执行器已解锁' : '仅 SVIP 可使用';
   }
 
   if (executorMessage) {
-    executorMessage.textContent = isSvipActive
+    executorMessage.textContent = isVipPaused
+      ? 'VIP 体系暂停期间，执行器功能临时开放。'
+      : hasSvipAccess
       ? '可输入任意指令进行模拟执行并记录到历史'
       : '升级 SVIP 后即可使用指令执行器';
   }
 
   if (executorInput) {
-    executorInput.disabled = !isSvipActive;
+    executorInput.disabled = !hasSvipAccess;
   }
 
   if (executorRunButton) {
-    executorRunButton.disabled = !isSvipActive;
+    executorRunButton.disabled = !hasSvipAccess;
   }
 
   if (executorCopyButton) {
-    executorCopyButton.disabled = !isSvipActive;
+    executorCopyButton.disabled = !hasSvipAccess;
   }
 
   if (vipCategoryCard) {
-    vipCategoryCard.classList.toggle('tool-card-active', isVipActive);
-    vipCategoryCard.classList.toggle('tool-card-locked', !isVipActive);
+    vipCategoryCard.classList.toggle('tool-card-active', hasVipAccess);
+    vipCategoryCard.classList.toggle('tool-card-locked', !hasVipAccess);
   }
 
   if (vipCategoryLink) {
-    vipCategoryLink.classList.toggle('disabled', !isVipActive);
-    vipCategoryLink.textContent = isVipActive ? '进入坐标工具' : '购买 VIP 后进入';
-    if (!isVipActive) {
+    vipCategoryLink.classList.toggle('disabled', !hasVipAccess);
+    vipCategoryLink.textContent = isVipPaused ? '进入坐标工具（临时开放）' : hasVipAccess ? '进入坐标工具' : '购买 VIP 后进入';
+    if (!hasVipAccess) {
       vipCategoryLink.setAttribute('aria-disabled', 'true');
     } else {
       vipCategoryLink.removeAttribute('aria-disabled');
@@ -3200,7 +3217,9 @@ function updateVipState(me) {
   }
 
   if (vipCategoryNote) {
-    vipCategoryNote.textContent = isVipActive
+    vipCategoryNote.textContent = isVipPaused
+      ? 'VIP 体系暂停中：坐标工具入口临时开放。'
+      : hasVipAccess
       ? 'VIP 已解锁，可进入坐标工具。'
       : '当前为 VIP 专用入口。';
   }

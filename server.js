@@ -14,6 +14,8 @@ const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
 const sourceAppVersion = '正式版1.4';
 let appVersion = sourceAppVersion;
+const vipSystemPaused = true;
+const aiMaintenanceEndsAt = new Date('2026-05-17T17:40:00+08:00');
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const developerRegistrationSecret = 'McTools2026!';
 const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
@@ -26,6 +28,7 @@ const previewablePublicPages = new Set([
   '/unit-converter.html',
   '/base-converter.html',
   '/entertainment-assistant.html',
+  '/coin-collector.html',
   '/json-tools.html',
   '/calculator.html',
   '/commands.html',
@@ -734,12 +737,26 @@ function handlePasswordChange(request, response) {
 }
 
 function getVipInfo(username) {
+  if (vipSystemPaused) {
+    return {
+      vipPaused: true,
+      vipPurchased: false,
+      vipAmount: 0,
+      vipPurchasedAt: null,
+      svipPurchased: false,
+      svipAmount: 0,
+      svipPurchasedAt: null,
+      membershipLevel: 'NORMAL'
+    };
+  }
+
   const vipPurchase = db.prepare('SELECT amount, purchased_at FROM vip_purchases WHERE username = ?').get(username);
   const svipPurchase = db.prepare('SELECT amount, purchased_at FROM svip_purchases WHERE username = ?').get(username);
   const hasSvip = Boolean(svipPurchase);
   const hasVip = Boolean(vipPurchase) || hasSvip;
 
   return {
+    vipPaused: false,
     vipPurchased: hasVip,
     vipAmount: vipPurchase ? vipPurchase.amount : 0,
     vipPurchasedAt: vipPurchase ? vipPurchase.purchased_at : hasSvip ? svipPurchase.purchased_at : null,
@@ -748,6 +765,22 @@ function getVipInfo(username) {
     svipPurchasedAt: svipPurchase ? svipPurchase.purchased_at : null,
     membershipLevel: hasSvip ? 'SVIP' : hasVip ? 'VIP' : 'NORMAL'
   };
+}
+
+function hasVipFeatureAccess(vipInfo) {
+  return vipSystemPaused || Boolean(vipInfo && vipInfo.vipPurchased);
+}
+
+function hasSvipFeatureAccess(vipInfo) {
+  return vipSystemPaused || Boolean(vipInfo && vipInfo.svipPurchased);
+}
+
+function getAiMaintenanceMessage() {
+  return 'AI 助手维护中，预计 17:40 后恢复';
+}
+
+function isAiUnderMaintenance() {
+  return Date.now() < aiMaintenanceEndsAt.getTime();
 }
 
 function getAvatarUrl(username) {
@@ -1129,6 +1162,17 @@ function handleVipPurchase(request, response) {
     return;
   }
 
+  if (vipSystemPaused) {
+    sendJson(response, 503, {
+      message: 'VIP 功能暂时关闭',
+      vipPaused: true,
+      username: session.username,
+      version: appVersion,
+      ...getVipInfo(session.username)
+    });
+    return;
+  }
+
   const existingPurchase = db.prepare('SELECT id FROM vip_purchases WHERE username = ?').get(session.username);
 
   if (existingPurchase) {
@@ -1158,6 +1202,17 @@ function handleSvipPurchase(request, response) {
 
   if (!session) {
     sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  if (vipSystemPaused) {
+    sendJson(response, 503, {
+      message: 'VIP 功能暂时关闭',
+      vipPaused: true,
+      username: session.username,
+      version: appVersion,
+      ...getVipInfo(session.username)
+    });
     return;
   }
 
@@ -1272,9 +1327,17 @@ function handleAiGenerate(request, response) {
     return;
   }
 
+  if (isAiUnderMaintenance()) {
+    sendJson(response, 503, {
+      message: getAiMaintenanceMessage(),
+      maintenanceEndsAt: aiMaintenanceEndsAt.toISOString()
+    });
+    return;
+  }
+
   const vipInfo = getVipInfo(session.username);
 
-  if (!vipInfo.vipPurchased) {
+  if (!hasVipFeatureAccess(vipInfo)) {
     sendJson(response, 403, { message: 'AI 功能仅限 VIP 使用' });
     return;
   }
@@ -1304,7 +1367,7 @@ function handleAiGenerate(request, response) {
         ...result,
         username: session.username,
         version: appVersion,
-        aiTier: vipInfo.svipPurchased ? 'SVIP' : 'VIP',
+        aiTier: vipSystemPaused ? 'OPEN' : vipInfo.svipPurchased ? 'SVIP' : 'VIP',
         ...getVipInfo(session.username)
       });
     })
@@ -1400,9 +1463,17 @@ function handleAiChat(request, response) {
     return;
   }
 
+  if (isAiUnderMaintenance()) {
+    sendJson(response, 503, {
+      message: getAiMaintenanceMessage(),
+      maintenanceEndsAt: aiMaintenanceEndsAt.toISOString()
+    });
+    return;
+  }
+
   const vipInfo = getVipInfo(session.username);
 
-  if (!vipInfo.svipPurchased) {
+  if (!hasSvipFeatureAccess(vipInfo)) {
     sendJson(response, 403, { message: 'AI 问答仅限 SVIP 使用' });
     return;
   }
@@ -1423,7 +1494,7 @@ function handleAiChat(request, response) {
         model: result.model,
         username: session.username,
         version: appVersion,
-        aiTier: 'SVIP'
+        aiTier: vipSystemPaused ? 'OPEN' : 'SVIP'
       });
     })
     .catch((error) => {
@@ -1441,9 +1512,17 @@ function handleExecutorRun(request, response) {
     return;
   }
 
+  if (isAiUnderMaintenance()) {
+    sendJson(response, 503, {
+      message: getAiMaintenanceMessage(),
+      maintenanceEndsAt: aiMaintenanceEndsAt.toISOString()
+    });
+    return;
+  }
+
   const vipInfo = getVipInfo(session.username);
 
-  if (!vipInfo.svipPurchased) {
+  if (!hasSvipFeatureAccess(vipInfo)) {
     sendJson(response, 403, { message: '指令执行器仅限 SVIP 使用' });
     return;
   }
@@ -1478,7 +1557,7 @@ function handleExecutorRun(request, response) {
         message: '执行完成',
         summary,
         commandText,
-        executorTier: 'SVIP',
+        executorTier: vipSystemPaused ? 'OPEN' : 'SVIP',
         version: appVersion
       });
     })
@@ -1508,7 +1587,7 @@ function handleSaveCommand(request, response) {
         return;
       }
 
-      if (vipOnlyCommandNames.has(commandName) && !vipInfo.vipPurchased) {
+      if (vipOnlyCommandNames.has(commandName) && !hasVipFeatureAccess(vipInfo)) {
         sendJson(response, 403, { message: '这条复杂指令仅限 VIP 使用' });
         return;
       }

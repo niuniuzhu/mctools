@@ -48,12 +48,6 @@ const dailyRecommendationModules = [
     note: '适合今天先评估云玩方案、延迟等级和预算，再决定怎么玩。'
   },
   {
-    key: 'fpsTest',
-    label: '帧率测试',
-    href: '/fps-test.html',
-    note: '适合今天先看页面是否流畅、设备是否稳，再决定要不要继续压功能和动画。'
-  },
-  {
     key: 'pageDetection',
     label: '我的世界页面检测',
     href: '/page-detection.html',
