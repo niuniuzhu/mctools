@@ -916,3 +916,24 @@ Server is running at http://0.0.0.0:3001  (正式版1.4)
 (node:30816) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3001  (正式版1.4)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:15528) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4.5)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:12144) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4.5)
+
+> mctools@1.0.0 start
+> node server.js
+
+(node:14356) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4.5)

@@ -23,6 +23,8 @@ const maintenanceUnlockClickTarget = 10;
 const maintenanceUnlockWindowMs = 1800;
 const loginRedirectDelayMs = 0;
 const loginPageVersion = '正式版1.4';
+const developerSecretRememberStorageKey = 'mctools-developer-secret-cache';
+const developerSecretRememberLifetimeMs = 1000 * 60 * 30;
 
 let specialRegisterMode = 'normal';
 let maintenanceTitleClickCount = 0;
@@ -78,6 +80,67 @@ function storeMaintenanceUnlock() {
   }
 }
 
+function getRememberedDeveloperSecret() {
+  try {
+    const rawValue = sessionStorage.getItem(developerSecretRememberStorageKey);
+
+    if (!rawValue) {
+      return '';
+    }
+
+    const parsed = JSON.parse(rawValue);
+    const secret = parsed && typeof parsed.secret === 'string' ? parsed.secret : '';
+    const expiresAt = Number(parsed && parsed.expiresAt);
+
+    if (!secret || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+      sessionStorage.removeItem(developerSecretRememberStorageKey);
+      return '';
+    }
+
+    return secret;
+  } catch {
+    return '';
+  }
+}
+
+function rememberDeveloperSecret(secret) {
+  const nextSecret = String(secret || '').trim();
+
+  if (!nextSecret) {
+    return;
+  }
+
+  try {
+    sessionStorage.setItem(developerSecretRememberStorageKey, JSON.stringify({
+      secret: nextSecret,
+      expiresAt: Date.now() + developerSecretRememberLifetimeMs
+    }));
+  } catch {
+    // Ignore storage write failure.
+  }
+}
+
+function clearRememberedDeveloperSecret() {
+  try {
+    sessionStorage.removeItem(developerSecretRememberStorageKey);
+  } catch {
+    // Ignore storage remove failure.
+  }
+}
+
+function applyRememberedDeveloperSecret() {
+  if (!developerSecretInput) {
+    return;
+  }
+
+  const rememberedSecret = getRememberedDeveloperSecret();
+
+  if (rememberedSecret && !developerSecretInput.value) {
+    developerSecretInput.value = rememberedSecret;
+  }
+}
+
+
 function setMaintenanceUnlockVisible(isVisible) {
   if (!maintenanceUnlock) {
     return;
@@ -127,6 +190,10 @@ function setSpecialRegisterMode(mode) {
 
   if (developerSecretInput) {
     developerSecretInput.required = mode === 'developer';
+
+    if (mode === 'developer') {
+      applyRememberedDeveloperSecret();
+    }
 
     if (mode !== 'developer') {
       developerSecretInput.value = '';
@@ -233,9 +300,17 @@ async function submitForm(event) {
     const result = await response.json();
 
     if (!response.ok) {
+      if (tabName === 'register' && specialRegisterMode === 'developer' && (result.message || '').includes('开发者授权码错误')) {
+        clearRememberedDeveloperSecret();
+      }
+
       setMessage(result.message || '操作失败', true);
 
       return;
+    }
+
+    if (tabName === 'register' && specialRegisterMode === 'developer') {
+      rememberDeveloperSecret(payload.developerSecret);
     }
 
     setMessage(result.message || '成功');
@@ -251,6 +326,38 @@ async function submitForm(event) {
   } catch {
     setMessage('网络请求失败，请稍后重试', true);
   }
+}
+
+function applyDeveloperEntryFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const queryUsername = String(params.get('username') || '').trim();
+  let storedUsername = '';
+
+  try {
+    storedUsername = String(sessionStorage.getItem('mctools-developer-prefill-username') || '').trim();
+  } catch {
+    storedUsername = '';
+  }
+
+  const prefillUsername = queryUsername || storedUsername;
+
+  if (prefillUsername) {
+    document.querySelectorAll('input[name="username"]').forEach((input) => {
+      input.value = prefillUsername;
+    });
+  }
+
+  if (params.get('developer') !== '1') {
+    return;
+  }
+
+  if (isMaintenanceUnlockStored()) {
+    setSpecialRegisterMode('developer');
+    setMessage('开发者入口已通过校验，请继续填写并注册。');
+    return;
+  }
+
+  setMessage('未检测到入口凭据，请从提示页进入开发者入口。', true);
 }
 
 tabButtons.forEach((button) => {
@@ -305,3 +412,4 @@ applyAppVersion(loginPageVersion);
 setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
 setSpecialRegisterMode('normal');
 switchTab('login');
+applyDeveloperEntryFromQuery();

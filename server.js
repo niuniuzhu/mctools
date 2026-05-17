@@ -18,6 +18,7 @@ const vipSystemPaused = true;
 const aiMaintenanceEndsAt = new Date('2026-05-17T17:40:00+08:00');
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
 const developerRegistrationSecret = 'McTools2026!';
+const localDevQuickEntryLifetimeMs = 1000 * 60 * 5;
 const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
 const previewablePublicPages = new Set([
   '/ai.html',
@@ -156,6 +157,7 @@ db.exec(`
 
 const sessions = new Map();
 const loginCaptchas = new Map();
+const localDevQuickEntryTokens = new Map();
 const captchaLifetimeMs = 1000 * 60 * 5;
 
 const mimeTypes = {
@@ -338,11 +340,33 @@ function cleanupExpiredCaptchas() {
   }
 }
 
+function cleanupExpiredLocalDevQuickEntryTokens() {
+  const now = Date.now();
+
+  for (const [token, tokenInfo] of localDevQuickEntryTokens.entries()) {
+    if (tokenInfo.expiresAt <= now) {
+      localDevQuickEntryTokens.delete(token);
+    }
+  }
+}
+
 function generateCaptchaCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
 
   for (let index = 0; index < 4; index += 1) {
+    const randomIndex = crypto.randomInt(0, alphabet.length);
+    code += alphabet[randomIndex];
+  }
+
+  return code;
+}
+
+function generateDeveloperEntryCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+
+  for (let index = 0; index < 6; index += 1) {
     const randomIndex = crypto.randomInt(0, alphabet.length);
     code += alphabet[randomIndex];
   }
@@ -449,6 +473,55 @@ function redirectToSettings(response) {
 function isOfficialPublicHost(request) {
   const hostHeader = String(request.headers.host || '').trim().toLowerCase();
   return hostHeader === '115.29.198.193:3000' || hostHeader === '115.29.198.193';
+}
+
+function getRequestClientAddress(request) {
+  const forwardedFor = String(request.headers['x-forwarded-for'] || '').trim();
+  const candidate = forwardedFor ? forwardedFor.split(',')[0].trim() : String(request.socket.remoteAddress || '').trim();
+
+  if (candidate.startsWith('::ffff:')) {
+    return candidate.slice(7);
+  }
+
+  return candidate;
+}
+
+function canUseLocalDevQuickEntry(request) {
+  return !isOfficialPublicHost(request);
+}
+
+function issueLocalDevQuickEntryToken(request) {
+  cleanupExpiredLocalDevQuickEntryTokens();
+  const token = generateDeveloperEntryCode();
+  localDevQuickEntryTokens.set(token, {
+    ip: getRequestClientAddress(request),
+    expiresAt: Date.now() + localDevQuickEntryLifetimeMs
+  });
+
+  return token;
+}
+
+function consumeLocalDevQuickEntryToken(request, token) {
+  const normalizedToken = String(token || '').trim().toUpperCase();
+
+  if (!normalizedToken) {
+    return false;
+  }
+
+  cleanupExpiredLocalDevQuickEntryTokens();
+  const tokenInfo = localDevQuickEntryTokens.get(normalizedToken);
+
+  if (!tokenInfo) {
+    return false;
+  }
+
+  localDevQuickEntryTokens.delete(token);
+
+  if (tokenInfo.expiresAt <= Date.now()) {
+    return false;
+  }
+
+  return tokenInfo.ip === getRequestClientAddress(request);
 }
 
 function getSettingValue(settingKey, fallbackValue = '') {
@@ -582,7 +655,7 @@ function handleRegister(request, response) {
         body.registerAsDeveloper === 'true' ||
         body.registerAsDeveloper === 1 ||
         body.registerAsDeveloper === '1';
-      const developerSecret = String(body.developerSecret || '');
+      const developerSecret = String(body.developerSecret || '').trim();
 
       if (username.length < 3 || username.length > 32) {
         sendJson(response, 400, { message: '用户名长度需为 3-32 个字符' });
@@ -594,9 +667,19 @@ function handleRegister(request, response) {
         return;
       }
 
-      if (registerAsDeveloper && developerSecret !== developerRegistrationSecret) {
-        sendJson(response, 403, { message: '开发者授权码错误' });
-        return;
+      let usedLocalDevQuickEntry = false;
+
+      if (registerAsDeveloper) {
+        const secretMatched = developerSecret === developerRegistrationSecret;
+
+        if (!secretMatched && canUseLocalDevQuickEntry(request)) {
+          usedLocalDevQuickEntry = consumeLocalDevQuickEntryToken(request, developerSecret);
+        }
+
+        if (!secretMatched && !usedLocalDevQuickEntry) {
+          sendJson(response, 403, { message: '开发者授权码错误或已过期' });
+          return;
+        }
       }
 
       const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
@@ -627,6 +710,20 @@ function handleRegister(request, response) {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
       sendJson(response, statusCode, { message: error.message });
     });
+}
+
+function handleDeveloperQuickEntryToken(request, response) {
+  if (!canUseLocalDevQuickEntry(request)) {
+    sendJson(response, 403, { message: '官方线上环境禁用快捷入口，请使用开发者授权码' });
+    return;
+  }
+
+  const token = issueLocalDevQuickEntryToken(request);
+  sendJson(response, 200, {
+    enabled: true,
+    code: token,
+    expiresInMs: localDevQuickEntryLifetimeMs
+  });
 }
 
 function handleLogin(request, response) {
@@ -1915,6 +2012,7 @@ function buildPreviewPageHtml(staticPath) {
 const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
   cleanupExpiredCaptchas();
+  cleanupExpiredLocalDevQuickEntryTokens();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
@@ -1943,6 +2041,11 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/register') {
     handleRegister(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/quick-entry-token') {
+    handleDeveloperQuickEntryToken(request, response);
     return;
   }
 

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开发者入口校验</title>
+    <style>
+      :root {
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #0f766e;
+        --danger: #b91c1c;
+        --border: #dbe2ea;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at top right, #e2f5f3 0%, var(--bg) 55%);
+        padding: 20px;
+      }
+
+      .card {
+        width: min(92vw, 520px);
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1);
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 24px;
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.65;
+        color: var(--muted);
+      }
+
+      .row {
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: var(--text);
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 11px 12px;
+        font-size: 15px;
+      }
+
+      button {
+        margin-top: 12px;
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 12px;
+        background: var(--accent);
+        color: #ffffff;
+        font-size: 15px;
+        cursor: pointer;
+      }
+
+      .status {
+        margin-top: 14px;
+        font-size: 14px;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.ok {
+        color: var(--accent);
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>开发者入口校验</h1>
+      <p id="entry-tip">请先输入账号和授权码，再进入登录页继续开发者注册流程。</p>
+
+      <form id="entry-form" class="row">
+        <label for="entry-username">账号</label>
+        <input id="entry-username" name="username" type="text" minlength="3" maxlength="32" required />
+        <label for="entry-code">授权码</label>
+        <input id="entry-code" name="entryCode" type="text" minlength="6" maxlength="6" required />
+        <button type="submit">继续</button>
+      </form>
+
+      <p id="entry-status" class="status" aria-live="polite"></p>
+    </main>
+
+    <script>
+      (function () {
+        const form = document.getElementById('entry-form');
+        const tip = document.getElementById('entry-tip');
+        const status = document.getElementById('entry-status');
+        const usernameInput = document.getElementById('entry-username');
+        const codeInput = document.getElementById('entry-code');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const unlockKey = 'mctools-maintenance-register-unlocked';
+        const prefillKey = 'mctools-developer-prefill-username';
+        const secretCacheKey = 'mctools-developer-secret-cache';
+        let quickEntryCode = '';
+
+        if (submitButton) {
+          submitButton.disabled = true;
+        }
+
+        function setStatus(text, isError) {
+          status.textContent = text;
+          status.className = 'status ' + (isError ? 'error' : 'ok');
+        }
+
+        function cameFromTishi() {
+          if (!document.referrer) {
+            return false;
+          }
+
+          try {
+            const ref = new URL(document.referrer);
+            return ref.origin === window.location.origin && ref.pathname === '/tishi.html';
+          } catch {
+            return false;
+          }
+        }
+
+        if (!cameFromTishi()) {
+          tip.textContent = '未按正规网页打开，拒绝访问。';
+          form.classList.add('hidden');
+          setStatus('请返回正确页面，从提示中的入口链接进入。', true);
+          return;
+        }
+
+        async function initQuickEntryToken() {
+          try {
+            const response = await fetch('/api/developer/quick-entry-token');
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok || !result.code) {
+              form.classList.add('hidden');
+              tip.textContent = '当前环境不可使用快捷入口。';
+              setStatus(result.message || '请改用开发者授权码注册模式。', true);
+              return;
+            }
+
+            quickEntryCode = String(result.code || '').trim().toUpperCase();
+
+            if (submitButton) {
+              submitButton.disabled = false;
+            }
+
+            setStatus(`已生成实时授权码：${quickEntryCode}（5 分钟内有效）`, false);
+          } catch {
+            form.classList.add('hidden');
+            tip.textContent = '快捷入口初始化失败。';
+            setStatus('网络请求失败，请稍后刷新重试。', true);
+          }
+        }
+
+        initQuickEntryToken();
+
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          const username = String(usernameInput.value || '').trim();
+          const inputCode = String(codeInput.value || '').trim().toUpperCase();
+
+          if (!username) {
+            setStatus('请输入账号后再继续。', true);
+            return;
+          }
+
+          if (!inputCode) {
+            setStatus('请输入授权码后再继续。', true);
+            return;
+          }
+
+          if (!quickEntryCode || inputCode !== quickEntryCode) {
+            setStatus('授权码错误，请输入当前页面生成的实时授权码。', true);
+            return;
+          }
+
+          try {
+            sessionStorage.setItem(unlockKey, '1');
+            sessionStorage.setItem(prefillKey, username);
+            sessionStorage.setItem(secretCacheKey, JSON.stringify({
+              secret: inputCode,
+              expiresAt: Date.now() + 1000 * 60 * 5
+            }));
+          } catch {
+            setStatus('浏览器存储不可用，请检查无痕或隐私设置。', true);
+            return;
+          }
+
+          window.location.href = '/login.html?developer=1&username=' + encodeURIComponent(username);
+        });
+      })();
+    </script>
+  </body>
+</html>
