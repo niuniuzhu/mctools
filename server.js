@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 const host = process.env.HOST || '0.0.0.0';
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 const publicDir = path.join(__dirname, 'public');
 const configDir = path.join(__dirname, 'config');
 const dataDir = path.join(__dirname, 'data');

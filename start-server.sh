@@ -5,6 +5,7 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PID_FILE="$SCRIPT_DIR/.mctools-server.pid"
 LOG_FILE="$SCRIPT_DIR/mctools-server.log"
+MCTOOLS_PORT="${MCTOOLS_PORT:-3001}"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is not installed or not in PATH."
@@ -27,9 +28,10 @@ if [ -f "$PID_FILE" ]; then
 fi
 
 cd "$SCRIPT_DIR"
-nohup npm start >"$LOG_FILE" 2>&1 < /dev/null &
+PORT="$MCTOOLS_PORT" nohup npm start >"$LOG_FILE" 2>&1 < /dev/null &
 SERVER_PID=$!
 echo "$SERVER_PID" > "$PID_FILE"
 
 echo "mctools started in the background. PID: $SERVER_PID"
 echo "Log file: $LOG_FILE"
+echo "URL: http://127.0.0.1:$MCTOOLS_PORT"

@@ -17,11 +17,13 @@ if errorlevel 1 (
 
 set "PID_FILE=%~dp0.mctools-server.pid"
 set "LOG_FILE=%~dp0mctools-server.log"
+set "MCTOOLS_PORT=3001"
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$scriptDir = (Resolve-Path '.').Path;" ^
   "$pidFile = Join-Path $scriptDir '.mctools-server.pid';" ^
   "$logFile = Join-Path $scriptDir 'mctools-server.log';" ^
+  "$port = [Environment]::GetEnvironmentVariable('MCTOOLS_PORT');" ^
   "if (Test-Path $pidFile) {" ^
   "  $existingPidText = Get-Content $pidFile -Raw -ErrorAction SilentlyContinue;" ^
   "  $existingPid = if ($null -eq $existingPidText) { '' } else { $existingPidText.Trim() };" ^
@@ -30,11 +32,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  }" ^
   "  Remove-Item $pidFile -Force -ErrorAction SilentlyContinue;" ^
   "}" ^
-  "$commandLine = 'npm start >> "' + $logFile + '" 2>&1';" ^
+  "$commandLine = 'set PORT=' + $port + ' && npm start >> "' + $logFile + '" 2>&1';" ^
   "$process = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', $commandLine) -WorkingDirectory $scriptDir -WindowStyle Hidden -PassThru;" ^
   "Set-Content -Path $pidFile -Value $process.Id -NoNewline;" ^
   "Write-Host ('mctools started in the background. PID: ' + $process.Id);" ^
-  "Write-Host ('Log file: ' + $logFile);"
+  "Write-Host ('Log file: ' + $logFile);" ^
+  "Write-Host ('URL: http://127.0.0.1:' + $port)"
 
 if errorlevel 1 exit /b 1
 
