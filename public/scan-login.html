@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>扫码确认登录</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'normal';
+        document.documentElement.dataset.ui = storedUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .scan-shell {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .scan-card {
+        width: min(100%, 560px);
+        border-radius: 24px;
+        border: 1px solid var(--panel-border);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      .scan-card h1 {
+        margin: 0 0 10px;
+        font-size: 2rem;
+      }
+
+      .scan-card p,
+      .scan-card li {
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .scan-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 18px;
+      }
+
+      .scan-btn,
+      .scan-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 16px;
+        border-radius: 12px;
+        border: 1px solid var(--panel-border);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .scan-btn.primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-contrast);
+      }
+
+      .scan-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .scan-status {
+        min-height: 24px;
+        margin-top: 16px;
+        color: var(--text);
+      }
+
+      .scan-list {
+        margin: 18px 0 0;
+        padding-left: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="scan-shell">
+      <section class="scan-card">
+        <p class="badge">QR Login</p>
+        <h1>扫码确认登录</h1>
+        <p data-scan-copy>正在检查当前设备的登录状态。</p>
+        <div class="scan-actions">
+          <button type="button" class="scan-btn primary" data-scan-approve disabled>确认登录</button>
+          <a class="scan-link" href="/login.html">返回登录页</a>
+        </div>
+        <p class="scan-status" data-scan-status>等待检查</p>
+        <ul class="scan-list">
+          <li>请在已经登录账号的设备上打开此页面。</li>
+          <li>点击“确认登录”后，原浏览器会自动登录当前账号。</li>
+          <li>二维码超时后，需要回到原页面重新刷新。</li>
+        </ul>
+      </section>
+    </main>
+    <script>
+      (() => {
+        const approveButton = document.querySelector('[data-scan-approve]');
+        const statusText = document.querySelector('[data-scan-status]');
+        const copyText = document.querySelector('[data-scan-copy]');
+        const params = new URLSearchParams(window.location.search);
+        const token = String(params.get('token') || '').trim();
+
+        function setStatus(text, isError) {
+          statusText.textContent = text;
+          statusText.style.color = isError ? '#fca5a5' : '';
+        }
+
+        async function checkMe() {
+          if (!token) {
+            copyText.textContent = '当前二维码参数无效。';
+            setStatus('缺少扫码票据，请返回原页面重新生成二维码。', true);
+            return;
+          }
+
+          try {
+            const response = await fetch('/api/me');
+
+            if (!response.ok) {
+              copyText.textContent = '当前设备尚未登录账号。';
+              setStatus('请先在这台设备登录，再重新扫码或返回此页确认。', true);
+              return;
+            }
+
+            const me = await response.json();
+            copyText.textContent = `当前扫码设备已登录账号：${me.username}`;
+            approveButton.disabled = false;
+            setStatus('可以确认登录。');
+          } catch {
+            setStatus('网络请求失败，请稍后重试。', true);
+          }
+        }
+
+        approveButton.addEventListener('click', async () => {
+          approveButton.disabled = true;
+          setStatus('正在确认登录...');
+
+          try {
+            const response = await fetch('/api/login/qr/approve', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+              approveButton.disabled = false;
+              setStatus(result.message || '确认失败，请稍后重试。', true);
+              return;
+            }
+
+            setStatus(result.message || '已确认登录。');
+            copyText.textContent = '原浏览器会自动完成登录，可返回原设备查看。';
+          } catch {
+            approveButton.disabled = false;
+            setStatus('网络请求失败，请稍后重试。', true);
+          }
+        });
+
+        checkMe();
+      })();
+    </script>
+  </body>
+</html>

@@ -23,6 +23,7 @@ const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.
 const previewablePublicPages = new Set([
   '/ai.html',
   '/automation-guide.html',
+  '/bug-report.html',
   '/build-lab.html',
   '/cloud-play.html',
   '/text-converter.html',
@@ -45,6 +46,7 @@ const previewablePublicPages = new Set([
   '/page-detection.html',
   '/recipes.html',
   '/redstone-lab.html',
+  '/scan-login.html',
   '/seed-lab.html',
   '/server-hub.html',
   '/settings.html',
@@ -155,10 +157,26 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bug_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT NOT NULL,
+    contact TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'OPEN',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
 const sessions = new Map();
 const loginCaptchas = new Map();
 const localDevQuickEntryTokens = new Map();
+const qrLoginTickets = new Map();
 const captchaLifetimeMs = 1000 * 60 * 5;
+const qrLoginTicketLifetimeMs = 1000 * 60 * 3;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -350,6 +368,16 @@ function cleanupExpiredLocalDevQuickEntryTokens() {
   }
 }
 
+function cleanupExpiredQrLoginTickets() {
+  const now = Date.now();
+
+  for (const [ticketToken, ticket] of qrLoginTickets.entries()) {
+    if (ticket.expiresAt <= now) {
+      qrLoginTickets.delete(ticketToken);
+    }
+  }
+}
+
 function generateCaptchaCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -372,6 +400,44 @@ function generateDeveloperEntryCode() {
   }
 
   return code;
+}
+
+function issueQrLoginTicket() {
+  cleanupExpiredQrLoginTickets();
+  const ticketToken = crypto.randomBytes(24).toString('hex');
+  qrLoginTickets.set(ticketToken, {
+    status: 'pending',
+    username: '',
+    createdAt: Date.now(),
+    expiresAt: Date.now() + qrLoginTicketLifetimeMs
+  });
+  return ticketToken;
+}
+
+function getQrLoginTicket(ticketToken) {
+  cleanupExpiredQrLoginTickets();
+  const normalizedToken = String(ticketToken || '').trim();
+
+  if (!normalizedToken) {
+    return null;
+  }
+
+  const ticket = qrLoginTickets.get(normalizedToken);
+
+  if (!ticket) {
+    return null;
+  }
+
+  if (ticket.expiresAt <= Date.now()) {
+    qrLoginTickets.delete(normalizedToken);
+    return null;
+  }
+
+  return { token: normalizedToken, ...ticket };
+}
+
+function updateQrLoginTicket(ticketToken, nextTicket) {
+  qrLoginTickets.set(ticketToken, nextTicket);
 }
 
 function createCaptchaSvg(code) {
@@ -475,6 +541,11 @@ function isOfficialPublicHost(request) {
   return hostHeader === '115.29.198.193:3000' || hostHeader === '115.29.198.193';
 }
 
+function isBugPortalHost(request) {
+  const hostHeader = String(request.headers.host || '').trim().toLowerCase();
+  return hostHeader.endsWith(':3002');
+}
+
 function getRequestClientAddress(request) {
   const forwardedFor = String(request.headers['x-forwarded-for'] || '').trim();
   const candidate = forwardedFor ? forwardedFor.split(',')[0].trim() : String(request.socket.remoteAddress || '').trim();
@@ -488,6 +559,10 @@ function getRequestClientAddress(request) {
 
 function canUseLocalDevQuickEntry(request) {
   return !isOfficialPublicHost(request);
+}
+
+function canUseGeneralUserLogin(request) {
+  return isOfficialPublicHost(request) || isBugPortalHost(request);
 }
 
 function issueLocalDevQuickEntryToken(request) {
@@ -731,7 +806,7 @@ function handleLogin(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const bypassDeveloperRestriction = isOfficialPublicHost(request);
+      const bypassDeveloperRestriction = canUseGeneralUserLogin(request);
 
       if (!username || !password) {
         sendJson(response, 400, { message: '请输入用户名和密码' });
@@ -767,6 +842,78 @@ function handleLoginCaptcha(request, response) {
     svg: captcha.svg,
     version: appVersion
   });
+}
+
+function handleQrLoginTicketIssue(request, response) {
+  const ticketToken = issueQrLoginTicket();
+  sendJson(response, 200, {
+    token: ticketToken,
+    expiresInMs: qrLoginTicketLifetimeMs,
+    version: appVersion
+  });
+}
+
+function handleQrLoginStatus(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const ticket = getQrLoginTicket(url.searchParams.get('token'));
+
+  if (!ticket) {
+    sendJson(response, 404, { message: '扫码登录二维码已失效，请刷新后重试' });
+    return;
+  }
+
+  if (ticket.status !== 'approved' || !ticket.username) {
+    sendJson(response, 200, {
+      status: ticket.status,
+      expiresInMs: Math.max(0, ticket.expiresAt - Date.now())
+    });
+    return;
+  }
+
+  const sessionToken = createSession(ticket.username);
+  setSessionCookie(response, sessionToken);
+  qrLoginTickets.delete(ticket.token);
+  sendJson(response, 200, {
+    status: 'approved',
+    username: ticket.username,
+    version: appVersion
+  });
+}
+
+function handleQrLoginApprove(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先在扫码设备登录账号' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const ticket = getQrLoginTicket(body.token || '');
+
+      if (!ticket) {
+        sendJson(response, 404, { message: '扫码登录二维码已失效，请返回原页面刷新' });
+        return;
+      }
+
+      updateQrLoginTicket(ticket.token, {
+        status: 'approved',
+        username: session.username,
+        createdAt: ticket.createdAt,
+        expiresAt: ticket.expiresAt
+      });
+
+      sendJson(response, 200, {
+        message: `已确认使用账号 ${session.username} 登录`,
+        username: session.username,
+        expiresInMs: Math.max(0, ticket.expiresAt - Date.now())
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
 }
 
 function handleLogout(request, response) {
@@ -916,6 +1063,156 @@ function requireDeveloperSession(request, response) {
   }
 
   return session;
+}
+
+function handleBugReportCreate(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录后再提交 bug 反馈' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const title = String(body.title || '').trim();
+      const category = String(body.category || '其他').trim() || '其他';
+      const description = String(body.description || '').trim();
+      const contact = String(body.contact || '').trim();
+
+      if (title.length < 4 || title.length > 80) {
+        sendJson(response, 400, { message: '标题长度需为 4-80 个字符' });
+        return;
+      }
+
+      if (description.length < 10 || description.length > 5000) {
+        sendJson(response, 400, { message: '问题描述长度需为 10-5000 个字符' });
+        return;
+      }
+
+      if (contact.length > 120) {
+        sendJson(response, 400, { message: '联系方式长度不能超过 120 个字符' });
+        return;
+      }
+
+      db.prepare(
+        `INSERT INTO bug_reports (username, title, category, description, contact)
+         VALUES (?, ?, ?, ?, ?)`
+      ).run(session.username, title, category, description, contact);
+
+      sendJson(response, 201, {
+        message: 'Bug 反馈已提交，开发者稍后会查看。',
+        username: session.username,
+        version: appVersion
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handleMyBugReports(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  const rows = db.prepare(
+    `SELECT id, title, category, description, contact, status,
+            created_at AS createdAt, updated_at AS updatedAt
+     FROM bug_reports
+     WHERE username = ?
+     ORDER BY id DESC
+     LIMIT 50`
+  ).all(session.username);
+
+  sendJson(response, 200, {
+    items: rows,
+    username: session.username,
+    version: appVersion
+  });
+}
+
+function handleDeveloperBugReports(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const statusFilter = String(url.searchParams.get('status') || '').trim().toUpperCase();
+  const limitValue = Number(url.searchParams.get('limit') || 100);
+  const limit = Number.isFinite(limitValue) ? Math.max(1, Math.min(200, Math.floor(limitValue))) : 100;
+  let sql = `SELECT id, username, title, category, description, contact, status,
+                    created_at AS createdAt, updated_at AS updatedAt
+             FROM bug_reports`;
+  const params = [];
+
+  if (statusFilter) {
+    sql += ' WHERE status = ?';
+    params.push(statusFilter);
+  }
+
+  sql += ' ORDER BY id DESC LIMIT ?';
+  params.push(limit);
+
+  const rows = db.prepare(sql).all(...params);
+  sendJson(response, 200, {
+    items: rows,
+    username: session.username,
+    version: appVersion
+  });
+}
+
+function handleDeveloperBugReportStatus(request, response) {
+  const session = requireDeveloperSession(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number(body.id);
+      const status = String(body.status || '').trim().toUpperCase();
+      const allowedStatus = new Set(['OPEN', 'TRIAGED', 'FIXED', 'CLOSED']);
+
+      if (!Number.isInteger(id) || id <= 0) {
+        sendJson(response, 400, { message: '缺少有效的反馈编号' });
+        return;
+      }
+
+      if (!allowedStatus.has(status)) {
+        sendJson(response, 400, { message: '状态无效' });
+        return;
+      }
+
+      const result = db.prepare(
+        `UPDATE bug_reports
+         SET status = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).run(status, id);
+
+      if (!result.changes) {
+        sendJson(response, 404, { message: '未找到对应的 bug 反馈' });
+        return;
+      }
+
+      sendJson(response, 200, {
+        message: '反馈状态已更新',
+        status,
+        id,
+        operator: session.username
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
 }
 
 function handleDeveloperFiles(request, response) {
@@ -2013,6 +2310,7 @@ const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
   cleanupExpiredCaptchas();
   cleanupExpiredLocalDevQuickEntryTokens();
+  cleanupExpiredQrLoginTickets();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
@@ -2022,9 +2320,21 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'GET' && pathname === '/api/login/qr') {
+    handleQrLoginTicketIssue(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/login/qr/status') {
+    handleQrLoginStatus(request, response);
+    return;
+  }
+
+  const staticPath = pathname === '/' ? (Number(port) === 3002 ? '/bug-report.html' : '/index.html') : pathname;
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
   const isPublicPreviewPage =
     previewablePublicPages.has(pathname) ||
+    previewablePublicPages.has(staticPath) ||
     pathname === '/preview.html' ||
     pathname === '/preview-page.html' ||
     /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);
@@ -2051,6 +2361,11 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'POST' && pathname === '/api/login') {
     handleLogin(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/login/qr/approve') {
+    handleQrLoginApprove(request, response);
     return;
   }
 
@@ -2114,6 +2429,26 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (request.method === 'POST' && pathname === '/api/bugs') {
+    handleBugReportCreate(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/bugs/mine') {
+    handleMyBugReports(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/bugs') {
+    handleDeveloperBugReports(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/developer/bugs/status') {
+    handleDeveloperBugReportStatus(request, response);
+    return;
+  }
+
   if (request.method === 'GET' && pathname === '/api/developer/files') {
     handleDeveloperFiles(request, response);
     return;
@@ -2170,7 +2505,6 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  const staticPath = pathname === '/' ? '/index.html' : pathname;
   const publicFilePath = resolvePublicFilePath(staticPath);
 
   if (pathname === '/extension-hub.html') {
@@ -2225,7 +2559,7 @@ const server = http.createServer((request, response) => {
   }
 
   if (isLoginAsset || isPublicPreviewPage || isPublicLoginDependency) {
-    serveStatic(pathname, response);
+    serveStatic(staticPath, response);
     return;
   }
 

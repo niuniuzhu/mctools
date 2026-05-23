@@ -3,9 +3,9 @@
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PID_FILE="$SCRIPT_DIR/.mctools-server.pid"
-LOG_FILE="$SCRIPT_DIR/mctools-server.log"
-MCTOOLS_PORT="${MCTOOLS_PORT:-3001}"
+MCTOOLS_PORT="${1:-${MCTOOLS_PORT:-3001}}"
+PID_FILE="$SCRIPT_DIR/.mctools-server-$MCTOOLS_PORT.pid"
+LOG_FILE="$SCRIPT_DIR/mctools-server-$MCTOOLS_PORT.log"
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js is not installed or not in PATH."

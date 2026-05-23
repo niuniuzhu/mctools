@@ -15,6 +15,258 @@
       }
     </script>
     <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .device-hero-note {
+        max-width: 62ch;
+      }
+
+      .device-status-grid,
+      .device-info-grid,
+      .device-metric-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .device-status-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .device-metric-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .device-info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .device-stat-card,
+      .device-info-card,
+      .device-stage,
+      .device-summary-card {
+        padding: 18px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+          rgba(4, 10, 20, 0.42);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .device-stat-card strong,
+      .device-info-card strong,
+      .device-summary-card strong {
+        display: block;
+        margin-top: 10px;
+        font-size: clamp(1.2rem, 3vw, 2rem);
+        line-height: 1.1;
+        color: var(--text);
+      }
+
+      .device-stat-card span,
+      .device-info-card span,
+      .device-summary-card span {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .device-grid-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.75fr);
+        gap: 18px;
+      }
+
+      .device-stage {
+        position: relative;
+        overflow: hidden;
+        min-height: 300px;
+        background:
+          radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 34%),
+          radial-gradient(circle at 80% 25%, rgba(236, 72, 153, 0.2), transparent 32%),
+          linear-gradient(160deg, rgba(4, 10, 20, 0.94), rgba(18, 48, 85, 0.72));
+      }
+
+      .device-stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 28px 28px;
+        opacity: 0.55;
+      }
+
+      .device-stage-head,
+      .device-stage-foot {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .device-stage-head {
+        margin-bottom: 16px;
+      }
+
+      .device-stage-head h3,
+      .device-summary-card h3 {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .device-stage-head p,
+      .device-summary-card p,
+      .device-stage-foot p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .device-stage-area {
+        position: relative;
+        z-index: 1;
+        height: 172px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+      }
+
+      .device-stage-wave {
+        position: absolute;
+        inset: auto -10% 0;
+        height: 58%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(103, 232, 249, 0.18));
+        transform: translate3d(0, 0, 0);
+      }
+
+      .device-stage-orb,
+      .device-stage-orb-secondary {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.34));
+        transform: translate3d(0, 0, 0);
+      }
+
+      .device-stage-orb {
+        background: radial-gradient(circle at 30% 30%, #fff, color-mix(in srgb, var(--accent) 72%, white) 34%, color-mix(in srgb, var(--accent-strong) 82%, transparent));
+      }
+
+      .device-stage-orb-secondary {
+        width: 34px;
+        height: 34px;
+        background: radial-gradient(circle at 30% 30%, #fff, rgba(236, 72, 153, 0.9) 32%, rgba(124, 58, 237, 0.78));
+      }
+
+      .device-stage-foot {
+        margin-top: 16px;
+      }
+
+      .device-action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .device-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 132px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease, background 160ms ease;
+      }
+
+      .device-action-btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: var(--accent-contrast);
+        border-color: transparent;
+        box-shadow: 0 16px 34px color-mix(in srgb, var(--accent-strong) 38%, transparent);
+      }
+
+      .device-action-btn:hover {
+        transform: translateY(-1px);
+        border-color: color-mix(in srgb, var(--accent) 55%, white);
+      }
+
+      .device-action-btn.primary:hover {
+        box-shadow: 0 20px 36px color-mix(in srgb, var(--accent-strong) 48%, transparent);
+      }
+
+      .device-action-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .device-status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .device-summary-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .device-summary-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .device-summary-item span {
+        margin: 0;
+      }
+
+      .device-summary-item strong {
+        margin: 0;
+        font-size: 1rem;
+        text-align: right;
+      }
+
+      .device-status-text {
+        margin-top: 14px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 920px) {
+        .device-grid-layout,
+        .device-status-grid,
+        .device-metric-grid,
+        .device-info-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
     <script defer src="/app.js"></script>
     <script defer src="/fps-test.js"></script>
   </head>
@@ -22,20 +274,38 @@
     <main class="shell">
       <section class="hero">
         <div class="hero-copy">
-          <p class="badge">Minecraft Toolbox</p>
-          <h1>帧率测试</h1>
-          <p class="lead">独立的实时 FPS 检测分类，用来观察当前网页渲染是否流畅，并记录低帧与平均值。</p>
+          <p class="badge">Device Lab</p>
+          <h1>设备检测</h1>
+          <p class="lead device-hero-note">把帧率检测收进设备分类后，这里改成了一个更完整的检测台。你可以同时看实时 FPS、卡顿次数、估算等级，以及当前设备和显示环境。</p>
           <div class="meta-row">
-            <div class="version-pill">当前版本 v1.2.0 正式版</div>
-            <div class="version-pill">模块：帧率测试</div>
+            <div class="version-pill">当前版本 v1.4 正式版</div>
+            <div class="version-pill">模块：设备检测</div>
+            <div class="version-pill">子项：帧率检测</div>
+          </div>
+          <div class="device-status-grid">
+            <article class="device-stat-card">
+              <p class="panel-label">实时帧率</p>
+              <strong data-fps-live>-- FPS</strong>
+              <span>当前瞬时刷新率，采样窗口更快，便于观察波动。</span>
+            </article>
+            <article class="device-stat-card">
+              <p class="panel-label">稳定度</p>
+              <strong data-fps-score>等待检测</strong>
+              <span>根据平均帧率和卡顿次数给出体感评级。</span>
+            </article>
+            <article class="device-stat-card">
+              <p class="panel-label">检测时长</p>
+              <strong data-fps-duration>0.0 秒</strong>
+              <span>建议至少跑 10 秒，再结合低帧和卡顿次数判断。</span>
+            </article>
           </div>
           <div class="workspace-nav">
-            <a class="ghost-link-button" href="/index.html">返回选择界面</a>
+            <a class="ghost-link-button" href="/niuniu-toolbox.html">返回工具箱</a>
           </div>
         </div>
         <div class="hero-card">
-          <p class="hero-card-label">当前模块：帧率测试</p>
-          <p class="toolbox-summary">专门用于检测网页渲染帧率、平均性能和最低帧率。</p>
+          <p class="hero-card-label">当前模块：设备分类</p>
+          <p class="toolbox-summary">这里会同时显示账号信息和本机环境摘要，方便你判断“页面卡”是账号、设备还是浏览器场景问题。</p>
           <div class="profile-card profile-card-inline">
             <div class="avatar-wrap">
               <img class="avatar-image" data-avatar-image alt="账号头像" src="" />
@@ -56,32 +326,116 @@
           </div>
           <p class="member-state" data-member-state>会员等级：普通用户</p>
           <p class="vip-state" data-vip-state>VIP 状态：未开通</p>
+          <div class="device-summary-list">
+            <div class="device-summary-item">
+              <span>浏览器</span>
+              <strong data-device-browser>检测中</strong>
+            </div>
+            <div class="device-summary-item">
+              <span>系统平台</span>
+              <strong data-device-platform>检测中</strong>
+            </div>
+            <div class="device-summary-item">
+              <span>屏幕 / 视口</span>
+              <strong data-device-screen>检测中</strong>
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="content-panel">
         <div class="panel-head">
           <div>
-            <p class="panel-label">工具箱 · 检测</p>
-            <h2>实时帧率检测</h2>
+            <p class="panel-label">设备分类 · 检测台</p>
+            <h2>实时帧率压测</h2>
           </div>
-          <p class="tool-card-note">适合观察页面动画、复杂表单和资源加载时的性能变化。</p>
+          <p class="tool-card-note">测试区会持续运动，让 FPS 结果比原来更接近真实的页面动效场景。</p>
         </div>
-        <article class="guide-card utility-card">
-          <p class="panel-label">FPS</p>
-          <h2>实时帧率测试器</h2>
-          <p class="tool-card-note">点击开始后会每秒刷新一次统计值，适合做页面优化前后对比。</p>
-          <div class="fps-card-metrics">
-            <div class="result-card compact-result" data-fps-live>当前 FPS：--</div>
-            <div class="result-card compact-result" data-fps-average>平均 FPS：--</div>
-            <div class="result-card compact-result" data-fps-low>最低 FPS：--</div>
+        <div class="device-grid-layout">
+          <article class="device-stage">
+            <div class="device-stage-head">
+              <div>
+                <p class="panel-label">Stage</p>
+                <h3>动态检测舞台</h3>
+                <p>点击开始后会在当前页持续渲染移动轨迹，并同时记录低帧、峰值和卡顿。</p>
+              </div>
+              <span class="device-status-chip" data-fps-mode>空闲中</span>
+            </div>
+            <div class="device-stage-area" data-fps-stage>
+              <div class="device-stage-wave" data-fps-wave></div>
+              <div class="device-stage-orb" data-fps-orb></div>
+              <div class="device-stage-orb-secondary" data-fps-orb-secondary></div>
+            </div>
+            <div class="device-action-row">
+              <button type="button" class="device-action-btn primary" data-fps-start>开始检测</button>
+              <button type="button" class="device-action-btn" data-fps-stop disabled>停止检测</button>
+              <button type="button" class="device-action-btn" data-fps-reset>重置结果</button>
+            </div>
+            <div class="device-stage-foot">
+              <p class="device-status-text" data-fps-status>点击“开始检测”后会持续采样，并实时更新结果。</p>
+              <p class="device-status-text" data-fps-hint>建议在当前设备保持窗口大小不变，连续检测 10 到 20 秒。</p>
+            </div>
+          </article>
+          <article class="device-summary-card">
+            <p class="panel-label">Summary</p>
+            <h3>本次检测摘要</h3>
+            <p>这里会汇总平均帧率、最低帧率、最高帧率与卡顿次数，适合做优化前后对比。</p>
+            <div class="device-metric-grid">
+              <div class="device-info-card">
+                <p class="panel-label">平均</p>
+                <strong data-fps-average>-- FPS</strong>
+                <span>整体平均表现</span>
+              </div>
+              <div class="device-info-card">
+                <p class="panel-label">最低</p>
+                <strong data-fps-low>-- FPS</strong>
+                <span>最低瞬时值</span>
+              </div>
+              <div class="device-info-card">
+                <p class="panel-label">最高</p>
+                <strong data-fps-high>-- FPS</strong>
+                <span>峰值刷新率</span>
+              </div>
+              <div class="device-info-card">
+                <p class="panel-label">卡顿</p>
+                <strong data-fps-jank>0 次</strong>
+                <span>超过 34ms 的帧数</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="panel-head">
+          <div>
+            <p class="panel-label">设备分类 · 环境信息</p>
+            <h2>本机显示与性能环境</h2>
           </div>
-          <div class="button-row">
-            <button type="button" class="copy-btn" data-fps-start>开始检测</button>
-            <button type="button" class="copy-btn secondary" data-fps-stop>停止检测</button>
-          </div>
-          <p class="tool-card-note" data-fps-status>点击“开始检测”后会每秒刷新一次结果。</p>
-        </article>
+          <p class="tool-card-note">这里不是硬件跑分，只提供浏览器能直接读取到的可见环境信息。</p>
+        </div>
+        <div class="device-info-grid">
+          <article class="device-info-card">
+            <p class="panel-label">浏览器内核</p>
+            <strong data-device-browser>--</strong>
+            <span data-device-useragent>正在读取 User-Agent。</span>
+          </article>
+          <article class="device-info-card">
+            <p class="panel-label">平台与并发</p>
+            <strong data-device-platform>--</strong>
+            <span data-device-cores>CPU 线程：--</span>
+          </article>
+          <article class="device-info-card">
+            <p class="panel-label">内存估计</p>
+            <strong data-device-memory>--</strong>
+            <span>仅部分浏览器支持 navigator.deviceMemory。</span>
+          </article>
+          <article class="device-info-card">
+            <p class="panel-label">屏幕参数</p>
+            <strong data-device-screen-detail>--</strong>
+            <span data-device-viewport>视口：--</span>
+          </article>
+        </div>
       </section>
     </main>
   </body>

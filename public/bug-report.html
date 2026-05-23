@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bug 反馈中心</title>
+    <script>
+      document.documentElement.dataset.ui = 'end';
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      body {
+        background:
+          radial-gradient(circle at 12% 12%, rgba(103, 232, 249, 0.18), transparent 24%),
+          radial-gradient(circle at 86% 18%, rgba(236, 72, 153, 0.18), transparent 28%),
+          radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.16), transparent 26%),
+          linear-gradient(160deg, #12081f, #2a1241 56%, #10213d);
+      }
+
+      .bug-shell {
+        width: min(1240px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 36px 0 64px;
+        position: relative;
+      }
+
+      .bug-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      .bug-panel,
+      .bug-auth-card,
+      .bug-item,
+      .bug-empty {
+        border: 1px solid var(--panel-border);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04)),
+          rgba(26, 12, 46, 0.82);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      .bug-panel,
+      .bug-auth-card {
+        border-radius: 28px;
+        padding: 26px;
+      }
+
+      .bug-kicker {
+        margin: 0 0 10px;
+        color: var(--accent);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .bug-hero h1,
+      .bug-panel h2,
+      .bug-auth-card h2 {
+        margin: 0;
+      }
+
+      .bug-hero p,
+      .bug-panel p,
+      .bug-auth-card p,
+      .bug-item p,
+      .bug-item span,
+      .bug-empty {
+        color: #dbcff3;
+        line-height: 1.7;
+      }
+
+      .bug-hero > .bug-panel:first-child {
+        background:
+          radial-gradient(circle at top left, rgba(103, 232, 249, 0.2), transparent 28%),
+          linear-gradient(160deg, rgba(21, 12, 38, 0.94), rgba(49, 19, 82, 0.88));
+      }
+
+      .bug-hero > .bug-panel:last-child,
+      .bug-auth-card {
+        background:
+          radial-gradient(circle at top right, rgba(236, 72, 153, 0.14), transparent 28%),
+          linear-gradient(160deg, rgba(20, 12, 39, 0.92), rgba(30, 20, 61, 0.88));
+      }
+
+      .bug-meta-row,
+      .bug-actions,
+      .bug-auth-tabs,
+      .bug-item-head,
+      .bug-item-meta,
+      .bug-dev-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .bug-meta-pill,
+      .bug-status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: linear-gradient(135deg, rgba(103, 232, 249, 0.16), rgba(236, 72, 153, 0.16));
+        color: var(--text);
+        font-size: 0.86rem;
+        font-weight: 700;
+      }
+
+      .bug-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 0.92fr) minmax(340px, 1.08fr);
+        gap: 18px;
+      }
+
+      .bug-auth-tabs button,
+      .bug-btn,
+      .bug-status-select {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+        color: var(--text);
+        font: inherit;
+      }
+
+      .bug-auth-tabs button,
+      .bug-btn {
+        padding: 11px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .bug-auth-tabs button.active,
+      .bug-btn.primary {
+        background: linear-gradient(135deg, #67e8f9, #ec4899);
+        color: var(--accent-contrast);
+        border-color: transparent;
+        box-shadow: 0 18px 36px rgba(31, 6, 52, 0.28);
+      }
+
+      .bug-btn:hover,
+      .bug-auth-tabs button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 12px 26px rgba(15, 5, 28, 0.18);
+      }
+
+      .bug-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .bug-auth-form,
+      .bug-form {
+        display: grid;
+        gap: 14px;
+      }
+
+      .bug-auth-form[hidden],
+      .bug-dev-panel[hidden],
+      .bug-user-panel[hidden],
+      .bug-logged-in[hidden],
+      .bug-logged-out[hidden] {
+        display: none !important;
+      }
+
+      .bug-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .bug-auth-form label,
+      .bug-form label {
+        display: grid;
+        gap: 8px;
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .bug-auth-form input,
+      .bug-form input,
+      .bug-form select,
+      .bug-status-select,
+      .bug-form textarea {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(15, 9, 31, 0.52);
+        color: var(--text);
+        font: inherit;
+      }
+
+      .bug-auth-form input::placeholder,
+      .bug-form input::placeholder,
+      .bug-form textarea::placeholder {
+        color: #b9add2;
+      }
+
+      .bug-form textarea {
+        min-height: 180px;
+        resize: vertical;
+      }
+
+      .bug-message {
+        min-height: 24px;
+        color: #dff7ff;
+        font-weight: 600;
+      }
+
+      .bug-list {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .bug-item,
+      .bug-empty {
+        border-radius: 22px;
+        padding: 18px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+          rgba(19, 10, 34, 0.86);
+      }
+
+      .bug-item-head {
+        justify-content: space-between;
+        align-items: start;
+      }
+
+      .bug-item h3 {
+        margin: 0;
+        color: var(--text);
+        font-size: 1.06rem;
+      }
+
+      .bug-item-meta {
+        margin-top: 10px;
+      }
+
+      .bug-item-meta span {
+        color: #bcaed9;
+      }
+
+      .bug-item-desc {
+        margin: 12px 0 0;
+        color: #fff7ff !important;
+        white-space: pre-wrap;
+      }
+
+      .bug-item-contact {
+        margin-top: 10px;
+      }
+
+      .bug-dev-controls {
+        margin-top: 14px;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .bug-section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: end;
+      }
+
+      .bug-section-head h2 {
+        margin: 0;
+      }
+
+      @media (max-width: 920px) {
+        .bug-hero,
+        .bug-grid,
+        .bug-form-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="bug-shell">
+      <section class="bug-hero">
+        <article class="bug-panel">
+          <p class="bug-kicker">Bug Portal</p>
+          <h1>Bug 反馈中心</h1>
+          <p>这里用于收集用户提交的问题、异常表现和复现信息。3002 端口会默认进入这里，普通用户登录后可直接提交，开发者账号可查看全部反馈并更新状态。</p>
+          <div class="bug-meta-row">
+            <span class="bug-meta-pill">端口：3002</span>
+            <span class="bug-meta-pill">普通用户可提交</span>
+            <span class="bug-meta-pill">开发者可查看全部</span>
+          </div>
+        </article>
+        <article class="bug-panel">
+          <p class="bug-kicker">当前账号</p>
+          <div class="bug-logged-out" data-logged-out>
+            <h2>尚未登录</h2>
+            <p>先注册或登录，再提交你的 bug 反馈。</p>
+          </div>
+          <div class="bug-logged-in" data-logged-in hidden>
+            <h2 data-profile-name>未登录</h2>
+            <p data-profile-meta>账号状态读取中</p>
+            <div class="bug-actions" style="margin-top: 14px;">
+              <button type="button" class="bug-btn" data-refresh-all>刷新列表</button>
+              <button type="button" class="bug-btn" data-logout>退出登录</button>
+            </div>
+          </div>
+          <p class="bug-message" data-global-message></p>
+        </article>
+      </section>
+
+      <section class="bug-grid">
+        <article class="bug-auth-card">
+          <div class="bug-section-head">
+            <div>
+              <p class="bug-kicker">登录系统</p>
+              <h2>登录 / 注册</h2>
+            </div>
+          </div>
+          <div class="bug-auth-tabs" data-auth-tabs>
+            <button type="button" class="active" data-auth-tab="login">登录</button>
+            <button type="button" data-auth-tab="register">注册</button>
+          </div>
+          <form class="bug-auth-form" data-auth-form="login">
+            <label>
+              用户名
+              <input name="username" type="text" minlength="3" maxlength="32" required />
+            </label>
+            <label>
+              密码
+              <input name="password" type="password" minlength="6" required />
+            </label>
+            <button type="submit" class="bug-btn primary">登录并进入反馈台</button>
+          </form>
+          <form class="bug-auth-form" data-auth-form="register" hidden>
+            <label>
+              用户名
+              <input name="username" type="text" minlength="3" maxlength="32" required />
+            </label>
+            <label>
+              密码
+              <input name="password" type="password" minlength="6" required />
+            </label>
+            <button type="submit" class="bug-btn primary">注册并立即登录</button>
+          </form>
+          <p class="bug-message" data-auth-message></p>
+        </article>
+
+        <article class="bug-panel bug-user-panel" data-user-panel hidden>
+          <div class="bug-section-head">
+            <div>
+              <p class="bug-kicker">提交反馈</p>
+              <h2>提交一个新的 bug</h2>
+            </div>
+          </div>
+          <form class="bug-form" data-bug-form>
+            <div class="bug-form-grid">
+              <label>
+                标题
+                <input name="title" type="text" maxlength="80" placeholder="例如：AI 页面发送按钮失效" required />
+              </label>
+              <label>
+                分类
+                <select name="category">
+                  <option value="页面显示">页面显示</option>
+                  <option value="登录系统">登录系统</option>
+                  <option value="工具功能">工具功能</option>
+                  <option value="AI 助手">AI 助手</option>
+                  <option value="性能卡顿">性能卡顿</option>
+                  <option value="其他">其他</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              问题描述
+              <textarea name="description" minlength="10" maxlength="5000" placeholder="请写清楚复现步骤、期望结果、实际结果。" required></textarea>
+            </label>
+            <label>
+              联系方式（可选）
+              <input name="contact" type="text" maxlength="120" placeholder="QQ / 邮箱 / 其它可联系信息" />
+            </label>
+            <div class="bug-actions">
+              <button type="submit" class="bug-btn primary">提交反馈</button>
+            </div>
+          </form>
+          <p class="bug-message" data-submit-message></p>
+          <div class="bug-section-head" style="margin-top: 18px;">
+            <div>
+              <p class="bug-kicker">我的反馈</p>
+              <h2>最近提交记录</h2>
+            </div>
+          </div>
+          <div class="bug-list" data-my-list>
+            <div class="bug-empty">还没有提交记录。</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="bug-panel bug-dev-panel" data-dev-panel hidden style="margin-top: 18px;">
+        <div class="bug-section-head">
+          <div>
+            <p class="bug-kicker">Developer</p>
+            <h2>开发者反馈台</h2>
+          </div>
+          <div class="bug-actions">
+            <button type="button" class="bug-btn" data-filter-status="">全部</button>
+            <button type="button" class="bug-btn" data-filter-status="OPEN">OPEN</button>
+            <button type="button" class="bug-btn" data-filter-status="TRIAGED">TRIAGED</button>
+            <button type="button" class="bug-btn" data-filter-status="FIXED">FIXED</button>
+            <button type="button" class="bug-btn" data-filter-status="CLOSED">CLOSED</button>
+          </div>
+        </div>
+        <div class="bug-list" data-dev-list>
+          <div class="bug-empty">开发者反馈列表加载中。</div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const authTabs = document.querySelectorAll('[data-auth-tab]');
+        const authForms = document.querySelectorAll('[data-auth-form]');
+        const authMessage = document.querySelector('[data-auth-message]');
+        const globalMessage = document.querySelector('[data-global-message]');
+        const submitMessage = document.querySelector('[data-submit-message]');
+        const userPanel = document.querySelector('[data-user-panel]');
+        const devPanel = document.querySelector('[data-dev-panel]');
+        const myList = document.querySelector('[data-my-list]');
+        const devList = document.querySelector('[data-dev-list]');
+        const loggedOut = document.querySelector('[data-logged-out]');
+        const loggedIn = document.querySelector('[data-logged-in]');
+        const profileName = document.querySelector('[data-profile-name]');
+        const profileMeta = document.querySelector('[data-profile-meta]');
+        const bugForm = document.querySelector('[data-bug-form]');
+        const refreshButton = document.querySelector('[data-refresh-all]');
+        const logoutButton = document.querySelector('[data-logout]');
+        let currentProfile = null;
+        let currentDevStatusFilter = '';
+
+        function setMessage(target, text, isError = false) {
+          if (!target) {
+            return;
+          }
+          target.textContent = text;
+          target.style.color = isError ? '#fca5a5' : '';
+        }
+
+        function switchAuthTab(tabName) {
+          authTabs.forEach((button) => {
+            button.classList.toggle('active', button.dataset.authTab === tabName);
+          });
+          authForms.forEach((form) => {
+            form.hidden = form.dataset.authForm !== tabName;
+          });
+          setMessage(authMessage, '');
+        }
+
+        function escapeHtml(text) {
+          return String(text || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function renderBugItems(target, items, isDeveloperView) {
+          if (!target) {
+            return;
+          }
+
+          if (!Array.isArray(items) || items.length === 0) {
+            target.innerHTML = '<div class="bug-empty">当前没有可显示的反馈。</div>';
+            return;
+          }
+
+          target.innerHTML = items.map((item) => {
+            const controls = isDeveloperView ? `
+              <div class="bug-dev-controls">
+                <span class="bug-status-pill">当前状态：${escapeHtml(item.status)}</span>
+                <div class="bug-actions">
+                  <select class="bug-status-select" data-dev-status-select data-bug-id="${item.id}">
+                    ${['OPEN', 'TRIAGED', 'FIXED', 'CLOSED'].map((status) => `<option value="${status}" ${item.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+                  </select>
+                  <button type="button" class="bug-btn" data-dev-status-save data-bug-id="${item.id}">保存状态</button>
+                </div>
+              </div>` : `<div class="bug-item-meta"><span class="bug-status-pill">状态：${escapeHtml(item.status)}</span></div>`;
+
+            return `
+              <article class="bug-item">
+                <div class="bug-item-head">
+                  <div>
+                    <h3>${escapeHtml(item.title)}</h3>
+                    <div class="bug-item-meta">
+                      <span>${escapeHtml(item.category)}</span>
+                      <span>#${item.id}</span>
+                      ${isDeveloperView ? `<span>用户：${escapeHtml(item.username)}</span>` : ''}
+                    </div>
+                  </div>
+                  <span>${escapeHtml(item.createdAt || '')}</span>
+                </div>
+                <p class="bug-item-desc">${escapeHtml(item.description)}</p>
+                <p class="bug-item-contact">联系方式：${escapeHtml(item.contact || '未填写')}</p>
+                ${controls}
+              </article>`;
+          }).join('');
+        }
+
+        async function fetchJson(url, options) {
+          const response = await fetch(url, options);
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(result.message || '请求失败');
+          }
+          return result;
+        }
+
+        async function loadMyReports() {
+          if (!currentProfile) {
+            return;
+          }
+          try {
+            const result = await fetchJson('/api/bugs/mine');
+            renderBugItems(myList, result.items || [], false);
+          } catch (error) {
+            setMessage(submitMessage, error.message || '我的反馈读取失败', true);
+          }
+        }
+
+        async function loadDeveloperReports() {
+          if (!currentProfile || !currentProfile.isDeveloper) {
+            return;
+          }
+          try {
+            const query = currentDevStatusFilter ? ('?status=' + encodeURIComponent(currentDevStatusFilter)) : '';
+            const result = await fetchJson('/api/developer/bugs' + query);
+            renderBugItems(devList, result.items || [], true);
+          } catch (error) {
+            devList.innerHTML = `<div class="bug-empty">${escapeHtml(error.message || '开发者反馈读取失败')}</div>`;
+          }
+        }
+
+        function renderProfile(profile) {
+          currentProfile = profile;
+          const isLoggedIn = Boolean(profile && profile.username);
+          loggedOut.hidden = isLoggedIn;
+          loggedIn.hidden = !isLoggedIn;
+          userPanel.hidden = !isLoggedIn;
+          devPanel.hidden = !(isLoggedIn && profile.isDeveloper);
+
+          if (!isLoggedIn) {
+            profileName.textContent = '未登录';
+            profileMeta.textContent = '先登录或注册，再提交 bug 反馈。';
+            return;
+          }
+
+          profileName.textContent = profile.username;
+          profileMeta.textContent = profile.isDeveloper ? '当前账号：开发者，可查看全部反馈。' : '当前账号：普通用户，可提交并查看自己的反馈。';
+          loadMyReports();
+          if (profile.isDeveloper) {
+            loadDeveloperReports();
+          }
+        }
+
+        async function refreshProfile() {
+          try {
+            const result = await fetch('/api/me');
+            if (!result.ok) {
+              renderProfile(null);
+              return;
+            }
+            const profile = await result.json();
+            renderProfile(profile);
+          } catch {
+            renderProfile(null);
+          }
+        }
+
+        authTabs.forEach((button) => {
+          button.addEventListener('click', () => switchAuthTab(button.dataset.authTab));
+        });
+
+        authForms.forEach((form) => {
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+            const payload = {
+              username: String(formData.get('username') || '').trim(),
+              password: String(formData.get('password') || '')
+            };
+            const endpoint = form.dataset.authForm === 'register' ? '/api/register' : '/api/login';
+            setMessage(authMessage, '正在提交...');
+            try {
+              const result = await fetchJson(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              form.reset();
+              setMessage(authMessage, result.message || '操作成功');
+              setMessage(globalMessage, result.message || '登录成功');
+              await refreshProfile();
+            } catch (error) {
+              setMessage(authMessage, error.message || '操作失败', true);
+            }
+          });
+        });
+
+        bugForm?.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const formData = new FormData(bugForm);
+          const payload = {
+            title: String(formData.get('title') || '').trim(),
+            category: String(formData.get('category') || '').trim(),
+            description: String(formData.get('description') || '').trim(),
+            contact: String(formData.get('contact') || '').trim()
+          };
+          setMessage(submitMessage, '正在提交反馈...');
+          try {
+            const result = await fetchJson('/api/bugs', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            bugForm.reset();
+            setMessage(submitMessage, result.message || '反馈已提交');
+            await loadMyReports();
+            if (currentProfile && currentProfile.isDeveloper) {
+              await loadDeveloperReports();
+            }
+          } catch (error) {
+            setMessage(submitMessage, error.message || '提交失败', true);
+          }
+        });
+
+        refreshButton?.addEventListener('click', async () => {
+          setMessage(globalMessage, '正在刷新...');
+          await refreshProfile();
+          setMessage(globalMessage, '已刷新当前数据');
+        });
+
+        logoutButton?.addEventListener('click', async () => {
+          try {
+            await fetchJson('/api/logout', { method: 'POST' });
+            setMessage(globalMessage, '已退出登录');
+            renderProfile(null);
+          } catch (error) {
+            setMessage(globalMessage, error.message || '退出失败', true);
+          }
+        });
+
+        devList?.addEventListener('click', async (event) => {
+          const saveButton = event.target.closest('[data-dev-status-save]');
+          if (!saveButton) {
+            return;
+          }
+          const bugId = Number(saveButton.dataset.bugId);
+          const select = devList.querySelector(`[data-dev-status-select][data-bug-id="${bugId}"]`);
+          if (!select) {
+            return;
+          }
+          saveButton.disabled = true;
+          try {
+            const result = await fetchJson('/api/developer/bugs/status', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: bugId, status: select.value })
+            });
+            setMessage(globalMessage, result.message || '状态已更新');
+            await loadDeveloperReports();
+            await loadMyReports();
+          } catch (error) {
+            setMessage(globalMessage, error.message || '状态更新失败', true);
+          } finally {
+            saveButton.disabled = false;
+          }
+        });
+
+        document.querySelectorAll('[data-filter-status]').forEach((button) => {
+          button.addEventListener('click', async () => {
+            currentDevStatusFilter = button.dataset.filterStatus || '';
+            await loadDeveloperReports();
+          });
+        });
+
+        switchAuthTab('login');
+        refreshProfile();
+      })();
+    </script>
+  </body>
+</html>

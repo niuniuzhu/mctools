@@ -705,6 +705,120 @@ h1 {
     rgba(255, 255, 255, 0.04);
 }
 
+.auth-qr-panel {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(125, 211, 252, 0.18);
+  background:
+    linear-gradient(120deg, rgba(56, 189, 248, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.auth-qr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-qr-head strong {
+  font-size: 1rem;
+}
+
+.auth-qr-kicker {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.auth-qr-shell {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.auth-qr-preview {
+  display: grid;
+  place-items: center;
+  min-height: 176px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-qr-preview img {
+  width: 152px;
+  height: 152px;
+  display: block;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.auth-qr-placeholder,
+.auth-qr-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.auth-qr-status {
+  color: var(--text) !important;
+  font-weight: 600;
+}
+
+.auth-qr-expire {
+  font-size: 0.88rem;
+}
+
+.auth-qr-manual {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.auth-qr-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 42px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.auth-qr-link:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.auth-qr-link-text {
+  font-size: 0.84rem;
+  word-break: break-all;
+}
+
+.compact-ghost-button {
+  width: fit-content;
+  padding: 9px 12px;
+}
+
+@media (max-width: 640px) {
+  .auth-qr-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 .maintenance-unlock {
   margin-top: 14px;

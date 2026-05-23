@@ -5,14 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>奶茶的实用工具箱 - 登录</title>
     <script>
-      try {
-        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
-        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? 'normal' : 'normal';
-        localStorage.setItem('mctools-ui', nextUi);
-        document.documentElement.dataset.ui = nextUi;
-      } catch {
-        document.documentElement.dataset.ui = 'normal';
-      }
+      document.documentElement.dataset.ui = 'end';
     </script>
     <link rel="stylesheet" href="/login.css?v=1.4" />
     <script defer src="/login.js?v=1.4"></script>
@@ -137,6 +130,31 @@
           <p class="auth-tab-status-tag" data-tab-status-tag>当前模式</p>
           <strong data-tab-status-title>登录工具箱</strong>
           <span data-tab-status-note>输入账号和密码后直接进入首页。</span>
+        </section>
+
+        <section class="auth-qr-panel" aria-label="扫码登录">
+          <div class="auth-qr-head">
+            <div>
+              <p class="auth-qr-kicker">快捷登录</p>
+              <strong>扫码登录</strong>
+            </div>
+            <button type="button" class="ghost-button compact-ghost-button" data-qr-refresh>刷新二维码</button>
+          </div>
+          <div class="auth-qr-shell">
+            <div class="auth-qr-preview" data-qr-preview>
+              <p class="auth-qr-placeholder" data-qr-placeholder>正在生成二维码…</p>
+            </div>
+            <div class="auth-qr-copy">
+              <p>用另一台已登录设备扫码后，在打开的页面点击“确认登录”，当前浏览器会自动完成登录。</p>
+              <p class="auth-qr-status" data-qr-status>等待生成二维码</p>
+              <p class="auth-qr-expire" data-qr-expire>有效期：--</p>
+              <div class="auth-qr-manual">
+                <a class="auth-qr-link" data-qr-open href="/scan-login.html" target="_blank" rel="noopener">在已登录设备打开确认页</a>
+                <button type="button" class="ghost-button compact-ghost-button" data-qr-copy-link>复制确认链接</button>
+              </div>
+              <p class="auth-qr-link-text" data-qr-link-text>确认链接：--</p>
+            </div>
+          </div>
         </section>
 
         <form class="auth-form" data-form="login">

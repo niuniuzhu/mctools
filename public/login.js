@@ -16,13 +16,27 @@ const authLoadingOverlay = document.querySelector('[data-auth-loading]');
 const authLoadingMessage = document.querySelector('[data-auth-loading-message]');
 const authLoadingProgress = document.querySelector('[data-auth-loading-progress]');
 const previewEntryRow = document.querySelector('.preview-entry-row');
+const qrRefreshButton = document.querySelector('[data-qr-refresh]');
+const qrPreview = document.querySelector('[data-qr-preview]');
+const qrPlaceholder = document.querySelector('[data-qr-placeholder]');
+const qrStatus = document.querySelector('[data-qr-status]');
+const qrExpire = document.querySelector('[data-qr-expire]');
+const qrOpenLink = document.querySelector('[data-qr-open]');
+const qrCopyLinkButton = document.querySelector('[data-qr-copy-link]');
+const qrLinkText = document.querySelector('[data-qr-link-text]');
 const developerEntryVerifiedStorageKey = 'mctools-developer-entry-verified';
 const loginRedirectDelayMs = 0;
 const loginPageVersion = '正式版1.4';
 const developerSecretRememberStorageKey = 'mctools-developer-secret-cache';
 const developerSecretRememberLifetimeMs = 1000 * 60 * 30;
+const qrLoginPollIntervalMs = 2000;
 
 let specialRegisterMode = 'normal';
+let qrLoginToken = '';
+let qrLoginPollTimer = 0;
+let qrLoginExpireTimer = 0;
+let qrLoginExpiresAt = 0;
+let qrLoginConfirmUrl = '';
 
 function isOfficialPublicLogin() {
   return window.location.protocol === 'http:' && window.location.host === '115.29.198.193:3000' && window.location.pathname === '/login.html';
@@ -211,6 +225,189 @@ function setMessage(text, isError = false) {
   message.style.color = isError ? '#fca5a5' : '#7dd3fc';
 }
 
+function setQrStatus(text, isError = false) {
+  if (!qrStatus) {
+    return;
+  }
+
+  qrStatus.textContent = text;
+  qrStatus.style.color = isError ? '#fca5a5' : '';
+}
+
+function setQrExpireText() {
+  if (!qrExpire) {
+    return;
+  }
+
+  if (!qrLoginExpiresAt) {
+    qrExpire.textContent = '有效期：--';
+    return;
+  }
+
+  const remainMs = Math.max(0, qrLoginExpiresAt - Date.now());
+  const remainSeconds = Math.ceil(remainMs / 1000);
+  qrExpire.textContent = `有效期：${remainSeconds} 秒`;
+}
+
+function clearQrTimers() {
+  if (qrLoginPollTimer) {
+    window.clearTimeout(qrLoginPollTimer);
+    qrLoginPollTimer = 0;
+  }
+
+  if (qrLoginExpireTimer) {
+    window.clearInterval(qrLoginExpireTimer);
+    qrLoginExpireTimer = 0;
+  }
+}
+
+function buildQrUrls(content, size) {
+  const encoded = encodeURIComponent(content);
+  return [
+    'https://api.qrserver.com/v1/create-qr-code/?data=' + encoded + '&size=' + size + 'x' + size + '&margin=12',
+    'https://quickchart.io/qr?text=' + encoded + '&size=' + size + '&margin=2'
+  ];
+}
+
+function updateQrManualLink(url) {
+  qrLoginConfirmUrl = url || '';
+
+  if (qrOpenLink) {
+    qrOpenLink.href = qrLoginConfirmUrl || '/scan-login.html';
+    qrOpenLink.setAttribute('aria-disabled', qrLoginConfirmUrl ? 'false' : 'true');
+  }
+
+  if (qrCopyLinkButton) {
+    qrCopyLinkButton.disabled = !qrLoginConfirmUrl;
+  }
+
+  if (qrLinkText) {
+    qrLinkText.textContent = '确认链接：' + (qrLoginConfirmUrl || '--');
+  }
+}
+
+function renderQrImage(urls, index = 0) {
+  if (!qrPreview) {
+    return;
+  }
+
+  const resolvedUrls = Array.isArray(urls) ? urls.filter(Boolean) : [urls].filter(Boolean);
+
+  if (!resolvedUrls.length) {
+    setQrStatus('二维码生成失败，请改用下方确认链接', true);
+    return;
+  }
+
+  qrPreview.innerHTML = '';
+  const image = document.createElement('img');
+  image.src = resolvedUrls[index];
+  image.alt = '扫码登录二维码';
+  image.loading = 'lazy';
+  image.addEventListener('load', () => {
+    setQrStatus('请使用已登录设备扫码确认');
+  });
+  image.addEventListener('error', () => {
+    if (index < resolvedUrls.length - 1) {
+      renderQrImage(resolvedUrls, index + 1);
+      return;
+    }
+
+    qrPreview.innerHTML = '';
+    if (qrPlaceholder) {
+      qrPlaceholder.hidden = false;
+      qrPreview.appendChild(qrPlaceholder);
+    }
+    setQrStatus('二维码加载失败，请使用下方确认链接继续登录', true);
+  });
+  qrPreview.appendChild(image);
+}
+
+async function pollQrLoginStatus() {
+  if (!qrLoginToken) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/login/qr/status?token=' + encodeURIComponent(qrLoginToken), {
+      credentials: 'same-origin'
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 404) {
+      clearQrTimers();
+      setQrStatus(result.message || '二维码已失效，请刷新后重试', true);
+      return;
+    }
+
+    if (!response.ok) {
+      clearQrTimers();
+      setQrStatus(result.message || '扫码状态查询失败', true);
+      return;
+    }
+
+    if (typeof result.expiresInMs === 'number') {
+      qrLoginExpiresAt = Date.now() + Math.max(0, result.expiresInMs);
+      setQrExpireText();
+    }
+
+    if (result.status === 'approved') {
+      clearQrTimers();
+      setQrStatus('扫码登录成功，正在进入首页');
+      window.location.href = '/niuniu-toolbox.html';
+      return;
+    }
+
+    qrLoginPollTimer = window.setTimeout(pollQrLoginStatus, qrLoginPollIntervalMs);
+  } catch {
+    qrLoginPollTimer = window.setTimeout(pollQrLoginStatus, qrLoginPollIntervalMs * 2);
+  }
+}
+
+async function refreshQrLogin() {
+  if (!qrPreview || !qrRefreshButton) {
+    return;
+  }
+
+  clearQrTimers();
+  qrRefreshButton.disabled = true;
+  qrLoginToken = '';
+  qrLoginExpiresAt = 0;
+  updateQrManualLink('');
+
+  if (qrPlaceholder) {
+    qrPlaceholder.hidden = false;
+    qrPreview.innerHTML = '';
+    qrPreview.appendChild(qrPlaceholder);
+  }
+
+  setQrStatus('正在生成二维码...');
+  setQrExpireText();
+
+  try {
+    const response = await fetch('/api/login/qr');
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.token) {
+      setQrStatus(result.message || '二维码生成失败，请稍后重试', true);
+      return;
+    }
+
+    qrLoginToken = result.token;
+    qrLoginExpiresAt = Date.now() + Math.max(0, Number(result.expiresInMs) || 0);
+    const confirmUrl = new URL('/scan-login.html', window.location.origin);
+    confirmUrl.searchParams.set('token', qrLoginToken);
+    updateQrManualLink(confirmUrl.toString());
+    renderQrImage(buildQrUrls(confirmUrl.toString(), 220));
+    setQrExpireText();
+    qrLoginExpireTimer = window.setInterval(setQrExpireText, 1000);
+    qrLoginPollTimer = window.setTimeout(pollQrLoginStatus, qrLoginPollIntervalMs);
+  } catch {
+    setQrStatus('网络请求失败，请稍后重试', true);
+  } finally {
+    qrRefreshButton.disabled = false;
+  }
+}
+
 function showAuthLoading(tabName) {
   if (loginRedirectDelayMs <= 0) {
     return;
@@ -371,6 +568,26 @@ forms.forEach((form) => {
   form.addEventListener('submit', submitForm);
 });
 
+if (qrRefreshButton) {
+  qrRefreshButton.addEventListener('click', refreshQrLogin);
+}
+
+if (qrCopyLinkButton) {
+  qrCopyLinkButton.addEventListener('click', async () => {
+    if (!qrLoginConfirmUrl) {
+      setQrStatus('当前还没有可复制的确认链接', true);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(qrLoginConfirmUrl);
+      setQrStatus('确认链接已复制，可在另一台设备直接打开');
+    } catch {
+      setQrStatus('复制失败，请手动复制下方链接', true);
+    }
+  });
+}
+
 applyLoginEnvironmentState();
 applyAppVersion(loginPageVersion);
 
@@ -378,3 +595,4 @@ setMaintenanceUnlockVisible(false);
 setSpecialRegisterMode('normal');
 switchTab('login');
 applyDeveloperEntryFromQuery();
+refreshQrLogin();

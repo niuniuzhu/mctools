@@ -3,7 +3,8 @@
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-PID_FILE="$SCRIPT_DIR/.mctools-server.pid"
+MCTOOLS_PORT="${1:-${MCTOOLS_PORT:-3001}}"
+PID_FILE="$SCRIPT_DIR/.mctools-server-$MCTOOLS_PORT.pid"
 STOP_TIMEOUT_SECONDS=5
 
 if [ ! -f "$PID_FILE" ]; then
@@ -44,4 +45,4 @@ if kill -0 "$SERVER_PID" >/dev/null 2>&1; then
 fi
 
 rm -f "$PID_FILE"
-echo "mctools stopped. PID: $SERVER_PID"
+echo "mctools stopped. PID: $SERVER_PID (port $MCTOOLS_PORT)"
