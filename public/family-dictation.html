@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>奶茶实用工具箱 - 家听助手</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'milktea';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .dictation-topbar {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+      }
+
+      .dictation-topbar a {
+        color: var(--accent);
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+      }
+
+      .dictation-topbar a:hover {
+        background: color-mix(in srgb, var(--accent) 10%, transparent);
+      }
+
+      .dictation-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+        gap: 24px;
+      }
+
+      .dictation-panel,
+      .dictation-side {
+        border-radius: 14px;
+        border: 2px solid var(--panel-border);
+        background: var(--panel);
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+
+      .dictation-panel h1,
+      .dictation-side h2 {
+        margin-top: 0;
+      }
+
+      .dictation-lead,
+      .dictation-note,
+      .dictation-side li,
+      .dictation-side p {
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .dictation-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .dictation-field,
+      .dictation-card,
+      .dictation-answer,
+      .dictation-history {
+        border-radius: 12px;
+        border: 2px solid var(--panel-border);
+        background: color-mix(in srgb, var(--panel) 84%, transparent);
+      }
+
+      .dictation-field {
+        padding: 14px;
+      }
+
+      .dictation-field label {
+        display: block;
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        color: var(--muted);
+      }
+
+      .dictation-select,
+      .dictation-input,
+      .dictation-textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 2px solid var(--panel-border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        padding: 12px 14px;
+        font: inherit;
+      }
+
+      .dictation-textarea {
+        min-height: 160px;
+        resize: vertical;
+      }
+
+      .dictation-slider {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      .dictation-check {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        color: var(--text);
+      }
+
+      .dictation-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 18px 0;
+      }
+
+      .dictation-btn {
+        border: 2px solid var(--panel-border);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--text);
+        padding: 11px 16px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .dictation-btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-contrast);
+      }
+
+      .dictation-btn:hover:not(:disabled) {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+      }
+
+      .dictation-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .dictation-meta {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .dictation-pill {
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--accent);
+        font-size: 0.88rem;
+      }
+
+      .dictation-card {
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+
+      .dictation-card small {
+        color: var(--muted);
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .dictation-prompt {
+        font-size: 1.35rem;
+        font-weight: 700;
+        line-height: 1.6;
+      }
+
+      .dictation-answer {
+        padding: 18px;
+        margin-bottom: 16px;
+      }
+
+      .dictation-answer.hidden .dictation-answer-value {
+        filter: blur(8px);
+        user-select: none;
+      }
+
+      .dictation-answer-label {
+        color: var(--muted);
+        font-size: 0.88rem;
+        margin-bottom: 8px;
+      }
+
+      .dictation-answer-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+
+      .dictation-history {
+        padding: 18px;
+        margin-top: 16px;
+      }
+
+      .dictation-history-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .dictation-history-item {
+        border-radius: 10px;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .dictation-history-item strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .dictation-status {
+        min-height: 24px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .dictation-side ul {
+        padding-left: 18px;
+      }
+
+      @media (max-width: 920px) {
+        .dictation-shell,
+        .dictation-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="dictation-topbar">
+        <a href="/niuniu-utility.html">← 返回实用工具箱</a>
+        <a href="/settings.html">设置</a>
+      </div>
+
+      <section class="dictation-shell">
+        <section class="dictation-panel">
+          <h1>家听助手</h1>
+          <p class="dictation-lead">可按英语（教课版）年级与单元切换词表，默认不显示英文，只给出中文提示并支持朗读，适合在家听写时使用。</p>
+
+          <div class="dictation-grid">
+            <div class="dictation-field">
+              <label for="grade-select">年级</label>
+              <select id="grade-select" class="dictation-select" data-grade-select></select>
+            </div>
+            <div class="dictation-field">
+              <label for="unit-select">单元</label>
+              <select id="unit-select" class="dictation-select" data-unit-select></select>
+            </div>
+            <div class="dictation-field">
+              <label for="rate-range">朗读语速</label>
+              <input id="rate-range" class="dictation-slider" type="range" min="0.6" max="1.2" step="0.1" value="0.9" data-rate-range />
+              <div class="dictation-note" data-rate-label>当前语速：0.9x</div>
+            </div>
+            <div class="dictation-field">
+              <label>播放设置</label>
+              <label class="dictation-check"><input type="checkbox" data-random-toggle /> 随机顺序</label>
+              <label class="dictation-check"><input type="checkbox" data-repeat-toggle checked /> 每次朗读两遍</label>
+            </div>
+          </div>
+
+          <div class="dictation-actions">
+            <button type="button" class="dictation-btn primary" data-start-btn>开始听写</button>
+            <button type="button" class="dictation-btn" data-play-btn disabled>播放单词</button>
+            <button type="button" class="dictation-btn" data-toggle-answer-btn disabled>显示英文</button>
+            <button type="button" class="dictation-btn" data-next-btn disabled>下一词</button>
+          </div>
+
+          <div class="dictation-meta">
+            <div class="dictation-pill" data-progress-pill>进度：未开始</div>
+            <div class="dictation-pill" data-unit-pill>词表：未载入</div>
+          </div>
+
+          <section class="dictation-card">
+            <small data-order-label>第 0 / 0 词</small>
+            <div class="dictation-prompt" data-prompt-text>先选择年级和单元，再点击“开始听写”。</div>
+          </section>
+
+          <section class="dictation-answer hidden" data-answer-card>
+            <div class="dictation-answer-label">英文答案</div>
+            <div class="dictation-answer-value" data-answer-value>暂未显示</div>
+          </section>
+
+          <div class="dictation-field">
+            <label for="dictation-try">听写区</label>
+            <textarea id="dictation-try" class="dictation-textarea" data-try-textarea placeholder="可在这里默写单词，默认不会自动对错判定。"></textarea>
+          </div>
+
+          <div class="dictation-status" data-status-text>默认不显示英文，可用“显示英文”按钮查看答案。</div>
+
+          <section class="dictation-history">
+            <strong>当前单元词表</strong>
+            <div class="dictation-history-list" data-history-list></div>
+          </section>
+        </section>
+
+        <aside class="dictation-side">
+          <h2>使用说明</h2>
+          <ul>
+            <li>先选年级和单元，再点击“开始听写”。</li>
+            <li>默认只显示中文提示，不显示英文。</li>
+            <li>点击“播放单词”可用浏览器语音朗读当前单词。</li>
+            <li>如果浏览器不支持语音，会保留中文提示和英文答案切换。</li>
+            <li>目前已补齐三年级到六年级的 Unit 1 - Unit 24，可直接切换整学年全部单元。</li>
+          </ul>
+          <p>当前覆盖：三年级到六年级，每个年级 24 个单元。</p>
+        </aside>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        function unitEntries(items) {
+          return items.map(([word, prompt]) => ({ word, prompt }));
+        }
+
+        function buildGradeUnits(unitSpecs) {
+          return Object.fromEntries(
+            unitSpecs.map((spec, index) => [
+              `Unit ${index + 1} ${spec.title}`,
+              unitEntries(spec.words)
+            ])
+          );
+        }
+
+        const wordBook = {
+          '三年级': buildGradeUnits([
+            { title: '问候与课堂', words: [['hello', '你好'], ['goodbye', '再见'], ['name', '名字'], ['teacher', '老师'], ['school', '学校'], ['book', '书']] },
+            { title: '文具与书本', words: [['pencil', '铅笔'], ['ruler', '尺子'], ['eraser', '橡皮'], ['crayon', '蜡笔'], ['paper', '纸'], ['notebook', '笔记本']] },
+            { title: '数字一', words: [['one', '一'], ['two', '二'], ['three', '三'], ['four', '四'], ['five', '五'], ['six', '六']] },
+            { title: '数字二', words: [['seven', '七'], ['eight', '八'], ['nine', '九'], ['ten', '十'], ['eleven', '十一'], ['twelve', '十二']] },
+            { title: '颜色一', words: [['red', '红色'], ['blue', '蓝色'], ['yellow', '黄色'], ['green', '绿色'], ['black', '黑色'], ['white', '白色']] },
+            { title: '颜色二', words: [['orange', '橙色'], ['brown', '棕色'], ['pink', '粉色'], ['purple', '紫色'], ['grey', '灰色'], ['color', '颜色']] },
+            { title: '家人与朋友', words: [['father', '爸爸'], ['mother', '妈妈'], ['brother', '哥哥；弟弟'], ['sister', '姐姐；妹妹'], ['friend', '朋友'], ['family', '家庭']] },
+            { title: '身体部位', words: [['head', '头'], ['eye', '眼睛'], ['ear', '耳朵'], ['nose', '鼻子'], ['mouth', '嘴巴'], ['hand', '手']] },
+            { title: '食物一', words: [['cake', '蛋糕'], ['rice', '米饭'], ['milk', '牛奶'], ['water', '水'], ['egg', '鸡蛋'], ['bread', '面包']] },
+            { title: '食物二', words: [['fish', '鱼'], ['juice', '果汁'], ['apple', '苹果'], ['banana', '香蕉'], ['pear', '梨'], ['orange', '橙子']] },
+            { title: '动物一', words: [['cat', '猫'], ['dog', '狗'], ['bird', '鸟'], ['duck', '鸭子'], ['pig', '猪'], ['bear', '熊']] },
+            { title: '动物二', words: [['rabbit', '兔子'], ['monkey', '猴子'], ['tiger', '老虎'], ['panda', '熊猫'], ['elephant', '大象'], ['horse', '马']] },
+            { title: '水果', words: [['apple', '苹果'], ['banana', '香蕉'], ['pear', '梨'], ['peach', '桃子'], ['grape', '葡萄'], ['watermelon', '西瓜']] },
+            { title: '玩具', words: [['ball', '球'], ['kite', '风筝'], ['car', '小汽车'], ['doll', '玩偶'], ['robot', '机器人'], ['boat', '小船']] },
+            { title: '衣物', words: [['shirt', '衬衫'], ['coat', '外套'], ['dress', '裙子'], ['shoe', '鞋'], ['hat', '帽子'], ['sock', '袜子']] },
+            { title: '教室动作', words: [['stand', '站立'], ['sit', '坐下'], ['open', '打开'], ['close', '关闭'], ['read', '读'], ['write', '写']] },
+            { title: '地点', words: [['home', '家'], ['school', '学校'], ['park', '公园'], ['zoo', '动物园'], ['shop', '商店'], ['farm', '农场']] },
+            { title: '天气启蒙', words: [['sunny', '晴朗的'], ['rainy', '下雨的'], ['cloudy', '多云的'], ['windy', '有风的'], ['hot', '热的'], ['cold', '冷的']] },
+            { title: '交通工具', words: [['bus', '公交车'], ['car', '汽车'], ['bike', '自行车'], ['train', '火车'], ['boat', '船'], ['plane', '飞机']] },
+            { title: '节日基础', words: [['gift', '礼物'], ['cake', '蛋糕'], ['card', '卡片'], ['party', '聚会'], ['song', '歌曲'], ['balloon', '气球']] },
+            { title: '形状', words: [['circle', '圆形'], ['square', '正方形'], ['triangle', '三角形'], ['star', '星星'], ['line', '线'], ['shape', '形状']] },
+            { title: '方位', words: [['up', '上'], ['down', '下'], ['left', '左'], ['right', '右'], ['in', '在里面'], ['on', '在上面']] },
+            { title: '情绪启蒙', words: [['happy', '开心的'], ['sad', '难过的'], ['fine', '很好'], ['great', '很棒'], ['sorry', '抱歉'], ['thanks', '谢谢']] },
+            { title: '综合复习', words: [['hello', '你好'], ['teacher', '老师'], ['apple', '苹果'], ['rabbit', '兔子'], ['blue', '蓝色'], ['school', '学校']] }
+          ]),
+          '四年级': buildGradeUnits([
+            { title: '教室物品', words: [['classroom', '教室'], ['window', '窗户'], ['door', '门'], ['light', '灯'], ['board', '黑板'], ['computer', '电脑']] },
+            { title: '科目与课程', words: [['Chinese', '语文'], ['maths', '数学'], ['English', '英语'], ['music', '音乐'], ['art', '美术'], ['science', '科学']] },
+            { title: '食物与饮品', words: [['rice', '米饭'], ['noodles', '面条'], ['bread', '面包'], ['milk', '牛奶'], ['juice', '果汁'], ['egg', '鸡蛋']] },
+            { title: '衣服', words: [['shirt', '衬衫'], ['dress', '连衣裙'], ['coat', '外套'], ['skirt', '短裙'], ['shoe', '鞋'], ['sock', '袜子']] },
+            { title: '天气', words: [['hot', '炎热的'], ['cold', '寒冷的'], ['warm', '温暖的'], ['cool', '凉爽的'], ['sunny', '晴朗的'], ['rainy', '下雨的']] },
+            { title: '房间与家具', words: [['bedroom', '卧室'], ['kitchen', '厨房'], ['bathroom', '浴室'], ['living room', '客厅'], ['bed', '床'], ['table', '桌子']] },
+            { title: '动物园', words: [['tiger', '老虎'], ['panda', '熊猫'], ['elephant', '大象'], ['rabbit', '兔子'], ['horse', '马'], ['lion', '狮子']] },
+            { title: '职业', words: [['doctor', '医生'], ['teacher', '老师'], ['driver', '司机'], ['farmer', '农民'], ['nurse', '护士'], ['cook', '厨师']] },
+            { title: '时间表达', words: [['morning', '早上'], ['afternoon', '下午'], ['evening', '傍晚'], ['night', '夜晚'], ['clock', '时钟'], ['today', '今天']] },
+            { title: '家庭成员', words: [['uncle', '叔叔'], ['aunt', '阿姨'], ['cousin', '堂表亲'], ['baby', '婴儿'], ['parent', '父母'], ['kid', '小孩']] },
+            { title: '食堂点餐', words: [['beef', '牛肉'], ['soup', '汤'], ['vegetable', '蔬菜'], ['dumpling', '饺子'], ['tea', '茶'], ['water', '水']] },
+            { title: '季节活动', words: [['spring', '春天'], ['summer', '夏天'], ['autumn', '秋天'], ['winter', '冬天'], ['swim', '游泳'], ['snowman', '雪人']] },
+            { title: '文具拓展', words: [['marker', '马克笔'], ['glue', '胶水'], ['knife', '小刀'], ['map', '地图'], ['toy', '玩具'], ['picture', '图片']] },
+            { title: '动作指令', words: [['jump', '跳'], ['run', '跑'], ['walk', '走'], ['sing', '唱'], ['dance', '跳舞'], ['draw', '画画']] },
+            { title: '校园地点', words: [['library', '图书馆'], ['playground', '操场'], ['office', '办公室'], ['garden', '花园'], ['hall', '大厅'], ['gate', '大门']] },
+            { title: '交通出行', words: [['bus', '公交车'], ['taxi', '出租车'], ['train', '火车'], ['plane', '飞机'], ['ship', '轮船'], ['station', '车站']] },
+            { title: '数字金额', words: [['thirty', '三十'], ['forty', '四十'], ['fifty', '五十'], ['sixty', '六十'], ['yuan', '元'], ['money', '钱']] },
+            { title: '商店购物', words: [['shop', '商店'], ['buy', '买'], ['sell', '卖'], ['cheap', '便宜的'], ['expensive', '昂贵的'], ['price', '价格']] },
+            { title: '餐具厨房', words: [['plate', '盘子'], ['bowl', '碗'], ['spoon', '勺子'], ['fork', '叉子'], ['knife', '刀'], ['fridge', '冰箱']] },
+            { title: '节日庆祝', words: [['festival', '节日'], ['party', '聚会'], ['present', '礼物'], ['candle', '蜡烛'], ['song', '歌曲'], ['visit', '拜访']] },
+            { title: '方位路线', words: [['left', '左边'], ['right', '右边'], ['near', '在附近'], ['behind', '在后面'], ['between', '在中间'], ['street', '街道']] },
+            { title: '运动项目', words: [['football', '足球'], ['basketball', '篮球'], ['ping-pong', '乒乓球'], ['volleyball', '排球'], ['jump rope', '跳绳'], ['race', '赛跑']] },
+            { title: '自然世界', words: [['sun', '太阳'], ['moon', '月亮'], ['star', '星星'], ['sky', '天空'], ['river', '河流'], ['tree', '树']] },
+            { title: '综合复习', words: [['classroom', '教室'], ['doctor', '医生'], ['summer', '夏天'], ['shop', '商店'], ['bread', '面包'], ['lion', '狮子']] }
+          ]),
+          '五年级': buildGradeUnits([
+            { title: '日常作息', words: [['breakfast', '早餐'], ['lunch', '午餐'], ['dinner', '晚餐'], ['homework', '家庭作业'], ['sleep', '睡觉'], ['usually', '通常']] },
+            { title: '课程与星期', words: [['Monday', '星期一'], ['Tuesday', '星期二'], ['Wednesday', '星期三'], ['Thursday', '星期四'], ['Friday', '星期五'], ['computer', '电脑课']] },
+            { title: '食物与口味', words: [['fresh', '新鲜的'], ['delicious', '美味的'], ['sweet', '甜的'], ['hot', '辣的；热的'], ['salad', '沙拉'], ['sandwich', '三明治']] },
+            { title: '家务劳动', words: [['wash', '洗'], ['cook', '烹饪'], ['clean', '打扫'], ['water', '浇水'], ['plant', '植物；种植'], ['floor', '地板']] },
+            { title: '天气与季节', words: [['spring', '春天'], ['summer', '夏天'], ['autumn', '秋天'], ['winter', '冬天'], ['snowy', '下雪的'], ['season', '季节']] },
+            { title: '节日活动', words: [['festival', '节日'], ['gift', '礼物'], ['party', '聚会'], ['song', '歌曲'], ['dance', '跳舞'], ['invite', '邀请']] },
+            { title: '方向地图', words: [['left', '左边'], ['right', '右边'], ['straight', '直走'], ['map', '地图'], ['park', '公园'], ['road', '道路']] },
+            { title: '周末计划', words: [['weekend', '周末'], ['visit', '拜访'], ['read', '阅读'], ['play', '玩'], ['draw', '画画'], ['swim', '游泳']] },
+            { title: '学校规则', words: [['rule', '规则'], ['listen', '听'], ['quiet', '安静的'], ['line', '排队'], ['helpful', '乐于助人的'], ['kind', '友好的']] },
+            { title: '人物性格', words: [['funny', '有趣的'], ['strict', '严格的'], ['polite', '有礼貌的'], ['hard-working', '努力的'], ['clever', '聪明的'], ['shy', '害羞的']] },
+            { title: '自然景物', words: [['mountain', '山'], ['lake', '湖'], ['village', '村庄'], ['forest', '森林'], ['bridge', '桥'], ['building', '建筑']] },
+            { title: '房间布置', words: [['clock', '时钟'], ['photo', '照片'], ['plant', '盆栽'], ['bike', '自行车'], ['above', '在上方'], ['beside', '在旁边']] },
+            { title: '购物清单', words: [['want', '想要'], ['need', '需要'], ['bottle', '瓶'], ['fresh', '新鲜的'], ['market', '市场'], ['list', '清单']] },
+            { title: '运动健康', words: [['exercise', '锻炼'], ['healthy', '健康的'], ['strong', '强壮的'], ['fast', '快的'], ['slow', '慢的'], ['team', '队伍']] },
+            { title: '假日旅行', words: [['holiday', '假期'], ['travel', '旅行'], ['hotel', '旅馆'], ['ticket', '票'], ['camera', '照相机'], ['beach', '海滩']] },
+            { title: '时间安排', words: [['before', '在……之前'], ['after', '在……之后'], ['early', '早的'], ['late', '晚的'], ['start', '开始'], ['finish', '结束']] },
+            { title: '校园活动', words: [['show', '表演'], ['match', '比赛'], ['club', '社团'], ['practice', '练习'], ['winner', '获胜者'], ['cheer', '欢呼']] },
+            { title: '动物世界', words: [['kangaroo', '袋鼠'], ['whale', '鲸鱼'], ['dolphin', '海豚'], ['eagle', '老鹰'], ['koala', '考拉'], ['fox', '狐狸']] },
+            { title: '情绪表达', words: [['excited', '兴奋的'], ['worried', '担心的'], ['angry', '生气的'], ['tired', '疲倦的'], ['proud', '自豪的'], ['calm', '平静的']] },
+            { title: '网络与科技', words: [['internet', '互联网'], ['email', '电子邮件'], ['tablet', '平板'], ['screen', '屏幕'], ['click', '点击'], ['message', '消息']] },
+            { title: '环保意识', words: [['recycle', '回收'], ['reuse', '再利用'], ['save', '节约'], ['water', '水资源'], ['paper', '纸张'], ['earth', '地球']] },
+            { title: '节庆美食', words: [['dumpling', '饺子'], ['mooncake', '月饼'], ['turkey', '火鸡'], ['cookie', '曲奇'], ['candy', '糖果'], ['supper', '晚饭']] },
+            { title: '未来梦想', words: [['dream', '梦想'], ['future', '未来'], ['pilot', '飞行员'], ['scientist', '科学家'], ['artist', '艺术家'], ['player', '运动员']] },
+            { title: '综合复习', words: [['breakfast', '早餐'], ['festival', '节日'], ['forest', '森林'], ['healthy', '健康的'], ['travel', '旅行'], ['future', '未来']] }
+          ]),
+          '六年级': buildGradeUnits([
+            { title: '出行与问路', words: [['hospital', '医院'], ['cinema', '电影院'], ['museum', '博物馆'], ['crossing', '十字路口'], ['turn', '转弯'], ['straight', '直走']] },
+            { title: '健康与建议', words: [['headache', '头痛'], ['fever', '发烧'], ['cold', '感冒'], ['rest', '休息'], ['medicine', '药'], ['exercise', '锻炼']] },
+            { title: '节日与计划', words: [['holiday', '假期'], ['festival', '节日'], ['travel', '旅行'], ['visit', '拜访'], ['weekend', '周末'], ['plan', '计划']] },
+            { title: '感受与情绪', words: [['happy', '开心的'], ['sad', '难过的'], ['angry', '生气的'], ['tired', '疲倦的'], ['excited', '兴奋的'], ['worried', '担心的']] },
+            { title: '环保与自然', words: [['river', '河流'], ['forest', '森林'], ['tree', '树'], ['flower', '花'], ['recycle', '回收'], ['protect', '保护']] },
+            { title: '科技与学习', words: [['robot', '机器人'], ['internet', '互联网'], ['tablet', '平板电脑'], ['project', '项目'], ['email', '电子邮件'], ['study', '学习']] },
+            { title: '规则与安全', words: [['rule', '规则'], ['safe', '安全的'], ['careful', '小心的'], ['wait', '等待'], ['helmet', '头盔'], ['traffic', '交通']] },
+            { title: '毕业与未来', words: [['future', '未来'], ['dream', '梦想'], ['middle school', '中学'], ['classmate', '同学'], ['remember', '记得'], ['wish', '祝愿']] },
+            { title: '旅行安排', words: [['airport', '机场'], ['ticket', '车票；机票'], ['hotel', '旅馆'], ['passport', '护照'], ['guide', '向导'], ['journey', '旅程']] },
+            { title: '城市设施', words: [['bank', '银行'], ['post office', '邮局'], ['supermarket', '超市'], ['library', '图书馆'], ['restaurant', '餐馆'], ['subway', '地铁']] },
+            { title: '健康饮食', words: [['vegetable', '蔬菜'], ['fruit', '水果'], ['sugar', '糖'], ['energy', '能量'], ['breakfast', '早餐'], ['habit', '习惯']] },
+            { title: '校园生活', words: [['lesson', '课程'], ['homework', '作业'], ['exam', '考试'], ['project', '项目'], ['teamwork', '合作'], ['speaker', '演讲者']] },
+            { title: '自然灾害', words: [['storm', '暴风雨'], ['flood', '洪水'], ['earthquake', '地震'], ['fire', '火灾'], ['danger', '危险'], ['rescue', '救援']] },
+            { title: '网络文明', words: [['online', '在线'], ['message', '信息'], ['password', '密码'], ['safety', '安全'], ['share', '分享'], ['privacy', '隐私']] },
+            { title: '运动竞技', words: [['race', '赛跑'], ['winner', '冠军'], ['score', '得分'], ['practice', '训练'], ['coach', '教练'], ['champion', '冠军']] },
+            { title: '文化传统', words: [['dragon boat', '龙舟'], ['lantern', '灯笼'], ['firework', '烟花'], ['folk song', '民歌'], ['tradition', '传统'], ['culture', '文化']] },
+            { title: '成长经历', words: [['memory', '回忆'], ['childhood', '童年'], ['change', '变化'], ['grow', '成长'], ['learn', '学习'], ['experience', '经历']] },
+            { title: '职业理想', words: [['scientist', '科学家'], ['engineer', '工程师'], ['writer', '作家'], ['designer', '设计师'], ['reporter', '记者'], ['pilot', '飞行员']] },
+            { title: '社会责任', words: [['volunteer', '志愿者'], ['community', '社区'], ['help', '帮助'], ['care', '关心'], ['respect', '尊重'], ['share', '分享']] },
+            { title: '艺术欣赏', words: [['painting', '绘画'], ['music', '音乐'], ['drama', '戏剧'], ['poem', '诗歌'], ['museum', '博物馆'], ['artist', '艺术家']] },
+            { title: '阅读写作', words: [['story', '故事'], ['novel', '小说'], ['page', '页'], ['sentence', '句子'], ['paragraph', '段落'], ['title', '标题']] },
+            { title: '科学探索', words: [['planet', '行星'], ['space', '太空'], ['experiment', '实验'], ['energy', '能源'], ['machine', '机器'], ['discover', '发现']] },
+            { title: '时间管理', words: [['schedule', '日程'], ['goal', '目标'], ['task', '任务'], ['deadline', '截止时间'], ['focus', '专注'], ['balance', '平衡']] },
+            { title: '综合复习', words: [['hospital', '医院'], ['future', '未来'], ['culture', '文化'], ['privacy', '隐私'], ['discover', '发现'], ['goal', '目标']] }
+          ])
+        };
+
+        const gradeSelect = document.querySelector('[data-grade-select]');
+        const unitSelect = document.querySelector('[data-unit-select]');
+        const rateRange = document.querySelector('[data-rate-range]');
+        const rateLabel = document.querySelector('[data-rate-label]');
+        const randomToggle = document.querySelector('[data-random-toggle]');
+        const repeatToggle = document.querySelector('[data-repeat-toggle]');
+        const startButton = document.querySelector('[data-start-btn]');
+        const playButton = document.querySelector('[data-play-btn]');
+        const toggleAnswerButton = document.querySelector('[data-toggle-answer-btn]');
+        const nextButton = document.querySelector('[data-next-btn]');
+        const progressPill = document.querySelector('[data-progress-pill]');
+        const unitPill = document.querySelector('[data-unit-pill]');
+        const orderLabel = document.querySelector('[data-order-label]');
+        const promptText = document.querySelector('[data-prompt-text]');
+        const answerCard = document.querySelector('[data-answer-card]');
+        const answerValue = document.querySelector('[data-answer-value]');
+        const tryTextarea = document.querySelector('[data-try-textarea]');
+        const statusText = document.querySelector('[data-status-text]');
+        const historyList = document.querySelector('[data-history-list]');
+
+        let queue = [];
+        let currentIndex = -1;
+        let isAnswerVisible = false;
+
+        function getCurrentWords() {
+          const grade = gradeSelect.value;
+          const unit = unitSelect.value;
+          return ((wordBook[grade] || {})[unit] || []).slice();
+        }
+
+        function shuffle(items) {
+          const copy = items.slice();
+
+          for (let index = copy.length - 1; index > 0; index -= 1) {
+            const nextIndex = Math.floor(Math.random() * (index + 1));
+            const temp = copy[index];
+            copy[index] = copy[nextIndex];
+            copy[nextIndex] = temp;
+          }
+
+          return copy;
+        }
+
+        function populateGrades() {
+          const grades = Object.keys(wordBook);
+          gradeSelect.innerHTML = grades.map((grade) => `<option value="${grade}">${grade}</option>`).join('');
+          populateUnits();
+        }
+
+        function populateUnits() {
+          const units = Object.keys(wordBook[gradeSelect.value] || {});
+          unitSelect.innerHTML = units.map((unit) => `<option value="${unit}">${unit}</option>`).join('');
+          renderWordList();
+          unitPill.textContent = `词表：${gradeSelect.value} · ${unitSelect.value || '未选择'}`;
+        }
+
+        function renderWordList() {
+          const words = getCurrentWords();
+          historyList.innerHTML = words.map((item, index) => `
+            <div class="dictation-history-item">
+              <strong>第 ${index + 1} 词</strong>
+              <div>${item.prompt}</div>
+            </div>
+          `).join('');
+        }
+
+        function speakWord(text) {
+          if (!('speechSynthesis' in window)) {
+            statusText.textContent = '当前浏览器不支持语音朗读，可直接查看中文提示后手动听写。';
+            return;
+          }
+
+          window.speechSynthesis.cancel();
+          const rate = Number(rateRange.value || 0.9);
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'en-US';
+          utterance.rate = rate;
+          window.speechSynthesis.speak(utterance);
+
+          if (repeatToggle.checked) {
+            const repeatUtterance = new SpeechSynthesisUtterance(text);
+            repeatUtterance.lang = 'en-US';
+            repeatUtterance.rate = rate;
+            window.setTimeout(() => {
+              window.speechSynthesis.speak(repeatUtterance);
+            }, 900);
+          }
+        }
+
+        function updateButtons() {
+          const hasCurrent = currentIndex >= 0 && currentIndex < queue.length;
+          playButton.disabled = !hasCurrent;
+          toggleAnswerButton.disabled = !hasCurrent;
+          nextButton.disabled = !hasCurrent || currentIndex >= queue.length - 1;
+          toggleAnswerButton.textContent = isAnswerVisible ? '隐藏英文' : '显示英文';
+        }
+
+        function renderCurrent() {
+          const current = queue[currentIndex];
+
+          if (!current) {
+            progressPill.textContent = '进度：未开始';
+            orderLabel.textContent = '第 0 / 0 词';
+            promptText.textContent = '先选择年级和单元，再点击“开始听写”。';
+            answerValue.textContent = '暂未显示';
+            answerCard.classList.add('hidden');
+            isAnswerVisible = false;
+            updateButtons();
+            return;
+          }
+
+          progressPill.textContent = `进度：${currentIndex + 1} / ${queue.length}`;
+          orderLabel.textContent = `第 ${currentIndex + 1} / ${queue.length} 词`;
+          promptText.textContent = current.prompt;
+          answerValue.textContent = current.word;
+          answerCard.classList.toggle('hidden', !isAnswerVisible);
+          updateButtons();
+        }
+
+        function startDictation() {
+          const words = getCurrentWords();
+          queue = randomToggle.checked ? shuffle(words) : words;
+          currentIndex = queue.length ? 0 : -1;
+          isAnswerVisible = false;
+          tryTextarea.value = '';
+          renderCurrent();
+
+          if (queue.length) {
+            statusText.textContent = '已开始听写，默认不显示英文。可先听，再自己默写。';
+            speakWord(queue[currentIndex].word);
+          }
+        }
+
+        gradeSelect.addEventListener('change', () => {
+          populateUnits();
+          queue = [];
+          currentIndex = -1;
+          isAnswerVisible = false;
+          renderCurrent();
+        });
+
+        unitSelect.addEventListener('change', () => {
+          renderWordList();
+          unitPill.textContent = `词表：${gradeSelect.value} · ${unitSelect.value || '未选择'}`;
+          queue = [];
+          currentIndex = -1;
+          isAnswerVisible = false;
+          renderCurrent();
+        });
+
+        rateRange.addEventListener('input', () => {
+          rateLabel.textContent = `当前语速：${Number(rateRange.value).toFixed(1)}x`;
+        });
+
+        startButton.addEventListener('click', startDictation);
+
+        playButton.addEventListener('click', () => {
+          const current = queue[currentIndex];
+
+          if (!current) {
+            return;
+          }
+
+          speakWord(current.word);
+          statusText.textContent = `正在朗读第 ${currentIndex + 1} 个单词。`;
+        });
+
+        toggleAnswerButton.addEventListener('click', () => {
+          if (!queue[currentIndex]) {
+            return;
+          }
+
+          isAnswerVisible = !isAnswerVisible;
+          answerCard.classList.toggle('hidden', !isAnswerVisible);
+          updateButtons();
+        });
+
+        nextButton.addEventListener('click', () => {
+          if (currentIndex >= queue.length - 1) {
+            statusText.textContent = '当前单元已经听写完成。';
+            updateButtons();
+            return;
+          }
+
+          currentIndex += 1;
+          isAnswerVisible = false;
+          renderCurrent();
+          tryTextarea.value = '';
+          speakWord(queue[currentIndex].word);
+          statusText.textContent = `已切换到第 ${currentIndex + 1} 个单词。`;
+        });
+
+        populateGrades();
+        renderCurrent();
+      })();
+    </script>
+  </body>
+</html>

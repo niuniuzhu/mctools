@@ -3,9 +3,7 @@ const forms = document.querySelectorAll('[data-form]');
 const message = document.querySelector('[data-message]');
 const registerTabButton = document.querySelector('[data-tab="register"]');
 const registerForm = document.querySelector('[data-form="register"]');
-const maintenanceTitle = document.querySelector('[data-maintenance-title]');
 const maintenanceUnlock = document.querySelector('[data-maintenance-unlock]');
-const developerEntryButton = document.querySelector('[data-developer-entry]');
 const developerRegisterPanel = document.querySelector('[data-developer-register]');
 const developerExitButton = document.querySelector('[data-developer-exit]');
 const developerFlagInput = document.querySelector('[data-developer-flag]');
@@ -18,17 +16,13 @@ const authLoadingOverlay = document.querySelector('[data-auth-loading]');
 const authLoadingMessage = document.querySelector('[data-auth-loading-message]');
 const authLoadingProgress = document.querySelector('[data-auth-loading-progress]');
 const previewEntryRow = document.querySelector('.preview-entry-row');
-const maintenanceUnlockStorageKey = 'mctools-maintenance-register-unlocked';
-const maintenanceUnlockClickTarget = 10;
-const maintenanceUnlockWindowMs = 1800;
+const developerEntryVerifiedStorageKey = 'mctools-developer-entry-verified';
 const loginRedirectDelayMs = 0;
 const loginPageVersion = '正式版1.4';
 const developerSecretRememberStorageKey = 'mctools-developer-secret-cache';
 const developerSecretRememberLifetimeMs = 1000 * 60 * 30;
 
 let specialRegisterMode = 'normal';
-let maintenanceTitleClickCount = 0;
-let maintenanceUnlockResetTimer = null;
 
 function isOfficialPublicLogin() {
   return window.location.protocol === 'http:' && window.location.host === '115.29.198.193:3000' && window.location.pathname === '/login.html';
@@ -64,19 +58,19 @@ function isSpecialRegisterMode() {
   return specialRegisterMode !== 'normal';
 }
 
-function isMaintenanceUnlockStored() {
+function isDeveloperEntryVerified() {
   try {
-    return sessionStorage.getItem(maintenanceUnlockStorageKey) === '1';
+    return sessionStorage.getItem(developerEntryVerifiedStorageKey) === '1';
   } catch {
     return false;
   }
 }
 
-function storeMaintenanceUnlock() {
+function clearDeveloperEntryVerified() {
   try {
-    sessionStorage.setItem(maintenanceUnlockStorageKey, '1');
+    sessionStorage.removeItem(developerEntryVerifiedStorageKey);
   } catch {
-    // Ignore storage write failure.
+    // Ignore storage remove failure.
   }
 }
 
@@ -255,7 +249,7 @@ function updateTabStatus(tabName) {
   tabStatusTag.textContent = isRegister ? '创建账号' : '当前模式';
   tabStatusTitle.textContent = isRegister ? '注册并建立新存档入口' : '登录工具箱';
   tabStatusNote.textContent = isRegister
-    ? '创建账号后会直接进入工具箱；如果已解锁开发者入口，也可以从这里切换开发者注册模式。'
+    ? '创建账号后会直接进入工具箱；开发者注册需先通过 developer-entry 页面验证。'
     : '输入账号和密码后直接进入首页。';
 }
 
@@ -348,10 +342,12 @@ function applyDeveloperEntryFromQuery() {
   }
 
   if (params.get('developer') !== '1') {
+    clearDeveloperEntryVerified();
     return;
   }
 
-  if (isMaintenanceUnlockStored()) {
+  if (isDeveloperEntryVerified()) {
+    clearDeveloperEntryVerified();
     setSpecialRegisterMode('developer');
     setMessage('开发者入口已通过校验，请继续填写并注册。');
     return;
@@ -363,37 +359,6 @@ function applyDeveloperEntryFromQuery() {
 tabButtons.forEach((button) => {
   button.addEventListener('click', () => switchTab(button.dataset.tab));
 });
-
-if (maintenanceTitle) {
-  maintenanceTitle.addEventListener('click', () => {
-    if (isOfficialPublicLogin()) {
-      return;
-    }
-
-    maintenanceTitleClickCount += 1;
-
-    if (maintenanceUnlockResetTimer) {
-      window.clearTimeout(maintenanceUnlockResetTimer);
-    }
-
-    maintenanceUnlockResetTimer = window.setTimeout(() => {
-      maintenanceTitleClickCount = 0;
-    }, maintenanceUnlockWindowMs);
-
-    if (maintenanceTitleClickCount >= maintenanceUnlockClickTarget) {
-      maintenanceTitleClickCount = 0;
-      storeMaintenanceUnlock();
-      setMaintenanceUnlockVisible(true);
-      setMessage('入口已解锁');
-    }
-  });
-}
-
-if (developerEntryButton) {
-  developerEntryButton.addEventListener('click', () => {
-    setSpecialRegisterMode('developer');
-  });
-}
 
 if (developerExitButton) {
   developerExitButton.addEventListener('click', () => {
@@ -409,7 +374,7 @@ forms.forEach((form) => {
 applyLoginEnvironmentState();
 applyAppVersion(loginPageVersion);
 
-setMaintenanceUnlockVisible(isMaintenanceUnlockStored());
+setMaintenanceUnlockVisible(false);
 setSpecialRegisterMode('normal');
 switchTab('login');
 applyDeveloperEntryFromQuery();
