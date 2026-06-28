@@ -9,6 +9,118 @@
     </script>
     <link rel="stylesheet" href="/login.css?v=1.4" />
     <script defer src="/login.js?v=1.4"></script>
+    <style>
+      .notice-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(2, 8, 18, 0.66);
+        animation: notice-fade-in 260ms ease-out both;
+      }
+
+      .notice-overlay[hidden] {
+        display: none !important;
+      }
+
+      .notice-card {
+        position: relative;
+        width: min(92vw, 560px);
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: linear-gradient(180deg, #111827, #1f2937);
+        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
+        overflow: hidden;
+        transform-origin: center;
+        animation: notice-pop-in 320ms cubic-bezier(.2, .8, .2, 1) both;
+      }
+
+      .notice-card::before,
+      .notice-card::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .notice-card::before {
+        inset: 1px;
+        border-radius: 27px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 36%);
+        opacity: 0.5;
+      }
+
+      .notice-card::after {
+        left: 18px;
+        right: 18px;
+        top: 10px;
+        height: 1px;
+        background: rgba(255,255,255,0.2);
+        opacity: 0.45;
+      }
+
+      .notice-head {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 18px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+      }
+
+      .notice-head strong {
+        color: #e2e8f0;
+        font-size: 1rem;
+      }
+
+      .notice-close {
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(30, 41, 59, 0.9);
+        color: #cbd5e1;
+        border-radius: 10px;
+        padding: 7px 12px;
+        cursor: pointer;
+        transition: background 160ms ease, border-color 160ms ease;
+      }
+
+      .notice-close:hover {
+        border-color: rgba(255,255,255,0.22);
+        background: rgba(51, 65, 85, 0.95);
+      }
+
+      .notice-body {
+        position: relative;
+        z-index: 1;
+        min-height: 180px;
+        padding: 18px;
+      }
+
+      @keyframes notice-fade-in {
+        from {
+          opacity: 0;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes notice-pop-in {
+        from {
+          opacity: 0;
+          transform: translateY(18px) scale(0.96);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    </style>
   </head>
   <body>
     <main class="auth-shell">
@@ -20,7 +132,7 @@
         <p class="lead">先登录或注册，再进入工具箱。当前提供打字练习、文本转换、时间管理等实用工具，满足日常工作与学习需求。</p>
         <div class="meta-band">
           <div class="version-pill" data-app-version>当前版本 正式版1.4</div>
-          <div class="version-pill glass-state-pill">统一下载中心风格</div>
+          <div class="version-pill">统一下载中心风格</div>
         </div>
         <div class="preview-entry-row">
           <button type="button" class="ghost-button preview-entry-button" disabled>公开预览已关闭</button>
@@ -206,6 +318,42 @@
           </div>
         </div>
       </section>
+
+      <section class="notice-overlay" data-notice-overlay>
+        <article class="notice-card" role="dialog" aria-modal="true" aria-label="公告栏">
+          <header class="notice-head">
+            <strong>公告栏</strong>
+            <button type="button" class="notice-close" data-notice-close>关闭</button>
+          </header>
+          <div class="notice-body" data-notice-body></div>
+        </article>
+      </section>
     </main>
+    <script>
+      (function () {
+        const overlay = document.querySelector('[data-notice-overlay]');
+        const closeBtn = document.querySelector('[data-notice-close]');
+
+        if (!overlay) {
+          return;
+        }
+
+        const closeNotice = () => {
+          overlay.hidden = true;
+        };
+
+        closeBtn?.addEventListener('click', closeNotice);
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay) {
+            closeNotice();
+          }
+        });
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape' && !overlay.hidden) {
+            closeNotice();
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

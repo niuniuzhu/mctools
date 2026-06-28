@@ -932,7 +932,7 @@ const WORKBENCH_PAGE_MODULES = {
 
 const SHADER_HUB_REDEEM_CODE = 'MCTOOLS-SHADER-2026';
 const DEFAULT_UI_THEME = 'milktea';
-const ALLOWED_UI_THEMES = new Set(['normal', 'milktea', 'classic', 'end', 'liquid']);
+const ALLOWED_UI_THEMES = new Set(['normal', 'milktea', 'classic', 'end']);
 
 function getPreferredUiTheme() {
   try {

@@ -7,3 +7,117 @@ Server is running at http://0.0.0.0:3000  (正式版1.4.6)
 (node:27184) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:33292) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:1976) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:29968) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:34392) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:20160) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:26496) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:27316) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 156078 -> test@example.com (????)
+(node:6036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 577060 -> niuniuzhu.cn@hotmail.com (奶茶)
+[Plaza] 验证码 843550 -> style@test.com (????)
+(node:4640) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+D:\Projects\mctools\server.js:568
+  const rows = db.prepare(
+                  ^
+
+Error: no such column: game_edition
+    at handleServerListingsGet (D:\Projects\mctools\server.js:568:19)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:2873:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+(node:22344) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 782604 -> niuniuzhu.cn@hotmail.com (奶茶)
+(node:40116) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 261329 -> avatar@test.com (????)
+[Plaza] 验证码 938435 -> niuniuzhu.cn@hotmail.com (1502)
+(node:26836) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:23076) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:16408) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:14780) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:23668) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:26008) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:16584) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:3688) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+(node:17312) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 642917 -> 3805506653@qq.com (????)
+(node:17816) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 520360 -> 3805506653@qq.com (????)
+(node:26344) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 657406 -> 3805506653@qq.com (????)
+[Plaza] 验证码 414394 -> niuniuzhu.cn@hotmail.com (奶茶)
+[Plaza] 验证码 456788 -> 3805506653@qq.com (奶茶)
+[Plaza] 验证码 602477 -> 3805506653@qq.com (奶茶)
+[Plaza] 验证码 974553 -> 3805506653@qq.com (奶茶)
+(node:22928) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 559816 -> 3805506653@qq.com (奶茶)
+(node:25320) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 919877 -> 3805506653@qq.com (奶茶)
+[Plaza] 验证码 116080 -> 3805506653@qq.com (奶茶)
+[Plaza] 验证码 714021 -> 3805506653@qq.com (奶茶)
+[Plaza] 验证码 197276 -> 3805506653@qq.com (星际)
+[Plaza] 验证码 594584 -> 3805506653@qq.com (星际)
+[Plaza] 验证码 835887 -> rlaopo001@163.com (ron)
+(node:29620) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4.6)
+[Plaza] 验证码 212567 -> rlaopo001@163.com (ron)
+[Plaza] 验证码 798488 -> rlaopo001@163.com (ron)
+[Plaza] 验证码 507794 -> rlaopo001@163.com (ron)

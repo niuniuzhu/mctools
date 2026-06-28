@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
-        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' || storedUi === 'liquid' ? storedUi : 'normal';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -97,6 +97,7 @@
           linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
         background-size: 28px 28px;
         opacity: 0.55;
+        pointer-events: none;
       }
 
       .device-stage-head,
@@ -170,6 +171,8 @@
       }
 
       .device-action-row {
+        position: relative;
+        z-index: 1;
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
@@ -267,7 +270,6 @@
         }
       }
     </style>
-    <script defer src="/app.js"></script>
     <script defer src="/fps-test.js"></script>
   </head>
   <body>

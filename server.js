@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { DatabaseSync } = require('node:sqlite');
 
 const host = process.env.HOST || '0.0.0.0';
@@ -34,6 +35,7 @@ const previewablePublicPages = new Set([
   '/json-tools.html',
   '/calculator.html',
   '/commands.html',
+  '/command-community.html',
   '/coordinates.html',
   '/qrcode-generator.html',
   '/fps-test.html',
@@ -132,6 +134,21 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS command_submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    submitter_name TEXT NOT NULL,
+    command_text TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT '通用',
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    reviewer_name TEXT NOT NULL DEFAULT '',
+    review_note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS vip_purchases (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -171,12 +188,50 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS server_listings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    server_name TEXT NOT NULL,
+    ip_address TEXT NOT NULL,
+    avatar_path TEXT,
+    game_edition TEXT NOT NULL DEFAULT 'international',
+    description TEXT NOT NULL DEFAULT '',
+    server_type TEXT NOT NULL DEFAULT 'survival',
+    version TEXT NOT NULL DEFAULT '',
+    max_players INTEGER NOT NULL DEFAULT 0,
+    contact TEXT NOT NULL DEFAULT '',
+    submitter_name TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+try {
+  const serverListingColumns = db.prepare('PRAGMA table_info(server_listings)').all().map((column) => column.name);
+
+  if (!serverListingColumns.includes('game_edition')) {
+    db.exec("ALTER TABLE server_listings ADD COLUMN game_edition TEXT DEFAULT 'international'");
+    db.exec("UPDATE server_listings SET game_edition = 'international' WHERE game_edition IS NULL OR game_edition = ''");
+  }
+
+  if (!serverListingColumns.includes('avatar_path')) {
+    db.exec('ALTER TABLE server_listings ADD COLUMN avatar_path TEXT');
+  }
+} catch {
+  // Keep startup resilient if migration fails unexpectedly.
+}
+
 const sessions = new Map();
 const loginCaptchas = new Map();
 const localDevQuickEntryTokens = new Map();
 const qrLoginTickets = new Map();
+const plazaVerifyCodes = new Map(); // email -> {code, username, expiresAt}
+const plazaSessions = new Map();    // token -> {username, email, expiresAt}
 const captchaLifetimeMs = 1000 * 60 * 5;
 const qrLoginTicketLifetimeMs = 1000 * 60 * 3;
+const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
+const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -264,7 +319,7 @@ function parseRequestBody(request) {
     request.on('data', (chunk) => {
       body += chunk;
 
-      if (body.length > 1024 * 16) {
+      if (body.length > 1024 * 1024 * 5) {
         reject(new Error('Payload too large'));
         request.destroy();
       }
@@ -534,6 +589,695 @@ function redirectToIndex(response) {
 function redirectToSettings(response) {
   response.writeHead(302, { Location: '/settings.html' });
   response.end();
+}
+
+function handleServerListingsGet(request, response) {
+  const rows = db.prepare(
+    'SELECT id, server_name, ip_address, avatar_path, game_edition, description, server_type, version, max_players, created_at FROM server_listings WHERE status = ? ORDER BY created_at DESC'
+  ).all('APPROVED');
+  sendJson(response, 200, { servers: rows });
+}
+
+// ── Plaza 邮箱验证 ──────────────────────────────────────────────────────────
+
+function getPlazaSessionFromRequest(request) {
+  const cookieHeader = request.headers['cookie'] || '';
+  const match = cookieHeader.match(/(?:^|;)\s*mctools_plaza=([^;]+)/);
+  if (!match) { return null; }
+  const token = decodeURIComponent(match[1]);
+  const session = plazaSessions.get(token);
+  if (!session || session.expiresAt <= Date.now()) {
+    plazaSessions.delete(token);
+    return null;
+  }
+  return session;
+}
+
+function cleanupExpiredPlazaCodes() {
+  const now = Date.now();
+  for (const [email, entry] of plazaVerifyCodes.entries()) {
+    if (entry.expiresAt <= now) { plazaVerifyCodes.delete(email); }
+  }
+  for (const [token, session] of plazaSessions.entries()) {
+    if (session.expiresAt <= now) { plazaSessions.delete(token); }
+  }
+}
+
+function deleteServerListingAvatarFiles(listingId) {
+  const prefix = `server-${listingId}.`;
+
+  if (!fs.existsSync(avatarsDir)) {
+    return;
+  }
+
+  fs.readdirSync(avatarsDir)
+    .filter((name) => name.startsWith(prefix))
+    .forEach((name) => {
+      const filePath = path.join(avatarsDir, name);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    });
+}
+
+function saveServerListingAvatar(listingId, imageData) {
+  const dataUrl = String(imageData || '');
+  const match = dataUrl.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const extension = match[2] === 'jpeg' || match[2] === 'jpg' ? '.jpg' : match[2] === 'png' ? '.png' : '.webp';
+  const buffer = Buffer.from(match[3], 'base64');
+
+  if (buffer.length > 1024 * 1024 * 2) {
+    throw new Error('头像图片不能超过 2MB');
+  }
+
+  const fileName = `server-${listingId}${extension}`;
+  const absolutePath = path.join(avatarsDir, fileName);
+
+  deleteServerListingAvatarFiles(listingId);
+  fs.writeFileSync(absolutePath, buffer);
+
+  return `/avatars/${fileName}`;
+}
+
+async function trySmtpSend(toEmail, code, username) {
+  const apiKeys = JSON.parse(fs.readFileSync(apiKeysConfigPath, 'utf8'));
+  const smtpConfig = apiKeys.smtp;
+
+  if (!smtpConfig?.host || !smtpConfig?.user || !smtpConfig?.pass) {
+    return { ok: false, reason: 'SMTP 未配置 host/user/pass' };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: smtpConfig.host,
+    port: Number(smtpConfig.port) || 465,
+    secure: Number(smtpConfig.port) === 465,
+    auth: {
+      user: smtpConfig.user,
+      pass: smtpConfig.pass
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+
+  try {
+    const info = await transporter.sendMail({
+      from: smtpConfig.from || smtpConfig.user,
+      to: toEmail,
+      subject: `验证码 ${code}`,
+      text: `你好 ${username}，\n\n你的服务器广场验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- MCTools`
+    });
+
+    return { ok: true, reason: info?.response || '' };
+  } catch (error) {
+    return { ok: false, reason: error?.response || error?.message || 'SMTP 发送失败' };
+  }
+}
+
+function handlePlazaSendCode(request, response) {
+  parseRequestBody(request)
+    .then(async (body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+
+      if (!username || username.length > 32) {
+        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+      if (!emailRegex.test(email)) {
+        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      // 防频刷：60 秒内不能重发
+      const existing = plazaVerifyCodes.get(email);
+      if (existing && existing.expiresAt - plazaVerifyCodeLifetimeMs + 60000 > Date.now()) {
+        sendJson(response, 429, { message: '发送太频繁，请 60 秒后重试' });
+        return;
+      }
+
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      plazaVerifyCodes.set(email, {
+        code,
+        username,
+        expiresAt: Date.now() + plazaVerifyCodeLifetimeMs
+      });
+
+      console.log(`[Plaza] 验证码 ${code} -> ${email} (${username})`);
+
+      const smtpResult = await trySmtpSend(email, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
+
+      if (smtpResult.ok) {
+        sendJson(response, 200, { message: `验证码已发送至 ${email}，10 分钟内有效`, sent: true });
+      } else {
+        console.warn(`[Plaza] SMTP 发送失败 -> ${email} (${username}): ${smtpResult.reason || 'unknown'}`);
+        sendJson(response, 200, {
+          message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
+          sent: false,
+          devCode: code,
+          smtpError: smtpResult.reason || ''
+        });
+      }
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handlePlazaDirectLogin(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+
+      if (!username || username.length > 32) {
+        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+      if (!emailRegex.test(email)) {
+        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      plazaSessions.set(token, {
+        username,
+        email,
+        expiresAt: Date.now() + plazaSessionLifetimeMs
+      });
+
+      response.setHeader('Set-Cookie', `mctools_plaza=${token}; HttpOnly; Path=/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`);
+      sendJson(response, 200, { message: '登录成功', username, email });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handlePlazaVerify(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const email = String(body.email || '').trim().toLowerCase();
+      const code = String(body.code || '').trim();
+
+      const entry = plazaVerifyCodes.get(email);
+
+      if (!entry || entry.expiresAt <= Date.now()) {
+        sendJson(response, 400, { message: '验证码不存在或已过期，请重新获取' });
+        return;
+      }
+
+      if (entry.code !== code) {
+        sendJson(response, 400, { message: '验证码错误' });
+        return;
+      }
+
+      plazaVerifyCodes.delete(email);
+
+      const token = crypto.randomBytes(32).toString('hex');
+      plazaSessions.set(token, {
+        username: entry.username,
+        email,
+        expiresAt: Date.now() + plazaSessionLifetimeMs
+      });
+
+      response.setHeader('Set-Cookie', `mctools_plaza=${token}; HttpOnly; Path=/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`);
+      sendJson(response, 200, { message: '登录成功', username: entry.username });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handlePlazaMe(request, response) {
+  const session = getPlazaSessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+  sendJson(response, 200, {
+    username: session.username,
+    email: session.email,
+    ...getVipInfo(session.username)
+  });
+}
+
+function handlePlazaLogout(request, response) {
+  const cookieHeader = request.headers['cookie'] || '';
+  const match = cookieHeader.match(/(?:^|;)\s*mctools_plaza=([^;]+)/);
+  if (match) {
+    const token = decodeURIComponent(match[1]);
+    plazaSessions.delete(token);
+  }
+  response.setHeader('Set-Cookie', 'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+  sendJson(response, 200, { message: '已退出登录' });
+}
+
+function handlePlazaVipPurchase(request, response) {
+  const session = getPlazaSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录后再购买 VIP' });
+    return;
+  }
+
+  if (vipSystemPaused) {
+    sendJson(response, 503, {
+      message: 'VIP 功能暂时关闭',
+      vipPaused: true,
+      username: session.username,
+      version: appVersion,
+      ...getVipInfo(session.username)
+    });
+    return;
+  }
+
+  const existingPurchase = db.prepare('SELECT id FROM vip_purchases WHERE username = ?').get(session.username);
+
+  if (existingPurchase) {
+    sendJson(response, 200, {
+      message: 'VIP 已开通',
+      username: session.username,
+      version: appVersion,
+      price: 10,
+      ...getVipInfo(session.username)
+    });
+    return;
+  }
+
+  db.prepare('INSERT INTO vip_purchases (username, amount) VALUES (?, ?)').run(session.username, 10);
+
+  sendJson(response, 201, {
+    message: 'VIP 开通成功',
+    username: session.username,
+    version: appVersion,
+    price: 10,
+    ...getVipInfo(session.username)
+  });
+}
+
+function handlePlazaSvipPurchase(request, response) {
+  const session = getPlazaSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录后再购买 SVIP' });
+    return;
+  }
+
+  if (vipSystemPaused) {
+    sendJson(response, 503, {
+      message: 'VIP 功能暂时关闭',
+      vipPaused: true,
+      username: session.username,
+      version: appVersion,
+      ...getVipInfo(session.username)
+    });
+    return;
+  }
+
+  const existingPurchase = db.prepare('SELECT id FROM svip_purchases WHERE username = ?').get(session.username);
+  const vipInfo = getVipInfo(session.username);
+
+  if (existingPurchase) {
+    sendJson(response, 200, {
+      message: 'SVIP 已开通',
+      username: session.username,
+      version: appVersion,
+      price: vipInfo.svipAmount || (vipInfo.vipPurchased ? 10 : 25),
+      ...getVipInfo(session.username)
+    });
+    return;
+  }
+
+  const upgradePrice = vipInfo.vipPurchased ? 10 : 25;
+  db.prepare('INSERT INTO svip_purchases (username, amount) VALUES (?, ?)').run(session.username, upgradePrice);
+
+  sendJson(response, 201, {
+    message: 'SVIP 开通成功',
+    username: session.username,
+    version: appVersion,
+    price: upgradePrice,
+    ...getVipInfo(session.username)
+  });
+}
+
+function handleServerListingCreate(request, response) {
+  const plazaSession = getPlazaSessionFromRequest(request);
+
+  if (!plazaSession) {
+    sendJson(response, 401, { message: '请先登录后再投稿', code: 'LOGIN_REQUIRED' });
+    return;
+  }
+  const vipInfo = getVipInfo(plazaSession.username);
+  const canBypassLimit = Boolean(vipInfo && (vipInfo.vipPurchased || vipInfo.svipPurchased));
+
+  parseRequestBody(request)
+    .then((body) => {
+      const serverName = String(body.server_name || '').trim();
+      const ipAddress = String(body.ip_address || '').trim();
+      const gameEdition = ['netease', 'international'].includes(String(body.game_edition || '').trim())
+        ? String(body.game_edition || '').trim()
+        : 'international';
+      const description = String(body.description || '').trim().slice(0, 500);
+      const serverType = ['survival', 'creative', 'minigames', 'adventure', 'skyblock', 'other'].includes(body.server_type)
+        ? body.server_type
+        : 'survival';
+      const version = String(body.version || '').trim().slice(0, 32);
+      const maxPlayers = Math.max(0, Math.min(10000, Number.parseInt(body.max_players, 10) || 0));
+      const contact = String(body.contact || '').trim().slice(0, 128);
+      const submitterName = String(body.submitter_name || '').trim().slice(0, 64);
+      const imageData = String(body.avatarImageData || '').trim();
+
+      const listingCount = db.prepare(
+        'SELECT COUNT(*) AS count FROM server_listings WHERE submitter_name = ?'
+      ).get(plazaSession.username)?.count || 0;
+
+      if (!canBypassLimit && listingCount >= 2) {
+        sendJson(response, 403, {
+          message: '普通用户最多只能上传 2 个服务器，开通 VIP 后可继续投稿',
+          code: 'SERVER_LIMIT_REACHED',
+          limit: 2,
+          current: listingCount,
+          membershipLevel: 'NORMAL'
+        });
+        return;
+      }
+
+      if (!serverName || serverName.length > 64) {
+        sendJson(response, 400, { message: '服务器名称不能为空，且不超过 64 个字符' });
+        return;
+      }
+
+      if (!ipAddress || ipAddress.length > 128) {
+        sendJson(response, 400, { message: 'IP 地址不能为空，且不超过 128 个字符' });
+        return;
+      }
+
+      if (!description) {
+        sendJson(response, 400, { message: '请填写服务器简介' });
+        return;
+      }
+
+      const result = db.prepare(
+        'INSERT INTO server_listings (server_name, ip_address, game_edition, description, server_type, version, max_players, contact, submitter_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+      ).run(serverName, ipAddress, gameEdition, description, serverType, version, maxPlayers, contact, plazaSession.username);
+
+      if (imageData) {
+        try {
+          const avatarPath = saveServerListingAvatar(result.lastInsertRowid, imageData);
+          if (avatarPath) {
+            db.prepare('UPDATE server_listings SET avatar_path = ? WHERE id = ?').run(avatarPath, result.lastInsertRowid);
+          }
+        } catch (error) {
+          db.prepare('DELETE FROM server_listings WHERE id = ?').run(result.lastInsertRowid);
+          sendJson(response, 400, { message: error.message || '头像上传失败' });
+          return;
+        }
+      }
+
+      sendJson(response, 200, { message: '投稿已收到，等待开发者审核后会显示在列表中' });
+    })
+    .catch((error) => {
+      const isJsonError = error.message === 'Invalid JSON';
+      sendJson(response, isJsonError ? 400 : 500, { message: error.message || '提交失败' });
+    });
+}
+
+function handleDeveloperServerListings(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!requireDeveloperSession(request, response)) {
+    return;
+  }
+
+  const rows = db.prepare(
+    'SELECT * FROM server_listings ORDER BY CASE status WHEN \'PENDING\' THEN 0 WHEN \'APPROVED\' THEN 1 ELSE 2 END, created_at DESC'
+  ).all();
+  sendJson(response, 200, { servers: rows });
+}
+
+function handleDeveloperServerListingStatus(request, response) {
+  if (!requireDeveloperSession(request, response)) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number.parseInt(body.id, 10);
+      const status = body.status;
+
+      if (!id || !['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+        sendJson(response, 400, { message: '参数错误' });
+        return;
+      }
+
+      const existing = db.prepare('SELECT id FROM server_listings WHERE id = ?').get(id);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '未找到该投稿' });
+        return;
+      }
+
+      db.prepare('UPDATE server_listings SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
+      sendJson(response, 200, { message: '状态已更新' });
+    })
+    .catch((error) => {
+      sendJson(response, 500, { message: error.message || '操作失败' });
+    });
+}
+
+function handleDeveloperServerListingDelete(request, response) {
+  if (!requireDeveloperSession(request, response)) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number.parseInt(body.id, 10);
+
+      if (!id) {
+        sendJson(response, 400, { message: '参数错误' });
+        return;
+      }
+
+      const existing = db.prepare('SELECT id FROM server_listings WHERE id = ?').get(id);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '未找到该投稿' });
+        return;
+      }
+
+      deleteServerListingAvatarFiles(id);
+      db.prepare('DELETE FROM server_listings WHERE id = ?').run(id);
+      sendJson(response, 200, { message: '已删除' });
+    })
+    .catch((error) => {
+      sendJson(response, 500, { message: error.message || '删除失败' });
+    });
+}
+
+function sendPortClosedNotice(response, request) {
+  const hostHeader = String(request.headers.host || '').trim();
+  const hostname = hostHeader.includes(':') ? hostHeader.split(':')[0] : hostHeader || '127.0.0.1';
+  const targetUrl = `http://${hostname}:3001/`;
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>服务器宣传页</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 24px;
+        font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(103, 232, 249, 0.18), transparent 24%),
+          radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 30%),
+          radial-gradient(circle at bottom, rgba(34, 197, 94, 0.16), transparent 34%),
+          linear-gradient(160deg, #09111f, #10213d 54%, #0a1627);
+        color: #eff6ff;
+        display: grid;
+        place-items: center;
+      }
+
+      .port-closed-card {
+        width: min(760px, 100%);
+        padding: 36px 32px;
+        border-radius: 28px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(15, 23, 42, 0.82);
+        box-shadow: 0 30px 80px rgba(2, 6, 23, 0.48);
+      }
+
+      .promo-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.14);
+        border: 1px solid rgba(56, 189, 248, 0.32);
+        color: #7dd3fc;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+      }
+
+      .promo-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
+        align-items: start;
+      }
+
+      h1 {
+        margin: 16px 0 14px;
+        font-size: clamp(1.8rem, 4vw, 2.4rem);
+      }
+
+      p {
+        margin: 0;
+        line-height: 1.8;
+        color: #cbd5e1;
+      }
+
+      .promo-copy {
+        display: grid;
+        gap: 14px;
+      }
+
+      .promo-points {
+        display: grid;
+        gap: 12px;
+      }
+
+      .promo-point {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.54);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+
+      .promo-point strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #f8fafc;
+      }
+
+      .promo-side {
+        padding: 18px;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(14, 165, 233, 0.12), rgba(34, 197, 94, 0.08));
+        border: 1px solid rgba(125, 211, 252, 0.18);
+        display: grid;
+        gap: 12px;
+      }
+
+      .promo-side-title {
+        margin: 0;
+        font-size: 1rem;
+        color: #f8fafc;
+      }
+
+      .promo-status {
+        display: inline-flex;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(248, 113, 113, 0.14);
+        border: 1px solid rgba(248, 113, 113, 0.28);
+        color: #fecaca;
+        font-weight: 700;
+      }
+
+      .promo-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 8px;
+      }
+
+      .port-closed-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #38bdf8, #60a5fa);
+        color: #031525;
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      .port-closed-link.secondary {
+        background: transparent;
+        color: #dbeafe;
+        border: 1px solid rgba(191, 219, 254, 0.26);
+      }
+
+      @media (max-width: 720px) {
+        .promo-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="port-closed-card">
+      <div class="promo-grid">
+        <section class="promo-copy">
+          <span class="promo-badge">MC TOOLS SERVER PREVIEW</span>
+          <div>
+            <h1>服务器宣传页</h1>
+            <p>3000 端口当前只保留服务器宣传展示，用于预告玩法方向、房间氛围和后续开放计划，暂不开放实际访问与功能操作。</p>
+          </div>
+          <div class="promo-points">
+            <article class="promo-point">
+              <strong>多人联机主题</strong>
+              <p>主打轻量生存、活动夜、多人分工和房间开场节奏，适合朋友局快速集合。</p>
+            </article>
+            <article class="promo-point">
+              <strong>工具箱联动</strong>
+              <p>后续会和开服中心、设备检测、Bug 门户联动，但当前宣传端口不提供登录、注册和扫码操作。</p>
+            </article>
+            <article class="promo-point">
+              <strong>开放状态</strong>
+              <p>目前仍在准备阶段。需要继续使用现有服务时，请直接前往 3001 端口。</p>
+            </article>
+          </div>
+        </section>
+        <aside class="promo-side">
+          <p class="promo-side-title">当前状态</p>
+          <span class="promo-status">暂不开放</span>
+          <p>3000 端口现在不会提供正式登录、账号操作、扫码登录或工具页交互。</p>
+          <div class="promo-actions">
+            <a class="port-closed-link" href="${targetUrl}">前往 3001 正式入口</a>
+            <a class="port-closed-link secondary" href="${targetUrl}server-hub.html">查看联机模块</a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>`;
+
+  sendHtml(response, 200, html);
 }
 
 function isOfficialPublicHost(request) {
@@ -2075,6 +2819,98 @@ function handleListCommands(request, response) {
   sendJson(response, 200, { items: rows, username: session.username, version: appVersion });
 }
 
+function handleCommandCommunitySubmit(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const submitterName = String(body.submitterName || '').trim();
+      const commandText = String(body.commandText || '').trim();
+      const description = String(body.description || '').trim();
+      const category = String(body.category || '通用').trim() || '通用';
+
+      if (!submitterName || !commandText) {
+        sendJson(response, 400, { message: '投稿昵称和指令内容不能为空' });
+        return;
+      }
+
+      const result = db.prepare(
+        'INSERT INTO command_submissions (submitter_name, command_text, description, category) VALUES (?, ?, ?, ?)'
+      ).run(submitterName, commandText, description, category);
+
+      sendJson(response, 201, { message: '投稿已提交，等待后台审核', id: result.lastInsertRowid });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handleCommandCommunityList(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const statusFilter = String(url.searchParams.get('status') || 'APPROVED').trim().toUpperCase();
+  const limit = Math.min(Math.max(Number.parseInt(url.searchParams.get('limit') || '20', 10) || 20, 1), 100);
+  const params = [];
+  let sql = 'SELECT id, submitter_name AS submitterName, command_text AS commandText, description, category, status, reviewer_name AS reviewerName, review_note AS reviewNote, created_at AS createdAt, updated_at AS updatedAt FROM command_submissions';
+
+  if (statusFilter && ['PENDING', 'APPROVED', 'REJECTED', 'ALL'].includes(statusFilter)) {
+    if (statusFilter !== 'ALL') {
+      sql += ' WHERE status = ?';
+      params.push(statusFilter);
+    }
+  } else {
+    sql += ' WHERE status = ?';
+    params.push('APPROVED');
+  }
+
+  sql += ' ORDER BY id DESC LIMIT ?';
+  params.push(limit);
+
+  const rows = db.prepare(sql).all(...params);
+  sendJson(response, 200, { items: rows, version: appVersion });
+}
+
+function handleCommandCommunityModerate(request, response) {
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  if (!isDeveloper(session.username)) {
+    sendJson(response, 403, { message: '仅开发者可审核' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number.parseInt(body.id, 10);
+      const status = String(body.status || '').trim().toUpperCase();
+      const reviewNote = String(body.reviewNote || '').trim();
+
+      if (!id || !['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+        sendJson(response, 400, { message: '参数无效' });
+        return;
+      }
+
+      const item = db.prepare('SELECT id FROM command_submissions WHERE id = ?').get(id);
+
+      if (!item) {
+        sendJson(response, 404, { message: '投稿不存在' });
+        return;
+      }
+
+      db.prepare(
+        'UPDATE command_submissions SET status = ?, reviewer_name = ?, review_note = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+      ).run(status, session.username, reviewNote, id);
+
+      sendJson(response, 200, { message: '审核状态已更新' });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
 function handleMe(request, response) {
   const session = getSessionFromRequest(request);
 
@@ -2311,9 +3147,162 @@ const server = http.createServer((request, response) => {
   cleanupExpiredCaptchas();
   cleanupExpiredLocalDevQuickEntryTokens();
   cleanupExpiredQrLoginTickets();
+  cleanupExpiredPlazaCodes();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
+
+  // 允许服务器广场 (3000) 跨域访问 3001 的 API（携带 Cookie）
+  const origin = request.headers['origin'] || '';
+  if (Number(port) === 3001 && origin) {
+    try {
+      const parsedOrigin = new URL(origin);
+      if (parsedOrigin.protocol === 'http:' && parsedOrigin.port === '3000') {
+        response.setHeader('Access-Control-Allow-Origin', origin);
+        response.setHeader('Access-Control-Allow-Credentials', 'true');
+        response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+        response.setHeader('Vary', 'Origin');
+        if (request.method === 'OPTIONS') {
+          response.writeHead(204);
+          response.end();
+          return;
+        }
+      }
+    } catch {
+      // Ignore malformed origins and continue with normal handling.
+    }
+  }
+
+  if (Number(port) === 3000) {
+    // 服务器广场公开 API
+    if (request.method === 'GET' && pathname === '/api/servers') {
+      handleServerListingsGet(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/servers') {
+      handleServerListingCreate(request, response);
+      return;
+    }
+
+    // Plaza 认证
+    if (request.method === 'POST' && pathname === '/api/plaza/login') {
+      handlePlazaSendCode(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/plaza/send-code') {
+      handlePlazaSendCode(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/plaza/verify') {
+      handlePlazaVerify(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/plaza/me') {
+      handlePlazaMe(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/plaza/logout') {
+      handlePlazaLogout(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/developer/servers') {
+      handleDeveloperServerListings(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/developer/servers/status') {
+      handleDeveloperServerListingStatus(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/developer/servers/delete') {
+      handleDeveloperServerListingDelete(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/vip/purchase') {
+      handleVipPurchase(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/svip/purchase') {
+      handleSvipPurchase(request, response);
+      return;
+    }
+
+    // 静态资源：样式和宣传页脚本
+    if (request.method === 'GET' && (pathname === '/styles.css' || pathname === '/server-plaza.js' || pathname.startsWith('/assets/'))) {
+      serveStatic(pathname, response);
+      return;
+    }
+
+    // 根路径及宣传页本体
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const plazaPath = '/server-plaza.html';
+      const plazaFilePath = resolvePublicFilePath(plazaPath);
+
+      if (plazaFilePath) {
+        serveStatic(plazaPath, response);
+      } else {
+        sendPortClosedNotice(response, request);
+      }
+
+      return;
+    }
+
+    sendJson(response, 405, { message: '方法不允许' });
+    return;
+  }
+
+  if (Number(port) === 3003) {
+    if (request.method === 'GET' && pathname === '/api/command-community') {
+      handleCommandCommunityList(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/command-community/submit') {
+      handleCommandCommunitySubmit(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/command-community/review') {
+      handleCommandCommunityList(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/command-community/review') {
+      handleCommandCommunityModerate(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && (pathname === '/styles.css' || pathname === '/app.js' || pathname.startsWith('/assets/'))) {
+      serveStatic(pathname, response);
+      return;
+    }
+
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const communityPath = '/command-community.html';
+      const communityFilePath = resolvePublicFilePath(communityPath);
+
+      if (communityFilePath) {
+        serveStatic(communityPath, response);
+      } else {
+        sendPortClosedNotice(response, request);
+      }
+
+      return;
+    }
+
+    sendJson(response, 405, { message: '方法不允许' });
+    return;
+  }
 
   if (request.method === 'GET' && pathname === '/api/login/captcha') {
     handleLoginCaptcha(request, response);
@@ -2330,15 +3319,17 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  const staticPath = pathname === '/' ? (Number(port) === 3002 ? '/bug-report.html' : '/index.html') : pathname;
+  const isMaintenancePort = Number(port) === 3001 || Number(port) === 3002;
+  const staticPath = pathname === '/' ? (isMaintenancePort ? '/maintenance.html' : (Number(port) === 3002 ? '/bug-report.html' : '/index.html')) : pathname;
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
+  const isPublicPageScript = pathname === '/fps-test.js';
   const isPublicPreviewPage =
     previewablePublicPages.has(pathname) ||
     previewablePublicPages.has(staticPath) ||
     pathname === '/preview.html' ||
     pathname === '/preview-page.html' ||
     /^\/preview-[a-z0-9-]+\.html$/iu.test(pathname);
-  const isPublicLoginDependency = pathname.startsWith('/assets/') || pathname === '/styles.css';
+  const isPublicLoginDependency = pathname.startsWith('/assets/') || pathname === '/styles.css' || isPublicPageScript;
 
   if (pathname.startsWith('/preview')) {
     console.log('[preview-debug]', JSON.stringify({
@@ -2356,6 +3347,15 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'GET' && pathname === '/api/developer/quick-entry-token') {
     handleDeveloperQuickEntryToken(request, response);
+    return;
+  }
+
+  if (isMaintenancePort && pathname.startsWith('/api/')) {
+    sendJson(response, 503, {
+      message: '当前服务维护中，请稍后再试。',
+      maintenance: true,
+      port: Number(port)
+    });
     return;
   }
 
@@ -2394,16 +3394,6 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (request.method === 'POST' && pathname === '/api/vip/purchase') {
-    handleVipPurchase(request, response);
-    return;
-  }
-
-  if (request.method === 'POST' && pathname === '/api/svip/purchase') {
-    handleSvipPurchase(request, response);
-    return;
-  }
-
   if (request.method === 'POST' && pathname === '/api/ai/generate') {
     handleAiGenerate(request, response);
     return;
@@ -2436,6 +3426,21 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'GET' && pathname === '/api/bugs/mine') {
     handleMyBugReports(request, response);
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/developer/servers') {
+    handleDeveloperServerListings(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/developer/servers/status') {
+    handleDeveloperServerListingStatus(request, response);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/developer/servers/delete') {
+    handleDeveloperServerListingDelete(request, response);
     return;
   }
 
@@ -2502,6 +3507,11 @@ const server = http.createServer((request, response) => {
 
   if (request.method === 'GET' && pathname === '/update-log.html') {
     redirectToSettings(response);
+    return;
+  }
+
+  if (isMaintenancePort && pathname !== '/maintenance.html') {
+    serveStatic('/maintenance.html', response);
     return;
   }
 

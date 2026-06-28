@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>维护中 · MCTools</title>
+    <style>
+      :root {
+        --bg0: #0b1020;
+        --bg1: #111b33;
+        --panel: #121a2b;
+        --border: rgba(148, 163, 184, 0.22);
+        --text: #f8fafc;
+        --muted: #cbd5e1;
+        --accent: #38bdf8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        color: var(--text);
+        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 26%),
+          radial-gradient(circle at 80% 25%, rgba(59, 130, 246, 0.14), transparent 28%),
+          linear-gradient(160deg, var(--bg0), var(--bg1));
+      }
+
+      .card {
+        width: min(92vw, 560px);
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        background: rgba(17, 24, 39, 0.96);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+        padding: 28px;
+      }
+
+      .kicker {
+        margin: 0 0 10px;
+        color: var(--accent);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 3rem);
+      }
+
+      p {
+        margin: 14px 0 0;
+        color: var(--muted);
+        line-height: 1.75;
+      }
+
+      .tag-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(255,255,255,0.06);
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <p class="kicker">Maintenance</p>
+      <h1>当前服务维护中</h1>
+      <p>3001 和 3002 端口已关闭为维护状态，正在整理功能与内容。你可以稍后再来，或者返回 3000 继续浏览服务器广场。</p>
+      <div class="tag-row">
+        <span class="pill">3001 维护中</span>
+        <span class="pill">3002 维护中</span>
+        <span class="pill">内容已迁移到开发工具</span>
+      </div>
+    </main>
+  </body>
+</html>

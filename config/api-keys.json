@@ -1,4 +1,11 @@
 {
   "deepseekApiKey": "",
-  "deepseekModel": "deepseek-chat"
+  "deepseekModel": "deepseek-chat",
+  "smtp": {
+    "host": "smtp.qq.com",
+    "port": 465,
+    "user": "3805506653@qq.com",
+    "pass": "grgwxcskdcficfed",
+    "from": "3805506653@qq.com"
+  }
 }

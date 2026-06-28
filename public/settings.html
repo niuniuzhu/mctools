@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
-        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end'].includes(storedUi) ? storedUi : 'milktea';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -216,9 +216,6 @@
               <button type="button" class="ui-theme-btn" data-ui-theme-btn="end" aria-pressed="false">
                 <span class="ui-theme-btn-dot ui-theme-btn-dot--end"></span>末地
               </button>
-              <button type="button" class="ui-theme-btn" data-ui-theme-btn="liquid" aria-pressed="false">
-                <span class="ui-theme-btn-dot ui-theme-btn-dot--liquid"></span>液态玻璃
-              </button>
             </div>
           </article>
 
@@ -284,15 +281,6 @@
             </div>
           </article>
 
-          <article class="guide-card utility-card settings-card settings-card-wide">
-            <p class="panel-label">液态玻璃</p>
-            <h2>全站默认实装</h2>
-            <p class="tool-card-note">液态玻璃已经不再作为测试资格单独开关，当前版本默认以液态玻璃主题作为全站显示风格。</p>
-            <div class="account-pill">当前状态：已默认启用</div>
-            <div class="settings-actions">
-              <a class="ghost-link-button" href="/index.html">查看当前全站效果</a>
-            </div>
-          </article>
         </div>
       </section>
     </main>

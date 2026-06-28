@@ -38,6 +38,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "}" ^
   "if ($matchedPids.Count -eq 0) {" ^
   "  $foreignPids = $candidatePids | ForEach-Object { try { Get-CimInstance Win32_Process -Filter ('ProcessId = ' + $_) | Select-Object -First 1 } catch { $null } } | Where-Object { $_ };" ^
+  "  $recoverableBlockers = @($foreignPids | Where-Object { $_.Name -eq 'Code.exe' -and $_.CommandLine -like '*node.mojom.NodeService*' });" ^
+  "  if ($recoverableBlockers.Count -gt 0 -and $recoverableBlockers.Count -eq $foreignPids.Count) {" ^
+  "    foreach ($blocker in $recoverableBlockers) { try { Stop-Process -Id $blocker.ProcessId -Force -ErrorAction Stop } catch {} }" ^
+  "    if (Test-Path $pidFile) { Remove-Item $pidFile -Force -ErrorAction SilentlyContinue }" ^
+  "    Write-Host ('Cleared VS Code port blocker on port ' + $port + '.');" ^
+  "    exit 0;" ^
+  "  }" ^
   "  if (Test-Path $pidFile) { Remove-Item $pidFile -Force -ErrorAction SilentlyContinue }" ^
   "  if ($foreignPids) {" ^
   "    $occupiedBy = $foreignPids | ForEach-Object { $_.Name + ' (PID ' + $_.ProcessId + ')' };" ^

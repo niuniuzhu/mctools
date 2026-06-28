@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
-        const nextUi = ['normal', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'normal';
+        const nextUi = ['normal', 'classic', 'end'].includes(storedUi) ? storedUi : 'normal';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -164,7 +164,6 @@
             <article class="auth-feature-card"><p class="auth-feature-tag">Pack</p><strong>整合包中心</strong><span>公开先看内容结构，具体功能登录后可用。</span><a class="preview-link-button" href="/preview-page.html?page=pack-center.html">打开镜像</a></article>
             <article class="auth-feature-card"><p class="auth-feature-tag">Mods</p><strong>模组推荐库</strong><span>镜像正式页布局，未登录不执行功能操作。</span><a class="preview-link-button" href="/preview-page.html?page=mods.html">打开镜像</a></article>
             <article class="auth-feature-card"><p class="auth-feature-tag">Settings</p><strong>设置</strong><span>公开查看设置页结构，按钮点击时统一提示登录。</span><a class="preview-link-button" href="/preview-page.html?page=settings.html">打开镜像</a></article>
-            <article class="auth-feature-card"><p class="auth-feature-tag">Glass</p><strong>液态玻璃说明</strong><span>展示设计页结构与视觉说明。</span><a class="preview-link-button" href="/preview-page.html?page=ios-liquid-glass.html">打开镜像</a></article>
           </div>
         </section>
 

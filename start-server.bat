@@ -51,6 +51,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  $processDetails = Get-CimInstance Win32_Process | Where-Object { $listenerPids -contains $_.ProcessId } | Select-Object ProcessId,Name,CommandLine;" ^
   "  $mctoolsProcess = $processDetails | Where-Object { ($_.CommandLine -like '*server.js*') -or ($_.CommandLine -like '*mctools*') } | Select-Object -First 1;" ^
   "  if ($mctoolsProcess) { Write-Host ('mctools already owns port ' + $port + '. PID: ' + $mctoolsProcess.ProcessId); exit 0 }" ^
+  "  $recoverableBlockers = @($processDetails | Where-Object { $_.Name -eq 'Code.exe' -and $_.CommandLine -like '*node.mojom.NodeService*' });" ^
+  "  if ($recoverableBlockers.Count -gt 0 -and $recoverableBlockers.Count -eq $processDetails.Count) {" ^
+  "    foreach ($blocker in $recoverableBlockers) { try { Stop-Process -Id $blocker.ProcessId -Force -ErrorAction Stop } catch {} }" ^
+  "    try { $listenerPids = @(Get-NetTCPConnection -State Listen -LocalPort ([int]$port) -ErrorAction Stop | Select-Object -ExpandProperty OwningProcess -Unique) } catch { $listenerPids = @() }" ^
+  "    if ($listenerPids.Count -eq 0) { $processDetails = @() } else { $processDetails = Get-CimInstance Win32_Process | Where-Object { $listenerPids -contains $_.ProcessId } | Select-Object ProcessId,Name,CommandLine }" ^
+  "  }" ^
+  "  if ($processDetails.Count -eq 0) { $listenerPids = @() }" ^
+  "}" ^
+  "if ($listenerPids.Count -gt 0) {" ^
   "  $occupiedBy = $processDetails | ForEach-Object { $_.Name + ' (PID ' + $_.ProcessId + ')' };" ^
   "  Write-Host ('Port ' + $port + ' is already in use by: ' + ($occupiedBy -join ', '));" ^
   "  exit 1;" ^

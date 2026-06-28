@@ -7,7 +7,7 @@
     <script>
       try {
         const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
-        const nextUi = ['normal', 'milktea', 'classic', 'end', 'liquid'].includes(storedUi) ? storedUi : 'milktea';
+        const nextUi = ['normal', 'milktea', 'classic', 'end'].includes(storedUi) ? storedUi : 'milktea';
         localStorage.setItem('mctools-ui', nextUi);
         document.documentElement.dataset.ui = nextUi;
       } catch {
@@ -190,7 +190,7 @@
       }
 
       .dictation-answer.hidden .dictation-answer-value {
-        filter: blur(8px);
+        filter: none;
         user-select: none;
       }
 

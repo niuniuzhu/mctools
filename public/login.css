@@ -48,16 +48,6 @@ html[data-ui="end"] {
   --accent-strong: #ec4899;
 }
 
-html[data-ui="liquid"] {
-  --bg-1: #07101d;
-  --bg-2: #173657;
-  --panel: rgba(18, 35, 58, 0.32);
-  --text: #f4faff;
-  --muted: #c6dbf6;
-  --accent: #b6f0ff;
-  --accent-strong: #6fd9ff;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -138,11 +128,9 @@ body::after {
   width: min(100%, 520px);
   padding: 32px;
   border-radius: 28px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.08));
+  background: #111827;
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255,255,255,0.18);
   border: 1px solid rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(26px) saturate(175%);
-  -webkit-backdrop-filter: blur(26px) saturate(175%);
 }
 
 .auth-card::before {
@@ -179,8 +167,6 @@ body::after {
   border: 1px solid rgba(255,255,255,0.18);
   background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.72), rgba(255,255,255,0.06) 42%, rgba(96,165,250,0.2) 74%, rgba(15,23,42,0.03));
   box-shadow: 0 22px 64px rgba(15, 23, 42, 0.26), inset 0 1px 0 rgba(255,255,255,0.24);
-  backdrop-filter: blur(24px) saturate(165%);
-  -webkit-backdrop-filter: blur(24px) saturate(165%);
   pointer-events: none;
 }
 
@@ -316,10 +302,6 @@ h1 {
   margin-top: 0;
 }
 
-.glass-state-pill {
-  background: rgba(125, 211, 252, 0.16);
-}
-
 .preview-entry-row {
   display: grid;
   gap: 10px;
@@ -362,10 +344,8 @@ h1 {
   padding: 16px 18px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, rgba(9, 16, 29, 0.88), rgba(22, 50, 79, 0.88));
+  background: #111827;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .preview-fixed-tip strong {
@@ -387,8 +367,8 @@ h1 {
   place-items: center;
   padding: 24px;
   background: rgba(2, 8, 18, 0.72);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .auth-loading-overlay[hidden] {
@@ -465,8 +445,6 @@ h1 {
   place-items: center;
   padding: 24px;
   background: rgba(2, 8, 18, 0.72);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .preview-login-dialog {
@@ -474,7 +452,7 @@ h1 {
   padding: 24px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: linear-gradient(180deg, rgba(9, 16, 29, 0.96), rgba(22, 50, 79, 0.92));
+  background: #111827;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
 }
 
@@ -532,8 +510,8 @@ h1 {
   border-radius: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .auth-feature-head {
@@ -824,10 +802,8 @@ h1 {
   margin-top: 14px;
   padding: 14px;
   border-radius: 16px;
-  background: rgba(125, 211, 252, 0.1);
-  border: 1px solid rgba(125, 211, 252, 0.22);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: #0f172a;
+  border: 1px solid rgba(125, 211, 252, 0.18);
 }
 
 .maintenance-unlock-label {
@@ -847,10 +823,8 @@ h1 {
   margin-top: 18px;
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.09);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .ui-picker-label {
@@ -874,8 +848,8 @@ h1 {
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .ui-choice:disabled {
@@ -917,8 +891,8 @@ h1 {
   font: inherit;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 a.ghost-button,
@@ -1299,55 +1273,6 @@ html[data-ui="end"] input {
   border-color: rgba(215, 201, 239, 0.16);
 }
 
-html[data-ui="liquid"] body {
-  background:
-    radial-gradient(circle at 14% 18%, rgba(125, 211, 252, 0.26), transparent 24%),
-    radial-gradient(circle at 84% 10%, rgba(255, 255, 255, 0.14), transparent 22%),
-    radial-gradient(circle at 56% 86%, rgba(167, 243, 255, 0.14), transparent 20%),
-    linear-gradient(155deg, var(--bg-1), var(--bg-2));
-}
-
-html[data-ui="liquid"] .auth-card {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08));
-  box-shadow: 0 30px 84px rgba(4, 12, 24, 0.42), inset 0 1px 0 rgba(255,255,255,0.18);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-}
-
-html[data-ui="liquid"] .auth-card::before {
-  background: linear-gradient(135deg, rgba(255,255,255,0.26), rgba(255,255,255,0.04) 48%, rgba(255,255,255,0.14));
-}
-
-html[data-ui="liquid"] .auth-orb,
-html[data-ui="liquid"] .version-pill,
-html[data-ui="liquid"] .ui-picker,
-html[data-ui="liquid"] .captcha-block,
-html[data-ui="liquid"] .maintenance-register,
-html[data-ui="liquid"] .maintenance-unlock {
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-html[data-ui="liquid"] .tab-button,
-html[data-ui="liquid"] .ui-choice,
-html[data-ui="liquid"] .ghost-button,
-html[data-ui="liquid"] .text-button {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-html[data-ui="liquid"] .tab-button.active,
-html[data-ui="liquid"] .ui-choice.active,
-html[data-ui="liquid"] .primary-button {
-  background: linear-gradient(135deg, #dff8ff, #7dd3fc 58%, #67e8f9);
-  color: #07101d;
-}
-
-html[data-ui="liquid"] input {
-  background: rgba(7, 16, 29, 0.36);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
 body {
   background:
     linear-gradient(180deg, rgba(203, 227, 246, 0.96), rgba(175, 210, 237, 0.96)),
@@ -1432,10 +1357,6 @@ label,
   background: linear-gradient(180deg, #b8b8b8, #85888a);
   color: #f6f3ed;
   box-shadow: 4px 4px 0 rgba(47, 51, 54, 0.18);
-}
-
-.glass-state-pill {
-  background: linear-gradient(180deg, #d2ddb7, #bcc89e);
 }
 
 .tab-button,
