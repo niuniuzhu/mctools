@@ -30,6 +30,13 @@ const loginPageVersion = '正式版1.4';
 const developerSecretRememberStorageKey = 'mctools-developer-secret-cache';
 const developerSecretRememberLifetimeMs = 1000 * 60 * 30;
 const qrLoginPollIntervalMs = 2000;
+const appOrigin = window.location.port === '3000'
+  ? `${window.location.protocol}//${window.location.hostname}:3001`
+  : window.location.origin;
+
+function appUrl(pathname) {
+  return new URL(pathname, appOrigin).toString();
+}
 
 let specialRegisterMode = 'normal';
 let qrLoginToken = '';
@@ -273,7 +280,7 @@ function updateQrManualLink(url) {
   qrLoginConfirmUrl = url || '';
 
   if (qrOpenLink) {
-    qrOpenLink.href = qrLoginConfirmUrl || '/scan-login.html';
+    qrOpenLink.href = qrLoginConfirmUrl || appUrl('/scan-login.html');
     qrOpenLink.setAttribute('aria-disabled', qrLoginConfirmUrl ? 'false' : 'true');
   }
 
@@ -328,7 +335,7 @@ async function pollQrLoginStatus() {
   }
 
   try {
-    const response = await fetch('/api/login/qr/status?token=' + encodeURIComponent(qrLoginToken), {
+    const response = await fetch(appUrl('/api/login/qr/status?token=' + encodeURIComponent(qrLoginToken)), {
       credentials: 'same-origin'
     });
     const result = await response.json().catch(() => ({}));
@@ -353,7 +360,7 @@ async function pollQrLoginStatus() {
     if (result.status === 'approved') {
       clearQrTimers();
       setQrStatus('扫码登录成功，正在进入首页');
-      window.location.href = '/niuniu-toolbox.html';
+      window.location.href = appUrl('/niuniu-toolbox.html');
       return;
     }
 
@@ -384,7 +391,7 @@ async function refreshQrLogin() {
   setQrExpireText();
 
   try {
-    const response = await fetch('/api/login/qr');
+    const response = await fetch(appUrl('/api/login/qr'));
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok || !result.token) {
@@ -394,7 +401,7 @@ async function refreshQrLogin() {
 
     qrLoginToken = result.token;
     qrLoginExpiresAt = Date.now() + Math.max(0, Number(result.expiresInMs) || 0);
-    const confirmUrl = new URL('/scan-login.html', window.location.origin);
+    const confirmUrl = new URL('/scan-login.html', appOrigin);
     confirmUrl.searchParams.set('token', qrLoginToken);
     updateQrManualLink(confirmUrl.toString());
     renderQrImage(buildQrUrls(confirmUrl.toString(), 220));
@@ -482,7 +489,7 @@ async function submitForm(event) {
   const endpoint = tabName === 'register' ? '/api/register' : '/api/login';
 
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(appUrl(endpoint), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -507,12 +514,12 @@ async function submitForm(event) {
     setMessage(result.message || '成功');
     showAuthLoading(tabName);
     if (loginRedirectDelayMs <= 0) {
-      window.location.href = '/niuniu-toolbox.html';
+      window.location.href = appUrl('/niuniu-toolbox.html');
       return;
     }
 
     window.setTimeout(() => {
-      window.location.href = '/niuniu-toolbox.html';
+      window.location.href = appUrl('/niuniu-toolbox.html');
     }, loginRedirectDelayMs);
   } catch {
     setMessage('网络请求失败，请稍后重试', true);

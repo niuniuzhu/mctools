@@ -16,26 +16,348 @@
     </script>
     <link rel="stylesheet" href="/styles.css" />
     <style>
-      body {
-        background:
-          radial-gradient(circle at 18% 6%, rgba(96, 165, 250, 0.06), transparent 22%),
-          radial-gradient(circle at 82% 14%, rgba(148, 163, 184, 0.04), transparent 20%),
-          linear-gradient(160deg, #040910, #091420 52%, #06101a);
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg0: #06101d;
+        --bg1: #0d2741;
+        --bg2: #1b4462;
+        --surface: #17314a;
+        --surface-strong: #20435f;
+        --border: #35526c;
+        --border-hi: #5d8aa7;
+        --text: #f7fbff;
+        --muted: #c4d7ea;
+        --accent: #b8f0ff;
+        --accent2: #65d9ff;
+        --radius: 28px;
+        --panel-shadow: 0 18px 42px rgba(0,10,28,.22);
+        --ease-smooth: cubic-bezier(0.2, 0.85, 0.2, 1);
+        --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+        --dur-fast: 220ms;
+        --dur-normal: 380ms;
+        --dur-slow: 720ms;
       }
 
-      .community-shell {
-        width: min(1240px, calc(100vw - 28px));
+      html { scroll-behavior: smooth; }
+
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background:
+          linear-gradient(145deg, #06101d, #0d2741 48%, #1b4462) !important;
+        color: var(--text);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 58% 40% at 18% 8%, rgba(184,240,255,.26), transparent 62%),
+          radial-gradient(ellipse 44% 34% at 86% 18%, rgba(101,217,255,.2), transparent 66%),
+          radial-gradient(ellipse 46% 44% at 52% 92%, rgba(255,155,212,.14), transparent 68%),
+          linear-gradient(120deg, rgba(255,255,255,.06), transparent 34%, rgba(255,255,255,.045) 62%, transparent);
+        pointer-events: none;
+        z-index: 0;
+        animation: aura-shift 18s var(--ease-smooth) infinite alternate;
+        opacity: 1;
+      }
+
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(115deg, transparent 8%, rgba(255,255,255,.1) 24%, transparent 42%),
+          linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+        background-size: 180% 100%, 46px 46px, 46px 46px;
+        opacity: .62;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,.85), transparent 88%);
+        animation: none;
+      }
+
+      @keyframes aura-shift {
+        from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.96; }
+        to { transform: translate3d(0, -8px, 0) scale(1.015); opacity: 1; }
+      }
+
+      @keyframes rise-in {
+        from {
+          opacity: 0;
+          transform: translate3d(0, 18px, 0) scale(0.985);
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+      }
+
+      @keyframes card-in {
+        from {
+          opacity: 0;
+          transform: translate3d(0, 14px, 0);
+        }
+        to {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+      }
+
+      .shell {
+        position: relative;
+        z-index: 2;
+        width: min(1180px, calc(100% - 32px));
         margin: 0 auto;
-        padding: 28px 0 64px;
+        padding: 40px 0 80px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        border: 1px solid var(--border);
+        border-radius: 26px;
+        background: #10283f;
+        box-shadow: var(--panel-shadow);
+        animation: rise-in var(--dur-slow) var(--ease-out-soft) both;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text);
+      }
+
+      .logo-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: #2a4d68;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+      }
+
+      .logo-text {
+        font-size: 1.05rem;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .topbar-right [data-community-guest],
+      .topbar-right [data-community-user] {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: #17314a;
+        color: var(--text);
+        font: inherit;
+        font-size: .9rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: none;
+        transition:
+          transform var(--dur-fast) var(--ease-smooth),
+          border-color var(--dur-fast) var(--ease-smooth),
+          background var(--dur-fast) var(--ease-smooth),
+          color var(--dur-fast) var(--ease-smooth);
+      }
+
+      .action-btn:hover {
+        transform: translate3d(0, -1px, 0);
+        border-color: var(--border-hi);
+        background: #244763;
+      }
+
+      .action-btn.primary {
+        border-color: rgba(101,217,255,.28);
+        background: #1b4462;
+        color: #d9f8ff;
+      }
+
+      .action-btn.primary:hover {
+        background: #2a5879;
+      }
+
+      .action-btn:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+      }
+
+      .user-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: #17314a;
+        border: 1px solid var(--border);
+        color: var(--accent);
+        font-size: .9rem;
+        font-weight: 600;
+      }
+
+      .user-chip::before {
+        content: '👤';
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #e8fbff, #65d9ff 48%, #87a7ff);
+        color: #082033;
+        font-size: .72rem;
+        font-weight: 900;
+      }
+
+      .topbar-right .pill {
+        white-space: nowrap;
+      }
+
+      .entry-switcher {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .entry-switcher-card {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        gap: 10px;
+        padding: 18px 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background:
+          radial-gradient(ellipse 58% 40% at 18% 8%, rgba(184,240,255,.18), transparent 62%),
+          radial-gradient(ellipse 44% 34% at 86% 18%, rgba(101,217,255,.14), transparent 66%),
+          linear-gradient(160deg, rgba(10, 20, 35, 0.96), rgba(14, 34, 54, 0.96));
+        color: var(--text);
+        text-decoration: none;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+        opacity: 0;
+        animation: card-in var(--dur-slow) var(--ease-out-soft) both;
+        transition:
+          transform var(--dur-normal) var(--ease-smooth),
+          border-color var(--dur-normal) var(--ease-smooth),
+          box-shadow var(--dur-normal) var(--ease-smooth),
+          background var(--dur-normal) var(--ease-smooth);
+      }
+
+      .entry-switcher-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.12) 48%, transparent 76%);
+        transform: translateX(-120%);
+        pointer-events: none;
+      }
+
+      .entry-switcher-card:hover::after {
+        animation: switcherSheen 900ms ease forwards;
+      }
+
+      @keyframes switcherSheen {
+        from { transform: translateX(-120%); }
+        to { transform: translateX(120%); }
+      }
+
+      .entry-switcher-card:hover {
+        transform: translate3d(0, -3px, 0);
+        border-color: rgba(101, 217, 255, 0.48);
+        background:
+          radial-gradient(ellipse 58% 40% at 18% 8%, rgba(184,240,255,.22), transparent 62%),
+          radial-gradient(ellipse 44% 34% at 86% 18%, rgba(101,217,255,.18), transparent 66%),
+          linear-gradient(160deg, rgba(10, 20, 35, 0.98), rgba(14, 34, 54, 0.98));
+        box-shadow: 0 24px 58px rgba(0, 0, 0, 0.34);
+      }
+
+      .entry-switcher-kicker {
+        display: inline-flex;
+        width: fit-content;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(101, 217, 255, 0.12);
+        border: 1px solid rgba(101, 217, 255, 0.28);
+        color: #d9f8ff;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .entry-switcher-title {
+        font-size: 1.12rem;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .entry-switcher-desc {
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 0.92rem;
+        opacity: 0;
+        animation: card-in var(--dur-slow) var(--ease-out-soft) both;
+      }
+          transform var(--dur-normal) var(--ease-smooth),
+          border-color var(--dur-normal) var(--ease-smooth),
+          box-shadow var(--dur-normal) var(--ease-smooth);
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+        transform: translate3d(0, -3px, 0);
+      .entry-switcher-pill {
+        display: inline-flex;
+        align-items: center;
+
+      .entry-switcher-card:nth-child(2) { animation-delay: 70ms; }
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(255, 255, 255, 0.05);
+        color: #dbeafe;
+        font-size: 0.78rem;
+        font-weight: 700;
       }
 
       .community-hero,
-      .community-panel,
-      .community-review {
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        background: #0f1a2a;
-        box-shadow: 0 22px 54px rgba(0, 0, 0, 0.3);
-        border-radius: 24px;
+      .community-panel {
+        border: 1px solid var(--border);
+        background: #10283f;
+        box-shadow: var(--panel-shadow);
+        border-radius: 26px;
       }
 
       .community-hero {
@@ -43,35 +365,35 @@
         margin-bottom: 18px;
         display: grid;
         gap: 14px;
+        animation: rise-in calc(var(--dur-slow) + 60ms) var(--ease-out-soft) both;
       }
 
       .community-topline {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
         align-items: center;
         justify-content: space-between;
       }
 
       .community-kicker {
-        margin: 0;
-        color: #fbbf24;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        font-size: 0.78rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(101, 217, 255, 0.12);
+        border: 1px solid rgba(101, 217, 255, 0.28);
+        color: #d9f8ff;
+        font-size: 0.76rem;
         font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
 
-      .community-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 360px;
-        gap: 18px;
-        align-items: start;
-      }
-
-      .community-panel,
-      .community-review {
+      .community-panel {
         padding: 22px;
+        animation: rise-in calc(var(--dur-slow) + 120ms) var(--ease-out-soft) both;
       }
 
       .community-head {
@@ -87,98 +409,27 @@
         align-items: center;
         gap: 8px;
         padding: 8px 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        background: #0d1724;
-        color: #cfe3fb;
-        font-size: 0.88rem;
-      }
-
-      .form-grid {
-        display: grid;
-        gap: 12px;
-      }
-
-      .field {
-        display: grid;
-        gap: 6px;
-      }
-
-      .field label {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(255, 255, 255, 0.05);
+        color: #dbeafe;
         font-size: 0.88rem;
         font-weight: 700;
-        color: #d7e3f4;
       }
 
-      .input,
-      .textarea,
-      .select {
-        width: 100%;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        background: #060d16;
-        color: #f8fafc;
-        padding: 12px 14px;
-        font: inherit;
+      h1,
+      h2,
+      strong {
+        color: var(--text);
+        letter-spacing: -0.02em;
       }
 
-      .input::placeholder,
-      .textarea::placeholder {
-        color: #7f92ab;
+      .lead {
+        color: var(--muted);
       }
 
-      .input:focus,
-      .textarea:focus,
-      .select:focus {
-        outline: none;
-        border-color: rgba(96, 165, 250, 0.5);
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
-      }
-
-      .textarea {
-        min-height: 120px;
-        resize: vertical;
-      }
-
-      .button-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .submit-btn,
-      .review-btn {
-        border: 0;
-        border-radius: 14px;
-        padding: 12px 16px;
-        font: inherit;
-        font-weight: 700;
-        cursor: pointer;
-      }
-
-      .submit-btn {
-        background: #60a5fa;
-        color: #08111f;
-      }
-
-      .review-btn.approve {
-        background: #22c55e;
-        color: #06101d;
-      }
-
-      .review-btn.reject {
-        background: #dc2626;
-        color: #fff;
-      }
-
-      .status {
-        min-height: 22px;
-        color: #93c5fd;
-        font-weight: 600;
-      }
-
-      .status.error {
-        color: #fda4af;
+      .panel-label {
+        color: var(--accent);
       }
 
       .entry-list {
@@ -188,9 +439,21 @@
 
       .entry {
         border: 1px solid rgba(148, 163, 184, 0.18);
-        background: #0f1a2a;
+        background: #10283f;
         border-radius: 18px;
         padding: 16px;
+        transition:
+          transform var(--dur-normal) var(--ease-smooth),
+          border-color var(--dur-normal) var(--ease-smooth),
+          box-shadow var(--dur-normal) var(--ease-smooth),
+          background var(--dur-normal) var(--ease-smooth);
+      }
+
+      .entry:hover {
+        transform: translate3d(0, -2px, 0);
+        border-color: rgba(101, 217, 255, 0.36);
+        background: #17314a;
+        box-shadow: 0 24px 66px rgba(0,18,45,.28);
       }
 
       .entry-top {
@@ -202,7 +465,7 @@
       }
 
       .entry-meta {
-        color: #8ca0ba;
+        color: var(--muted);
         font-size: 0.86rem;
       }
 
@@ -210,330 +473,400 @@
         margin: 10px 0;
         padding: 12px;
         border-radius: 14px;
-        background: #050b13;
+        background: #0f1a2a;
         border: 1px solid rgba(148, 163, 184, 0.14);
+        color: var(--text);
         font-family: Consolas, Monaco, monospace;
         word-break: break-word;
+        transition:
+          transform var(--dur-fast) var(--ease-smooth),
+          border-color var(--dur-fast) var(--ease-smooth),
+          box-shadow var(--dur-fast) var(--ease-smooth);
       }
 
-      .review-list {
-        display: grid;
-        gap: 10px;
+      .entry:hover .command-text {
+        border-color: rgba(101, 217, 255, 0.24);
+        box-shadow: 0 10px 24px rgba(0, 18, 45, 0.18);
       }
 
-      .review-form {
-        display: grid;
-        gap: 10px;
-        margin-top: 14px;
+      .pill,
+      .entry-switcher-kicker,
+      .community-kicker {
+        transition:
+          transform var(--dur-fast) var(--ease-smooth),
+          background var(--dur-fast) var(--ease-smooth),
+          border-color var(--dur-fast) var(--ease-smooth),
+          box-shadow var(--dur-fast) var(--ease-smooth);
       }
 
-      h1,
-      h2 {
-        letter-spacing: -0.02em;
+      .pill:hover,
+      .entry-switcher-kicker:hover,
+      .community-kicker:hover {
+        transform: translate3d(0, -1px, 0);
+        border-color: rgba(101, 217, 255, 0.44);
+        box-shadow: 0 12px 28px rgba(0, 18, 45, 0.18);
       }
 
-      .lead {
-        color: #b7c8df;
+      .entry-switcher-card::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.12) 48%, transparent 76%);
+        transform: translateX(-120%);
+        pointer-events: none;
       }
 
-      .community-topline,
-      .community-head {
-        align-items: flex-start;
+      .entry-switcher-card:hover::after {
+        animation: switcherSheen 900ms ease forwards;
       }
 
-      .button-row > a,
-      .button-row > button {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 42px;
-        padding: 0 16px;
-        border-radius: 14px;
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        background: #0d1724;
-        color: #d7e7fb;
-        text-decoration: none;
-        font: inherit;
-        font-weight: 700;
+      @keyframes switcherSheen {
+        from { transform: translateX(-120%); }
+        to { transform: translateX(120%); }
       }
 
-      .button-row > a:hover,
-      .button-row > button:hover {
-        border-color: rgba(96, 165, 250, 0.42);
-        background: #132235;
-      }
-
-      .submit-btn,
-      .review-btn.approve,
-      .review-btn.reject {
-        min-width: 92px;
-      }
-
-      .submit-btn {
-        border: 1px solid rgba(96, 165, 250, 0.28);
-        box-shadow: 0 10px 22px rgba(96, 165, 250, 0.18);
-      }
-
-      .review-btn.approve {
-        border: 1px solid rgba(34, 197, 94, 0.28);
-      }
-
-      .review-btn.reject {
-        border: 1px solid rgba(220, 38, 38, 0.28);
-      }
-
-      .hidden {
-        display: none !important;
+      .topbar:hover {
+        box-shadow: 0 22px 54px rgba(0,10,28,.26);
       }
 
       @media (max-width: 960px) {
-        .community-grid {
+        .entry-switcher {
           grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
   <body>
-    <main class="community-shell">
+    <main class="shell">
+      <div class="topbar">
+        <a class="logo" href="/index.html">
+          <span class="logo-icon">✦</span>
+          <span class="logo-text">MCTools · 星际入口</span>
+        </a>
+        <div class="topbar-right">
+          <span class="pill">独立页面 · 指令社区</span>
+          <div data-community-guest>
+            <button type="button" class="action-btn" data-open-login>🔑 登录</button>
+            <button type="button" class="action-btn primary" data-open-register>📝 注册账户</button>
+          </div>
+          <div data-community-user hidden>
+            <span class="user-chip">👤 <span data-community-user-name></span></span>
+            <button type="button" class="action-btn" data-community-logout>退出</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="entry-switcher" aria-label="星际入口选择栏">
+        <a class="entry-switcher-card" href="/server-plaza.html">
+          <span class="entry-switcher-kicker">星际_服务器广场</span>
+          <div class="entry-switcher-title">返回服务器广场</div>
+          <div class="entry-switcher-desc">浏览服务器投稿、公告和开发者审核内容，适合找服和发服。</div>
+          <div class="entry-switcher-meta">
+            <span class="entry-switcher-pill">🏰 服务器列表</span>
+            <span class="entry-switcher-pill">📨 投稿入口</span>
+          </div>
+        </a>
+        <a class="entry-switcher-card" href="/command-community.html">
+          <span class="entry-switcher-kicker">星际_指令社区</span>
+          <div class="entry-switcher-title">当前就在指令社区</div>
+          <div class="entry-switcher-desc">保留统一视觉风格，暂时作为空态展示，后续可再开放投稿。</div>
+          <div class="entry-switcher-meta">
+            <span class="entry-switcher-pill">⚙️ 指令投稿</span>
+            <span class="entry-switcher-pill">🧭 社区交流</span>
+          </div>
+        </a>
+      </section>
+
       <section class="community-hero">
         <div class="community-topline">
           <div>
             <p class="community-kicker">Command Community</p>
             <h1>指令社区</h1>
-            <p class="lead">玩家可以自由投稿指令，后台审核通过后会公开展示，方便大家直接复制和交流。</p>
+            <p class="lead">沿用服务器广场的视觉语言，保持统一的入口层级与卡片式空态展示。</p>
           </div>
           <div class="pill">3003 端口 · 投稿后等待审核</div>
         </div>
-        <div class="button-row">
-          <a class="ghost-link-button" href="/index.html">返回选择界面</a>
-          <a class="ghost-link-button" href="/commands.html">打开指令工作台</a>
+      </section>
+
+      <section class="community-panel">
+        <div class="community-head">
+          <div>
+            <p class="panel-label">当前状态</p>
+            <h2>暂无指令</h2>
+          </div>
+          <span class="pill">独立页面 · 暂时空置</span>
+        </div>
+        <div class="entry-list">
+          <article class="entry">
+            <div class="entry-top">
+              <strong>还没有公开内容</strong>
+              <span class="entry-meta">等待社区重启投稿</span>
+            </div>
+            <div class="command-text">暂无指令</div>
+            <p class="entry-meta">这个页面已经独立出来，暂时只保留展示，不开放投稿与审核。</p>
+          </article>
         </div>
       </section>
+      <div class="auth-modal-overlay" hidden data-community-auth-modal>
+      <div class="auth-modal" role="dialog" aria-modal="true">
+        <button class="auth-modal-close" data-close-auth-modal aria-label="关闭">✕</button>
+        <div class="auth-modal-title" data-auth-title>登录指令社区</div>
+        <div class="auth-modal-sub" data-auth-sub>输入用户名和邮箱，先注册或直接发送验证码完成登录。</div>
 
-      <section class="community-grid">
-        <section class="community-panel">
-          <div class="community-head">
-            <div>
-              <p class="panel-label">玩家投稿</p>
-              <h2>提交你的指令</h2>
-            </div>
-            <span class="pill">支持自定义分类</span>
-          </div>
-          <div class="form-grid">
-            <label class="field">
-              <span>投稿昵称</span>
-              <input class="input" data-submit-name placeholder="例如：建筑党小明" />
-            </label>
-            <label class="field">
-              <span>分类</span>
-              <select class="select" data-submit-category>
-                <option>通用</option>
-                <option>建筑</option>
-                <option>冒险</option>
-                <option>红石</option>
-                <option>生存</option>
-                <option>娱乐</option>
-                <option>其他</option>
-              </select>
-            </label>
-            <label class="field">
-              <span>指令内容</span>
-              <textarea class="textarea" data-submit-command placeholder="例如：tp @p 100 80 100"></textarea>
-            </label>
-            <label class="field">
-              <span>说明</span>
-              <textarea class="textarea" data-submit-description placeholder="这条指令适合什么场景、怎么用"></textarea>
-            </label>
-            <div class="button-row">
-              <button type="button" class="submit-btn" data-submit>提交审核</button>
-              <button type="button" class="ghost-link-button" data-refresh>刷新列表</button>
-            </div>
-            <div class="status" data-submit-status>等待提交</div>
-          </div>
-        </section>
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab is-active" data-auth-tab="login">登录</button>
+          <button type="button" class="auth-tab" data-auth-tab="register">注册</button>
+        </div>
 
-        <aside class="community-review hidden" data-review-panel>
-          <div class="community-head">
-            <div>
-              <p class="panel-label">后台审核</p>
-              <h2>待审投稿</h2>
-            </div>
-            <span class="pill">仅开发者可见</span>
-          </div>
-          <div class="review-form">
-            <div class="button-row">
-              <button type="button" class="ghost-link-button" data-load-pending>载入待审</button>
-              <button type="button" class="ghost-link-button" data-load-all>查看全部</button>
-            </div>
-            <div class="review-list" data-review-list>
-              <p class="entry-meta">尚未加载待审内容</p>
-            </div>
-          </div>
-        </aside>
+        <div class="auth-stepper">
+          <span class="auth-step is-active" data-auth-step-pill="1">1. 填写邮箱</span>
+          <span class="auth-step" data-auth-step-pill="2">2. 输入验证码</span>
+        </div>
 
-        <section class="community-panel" style="grid-column: 1 / -1;">
-          <div class="community-head">
-            <div>
-              <p class="panel-label">公开展示</p>
-              <h2>已通过审核的指令</h2>
+        <div data-auth-step="1">
+          <div class="auth-form">
+            <div class="auth-field">
+              <label class="auth-label">用户名</label>
+              <input type="text" class="auth-input" data-community-username maxlength="32" placeholder="你的昵称" />
             </div>
-            <span class="pill">复制即用</span>
+            <div class="auth-field">
+              <label class="auth-label">邮箱</label>
+              <div class="auth-row">
+                <input type="email" class="auth-input" data-community-email placeholder="your@email.com" />
+                <button type="button" class="action-btn primary" data-community-send-code>发送验证码</button>
+              </div>
+            </div>
+            <p class="auth-message" data-community-send-message></p>
           </div>
-          <div class="entry-list" data-approved-list>
-            <p class="entry-meta">正在加载公开指令...</p>
+        </div>
+
+        <div data-auth-step="2" hidden>
+          <div class="auth-code-card">
+            <div class="auth-code-digits" data-community-code-digits>
+              <span class="auth-code-digit is-empty">•</span>
+              <span class="auth-code-digit is-empty">•</span>
+              <span class="auth-code-digit is-empty">•</span>
+              <span class="auth-code-digit is-empty">•</span>
+              <span class="auth-code-digit is-empty">•</span>
+              <span class="auth-code-digit is-empty">•</span>
+            </div>
+            <div class="auth-code-helper">输入 6 位验证码时，会在这里同步显示。</div>
+            <div class="auth-code-meta">
+              <span class="pill" data-community-email-pill>邮箱未填写</span>
+              <span class="pill" data-community-code-state-pill>等待输入</span>
+            </div>
           </div>
-        </section>
-      </section>
+
+          <div class="auth-form" style="margin-top: 14px;">
+            <div class="auth-field">
+              <label class="auth-label">6 位验证码</label>
+              <input type="text" class="auth-input" data-community-code maxlength="6" inputmode="numeric" placeholder="000000" style="font-size:1.4rem;letter-spacing:.25em;text-align:center;" />
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button type="button" class="action-btn primary" data-community-verify>✓ 完成登录</button>
+              <button type="button" class="action-btn" data-community-back>← 返回修改</button>
+              <button type="button" class="action-btn" data-community-resend>↻ 重新发送邮件</button>
+            </div>
+            <p class="auth-message" data-community-verify-message></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     </main>
 
     <script>
-      const submitName = document.querySelector('[data-submit-name]');
-      const submitCategory = document.querySelector('[data-submit-category]');
-      const submitCommand = document.querySelector('[data-submit-command]');
-      const submitDescription = document.querySelector('[data-submit-description]');
-      const submitStatus = document.querySelector('[data-submit-status]');
-      const approvedList = document.querySelector('[data-approved-list]');
-      const reviewPanel = document.querySelector('[data-review-panel]');
-      const reviewList = document.querySelector('[data-review-list]');
+      (() => {
+        const $ = (selector, root = document) => root.querySelector(selector);
+        const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
-      let isDeveloper = false;
+        const communityApiOrigin = window.location.port === '3003'
+          ? window.location.origin
+          : `${window.location.protocol}//${window.location.hostname}:3003`;
 
-      function escapeHtml(value) {
-        return String(value)
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;')
-          .replaceAll('"', '&quot;')
-          .replaceAll("'", '&#39;');
-      }
-
-      async function fetchJson(url, options) {
-        const response = await fetch(url, {
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          ...options
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(data.message || `请求失败（${response.status}）`);
-        }
-        return data;
-      }
-
-      function renderApproved(items) {
-        if (!items.length) {
-          approvedList.innerHTML = '<p class="entry-meta">暂无已通过的指令。</p>';
-          return;
+        function apiUrl(path) {
+          return new URL(path, communityApiOrigin).toString();
         }
 
-        approvedList.innerHTML = items.map((item) => `
-          <article class="entry">
-            <div class="entry-top">
-              <strong>${escapeHtml(item.submitterName)}</strong>
-              <span class="entry-meta">${escapeHtml(item.category)} · ${escapeHtml(new Date(item.createdAt).toLocaleString('zh-CN'))}</span>
-            </div>
-            <div class="command-text">${escapeHtml(item.commandText)}</div>
-            <p class="entry-meta">${escapeHtml(item.description || '无说明')}</p>
-          </article>
-        `).join('');
-      }
+        const authModal = $('[data-community-auth-modal]');
+        let authMode = 'login';
+        let lastRequest = { username: '', email: '' };
 
-      function renderReview(items) {
-        if (!items.length) {
-          reviewList.innerHTML = '<p class="entry-meta">没有待审指令。</p>';
-          return;
+        function msg(el, text, type = 'info') {
+          if (!el) { return; }
+          el.textContent = text || '';
+          el.classList.toggle('error', type === 'error');
         }
 
-        reviewList.innerHTML = items.map((item) => `
-          <article class="entry">
-            <div class="entry-top">
-              <strong>#${item.id} · ${escapeHtml(item.submitterName)}</strong>
-              <span class="entry-meta">${escapeHtml(item.status)} · ${escapeHtml(item.category)}</span>
-            </div>
-            <div class="command-text">${escapeHtml(item.commandText)}</div>
-            <p class="entry-meta">${escapeHtml(item.description || '无说明')}</p>
-            <div class="button-row" style="margin-top: 10px;">
-              <button class="review-btn approve" data-approve="${item.id}">通过</button>
-              <button class="review-btn reject" data-reject="${item.id}">拒绝</button>
-            </div>
-          </article>
-        `).join('');
-      }
-
-      async function loadApproved() {
-        const data = await fetchJson('/api/command-community?status=APPROVED&limit=50');
-        renderApproved(data.items || []);
-      }
-
-      async function loadReviewList(status = 'PENDING') {
-        const data = await fetchJson(`/api/command-community/review?status=${encodeURIComponent(status)}&limit=50`);
-        renderReview(data.items || []);
-      }
-
-      async function checkDeveloper() {
-        try {
-          const data = await fetchJson('/api/me');
-          isDeveloper = Boolean(data.isDeveloper);
-          reviewPanel.classList.toggle('hidden', !isDeveloper);
-          if (isDeveloper) {
-            await loadReviewList('PENDING');
+        async function api(path, options = {}) {
+          const resp = await fetch(apiUrl(path), {
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+            ...options
+          });
+          const data = await resp.json().catch(() => ({}));
+          if (!resp.ok) {
+            throw Object.assign(new Error(data.message || '请求失败'), { status: resp.status, code: data.code });
           }
-        } catch {
-          reviewPanel.classList.add('hidden');
+          return data;
         }
-      }
 
-      document.querySelector('[data-submit]').addEventListener('click', async () => {
-        submitStatus.textContent = '正在提交...';
-        submitStatus.classList.remove('error');
-        try {
-          const data = await fetchJson('/api/command-community/submit', {
-            method: 'POST',
-            body: JSON.stringify({
-              submitterName: submitName.value,
-              category: submitCategory.value,
-              commandText: submitCommand.value,
-              description: submitDescription.value
-            })
+        function showStep(step) {
+          $$('[data-auth-step]', authModal).forEach((el) => { el.hidden = String(step) !== el.dataset.authStep; });
+          $$('[data-auth-step-pill]', authModal).forEach((el) => { el.classList.toggle('is-active', el.dataset.authStepPill === String(step)); });
+        }
+
+        function updateCodePreview(code = '') {
+          const digits = $$('[data-community-code-digits] .auth-code-digit', authModal);
+          const chars = String(code || '').slice(0, 6).split('');
+          digits.forEach((digitEl, index) => {
+            const char = chars[index] || '';
+            digitEl.textContent = char || '•';
+            digitEl.classList.toggle('is-empty', !char);
           });
-          submitStatus.textContent = data.message;
-          submitCommand.value = '';
-          submitDescription.value = '';
-          await loadApproved();
-        } catch (error) {
-          submitStatus.textContent = error.message;
-          submitStatus.classList.add('error');
-        }
-      });
-
-      document.querySelector('[data-refresh]').addEventListener('click', loadApproved);
-      document.querySelector('[data-load-pending]').addEventListener('click', () => loadReviewList('PENDING'));
-      document.querySelector('[data-load-all]').addEventListener('click', () => loadReviewList('ALL'));
-
-      reviewList.addEventListener('click', async (event) => {
-        const approveId = event.target.getAttribute('data-approve');
-        const rejectId = event.target.getAttribute('data-reject');
-        if (!approveId && !rejectId) {
-          return;
+          const codeState = $('[data-community-code-state-pill]', authModal);
+          if (codeState) { codeState.textContent = code ? `已输入 ${chars.length}/6` : '等待输入'; }
         }
 
-        const status = approveId ? 'APPROVED' : 'REJECTED';
-        const id = approveId || rejectId;
-        try {
-          await fetchJson('/api/command-community/review', {
-            method: 'POST',
-            body: JSON.stringify({ id, status, reviewNote: '' })
-          });
-          await loadReviewList('PENDING');
-          await loadApproved();
-        } catch (error) {
-          submitStatus.textContent = error.message;
-          submitStatus.classList.add('error');
+        function setAuthMode(mode) {
+          authMode = mode === 'register' ? 'register' : 'login';
+          $$('[data-auth-tab]', authModal).forEach((tab) => tab.classList.toggle('is-active', tab.dataset.authTab === authMode));
+          const title = $('[data-auth-title]', authModal);
+          const sub = $('[data-auth-sub]', authModal);
+          const sendBtn = $('[data-community-send-code]', authModal);
+          if (title) { title.textContent = authMode === 'register' ? '注册指令社区' : '登录指令社区'; }
+          if (sub) {
+            sub.textContent = authMode === 'register'
+              ? '先注册社区账号，再发送验证码完成登录。'
+              : '输入用户名和邮箱，发送验证码后即可登录。';
+          }
+          if (sendBtn) { sendBtn.textContent = authMode === 'register' ? '注册并发送验证码' : '发送验证码'; }
         }
-      });
 
-      loadApproved();
-      checkDeveloper();
+        function openAuthModal(mode = 'login') {
+          setAuthMode(mode);
+          showStep(1);
+          msg($('[data-community-send-message]', authModal), '');
+          msg($('[data-community-verify-message]', authModal), '');
+          if (authModal) { authModal.hidden = false; }
+        }
+
+        function closeAuthModal() {
+          if (authModal) { authModal.hidden = true; }
+        }
+
+        async function refreshMe() {
+          const guest = $('[data-community-guest]');
+          const user = $('[data-community-user]');
+          const nameEl = $('[data-community-user-name]');
+          try {
+            const res = await api('/api/community/me', { method: 'GET' });
+            if (guest) { guest.hidden = true; }
+            if (user) { user.hidden = false; }
+            if (nameEl) { nameEl.textContent = res.username || ''; }
+          } catch {
+            if (guest) { guest.hidden = false; }
+            if (user) { user.hidden = true; }
+          }
+        }
+
+        $('[data-open-login]')?.addEventListener('click', () => openAuthModal('login'));
+        $('[data-open-register]')?.addEventListener('click', () => openAuthModal('register'));
+        $('[data-close-auth-modal]')?.addEventListener('click', closeAuthModal);
+        authModal?.addEventListener('click', (e) => { if (e.target === authModal) { closeAuthModal(); } });
+
+        $$('[data-auth-tab]', authModal).forEach((tab) => {
+          tab.addEventListener('click', () => setAuthMode(tab.dataset.authTab));
+        });
+
+        $('[data-community-send-code]')?.addEventListener('click', async () => {
+          const username = $('[data-community-username]', authModal)?.value.trim();
+          const email = $('[data-community-email]', authModal)?.value.trim();
+          const sendMsg = $('[data-community-send-message]', authModal);
+          const verifyMsg = $('[data-community-verify-message]', authModal);
+          const emailPill = $('[data-community-email-pill]', authModal);
+          const sendBtn = $('[data-community-send-code]', authModal);
+          if (!username) { msg(sendMsg, '请填写用户名', 'error'); return; }
+          if (!email) { msg(sendMsg, '请填写邮箱', 'error'); return; }
+
+          lastRequest = { username, email };
+          if (emailPill) { emailPill.textContent = email; }
+          if (sendBtn) { sendBtn.disabled = true; }
+          msg(sendMsg, authMode === 'register' ? '正在注册社区账号…' : '正在发送验证码…', 'info');
+          msg(verifyMsg, '');
+
+          try {
+            if (authMode === 'register') {
+              const registerRes = await api('/api/community/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, email })
+              });
+              msg(sendMsg, registerRes.message || '注册成功，正在发送验证码…', 'info');
+            }
+
+            const res = await api('/api/community/send-code', {
+              method: 'POST',
+              body: JSON.stringify({ username, email })
+            });
+
+            if (res.sent) {
+              msg(sendMsg, res.message || '验证码已发送，请查看邮箱。', 'info');
+            } else if (res.devCode) {
+              msg(sendMsg, '邮件发送失败，当前验证码已显示在调试框。', 'error');
+              updateCodePreview(res.devCode);
+            } else {
+              msg(sendMsg, res.message || '验证码已发送，请查看邮箱。', 'info');
+            }
+            showStep(2);
+          } catch (err) {
+            msg(sendMsg, err.message || '请求失败', 'error');
+          } finally {
+            if (sendBtn) { sendBtn.disabled = false; }
+          }
+        });
+
+        $('[data-community-verify]')?.addEventListener('click', async () => {
+          const code = $('[data-community-code]', authModal)?.value.trim();
+          const verifyMsg = $('[data-community-verify-message]', authModal);
+          if (!code) { msg(verifyMsg, '请输入验证码', 'error'); return; }
+
+          try {
+            const res = await api('/api/community/verify', {
+              method: 'POST',
+              body: JSON.stringify({ email: lastRequest.email, code })
+            });
+            msg(verifyMsg, res.message || '登录成功', 'info');
+            closeAuthModal();
+            await refreshMe();
+          } catch (err) {
+            msg(verifyMsg, err.message || '验证失败', 'error');
+          }
+        });
+
+        $('[data-community-resend]')?.addEventListener('click', () => {
+          const sendBtn = $('[data-community-send-code]', authModal);
+          if (sendBtn) { sendBtn.click(); }
+        });
+
+        $('[data-community-back]')?.addEventListener('click', () => showStep(1));
+
+        $('[data-community-logout]')?.addEventListener('click', async () => {
+          try {
+            await api('/api/community/logout', { method: 'POST' });
+            await refreshMe();
+          } catch (err) {
+            console.error(err);
+          }
+        });
+
+        $('[data-community-code]', authModal)?.addEventListener('input', (e) => {
+          const code = String(e.currentTarget.value || '').replace(/\D/g, '').slice(0, 6);
+          e.currentTarget.value = code;
+          updateCodePreview(code);
+        });
+
+        refreshMe();
+      })();
     </script>
   </body>
 </html>

@@ -149,6 +149,25 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS community_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TEXT
+  )
+`);
+
+try {
+  const communityColumns = db.prepare('PRAGMA table_info(community_accounts)').all().map((column) => column.name);
+  if (!communityColumns.includes('last_login_at')) {
+    db.exec('ALTER TABLE community_accounts ADD COLUMN last_login_at TEXT');
+  }
+} catch {
+  // Keep startup resilient if migration fails unexpectedly.
+}
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS vip_purchases (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
@@ -207,6 +226,16 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS plaza_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at TEXT
+  )
+`);
+
 try {
   const serverListingColumns = db.prepare('PRAGMA table_info(server_listings)').all().map((column) => column.name);
 
@@ -228,10 +257,14 @@ const localDevQuickEntryTokens = new Map();
 const qrLoginTickets = new Map();
 const plazaVerifyCodes = new Map(); // email -> {code, username, expiresAt}
 const plazaSessions = new Map();    // token -> {username, email, expiresAt}
+const communityVerifyCodes = new Map(); // email -> {code, username, expiresAt}
+const communitySessions = new Map(); // token -> {username, email, expiresAt}
 const captchaLifetimeMs = 1000 * 60 * 5;
 const qrLoginTicketLifetimeMs = 1000 * 60 * 3;
 const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
+const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
+const communitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -623,6 +656,207 @@ function cleanupExpiredPlazaCodes() {
   }
 }
 
+function cleanupExpiredCommunityCodes() {
+  const now = Date.now();
+  for (const [email, entry] of communityVerifyCodes.entries()) {
+    if (entry.expiresAt <= now) { communityVerifyCodes.delete(email); }
+  }
+  for (const [token, session] of communitySessions.entries()) {
+    if (session.expiresAt <= now) { communitySessions.delete(token); }
+  }
+}
+
+function getCommunityAccountByUsername(username) {
+  return db.prepare('SELECT id, username, email, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
+}
+
+function getCommunityAccountByEmail(email) {
+  return db.prepare('SELECT id, username, email, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
+}
+
+function createCommunityAccount(username, email) {
+  db.prepare('INSERT INTO community_accounts (username, email, last_login_at) VALUES (?, ?, CURRENT_TIMESTAMP)').run(username, email);
+  return getCommunityAccountByUsername(username);
+}
+
+function markCommunityAccountLogin(email) {
+  db.prepare('UPDATE community_accounts SET last_login_at = CURRENT_TIMESTAMP WHERE email = ?').run(email);
+}
+
+function getCommunitySessionFromRequest(request) {
+  const cookieHeader = request.headers['cookie'] || '';
+  const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
+  if (!match) { return null; }
+  const token = decodeURIComponent(match[1]);
+  const session = communitySessions.get(token);
+  if (!session || session.expiresAt <= Date.now()) {
+    communitySessions.delete(token);
+    return null;
+  }
+  return session;
+}
+
+function handleCommunityRegister(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+
+      if (!username || username.length > 32) {
+        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+      if (!emailRegex.test(email)) {
+        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      if (getCommunityAccountByUsername(username)) {
+        sendJson(response, 409, { message: '该用户名已被社区占用，请换一个昵称' });
+        return;
+      }
+
+      if (getCommunityAccountByEmail(email)) {
+        sendJson(response, 409, { message: '该邮箱已注册社区账号，请直接登录' });
+        return;
+      }
+
+      const account = createCommunityAccount(username, email);
+      sendJson(response, 201, { message: '社区账号注册成功，请继续发送验证码登录', account });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handleCommunitySendCode(request, response) {
+  parseRequestBody(request)
+    .then(async (body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+
+      if (!username || username.length > 32) {
+        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        return;
+      }
+
+      const account = getCommunityAccountByEmail(email);
+      if (!account || account.username !== username) {
+        sendJson(response, 404, { message: '社区账号不存在，请先注册' });
+        return;
+      }
+
+      const existing = communityVerifyCodes.get(email);
+      if (existing && existing.expiresAt - communityVerifyCodeLifetimeMs + 60000 > Date.now()) {
+        sendJson(response, 429, { message: '发送太频繁，请 60 秒后重试' });
+        return;
+      }
+
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      communityVerifyCodes.set(email, { code, username, expiresAt: Date.now() + communityVerifyCodeLifetimeMs });
+
+      const smtpResult = await trySmtpSend(email, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
+
+      if (smtpResult.ok) {
+        sendJson(response, 200, { message: `验证码已发送至 ${email}，10 分钟内有效`, sent: true });
+      } else {
+        sendJson(response, 200, {
+          message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
+          sent: false,
+          devCode: code,
+          smtpError: smtpResult.reason || ''
+        });
+      }
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handleCommunityVerify(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const email = String(body.email || '').trim().toLowerCase();
+      const code = String(body.code || '').trim();
+
+      const entry = communityVerifyCodes.get(email);
+      if (!entry || entry.expiresAt <= Date.now()) {
+        sendJson(response, 400, { message: '验证码不存在或已过期，请重新获取' });
+        return;
+      }
+
+      if (entry.code !== code) {
+        sendJson(response, 400, { message: '验证码错误' });
+        return;
+      }
+
+      communityVerifyCodes.delete(email);
+      markCommunityAccountLogin(email);
+
+      const token = crypto.randomBytes(32).toString('hex');
+      communitySessions.set(token, {
+        username: entry.username,
+        email,
+        expiresAt: Date.now() + communitySessionLifetimeMs
+      });
+
+      response.setHeader('Set-Cookie', [
+        `mctools_community=${token}; HttpOnly; Path=/api/community/; Max-Age=${communitySessionLifetimeMs / 1000}; SameSite=Lax`,
+        'mctools_community=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
+      ]);
+      sendJson(response, 200, { message: '社区登录成功', username: entry.username });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handleCommunityMe(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+  sendJson(response, 200, {
+    username: session.username,
+    email: session.email,
+    registered: Boolean(getCommunityAccountByEmail(session.email))
+  });
+}
+
+function handleCommunityLogout(request, response) {
+  const cookieHeader = request.headers['cookie'] || '';
+  const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
+  if (match) {
+    const token = decodeURIComponent(match[1]);
+    communitySessions.delete(token);
+  }
+  response.setHeader('Set-Cookie', [
+    'mctools_community=; HttpOnly; Path=/api/community/; Max-Age=0; SameSite=Lax',
+    'mctools_community=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
+  ]);
+  sendJson(response, 200, { message: '已退出社区账号' });
+}
+
+function getPlazaAccountByEmail(email) {
+  return db.prepare('SELECT id, username, email, created_at, last_login_at FROM plaza_accounts WHERE email = ?').get(email);
+}
+
+function getPlazaAccountByUsername(username) {
+  return db.prepare('SELECT id, username, email, created_at, last_login_at FROM plaza_accounts WHERE username = ?').get(username);
+}
+
+function createPlazaAccount(username, email) {
+  const result = db.prepare('INSERT INTO plaza_accounts (username, email) VALUES (?, ?)').run(username, email);
+  return db.prepare('SELECT id, username, email, created_at, last_login_at FROM plaza_accounts WHERE id = ?').get(result.lastInsertRowid);
+}
+
+function markPlazaAccountLogin(email) {
+  db.prepare('UPDATE plaza_accounts SET last_login_at = CURRENT_TIMESTAMP WHERE email = ?').run(email);
+}
+
 function deleteServerListingAvatarFiles(listingId) {
   const prefix = `server-${listingId}.`;
 
@@ -690,7 +924,7 @@ async function trySmtpSend(toEmail, code, username) {
       from: smtpConfig.from || smtpConfig.user,
       to: toEmail,
       subject: `验证码 ${code}`,
-      text: `你好 ${username}，\n\n你的服务器广场验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- MCTools`
+      text: `你好 ${username}，\n\n你的“星际_服务器广场”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际_服务器广场`
     });
 
     return { ok: true, reason: info?.response || '' };
@@ -713,6 +947,17 @@ function handlePlazaSendCode(request, response) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
       if (!emailRegex.test(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      const account = getPlazaAccountByEmail(email);
+      if (!account) {
+        sendJson(response, 403, { message: '请先注册账户后再登录', code: 'REGISTRATION_REQUIRED' });
+        return;
+      }
+
+      if (account.username !== username) {
+        sendJson(response, 400, { message: '用户名与注册账户不一致' });
         return;
       }
 
@@ -775,8 +1020,49 @@ function handlePlazaDirectLogin(request, response) {
         expiresAt: Date.now() + plazaSessionLifetimeMs
       });
 
-      response.setHeader('Set-Cookie', `mctools_plaza=${token}; HttpOnly; Path=/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`);
+      response.setHeader('Set-Cookie', [
+        `mctools_plaza=${token}; HttpOnly; Path=/api/plaza/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`,
+        'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
+      ]);
       sendJson(response, 200, { message: '登录成功', username, email });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handlePlazaRegister(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+
+      if (!username || username.length > 32) {
+        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+      if (!emailRegex.test(email)) {
+        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      if (getPlazaAccountByUsername(username)) {
+        sendJson(response, 409, { message: '该用户名已被注册，请换一个昵称' });
+        return;
+      }
+
+      if (getPlazaAccountByEmail(email)) {
+        sendJson(response, 409, { message: '该邮箱已注册，请直接登录' });
+        return;
+      }
+
+      const account = createPlazaAccount(username, email);
+      sendJson(response, 201, {
+        message: '注册成功，请继续发送验证码登录',
+        account
+      });
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '请求无效' });
@@ -802,6 +1088,7 @@ function handlePlazaVerify(request, response) {
       }
 
       plazaVerifyCodes.delete(email);
+      markPlazaAccountLogin(email);
 
       const token = crypto.randomBytes(32).toString('hex');
       plazaSessions.set(token, {
@@ -810,7 +1097,10 @@ function handlePlazaVerify(request, response) {
         expiresAt: Date.now() + plazaSessionLifetimeMs
       });
 
-      response.setHeader('Set-Cookie', `mctools_plaza=${token}; HttpOnly; Path=/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`);
+      response.setHeader('Set-Cookie', [
+        `mctools_plaza=${token}; HttpOnly; Path=/api/plaza/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`,
+        'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
+      ]);
       sendJson(response, 200, { message: '登录成功', username: entry.username });
     })
     .catch((error) => {
@@ -827,6 +1117,7 @@ function handlePlazaMe(request, response) {
   sendJson(response, 200, {
     username: session.username,
     email: session.email,
+    registered: Boolean(getPlazaAccountByEmail(session.email)),
     ...getVipInfo(session.username)
   });
 }
@@ -838,7 +1129,10 @@ function handlePlazaLogout(request, response) {
     const token = decodeURIComponent(match[1]);
     plazaSessions.delete(token);
   }
-  response.setHeader('Set-Cookie', 'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+  response.setHeader('Set-Cookie', [
+    'mctools_plaza=; HttpOnly; Path=/api/plaza/; Max-Age=0; SameSite=Lax',
+    'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
+  ]);
   sendJson(response, 200, { message: '已退出登录' });
 }
 
@@ -1290,6 +1584,43 @@ function isBugPortalHost(request) {
   return hostHeader.endsWith(':3002');
 }
 
+function isLocalNetworkAddress(address) {
+  const normalizedAddress = String(address || '').trim().toLowerCase();
+
+  if (!normalizedAddress) {
+    return false;
+  }
+
+  if (normalizedAddress === 'localhost' || normalizedAddress === '127.0.0.1' || normalizedAddress === '::1') {
+    return true;
+  }
+
+  if (normalizedAddress.startsWith('::ffff:')) {
+    return isLocalNetworkAddress(normalizedAddress.slice(7));
+  }
+
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(normalizedAddress)) {
+    return true;
+  }
+
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(normalizedAddress)) {
+    return true;
+  }
+
+  if (/^172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}$/.test(normalizedAddress)) {
+    return true;
+  }
+
+  return false;
+}
+
+function isLocalNetworkRequest(request) {
+  const hostHeader = String(request.headers.host || '').trim();
+  const hostName = hostHeader.includes(':') ? hostHeader.split(':')[0] : hostHeader;
+
+  return isLocalNetworkAddress(hostName) || isLocalNetworkAddress(getRequestClientAddress(request));
+}
+
 function getRequestClientAddress(request) {
   const forwardedFor = String(request.headers['x-forwarded-for'] || '').trim();
   const candidate = forwardedFor ? forwardedFor.split(',')[0].trim() : String(request.socket.remoteAddress || '').trim();
@@ -1302,11 +1633,11 @@ function getRequestClientAddress(request) {
 }
 
 function canUseLocalDevQuickEntry(request) {
-  return !isOfficialPublicHost(request);
+  return !isOfficialPublicHost(request) || isLocalNetworkRequest(request);
 }
 
 function canUseGeneralUserLogin(request) {
-  return isOfficialPublicHost(request) || isBugPortalHost(request);
+  return isOfficialPublicHost(request) || isBugPortalHost(request) || isLocalNetworkRequest(request);
 }
 
 function issueLocalDevQuickEntryToken(request) {
@@ -3148,6 +3479,7 @@ const server = http.createServer((request, response) => {
   cleanupExpiredLocalDevQuickEntryTokens();
   cleanupExpiredQrLoginTickets();
   cleanupExpiredPlazaCodes();
+  cleanupExpiredCommunityCodes();
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
@@ -3189,6 +3521,11 @@ const server = http.createServer((request, response) => {
     // Plaza 认证
     if (request.method === 'POST' && pathname === '/api/plaza/login') {
       handlePlazaSendCode(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/plaza/register') {
+      handlePlazaRegister(request, response);
       return;
     }
 
@@ -3245,10 +3582,10 @@ const server = http.createServer((request, response) => {
 
     // 根路径及宣传页本体
     if (request.method === 'GET' || request.method === 'HEAD') {
-      const plazaPath = '/server-plaza.html';
-      const plazaFilePath = resolvePublicFilePath(plazaPath);
+      const plazaPath = pathname === '/' ? '/server-plaza.html' : pathname;
+      const staticFilePath = resolvePublicFilePath(plazaPath);
 
-      if (plazaFilePath) {
+      if (staticFilePath) {
         serveStatic(plazaPath, response);
       } else {
         sendPortClosedNotice(response, request);
@@ -3262,6 +3599,31 @@ const server = http.createServer((request, response) => {
   }
 
   if (Number(port) === 3003) {
+    if (request.method === 'POST' && pathname === '/api/community/register') {
+      handleCommunityRegister(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/send-code') {
+      handleCommunitySendCode(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/verify') {
+      handleCommunityVerify(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/me') {
+      handleCommunityMe(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/logout') {
+      handleCommunityLogout(request, response);
+      return;
+    }
+
     if (request.method === 'GET' && pathname === '/api/command-community') {
       handleCommandCommunityList(request, response);
       return;

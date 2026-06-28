@@ -24,11 +24,11 @@
         --radius: 28px;
         --radius-sm: 16px;
         --panel-shadow: 0 18px 42px rgba(0,10,28,.22);
-        --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+        --ease-smooth: cubic-bezier(0.2, 0.85, 0.2, 1);
         --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
-        --dur-fast: 180ms;
-        --dur-normal: 320ms;
-        --dur-slow: 560ms;
+        --dur-fast: 220ms;
+        --dur-normal: 380ms;
+        --dur-slow: 720ms;
       }
 
       html { scroll-behavior: smooth; }
@@ -54,7 +54,7 @@
           linear-gradient(120deg, rgba(255,255,255,.06), transparent 34%, rgba(255,255,255,.045) 62%, transparent);
         pointer-events: none;
         z-index: 0;
-        animation: aura-shift 14s var(--ease-smooth) infinite alternate;
+        animation: aura-shift 18s var(--ease-smooth) infinite alternate;
       }
 
       body::after {
@@ -156,6 +156,84 @@
         display: flex;
         align-items: center;
         gap: 12px;
+      }
+
+      .entry-switcher {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .entry-switcher-card {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        gap: 10px;
+        padding: 18px 20px;
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(101, 217, 255, 0.16), transparent 28%),
+          linear-gradient(160deg, rgba(10, 20, 35, 0.96), rgba(14, 34, 54, 0.96));
+        color: var(--text);
+        text-decoration: none;
+        box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+        transition:
+          transform 220ms var(--ease-smooth),
+          border-color 220ms var(--ease-smooth),
+          box-shadow 220ms var(--ease-smooth);
+      }
+
+      .entry-switcher-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(101, 217, 255, 0.48);
+        box-shadow: 0 24px 58px rgba(0, 0, 0, 0.34);
+      }
+
+      .entry-switcher-kicker {
+        display: inline-flex;
+        width: fit-content;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(101, 217, 255, 0.12);
+        border: 1px solid rgba(101, 217, 255, 0.28);
+        color: #d9f8ff;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .entry-switcher-title {
+        font-size: 1.12rem;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .entry-switcher-desc {
+        color: var(--muted);
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+
+      .entry-switcher-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .entry-switcher-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        color: #dbeafe;
+        font-size: 0.78rem;
+        font-weight: 700;
       }
 
       .user-badge {
@@ -888,6 +966,32 @@
       .modal-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 6px; }
       .modal-sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin-bottom: 24px; }
 
+      .modal-stepper {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 2px 0 18px;
+      }
+
+      .modal-step {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148,163,184,.22);
+        background: rgba(255,255,255,.04);
+        color: var(--muted);
+        font-size: .82rem;
+        font-weight: 700;
+      }
+
+      .modal-step.is-active {
+        border-color: rgba(101,217,255,.4);
+        background: rgba(101,217,255,.12);
+        color: #d9f8ff;
+      }
+
       .modal-form { display: grid; gap: 14px; }
 
       .input-group {
@@ -910,6 +1014,106 @@
 
       .dev-code-label { font-size: .82rem; color: var(--accent2); font-weight: 600; }
       .dev-code-num { font-size: 1.8rem; font-weight: 900; letter-spacing: .18em; color: #f0f9ff; font-family: 'Courier New', monospace; }
+
+      .code-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 22px;
+        border: 1px solid rgba(101,217,255,.22);
+        background:
+          radial-gradient(circle at top right, rgba(101,217,255,.14), transparent 36%),
+          linear-gradient(180deg, #0b1524, #111c2d);
+        padding: 16px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 14px 34px rgba(0,0,0,.2);
+      }
+
+      .code-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .code-card-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #d9f8ff;
+        font-size: .84rem;
+        font-weight: 700;
+      }
+
+      .code-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(74,222,128,.22);
+        background: rgba(74,222,128,.1);
+        color: #86efac;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      .code-visual {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+        padding: 14px 10px 8px;
+      }
+
+      .code-digits {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .code-digit {
+        display: grid;
+        place-items: center;
+        min-height: 58px;
+        border-radius: 16px;
+        border: 1px solid rgba(148,163,184,.2);
+        background: rgba(255,255,255,.04);
+        color: #f8fafc;
+        font-size: 1.65rem;
+        font-weight: 900;
+        letter-spacing: 0;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+      }
+
+      .code-digit.is-empty {
+        color: rgba(248,250,252,.22);
+      }
+
+      .code-helper {
+        color: var(--muted);
+        font-size: .8rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .code-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .code-meta .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.05);
+        border: 1px solid rgba(148,163,184,.18);
+        color: #d7e3f4;
+        font-size: .76rem;
+        font-weight: 700;
+      }
 
       /* ── 开发者面板 ── */
       .dev-list { display: grid; gap: 10px; margin-top: 16px; }
@@ -1003,6 +1207,27 @@
   <body>
     <div class="shell">
 
+      <section class="entry-switcher" aria-label="星际入口选择栏">
+        <a class="entry-switcher-card" href="/server-plaza.html">
+          <span class="entry-switcher-kicker">星际_服务器广场</span>
+          <div class="entry-switcher-title">服务器广场入口</div>
+          <div class="entry-switcher-desc">查看服务器列表、投稿服务器、参与审核与广场登录流程。</div>
+          <div class="entry-switcher-meta">
+            <span class="entry-switcher-pill">🏰 服务器投稿</span>
+            <span class="entry-switcher-pill">🔑 广场登录</span>
+          </div>
+        </a>
+        <a class="entry-switcher-card" href="/command-community.html">
+          <span class="entry-switcher-kicker">星际_指令社区</span>
+          <div class="entry-switcher-title">指令社区入口</div>
+          <div class="entry-switcher-desc">切换到独立的社区账号体系，提交指令并进行社区审核。</div>
+          <div class="entry-switcher-meta">
+            <span class="entry-switcher-pill">⚙️ 指令投稿</span>
+            <span class="entry-switcher-pill">🧭 社区账号</span>
+          </div>
+        </a>
+      </section>
+
       <!-- 顶部导航 -->
       <nav class="topbar">
         <a class="logo" href="/">
@@ -1013,6 +1238,7 @@
           <!-- 未登录时 -->
           <div data-topbar-guest>
             <button type="button" class="btn btn-sm" data-open-login>🔑 登录</button>
+            <button type="button" class="btn btn-sm" data-open-register>📝 注册账户</button>
           </div>
           <!-- 已登录时 -->
           <div data-topbar-user hidden>
@@ -1190,8 +1416,12 @@
         <!-- 步骤 1：用户名 + 邮箱直接登录 -->
         <div data-step="1">
           <div class="modal-icon">📬</div>
-          <div class="modal-title">快速登录</div>
-          <div class="modal-sub">输入用户名和邮箱即可直接登录，无需验证码。</div>
+          <div class="modal-title" data-login-modal-title>快速登录</div>
+          <div class="modal-sub">填写用户名和邮箱，系统会立即发送一封验证码邮件完成登录。</div>
+          <div class="modal-stepper">
+            <span class="modal-step is-active" data-step-pill="1">1. 填写邮箱</span>
+            <span class="modal-step" data-step-pill="2">2. 输入验证码</span>
+          </div>
           <div class="modal-form">
             <div class="form-field">
               <label class="form-label">用户名<span>*</span></label>
@@ -1201,10 +1431,11 @@
               <label class="form-label">邮箱<span>*</span></label>
               <div class="input-group">
                 <input type="email" class="input" data-login-email placeholder="your@email.com" style="width:100%;" />
-                <button type="button" class="btn btn" data-send-code>登录</button>
+                <button type="button" class="btn btn" data-send-code>发送验证码</button>
               </div>
             </div>
             <p class="message" data-send-message></p>
+            <p class="message" data-register-message hidden></p>
           </div>
         </div>
 
@@ -1212,7 +1443,11 @@
         <div data-step="2" hidden>
           <div class="modal-icon">🔢</div>
           <div class="modal-title">输入验证码</div>
-          <div class="modal-sub" data-verify-hint>验证码已发送至你的邮箱，10 分钟内有效。</div>
+          <div class="modal-sub" data-verify-hint>验证码已发往你的邮箱，请在 10 分钟内完成验证。</div>
+          <div class="modal-stepper">
+            <span class="modal-step" data-step-pill="1">1. 填写邮箱</span>
+            <span class="modal-step is-active" data-step-pill="2">2. 输入验证码</span>
+          </div>
 
           <!-- devCode 展示框（仅在邮件未配置时显示） -->
           <div class="dev-code-box" data-dev-code-box hidden style="margin-bottom:16px;">
@@ -1222,14 +1457,37 @@
             </div>
           </div>
 
+          <div class="code-card">
+            <div class="code-card-head">
+              <div class="code-card-label">验证码卡片</div>
+              <span class="code-badge">10 min</span>
+            </div>
+            <div class="code-visual">
+              <div class="code-digits" data-code-digits>
+                <span class="code-digit is-empty">•</span>
+                <span class="code-digit is-empty">•</span>
+                <span class="code-digit is-empty">•</span>
+                <span class="code-digit is-empty">•</span>
+                <span class="code-digit is-empty">•</span>
+                <span class="code-digit is-empty">•</span>
+              </div>
+              <div class="code-helper">把邮件中的 6 位数字填进下方，输入时会在这里同步预览。</div>
+              <div class="code-meta">
+                <span class="pill" data-email-pill>邮箱未填写</span>
+                <span class="pill" data-code-state-pill>等待输入</span>
+              </div>
+            </div>
+          </div>
+
           <div class="modal-form">
             <div class="form-field">
               <label class="form-label">6 位验证码</label>
               <input type="text" class="input input-full" data-login-code maxlength="6" inputmode="numeric" placeholder="000000" style="font-size:1.4rem;letter-spacing:.25em;text-align:center;" />
             </div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-              <button type="button" class="btn btn-primary" data-do-verify>✓ 验证并登录</button>
-              <button type="button" class="btn btn-sm" data-back-step1>← 重新填写</button>
+              <button type="button" class="btn btn-primary" data-do-verify>✓ 完成登录</button>
+              <button type="button" class="btn btn-sm" data-back-step1>← 返回修改</button>
+              <button type="button" class="btn btn-sm" data-resend-code>↻ 重新发送邮件</button>
             </div>
             <p class="message" data-verify-message></p>
           </div>
@@ -1297,6 +1555,7 @@
         // ─────────────── 状态 ───────────────
         let currentUser = null; // {username, email} | null
         let allServers = [];
+        let lastLoginRequest = { username: '', email: '' };
         const ANNOUNCEMENT_KEY = 'mctools_plaza_announcement_v1';
         const LIKED_KEY = 'mctools_plaza_likes_v1';
 
@@ -1621,8 +1880,34 @@
 
         // ─────────────── 登录模态框 ───────────────
         const loginModal = $('[data-login-modal]');
+        let loginModalMode = 'login';
 
-        function openLoginModal() {
+        function setLoginModalMode(mode) {
+          loginModalMode = mode === 'register' ? 'register' : 'login';
+          const titleEl = $('[data-login-modal-title]', loginModal);
+          const subEl = $('.modal-sub', loginModal);
+          const registerMsg = $('[data-register-message]', loginModal);
+
+          if (titleEl) {
+            titleEl.textContent = loginModalMode === 'register' ? '注册账户' : '快速登录';
+          }
+          if (subEl) {
+            subEl.textContent = loginModalMode === 'register'
+              ? '填写用户名和邮箱，先创建广场账户，再发送验证码完成登录。'
+              : '填写用户名和邮箱，系统会立即发送一封验证码邮件完成登录。';
+          }
+          if (registerMsg) {
+            registerMsg.hidden = true;
+            registerMsg.textContent = '';
+          }
+          const sendBtn = $('[data-send-code]');
+          if (sendBtn) {
+            sendBtn.textContent = loginModalMode === 'register' ? '注册并发送验证码' : '发送验证码';
+          }
+        }
+
+        function openLoginModal(mode = 'login') {
+          setLoginModalMode(mode);
           showStep(1);
           if (loginModal) { loginModal.hidden = false; }
         }
@@ -1633,9 +1918,28 @@
 
         function showStep(n) {
           $$('[data-step]', loginModal).forEach((el) => { el.hidden = String(n) !== el.dataset.step; });
+          $$('[data-step-pill]', loginModal).forEach((el) => {
+            el.classList.toggle('is-active', el.dataset.stepPill === String(n));
+          });
         }
 
-        $('[data-open-login]')?.addEventListener('click', openLoginModal);
+        function updateCodePreview(code = '') {
+          const digits = $$('[data-code-digits] .code-digit');
+          const chars = String(code || '').slice(0, 6).split('');
+          digits.forEach((digitEl, index) => {
+            const char = chars[index] || '';
+            digitEl.textContent = char || '•';
+            digitEl.classList.toggle('is-empty', !char);
+          });
+
+          const codeState = $('[data-code-state-pill]');
+          if (codeState) {
+            codeState.textContent = code ? '已输入 ' + chars.length + '/6' : '等待输入';
+          }
+        }
+
+        $('[data-open-login]')?.addEventListener('click', () => openLoginModal('login'));
+        $('[data-open-register]')?.addEventListener('click', () => openLoginModal('register'));
         $('[data-close-modal]')?.addEventListener('click', closeLoginModal);
         loginModal?.addEventListener('click', (e) => { if (e.target === loginModal) { closeLoginModal(); } });
 
@@ -1644,6 +1948,7 @@
           const username = $('[data-login-username]')?.value.trim();
           const email = $('[data-login-email]')?.value.trim();
           const msgEl = $('[data-send-message]');
+          const registerMsgEl = $('[data-register-message]');
           const btn = $('[data-send-code]');
           const devCodeBox = $('[data-dev-code-box]');
           const devCodeDisplay = $('[data-dev-code-display]');
@@ -1651,12 +1956,26 @@
           if (!username) { msg(msgEl, '请填写用户名', 'error'); return; }
           if (!email) { msg(msgEl, '请填写邮箱', 'error'); return; }
 
+          lastLoginRequest = { username, email };
+
           btn.disabled = true;
-          msg(msgEl, '正在发送验证码…', 'info');
+          msg(msgEl, '正在为你发送验证码邮件…', 'info');
           if (devCodeBox) { devCodeBox.hidden = true; }
           if (devCodeDisplay) { devCodeDisplay.textContent = '——'; }
 
           try {
+            if (loginModalMode === 'register') {
+              const registerRes = await api('/api/plaza/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email })
+              });
+              if (registerMsgEl) {
+                registerMsgEl.hidden = false;
+                registerMsgEl.textContent = registerRes.message || '注册成功，正在发送验证码…';
+              }
+            }
+
             const res = await api('/api/plaza/send-code', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1668,11 +1987,20 @@
               msg(msgEl, '邮件发送失败，当前验证码已打印到调试框。', 'error');
               if (devCodeBox) { devCodeBox.hidden = false; }
               if (devCodeDisplay) { devCodeDisplay.textContent = res.devCode; }
+              updateCodePreview(res.devCode);
             } else {
-              msg(msgEl, res.message || '验证码已发送，请在下方输入验证码完成登录', 'info');
+              msg(msgEl, res.message || '验证码已发送到邮箱，请查看后继续验证。', 'info');
             }
+            const emailPill = $('[data-email-pill]');
+            if (emailPill) { emailPill.textContent = email; }
             showStep(2);
           } catch (err) {
+            if (loginModalMode === 'register') {
+              if (registerMsgEl) {
+                registerMsgEl.hidden = false;
+                registerMsgEl.textContent = err.message || '注册失败';
+              }
+            }
             msg(msgEl, err.message || '登录失败', 'error');
           } finally {
             btn.disabled = false;
@@ -1689,7 +2017,7 @@
           if (!code) { msg(msgEl, '请输入验证码', 'error'); return; }
 
           btn.disabled = true;
-          msg(msgEl, '验证中…', 'info');
+          msg(msgEl, '正在验证验证码…', 'info');
 
           try {
             const res = await api('/api/plaza/verify', {
@@ -1700,7 +2028,7 @@
             currentUser = { username: res.username, email };
             applyUserUI();
             closeLoginModal();
-            msg($('[data-submit-message]'), '登录成功，现在可以投稿了');
+            msg($('[data-submit-message]'), '验证成功，已为你完成登录。');
             if ($('[data-section="submit"]') && !$('[data-section="submit"]').hidden) {
               /* already on submit tab */
             }
@@ -1711,11 +2039,58 @@
           }
         });
 
+        $('[data-resend-code]')?.addEventListener('click', async () => {
+          const msgEl = $('[data-send-message]');
+          if (!lastLoginRequest.username || !lastLoginRequest.email) {
+            msg(msgEl, '请先回到第一步填写用户名和邮箱', 'error');
+            showStep(1);
+            return;
+          }
+
+          msg(msgEl, '正在重新发送验证码邮件…', 'info');
+          updateCodePreview('');
+
+          try {
+            const res = await api('/api/plaza/send-code', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(lastLoginRequest)
+            });
+
+            const emailPill = $('[data-email-pill]');
+            if (emailPill) { emailPill.textContent = lastLoginRequest.email; }
+
+            if (res.sent && res.message) {
+              msg(msgEl, res.message, 'info');
+            } else if (res.devCode) {
+              msg(msgEl, '验证码已重新生成，当前显示为调试码。', 'error');
+              const devCodeBox = $('[data-dev-code-box]');
+              const devCodeDisplay = $('[data-dev-code-display]');
+              if (devCodeBox) { devCodeBox.hidden = false; }
+              if (devCodeDisplay) { devCodeDisplay.textContent = res.devCode; }
+              updateCodePreview(res.devCode);
+            } else {
+              msg(msgEl, res.message || '验证码邮件已重新发送，请查看邮箱。', 'info');
+            }
+            showStep(2);
+          } catch (error) {
+            msg(msgEl, error.message || '重新发送失败', 'error');
+          }
+        });
+
         $('[data-back-step1]')?.addEventListener('click', () => showStep(1));
 
         // Enter 触发
         $('[data-login-code]')?.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') { $('[data-do-verify]')?.click(); }
+        });
+
+        $('[data-login-code]')?.addEventListener('input', (e) => {
+          const value = String(e.target.value || '').replace(/\D/g, '').slice(0, 6);
+          if (e.target.value !== value) {
+            e.target.value = value;
+          }
+          updateCodePreview(value);
         });
 
         // ── 退出 ──

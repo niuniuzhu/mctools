@@ -41,10 +41,8 @@
       body.mc-toolbox-home {
         overflow-x: hidden;
         background:
-          radial-gradient(circle at 10% 14%, rgba(103, 232, 249, 0.16), transparent 24%),
-          radial-gradient(circle at 88% 18%, rgba(34, 197, 94, 0.14), transparent 28%),
-          radial-gradient(circle at 50% 96%, rgba(168, 85, 247, 0.14), transparent 26%),
-          linear-gradient(160deg, #09111f, #0e2236 54%, #0a1e18);
+          linear-gradient(145deg, #06101d, #0d2741 48%, #1b4462);
+        color: #f7fbff;
       }
 
       body.mc-toolbox-home::before {
@@ -66,57 +64,289 @@
         inset: 0;
         pointer-events: none;
         background:
-          radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 24%),
-          radial-gradient(circle at 84% 22%, rgba(255, 255, 255, 0.18), transparent 26%),
-          radial-gradient(circle at 74% 78%, color-mix(in srgb, var(--accent-strong) 18%, transparent), transparent 24%);
+          radial-gradient(circle at 12% 18%, rgba(184, 240, 255, 0.26), transparent 24%),
+          radial-gradient(circle at 84% 22%, rgba(101, 217, 255, 0.2), transparent 26%),
+          radial-gradient(circle at 74% 78%, rgba(255, 155, 212, 0.14), transparent 24%);
         animation: toolboxGlowFloat 8s ease-in-out infinite;
+      }
+
+      .shell {
+        position: relative;
+        z-index: 2;
+      }
+
+      .mc-toolbox-home .shell {
+        width: min(1220px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 72px;
       }
 
       .mc-home-topbar {
         display: flex;
+        align-items: center;
+        justify-content: space-between;
         gap: 16px;
-        margin-bottom: 32px;
+        margin-bottom: 18px;
+        padding: 12px 16px;
+        border: 1px solid rgba(191, 219, 254, 0.85);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 14px 34px rgba(37, 99, 235, 0.08);
+        flex-wrap: wrap;
+      }
+
+      .mc-home-topbar .topbar-center {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+      .mc-home-topbar .menu-toggle {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(191, 219, 254, 0.95);
+        background: rgba(255, 255, 255, 0.92);
+        color: #2455d1;
+        font-size: 1.1rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.08);
+      }
+
+      .mc-home-topbar .topbar-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .mc-home-topbar a {
+        color: #2455d1;
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid transparent;
         align-items: center;
       }
 
       .mc-home-topbar a {
-        color: var(--accent);
-        text-decoration: none;
-        font-size: 0.95rem;
-        padding: 8px 16px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
+        transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
       }
 
       .mc-home-topbar a:hover {
+        background: rgba(96, 165, 250, 0.08);
+        border-color: rgba(96, 165, 250, 0.16);
+        color: #1d4ed8;
+      }
+
+      .mc-home-topbar .topbar-links a.is-active {
+        border-color: rgba(96, 165, 250, 0.22);
+        color: #1d4ed8;
         background: rgba(96, 165, 250, 0.1);
-        color: var(--accent-strong);
+        box-shadow: inset 0 -2px 0 #3b82f6;
       }
 
-      .mc-toolbox-home .hero-copy,
-      .mc-toolbox-home .content-panel,
-      .mc-toolbox-home .tool-card,
-      .mc-toolbox-home .home-preview-card {
-        border-radius: 8px;
-        border-width: 2px;
-        transition: all 0.3s ease;
+      .hero-copy,
+      .tool-card,
+      .home-preview-card {
+        border-radius: 20px;
+        border: 1px solid rgba(191, 219, 254, 0.9);
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 16px 36px rgba(37, 99, 235, 0.08);
+        transition: transform 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
       }
 
-      .mc-toolbox-home .hero-copy:hover,
-      .mc-toolbox-home .content-panel:hover,
-      .mc-toolbox-home .tool-card:hover,
-      .mc-toolbox-home .home-preview-card:hover {
-        border-color: var(--accent);
+      .hero-copy:hover,
+      .tool-card:hover,
+      .home-preview-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(96, 165, 250, 0.2);
+        border-color: rgba(96, 165, 250, 0.38);
+        box-shadow: 0 22px 46px rgba(37, 99, 235, 0.14);
       }
 
-      .mc-toolbox-home .home-preview-card {
-        background: var(--panel);
+      .hero-copy {
+        padding: 22px;
+      }
+
+      .tool-card {
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .home-preview-card {
+        background: rgba(255, 255, 255, 0.88);
       }
 
       .mc-toolbox-home .tool-overview {
-        gap: 24px;
+        gap: 18px;
+      }
+
+      .starfield-switcher {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin: 14px 0 20px;
+      }
+
+      .starfield-switcher-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 6px 0 14px;
+        flex-wrap: wrap;
+      }
+
+      .starfield-switcher-head h2 {
+        font-size: 1.05rem;
+        font-weight: 900;
+        color: #1f2b3d;
+      }
+
+      .starfield-switcher-head span {
+        color: #5f728b;
+        font-size: 0.88rem;
+      }
+
+      .starfield-switcher-card {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        gap: 10px;
+        padding: 20px 22px;
+        border-radius: 20px;
+        border: 1px solid rgba(191, 219, 254, 0.95);
+        background:
+          radial-gradient(circle at 12% 10%, rgba(96, 165, 250, 0.12), transparent 26%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 255, 0.96));
+        text-decoration: none;
+        color: #1f2b3d;
+        box-shadow: 0 16px 34px rgba(37, 99, 235, 0.08);
+        transition:
+          transform 220ms ease,
+          border-color 220ms ease,
+          box-shadow 220ms ease;
+      }
+
+      .starfield-switcher-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(96, 165, 250, 0.42);
+        box-shadow: 0 22px 46px rgba(37, 99, 235, 0.12);
+      }
+
+      .starfield-switcher-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.12) 48%, transparent 76%);
+        transform: translateX(-120%);
+        pointer-events: none;
+      }
+
+      .starfield-switcher-card:hover::after {
+        animation: switcherSheen 900ms ease forwards;
+      }
+
+      @keyframes switcherSheen {
+        from { transform: translateX(-120%); }
+        to { transform: translateX(120%); }
+      }
+
+      .starfield-switcher-kicker {
+        display: inline-flex;
+        width: fit-content;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(96, 165, 250, 0.18);
+        background: rgba(96, 165, 250, 0.08);
+        color: #2455d1;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .starfield-switcher-title {
+        font-size: 1.18rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+
+      .starfield-switcher-desc {
+        color: #5f728b;
+        line-height: 1.65;
+        font-size: 0.93rem;
+      }
+
+      .starfield-switcher-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .starfield-switcher-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(191, 219, 254, 1);
+        background: rgba(255, 255, 255, 0.96);
+        color: #2455d1;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .hero-home-centered {
+        margin-top: 0;
+      }
+
+      .hero-home-centered .hero-copy {
+        border: 1px solid rgba(191, 219, 254, 0.95);
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .hero-home-centered .badge,
+      .hero-home-centered .version-pill,
+      .hero-home-centered .panel-label {
+        color: #2455d1;
+      }
+
+      .hero-home-centered h1,
+      .tool-card h2,
+      .home-preview-card strong {
+        color: #1f2b3d;
+      }
+
+      .hero-home-centered .lead,
+      .tool-card p,
+      .home-preview-card span,
+      .tool-card p:not(.panel-label) {
+        color: #5f728b;
+      }
+
+      .hero-media-card,
+      .tool-enter-button,
+      .version-pill {
+        border-radius: 999px;
+      }
+
+      .tool-enter-button {
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        color: #fff;
+        border: none;
+      }
+
+      .home-preview-card img,
+      .tool-card-thumb img,
+      .hero-media-card img {
+        filter: drop-shadow(0 8px 18px rgba(37, 99, 235, 0.14));
       }
     </style>
     <script defer src="/app.js"></script>
@@ -125,8 +355,41 @@
   <body class="mc-toolbox-home">
     <main class="shell">
       <div class="mc-home-topbar">
-        <a href="/niuniu-toolbox.html">← 返回工具箱</a>
+        <a href="/niuniu-toolbox.html">返回工具箱</a>
+        <div class="topbar-center">
+          <button class="menu-toggle" type="button" aria-label="打开导航菜单">☰</button>
+        </div>
+        <div class="topbar-links" aria-label="主页导航">
+          <a class="is-active" href="/index.html">主页</a>
+          <a href="/tutorial.html">教程</a>
+          <a href="/login.html">登录</a>
+          <a href="/settings.html">注册</a>
+        </div>
       </div>
+      <div class="starfield-switcher-head">
+        <h2>选择入口</h2>
+        <span>先选你要进入的星际模块</span>
+      </div>
+      <section class="starfield-switcher" aria-label="星际入口选择栏">
+        <a class="starfield-switcher-card" href="/server-plaza.html">
+          <span class="starfield-switcher-kicker">星际_服务器广场</span>
+          <div class="starfield-switcher-title">去服务器广场看看</div>
+          <div class="starfield-switcher-desc">浏览投稿服务器、查看公告和开发者审核内容，适合想找服或发服的玩家。</div>
+          <div class="starfield-switcher-meta">
+            <span class="starfield-switcher-pill">🏰 服务器列表</span>
+            <span class="starfield-switcher-pill">📨 投稿入口</span>
+          </div>
+        </a>
+        <a class="starfield-switcher-card" href="/command-community.html">
+          <span class="starfield-switcher-kicker">星际_指令社区</span>
+          <div class="starfield-switcher-title">去指令社区交流</div>
+          <div class="starfield-switcher-desc">提交和审核 Minecraft 指令，适合分享玩法、红石技巧和实用命令。</div>
+          <div class="starfield-switcher-meta">
+            <span class="starfield-switcher-pill">⚙️ 指令投稿</span>
+            <span class="starfield-switcher-pill">🧭 社区交流</span>
+          </div>
+        </a>
+      </section>
       <section class="hero hero-home-centered">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
