@@ -155,10 +155,11 @@
         gap: 10px;
         align-items: center;
         padding: 10px;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.58);
-        backdrop-filter: blur(14px);
-        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+        border-radius: 22px;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.1);
       }
       .btn,
       .top-actions .btn,
@@ -191,9 +192,10 @@
       .payment-actions .btn,
       .buy-btn {
         padding: 10px 14px;
-        background: rgba(255,255,255,0.9);
-        font-weight: 700;
-        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,245,249,0.9));
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        font-weight: 800;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
       }
       html[data-theme="night"] .theme-toggle,
       html[data-theme="night"] .music-toggle,
@@ -450,6 +452,115 @@
         background: rgba(148, 163, 184, 0.2);
         color: #64748b;
       }
+      .online-board {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.36);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
+        display: grid;
+        gap: 12px;
+        animation: fade-up 840ms ease both;
+      }
+      .online-board-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .online-board-head h3 {
+        margin: 0;
+        font-size: 1.02rem;
+      }
+      .online-board-head p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+      .online-board-meta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #0f766e;
+        background: rgba(14, 116, 144, 0.14);
+        border: 1px solid rgba(14, 116, 144, 0.2);
+        border-radius: 999px;
+        padding: 6px 10px;
+      }
+      .online-board-list {
+        display: grid;
+        gap: 10px;
+      }
+      .online-rank-item {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.62);
+        border: 1px solid rgba(255,255,255,0.4);
+      }
+      .online-rank-no {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 12px 20px rgba(37, 99, 235, 0.18);
+      }
+      .online-rank-main {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+      .online-rank-main strong {
+        color: #1e293b;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .online-rank-path {
+        color: #64748b;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .online-rank-time {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        color: #0f766e;
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+      .online-rank-time span {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(20, 184, 166, 0.14);
+      }
+      .online-board-empty {
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(241, 245, 249, 0.92);
+        border: 1px dashed rgba(148, 163, 184, 0.3);
+        color: #64748b;
+        text-align: center;
+        font-size: 0.9rem;
+      }
       .feed-card,
       .notice-card,
       .chip-row,
@@ -474,6 +585,11 @@
         margin-left: auto;
         flex-shrink: 0;
       }
+        .summary-watch-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
       .chip-row::-webkit-scrollbar { display: none; }
       .chip,
       .action-chip {
@@ -644,31 +760,27 @@
       }
       .product-card {
         grid-column: span 4;
-        min-height: 280px;
-        border-radius: 24px;
-        overflow: hidden;
-        background: rgba(255,255,255,0.74);
-        border: 1px solid rgba(255,255,255,0.34);
-        display: grid;
+        border-radius: 30px;
+        padding: 18px;
+        background: rgba(255,255,255,0.96);
+        color: #1e293b;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 34px 90px rgba(15, 23, 42, 0.24);
         grid-template-rows: 1fr auto;
-        animation: fade-up 760ms ease both;
+        gap: 12px;
         transition: transform 180ms ease, box-shadow 180ms ease;
-      }
-      .product-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 26px 58px rgba(15, 23, 42, 0.12);
       }
       .product-card.featured {
         grid-column: span 4;
       }
       .product-card-header {
         padding: 18px 18px 0;
-        display: grid;
-        gap: 10px;
+        font-size: 1.1rem;
+        line-height: 1.35;
       }
       .index-tag {
         color: #5b8def;
-        font-size: 0.82rem;
+        justify-content: center;
         font-weight: 900;
       }
       .card-name {
@@ -737,21 +849,25 @@
         flex-wrap: wrap;
       }
       .buy-btn {
-        padding: 12px 16px;
-        background: linear-gradient(135deg, #ff78b1, #7c7cff, #32c5ff);
-        background-size: 200% 200%;
-        animation: shimmer 6s ease infinite, pulse-glow 3.6s ease-in-out infinite;
+        padding: 12px 18px;
+        background: linear-gradient(135deg, #ff6ea8, #8b5cf6 52%, #0ea5e9);
+        background-size: 220% 220%;
+        animation: shimmer 7s ease infinite, pulse-glow 4s ease-in-out infinite;
         color: #fff;
-        font-weight: 800;
-        box-shadow: 0 16px 34px rgba(124, 92, 255, 0.28);
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        border-radius: 18px;
+        box-shadow: 0 18px 38px rgba(124, 92, 255, 0.3);
       }
       .ghost-btn {
         padding: 10px 14px;
-        border-radius: 999px;
+        border-radius: 18px;
         text-decoration: none;
-        background: rgba(255,255,255,0.75);
+        background: rgba(255,255,255,0.88);
         color: #334155;
-        font-weight: 700;
+        font-weight: 800;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
       }
       .notice-card {
         margin-top: 14px;
@@ -761,13 +877,13 @@
       }
       .payment-head .btn,
       .payment-actions .btn {
-        background: rgba(255,255,255,0.98);
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.92));
         color: #111827;
         border: 1px solid rgba(148, 163, 184, 0.28);
         min-width: 88px;
         justify-content: center;
         padding: 10px 16px;
-        border-radius: 16px;
+        border-radius: 18px;
       }
       html[data-theme="night"] .payment-head .btn,
       html[data-theme="night"] .payment-actions .btn {
@@ -775,9 +891,14 @@
         color: #e2e8f0;
       }
       .payment-actions .btn-primary {
-        background: linear-gradient(135deg, #ff78b1, #8b5cf6, #38bdf8);
+        background: linear-gradient(135deg, #ff4d9d, #7c3aed, #06b6d4);
         color: #fff;
         font-weight: 900;
+        box-shadow: 0 16px 34px rgba(124, 58, 237, 0.26);
+      }
+      .payment-actions .btn-primary:hover,
+      .payment-actions .btn-primary:focus-visible {
+        box-shadow: 0 18px 38px rgba(124, 58, 237, 0.34);
       }
       .btn:hover,
       .payment-head .btn:hover,
@@ -823,6 +944,112 @@
         z-index: 70;
       }
       .card-secret-modal.open { display: flex; }
+      .announcement-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 65;
+      }
+      .announcement-modal.open { display: flex; }
+      .announcement-card {
+        width: min(480px, 100%);
+        border-radius: 30px;
+        padding: 18px;
+        background: rgba(255,255,255,0.96);
+        color: #1e293b;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 34px 90px rgba(15, 23, 42, 0.24);
+        display: grid;
+        gap: 12px;
+      }
+      html[data-theme="day"] .announcement-card {
+        background: rgba(255,255,255,0.98);
+        color: #111827;
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+      .announcement-top {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(224, 231, 255, 0.8), rgba(255, 255, 255, 0.82));
+        border: 1px solid rgba(191, 219, 254, 0.8);
+      }
+      .announcement-title {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #475569;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+      .announcement-body {
+        font-size: clamp(1.35rem, 3.6vw, 1.8rem);
+        line-height: 1.35;
+        font-weight: 900;
+        color: #1d4ed8;
+      }
+      .announcement-actions {
+        display: flex;
+        justify-content: center;
+      }
+      .announcement-sub {
+        color: #64748b;
+        line-height: 1.7;
+        font-size: 0.92rem;
+      }
+      .announcement-panel {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+      }
+      .announcement-tag {
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+      }
+      .announcement-list {
+        display: grid;
+        gap: 8px;
+      }
+      .announcement-list-item {
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: rgba(248, 250, 252, 0.92);
+        border: 1px solid rgba(226, 232, 240, 1);
+        color: #334155;
+        line-height: 1.6;
+      }
+      .announcement-foot {
+        padding: 14px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(244, 114, 182, 0.18), rgba(96, 165, 250, 0.18));
+        border: 1px solid rgba(191, 219, 254, 0.72);
+        color: #1e293b;
+      }
+      .announcement-actions .btn {
+        width: min(100%, 320px);
+        min-height: 52px;
+        padding-inline: 28px;
+        border: none;
+        color: #fff;
+        font-weight: 900;
+        background: linear-gradient(135deg, #ec4899, #4f46e5, #22c55e);
+        box-shadow: 0 16px 30px rgba(79, 70, 229, 0.24);
+      }
       .card-secret-card {
         width: min(460px, 100%);
         border-radius: 24px;
@@ -1371,11 +1598,13 @@
         }
         .hero { padding: 16px; }
         .hero-title { font-size: clamp(1.7rem, 9vw, 2.2rem); }
+        .announcement-card { margin: 12px 0 0; }
         .chip-row { gap: 8px; padding: 10px; }
         .shop-catalog { padding: 10px; gap: 10px; }
         .category-panel { padding: 10px; }
         .chip,
         .action-chip { font-size: 0.86rem; padding: 9px 12px; }
+        .online-board { padding: 12px; }
         .feed-card { padding: 14px; }
         .product-grid { gap: 10px; }
         .product-card { padding: 12px; border-radius: 14px; }
@@ -1481,20 +1710,29 @@
         </aside>
       </section>
 
+      <section class="notice-card announcement-card">
+        <strong>公告：</strong><span data-store-announcement>购买功能已正常开放</span>
+      </section>
+
       <section class="chip-row">
         <div class="summary-watch">
           <span class="watch-whitelist">管理白名单</span>
-          <div class="watch-row">
-            <span class="watch-role">管理</span>
-            <strong data-watch-naicha-name>naicha638104@163.com</strong>
-            <b class="offline" data-watch-naicha>离线</b>
+          <span class="watch-whitelist" data-store-whitelist-count>共 0 人</span>
+          <div class="summary-watch-list" data-store-whitelist-list></div>
+        </div>
+      </section>
+
+      <section class="online-board">
+        <div class="online-board-head">
+          <div>
+            <h3>在线账号榜</h3>
+            <p>按最近活跃时间排序，展示当前登录账号</p>
           </div>
-          <div class="watch-row">
-            <span class="watch-role">管理</span>
-            <strong data-watch-qq-name>3805506653@qq.com</strong>
-            <b class="offline" data-watch-qq>离线</b>
+          <div class="online-board-meta">
+            当前在线 <strong data-online-board-count>0</strong> 人 · <span data-online-board-updated>刚刚</span>
           </div>
         </div>
+        <div class="online-board-list" data-online-board-list></div>
       </section>
 
       <section class="feature-hub">
@@ -1540,6 +1778,27 @@
         </div>
       </section>
     </main>
+
+    <div class="announcement-modal" data-announcement-modal aria-hidden="true">
+      <div class="announcement-card" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
+        <div class="announcement-top">
+          <div class="announcement-title" id="announcement-title">SW SERVICE NOTICE</div>
+          <div class="announcement-body" data-announcement-body>购买功能已正常开放</div>
+          <div class="announcement-sub">本页公告每次进入都会弹出，开发者可以在控制面板修改内容。</div>
+        </div>
+        <div class="announcement-panel">
+          <div class="announcement-tag">NOTICE</div>
+          <div class="announcement-list">
+            <div class="announcement-list-item">购买功能已正常开放</div>
+            <div class="announcement-list-item">如需添加或移除管理白名单，请进入开发者控制面板</div>
+          </div>
+          <div class="announcement-foot">感谢大家一直以来的支持，后续会持续优化体验。</div>
+        </div>
+        <div class="announcement-actions">
+          <button class="btn" type="button" data-close-announcement>我知道了</button>
+        </div>
+      </div>
+    </div>
 
     <div class="payment-modal" data-payment-modal aria-hidden="true">
       <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="payment-title">
@@ -1716,10 +1975,15 @@
         const summaryCategories = document.querySelector('[data-summary-categories]');
         const siteOnline = document.querySelector('[data-site-online]');
         const siteTodayVisits = document.querySelector('[data-site-today-visits]');
-        const watchNaichaName = document.querySelector('[data-watch-naicha-name]');
-        const watchQqName = document.querySelector('[data-watch-qq-name]');
-        const watchNaicha = document.querySelector('[data-watch-naicha]');
-        const watchQq = document.querySelector('[data-watch-qq]');
+        const storeAnnouncement = document.querySelector('[data-store-announcement]');
+        const storeWhitelistCount = document.querySelector('[data-store-whitelist-count]');
+        const storeWhitelistList = document.querySelector('[data-store-whitelist-list]');
+        const announcementModal = document.querySelector('[data-announcement-modal]');
+        const announcementBody = document.querySelector('[data-announcement-body]');
+        const closeAnnouncementButton = document.querySelector('[data-close-announcement]');
+        const onlineBoardCount = document.querySelector('[data-online-board-count]');
+        const onlineBoardUpdated = document.querySelector('[data-online-board-updated]');
+        const onlineBoardList = document.querySelector('[data-online-board-list]');
         const feedMeta = document.querySelector('[data-feed-meta]');
         const feedDescription = document.querySelector('[data-feed-description]');
         const categoryCount = document.querySelector('[data-category-count]');
@@ -1787,6 +2051,9 @@
         const hongxingReturnOrderStorageKey = 'mctools-hongxing-return-order';
         const musicEnabledStorageKey = 'mctools-store-music-enabled';
         let musicEnabled = false;
+        let storeAnnouncementText = '购买功能已正常开放';
+        let storeWhitelistUsernames = [];
+        let onlineAccountsSnapshot = [];
 
         function updateMusicToggleView() {
           if (!musicToggleButton) {
@@ -1876,6 +2143,125 @@
           siteTodayVisits.textContent = String(Math.round(count));
         }
 
+        function setOnlineBoard(entries, updatedAt) {
+          if (onlineBoardCount) {
+            onlineBoardCount.textContent = String(Array.isArray(entries) ? entries.length : 0);
+          }
+
+          if (onlineBoardUpdated) {
+            const timestamp = updatedAt ? new Date(updatedAt) : null;
+            onlineBoardUpdated.textContent = timestamp && !Number.isNaN(timestamp.getTime())
+              ? timestamp.toLocaleTimeString('zh-CN', { hour12: false })
+              : '刚刚';
+          }
+
+          if (!onlineBoardList) {
+            return;
+          }
+
+          const normalizedEntries = Array.isArray(entries) ? entries : [];
+          if (normalizedEntries.length === 0) {
+            onlineBoardList.innerHTML = '<div class="online-board-empty">暂无在线账号，等一会儿会自动刷新。</div>';
+            return;
+          }
+
+          onlineBoardList.innerHTML = normalizedEntries.map((entry) => {
+            const rank = Number(entry?.rank || 0);
+            const activeSeconds = Number(entry?.activeSeconds || 0);
+            const label = escapeHtml(entry?.username || entry?.label || '匿名账号');
+            const role = entry?.isDeveloper ? '管理' : '在线';
+            const extra = escapeHtml(entry?.email || '');
+            return `
+              <div class="online-rank-item">
+                <div class="online-rank-no">${rank || '-'}</div>
+                <div class="online-rank-main">
+                  <strong>${label}</strong>
+                  <div class="online-rank-path">${extra}${extra ? ' · ' : ''}${role}</div>
+                </div>
+                <div class="online-rank-time"><span>${Math.max(1, Math.round(activeSeconds))} 秒</span></div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        function openAnnouncementModal() {
+          if (!announcementModal) {
+            return;
+          }
+
+          if (announcementBody) {
+            announcementBody.textContent = storeAnnouncementText || '购买功能已正常开放';
+          }
+
+          announcementModal.classList.add('open');
+          announcementModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeAnnouncementModal() {
+          if (!announcementModal) {
+            return;
+          }
+
+          announcementModal.classList.remove('open');
+          announcementModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function renderStoreWhitelist() {
+          const whitelist = Array.isArray(storeWhitelistUsernames) ? storeWhitelistUsernames : [];
+
+          if (storeAnnouncement) {
+            storeAnnouncement.textContent = storeAnnouncementText || '购买功能已正常开放';
+          }
+
+          if (storeWhitelistCount) {
+            storeWhitelistCount.textContent = `共 ${whitelist.length} 人`;
+          }
+
+          if (!storeWhitelistList) {
+            return;
+          }
+
+          const onlineMap = new Map(
+            onlineAccountsSnapshot.map((entry) => [String(entry?.username || '').trim().toLowerCase(), entry])
+          );
+
+          if (whitelist.length === 0) {
+            storeWhitelistList.innerHTML = '<div class="watch-row"><span class="watch-role">管理</span><strong>暂无白名单</strong><b class="offline">离线</b></div>';
+            return;
+          }
+
+          storeWhitelistList.innerHTML = whitelist.map((username) => {
+            const normalizedUsername = String(username || '').trim();
+            const onlineAccount = onlineMap.get(normalizedUsername.toLowerCase());
+            const isOnline = Boolean(onlineAccount);
+            return `
+              <div class="watch-row">
+                <span class="watch-role">管理</span>
+                <strong>${escapeHtml(normalizedUsername)}</strong>
+                <b class="${isOnline ? 'online' : 'offline'}">${isOnline ? '在线' : '离线'}</b>
+              </div>
+            `;
+          }).join('');
+        }
+
+        async function refreshStoreSettings() {
+          try {
+            const response = await fetch('/api/store/settings');
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '公告加载失败');
+            }
+
+            storeAnnouncementText = String(result?.announcement || '').trim() || '购买功能已正常开放';
+            storeWhitelistUsernames = Array.isArray(result?.whitelistUsernames) ? result.whitelistUsernames : [];
+            renderStoreWhitelist();
+          } catch {
+            storeAnnouncementText = '购买功能已正常开放';
+            storeWhitelistUsernames = ['霜庭幻影'];
+            renderStoreWhitelist();
+          }
+        }
+
         function setWatchedAccountStatus(target, online) {
           if (!target) {
             return;
@@ -1920,21 +2306,15 @@
 
             setSiteOnlineCount(result.online);
             setTodayVisitCount(result.todayVisits);
-
-            const watchedAccounts = Array.isArray(result.watchedAccounts) ? result.watchedAccounts : [];
-            const naicha = watchedAccounts.find((item) => String(item?.email || '').toLowerCase() === 'naicha638104@163.com');
-            const qq = watchedAccounts.find((item) => String(item?.email || '').toLowerCase() === '3805506653@qq.com');
-            setWatchedAccountName(watchNaichaName, 'naicha638104@163.com', naicha?.username);
-            setWatchedAccountName(watchQqName, '3805506653@qq.com', qq?.username);
-            setWatchedAccountStatus(watchNaicha, Boolean(naicha?.online));
-            setWatchedAccountStatus(watchQq, Boolean(qq?.online));
+            onlineAccountsSnapshot = Array.isArray(result.onlineAccounts) ? result.onlineAccounts : [];
+            setOnlineBoard(onlineAccountsSnapshot, result.updatedAt);
+            renderStoreWhitelist();
           } catch {
             setSiteOnlineCount(NaN);
             setTodayVisitCount(NaN);
-            setWatchedAccountName(watchNaichaName, 'naicha638104@163.com', '');
-            setWatchedAccountName(watchQqName, '3805506653@qq.com', '');
-            setWatchedAccountStatus(watchNaicha, false);
-            setWatchedAccountStatus(watchQq, false);
+            setOnlineBoard([], null);
+            onlineAccountsSnapshot = [];
+            renderStoreWhitelist();
           }
         }
 
@@ -2677,6 +3057,8 @@
             return;
           }
 
+          closeAnnouncementModal();
+
           cardSecretValue.textContent = String(cardSecret || '').trim() || '未获取到卡密';
           cardSecretModal.classList.add('open');
           cardSecretModal.setAttribute('aria-hidden', 'false');
@@ -2721,8 +3103,16 @@
             throw new Error(result.message || '查询订单失败');
           }
 
-          if (!result.paid || !result.cardSecret) {
+          if (!result.paid) {
             throw new Error('订单尚未支付成功，请完成付款后重试');
+          }
+
+          if (!String(result.cardSecret || '').trim()) {
+            setPaymentStatus('订单已支付，卡密生成中，请稍候...');
+            if (paymentStatusPollingOrderNo !== normalizedOrderNo) {
+              startOrderStatusPolling(normalizedOrderNo);
+            }
+            return;
           }
 
           shownCardSecretOrderNo = String(result.orderNo || '');
@@ -2822,6 +3212,8 @@
                   shownCardSecretOrderNo = String(result.orderNo || '');
                   openCardSecretModal(result.cardSecret);
                 }
+              } else if (result?.paid && !result?.cardSecret) {
+                setPaymentStatus('微信支付已确认，卡密正在生成，请稍候...');
               }
             } catch {
               // Keep polling for transient network failures.
@@ -3341,6 +3733,18 @@
           });
         }
 
+        if (announcementModal) {
+          announcementModal.addEventListener('click', (event) => {
+            if (event.target === announcementModal) {
+              closeAnnouncementModal();
+            }
+          });
+        }
+
+        if (closeAnnouncementButton) {
+          closeAnnouncementButton.addEventListener('click', closeAnnouncementModal);
+        }
+
         setAuthTab(authMode);
 
         try {
@@ -3352,6 +3756,8 @@
 
         loadAccountState().then(async () => {
           updateAuthTrigger();
+          await refreshStoreSettings();
+          openAnnouncementModal();
           await loadStoreProducts();
           startOnlineHeartbeat();
           await resumeHongxingPaymentFromQuery();

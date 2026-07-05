@@ -125,6 +125,60 @@
         resize: vertical;
         min-height: 42px;
       }
+      .settings-block {
+        display: grid;
+        gap: 10px;
+      }
+      .settings-inline {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .settings-inline input {
+        flex: 1 1 220px;
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        font: inherit;
+      }
+      .settings-block textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        font: inherit;
+        min-height: 92px;
+        resize: vertical;
+      }
+      .whitelist-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .whitelist-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        font-weight: 700;
+      }
+      .whitelist-pill button {
+        border: none;
+        background: rgba(239, 68, 68, 0.12);
+        color: #b91c1c;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-weight: 900;
+      }
+      .settings-note {
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
       .admin-table {
         display: grid;
         gap: 10px;
@@ -199,6 +253,21 @@
         </div>
 
         <div class="admin-panel" data-admin-panel hidden>
+          <div class="section-title">公告和白名单</div>
+          <div class="settings-block">
+            <textarea placeholder="公告内容，例如：购买功能已正常开放" data-store-announcement></textarea>
+            <div class="settings-inline">
+              <input type="text" placeholder="输入要加入白名单的用户名" data-store-whitelist-input />
+              <button type="button" class="primary" data-store-whitelist-add>添加白名单</button>
+            </div>
+            <textarea placeholder="白名单用户名，每行一个，例如：霜庭幻影" data-store-whitelist hidden></textarea>
+            <div class="whitelist-list" data-store-whitelist-list></div>
+            <div class="settings-note">白名单用户名会被识别为管理账号，同时会显示在商店页的管理白名单和在线账号榜中。</div>
+            <div>
+              <button type="button" class="primary" data-store-settings-save>保存公告和白名单</button>
+            </div>
+          </div>
+
           <div class="section-title">新增商品</div>
           <div class="admin-grid">
             <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-create-code />
@@ -227,6 +296,12 @@
         const adminTable = document.querySelector('[data-admin-table]');
         const refreshButton = document.querySelector('[data-refresh]');
         const clearTokenButton = document.querySelector('[data-clear-token]');
+        const storeAnnouncementInput = document.querySelector('[data-store-announcement]');
+        const storeWhitelistInput = document.querySelector('[data-store-whitelist]');
+        const storeWhitelistInputBox = document.querySelector('[data-store-whitelist-input]');
+        const storeWhitelistAddButton = document.querySelector('[data-store-whitelist-add]');
+        const storeWhitelistList = document.querySelector('[data-store-whitelist-list]');
+        const storeSettingsSaveButton = document.querySelector('[data-store-settings-save]');
 
         const createCode = document.querySelector('[data-create-code]');
         const createName = document.querySelector('[data-create-name]');
@@ -286,6 +361,92 @@
             headers.Authorization = `Bearer ${accountState.token}`;
           }
           return headers;
+        }
+
+        function normalizeWhitelistText(text) {
+          return Array.from(new Set(String(text || '')
+            .split(/[\n\r,]+/)
+            .map((item) => String(item || '').trim())
+            .filter(Boolean)));
+        }
+
+        function syncWhitelistTextarea(list) {
+          if (!storeWhitelistInput) {
+            return;
+          }
+
+          storeWhitelistInput.value = Array.isArray(list) ? list.join('\n') : '';
+        }
+
+        function renderWhitelistList(list) {
+          const usernames = Array.isArray(list) ? list : [];
+
+          if (!storeWhitelistList) {
+            return;
+          }
+
+          if (usernames.length === 0) {
+            storeWhitelistList.innerHTML = '<div class="settings-note">暂无白名单成员，添加后会显示在这里。</div>';
+            syncWhitelistTextarea([]);
+            return;
+          }
+
+          storeWhitelistList.innerHTML = usernames.map((username) => `
+            <span class="whitelist-pill" data-whitelist-user="${escapeHtml(username)}">
+              <strong>${escapeHtml(username)}</strong>
+              <button type="button" data-whitelist-remove="${escapeHtml(username)}">删除</button>
+            </span>
+          `).join('');
+
+          syncWhitelistTextarea(usernames);
+        }
+
+        function getWhitelistFromUI() {
+          return normalizeWhitelistText(storeWhitelistInput?.value || '');
+        }
+
+        async function loadStoreSettings() {
+          try {
+            const response = await fetch('/api/store/settings');
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '加载公告失败');
+            }
+
+            if (storeAnnouncementInput) {
+              storeAnnouncementInput.value = String(result?.announcement || '');
+            }
+            renderWhitelistList(Array.isArray(result?.whitelistUsernames) ? result.whitelistUsernames : []);
+          } catch (error) {
+            if (storeAnnouncementInput) {
+              storeAnnouncementInput.value = '购买功能已正常开放';
+            }
+            renderWhitelistList(['霜庭幻影']);
+            setStatus(error.message || '加载公告配置失败', true);
+          }
+        }
+
+        async function saveStoreSettings() {
+          const announcement = String(storeAnnouncementInput?.value || '').trim();
+          const whitelistUsernames = getWhitelistFromUI();
+
+          setStatus('正在保存公告和白名单...');
+          const response = await fetch('/api/store/settings', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              announcement,
+              whitelistUsernames
+            })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || `保存失败 (${response.status})`);
+          }
+
+          setStatus(result.message || '公告和白名单已更新');
+          await loadStoreSettings();
         }
 
         async function loadAccountState() {
@@ -398,6 +559,7 @@
           }
 
           try {
+            await loadStoreSettings();
             const response = await fetch('/api/store/products/admin', {
               headers: getAuthHeaders()
             });
@@ -472,6 +634,37 @@
             } catch (error) {
               setStatus(error.message || '新增失败', true);
             }
+          });
+        }
+
+        if (storeSettingsSaveButton) {
+          storeSettingsSaveButton.addEventListener('click', async () => {
+            try {
+              await saveStoreSettings();
+            } catch (error) {
+              setStatus(error.message || '保存公告和白名单失败', true);
+            }
+          });
+        }
+
+        if (storeWhitelistAddButton) {
+          storeWhitelistAddButton.addEventListener('click', () => {
+            const nextName = String(storeWhitelistInputBox?.value || '').trim();
+            if (!nextName) {
+              setStatus('请输入要添加的白名单用户名', true);
+              return;
+            }
+
+            const nextList = normalizeWhitelistText(storeWhitelistInput?.value || '');
+            if (!nextList.includes(nextName)) {
+              nextList.push(nextName);
+            }
+
+            renderWhitelistList(nextList);
+            if (storeWhitelistInputBox) {
+              storeWhitelistInputBox.value = '';
+            }
+            setStatus(`已加入白名单：${nextName}`);
           });
         }
 
@@ -556,6 +749,20 @@
                 setStatus(error.message || '切换失败', true);
               }
             }
+          });
+        }
+
+        if (storeWhitelistList) {
+          storeWhitelistList.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('[data-whitelist-remove]');
+            if (!removeButton) {
+              return;
+            }
+
+            const removeName = String(removeButton.dataset.whitelistRemove || '').trim();
+            const nextList = normalizeWhitelistText(storeWhitelistInput?.value || '').filter((item) => item !== removeName);
+            renderWhitelistList(nextList);
+            setStatus(`已移出白名单：${removeName}`);
           });
         }
 

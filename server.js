@@ -337,6 +337,8 @@ const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const communitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 const siteOnlineVisitorLifetimeMs = 1000 * 75;
 const watchedCommunityEmails = ['naicha638104@163.com', '3805506653@qq.com'];
+const defaultStoreWhitelistUsernames = ['霜庭幻影'];
+const defaultStoreAnnouncement = '购买功能已正常开放';
 const authEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 const defaultStoreProducts = [
@@ -783,6 +785,39 @@ function handleStoreProductsAdmin(request, response) {
   });
 }
 
+function handleStoreSettingsRead(request, response) {
+  sendJson(response, 200, getStorePublicSettings());
+}
+
+function handleStoreSettingsSave(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const announcement = String(body.announcement || '').trim();
+      const whitelistUsernames = normalizeStoreWhitelistUsernames(body.whitelistUsernames || body.whitelist || []);
+
+      saveStorePublicSettings({
+        announcement,
+        whitelistUsernames
+      });
+
+      sendJson(response, 200, {
+        message: '公告和白名单已更新',
+        ...getStorePublicSettings(),
+        operator: session.username
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
 function handleStoreProductsCreate(request, response) {
   const session = requireCommunityDeveloper(request, response);
 
@@ -1065,7 +1100,7 @@ function normalizePaymentSuccess(value) {
   }
 
   const normalized = String(value || '').trim().toUpperCase();
-  return ['SUCCESS', 'TRADE_SUCCESS', 'PAID', 'PAY_SUCCESS', '1', 'TRUE', 'Y', 'YES', 'COMPLETED'].includes(normalized);
+  return ['SUCCESS', 'TRADE_SUCCESS', 'PAID', 'PAY_SUCCESS', 'PAYED', 'SUCCESSFUL', 'DONE', '1', 'TRUE', 'Y', 'YES', 'COMPLETED', 'OK'].includes(normalized);
 }
 
 function pickFirstDefined(source, paths) {
@@ -1134,11 +1169,23 @@ function extractPaymentStatus(payload, fallback = 'PENDING') {
     'trade_status',
     'payStatus',
     'pay_status',
+    'trade_state',
+    'tradeState',
+    'result.status',
+    'result.tradeStatus',
+    'result.trade_status',
+    'data.status',
     'data.status',
     'data.tradeStatus',
     'data.trade_status',
+    'data.trade_state',
+    'data.tradeState',
     'data.payStatus',
-    'data.pay_status'
+    'data.pay_status',
+    'data.result.status',
+    'data.result.tradeStatus',
+    'data.result.trade_status',
+    'data.result.trade_state'
   ]) || fallback).trim().toUpperCase();
 }
 
@@ -1989,13 +2036,13 @@ function resolveSiteVisitorKey(request) {
   return `fp:${crypto.createHash('sha1').update(fallbackSource).digest('hex')}`;
 }
 
-function touchSiteOnlineVisitor(request) {
+function touchSiteOnlineVisitor(request, pathnameOverride = '') {
   cleanupExpiredSiteOnlineVisitors();
 
   const visitorKey = resolveSiteVisitorKey(request);
   siteOnlineVisitors.set(visitorKey, {
     lastSeenAt: Date.now(),
-    pathname: getPathname(request.url || '/'),
+    pathname: String(pathnameOverride || getPathname(request.url || '/')).trim() || '/',
     userAgent: String(request.headers['user-agent'] || '').slice(0, 180)
   });
 
@@ -2056,8 +2103,107 @@ function getWatchedCommunityAccountStatuses() {
   });
 }
 
-function handleSiteOnlinePing(request, response) {
-  touchSiteOnlineVisitor(request);
+function getCommunityOnlineLeaderboard() {
+  cleanupExpiredCommunityCodes();
+  const now = Date.now();
+  const latestByUsername = new Map();
+
+  for (const [token, session] of communitySessions.entries()) {
+    if (!session || session.expiresAt <= now) {
+      continue;
+    }
+
+    const username = String(session.username || '').trim();
+    if (!username) {
+      continue;
+    }
+
+    const lastSeenAt = Number(session.lastSeenAt || 0) || session.expiresAt - communitySessionLifetimeMs;
+    const existing = latestByUsername.get(username);
+    if (!existing || lastSeenAt > existing.lastSeenAt || (lastSeenAt === existing.lastSeenAt && token.localeCompare(existing.token) > 0)) {
+      latestByUsername.set(username, {
+        token,
+        username,
+        email: String(session.email || '').trim().toLowerCase(),
+        isDeveloper: Boolean(session.isDeveloper),
+        lastSeenAt,
+        expiresAt: Number(session.expiresAt || 0)
+      });
+    }
+  }
+
+  return Array.from(latestByUsername.values())
+    .sort((left, right) => right.lastSeenAt - left.lastSeenAt || left.username.localeCompare(right.username, 'zh-CN'))
+    .slice(0, 8)
+    .map((entry, index) => ({
+      rank: index + 1,
+      username: entry.username,
+      email: entry.email,
+      isDeveloper: entry.isDeveloper,
+      activeSeconds: Math.max(1, Math.round((now - entry.lastSeenAt) / 1000)),
+      lastSeenAt: new Date(entry.lastSeenAt).toISOString(),
+      expiresAt: new Date(entry.expiresAt).toISOString()
+    }));
+}
+
+function getSiteOnlinePageLabel(pathname) {
+  const normalizedPath = String(pathname || '/').trim() || '/';
+
+  if (normalizedPath === '/' || normalizedPath === '/index.html') {
+    return '首页';
+  }
+
+  if (normalizedPath === '/store.html') {
+    return '商店页';
+  }
+
+  if (normalizedPath === '/store-admin.html') {
+    return '开发者后台';
+  }
+
+  if (normalizedPath === '/server-hub.html') {
+    return '服务器大厅';
+  }
+
+  const baseName = path.basename(normalizedPath, path.extname(normalizedPath));
+  return baseName ? baseName.replace(/[-_]/g, ' ') : normalizedPath;
+}
+
+function getSiteOnlineLeaderboard() {
+  cleanupExpiredSiteOnlineVisitors();
+  const now = Date.now();
+
+  return Array.from(siteOnlineVisitors.entries())
+    .map(([visitorKey, visitor]) => ({
+      visitorKey,
+      pathname: String(visitor?.pathname || '/').trim() || '/',
+      userAgent: String(visitor?.userAgent || '').trim(),
+      lastSeenAt: Number(visitor?.lastSeenAt || 0)
+    }))
+    .filter((entry) => entry.lastSeenAt > 0)
+    .sort((left, right) => right.lastSeenAt - left.lastSeenAt || left.visitorKey.localeCompare(right.visitorKey))
+    .slice(0, 8)
+    .map((entry, index) => ({
+      rank: index + 1,
+      label: getSiteOnlinePageLabel(entry.pathname),
+      pathname: entry.pathname,
+      activeSeconds: Math.max(1, Math.round((now - entry.lastSeenAt) / 1000)),
+      lastSeenAt: new Date(entry.lastSeenAt).toISOString(),
+      visitorHint: entry.visitorKey.slice(-6).toUpperCase()
+    }));
+}
+
+async function handleSiteOnlinePing(request, response) {
+  let pathname = '';
+
+  try {
+    const body = await parseRequestBody(request);
+    pathname = String(body?.pathname || '').trim();
+  } catch {
+    pathname = '';
+  }
+
+  touchSiteOnlineVisitor(request, pathname);
 
   sendJson(response, 200, {
     success: true,
@@ -2068,12 +2214,12 @@ function handleSiteOnlinePing(request, response) {
 }
 
 function handleSiteOnlineStats(request, response) {
-  touchSiteOnlineVisitor(request);
-
   sendJson(response, 200, {
     online: siteOnlineVisitors.size,
     todayVisits: getTodaySiteVisitCount(),
     watchedAccounts: getWatchedCommunityAccountStatuses(),
+    onlineAccounts: getCommunityOnlineLeaderboard(),
+    onlineLeaderboard: getCommunityOnlineLeaderboard(),
     ttlSeconds: Math.round(siteOnlineVisitorLifetimeMs / 1000),
     updatedAt: new Date().toISOString()
   });
@@ -2336,6 +2482,7 @@ function getCommunitySessionFromRequest(request) {
     const token = authHeader.substring(7);
     const session = communitySessions.get(token);
     if (session && session.expiresAt > Date.now()) {
+      session.lastSeenAt = Date.now();
       return session;
     }
   }
@@ -2347,6 +2494,7 @@ function getCommunitySessionFromRequest(request) {
     const token = decodeURIComponent(match[1]);
     const session = communitySessions.get(token);
     if (session && session.expiresAt > Date.now()) {
+      session.lastSeenAt = Date.now();
       return session;
     }
   }
@@ -2360,6 +2508,7 @@ function issueCommunitySession(response, username, email, isCommunityDeveloper) 
     username,
     email,
     isDeveloper: Boolean(isCommunityDeveloper),
+    lastSeenAt: Date.now(),
     expiresAt: Date.now() + communitySessionLifetimeMs
   });
 
@@ -3421,6 +3570,51 @@ function setSettingValue(settingKey, value) {
   ).run(settingKey, String(value));
 }
 
+function normalizeStoreWhitelistUsernames(value) {
+  if (Array.isArray(value)) {
+    return Array.from(new Set(value.map((item) => String(item || '').trim()).filter(Boolean)));
+  }
+
+  const normalized = String(value || '')
+    .split(/[,\n\r]+/)
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(normalized));
+}
+
+function getStoreWhitelistUsernames() {
+  try {
+    return normalizeStoreWhitelistUsernames(
+      JSON.parse(getSettingValue('store_whitelist_usernames', JSON.stringify(defaultStoreWhitelistUsernames)))
+    );
+  } catch {
+    return [...defaultStoreWhitelistUsernames];
+  }
+}
+
+function getStoreAnnouncementText() {
+  const value = String(getSettingValue('store_announcement', defaultStoreAnnouncement) || '').trim();
+  return value || defaultStoreAnnouncement;
+}
+
+function getStorePublicSettings() {
+  return {
+    announcement: getStoreAnnouncementText(),
+    whitelistUsernames: getStoreWhitelistUsernames()
+  };
+}
+
+function saveStorePublicSettings(nextSettings) {
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'announcement')) {
+    setSettingValue('store_announcement', String(nextSettings.announcement || '').trim() || defaultStoreAnnouncement);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'whitelistUsernames')) {
+    setSettingValue('store_whitelist_usernames', JSON.stringify(normalizeStoreWhitelistUsernames(nextSettings.whitelistUsernames)));
+  }
+}
+
 function sanitizeAppVersion(value) {
   const nextVersion = String(value || '').trim();
 
@@ -3441,7 +3635,11 @@ function isDeveloper(username) {
   }
 
   const row = db.prepare('SELECT is_developer AS isDeveloper FROM users WHERE username = ?').get(username);
-  return Boolean(row && row.isDeveloper);
+  if (row && row.isDeveloper) {
+    return true;
+  }
+
+  return getStoreWhitelistUsernames().includes(String(username || '').trim());
 }
 
 function isPrivilegedUser(username) {
@@ -3529,6 +3727,20 @@ function ensureAppSettings() {
 }
 
 ensureAppSettings();
+
+function ensureStoreSettings() {
+  const storedAnnouncement = String(getSettingValue('store_announcement', '') || '').trim();
+  if (!storedAnnouncement) {
+    setSettingValue('store_announcement', defaultStoreAnnouncement);
+  }
+
+  const storedWhitelist = String(getSettingValue('store_whitelist_usernames', '') || '').trim();
+  if (!storedWhitelist) {
+    setSettingValue('store_whitelist_usernames', JSON.stringify(defaultStoreWhitelistUsernames));
+  }
+}
+
+ensureStoreSettings();
 
 function handleRegister(request, response) {
   parseRequestBody(request)
@@ -5503,6 +5715,16 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'GET' && pathname === '/api/store/products/admin') {
       handleStoreProductsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/settings') {
+      handleStoreSettingsRead(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/settings') {
+      handleStoreSettingsSave(request, response);
       return;
     }
 
