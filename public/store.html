@@ -39,6 +39,19 @@
           radial-gradient(circle at 50% 88%, rgba(255,255,255,0.22), transparent 20%);
         opacity: 0.95;
       }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 18% 16%, rgba(255, 188, 214, 0.34), transparent 28%),
+          radial-gradient(circle at 78% 20%, rgba(196, 181, 253, 0.26), transparent 26%),
+          radial-gradient(circle at 64% 72%, rgba(186, 230, 253, 0.24), transparent 30%),
+          linear-gradient(125deg, rgba(255, 240, 250, 0.58), rgba(226, 244, 255, 0.4) 40%, rgba(240, 246, 255, 0.58));
+        opacity: 0.54;
+        filter: saturate(1.1);
+      }
       html[data-theme="night"] body {
         background:
           radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.18), transparent 48%),
@@ -46,10 +59,20 @@
           linear-gradient(180deg, #0f172a 0%, #111827 55%, #0f172a 100%);
         color: #e2e8f0;
       }
+      html[data-theme="night"] body::after {
+        opacity: 0.3;
+        background:
+          radial-gradient(circle at 18% 16%, rgba(236, 72, 153, 0.14), transparent 28%),
+          radial-gradient(circle at 78% 20%, rgba(129, 140, 248, 0.18), transparent 26%),
+          radial-gradient(circle at 64% 72%, rgba(56, 189, 248, 0.12), transparent 30%),
+          linear-gradient(125deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.32) 40%, rgba(15, 23, 42, 0.65));
+      }
       .shell {
         width: min(1180px, calc(100% - 28px));
         margin: 0 auto;
         padding: 18px 0 80px;
+        position: relative;
+        z-index: 1;
       }
       @keyframes float-soft {
         0% { transform: translateY(0px); }
@@ -366,9 +389,63 @@
         font-weight: 800;
         letter-spacing: 0.06em;
       }
+      .summary-watch {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .watch-whitelist {
+        font-size: 0.76rem;
+        font-weight: 900;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(14, 116, 144, 0.14);
+        color: #0f766e;
+        border: 1px solid rgba(14, 116, 144, 0.24);
+      }
+      .watch-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.56);
+        border: 1px solid rgba(255,255,255,0.42);
+        font-size: 0.84rem;
+      }
+      .watch-role {
+        font-size: 0.72rem;
+        font-weight: 900;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.08);
+        color: #334155;
+      }
+      .watch-row strong {
+        color: #334155;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+      .watch-row b {
+        font-size: 0.8rem;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.2);
+        color: #64748b;
+      }
+      .watch-row b.online {
+        background: rgba(34, 197, 94, 0.2);
+        color: #166534;
+      }
+      .watch-row b.offline {
+        background: rgba(148, 163, 184, 0.2);
+        color: #64748b;
+      }
       .feed-card,
       .notice-card,
-      .chip-row {
+      .chip-row,
+      .feature-hub {
         margin-top: 14px;
         border-radius: 24px;
         background: rgba(255,255,255,0.7);
@@ -384,6 +461,10 @@
         align-items: center;
         overflow-x: auto;
         scrollbar-width: none;
+      }
+      .chip-row .summary-watch {
+        margin-left: auto;
+        flex-shrink: 0;
       }
       .chip-row::-webkit-scrollbar { display: none; }
       .chip,
@@ -414,6 +495,118 @@
         margin-left: auto;
         background: rgba(241, 245, 249, 0.9);
       }
+      .feature-hub {
+        padding: 14px;
+        display: grid;
+        gap: 10px;
+      }
+      .feature-hub-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .feature-hub-head h3 {
+        margin: 0;
+        font-size: 1.02rem;
+      }
+      .feature-hub-head p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .feature-btn {
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(255,255,255,0.8);
+        border-radius: 16px;
+        padding: 12px;
+        text-align: left;
+        display: grid;
+        gap: 4px;
+        cursor: pointer;
+      }
+      .feature-btn strong {
+        font-size: 0.95rem;
+      }
+      .feature-btn span {
+        font-size: 0.82rem;
+        color: #64748b;
+      }
+      .feature-btn.primary {
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(37, 99, 235, 0.92));
+        color: #fff;
+        border: none;
+      }
+      .feature-btn.primary span {
+        color: rgba(255,255,255,0.9);
+      }
+      .feature-btn.warn {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(234, 88, 12, 0.9));
+        color: #fff;
+        border: none;
+      }
+      .feature-btn.warn span {
+        color: rgba(255,255,255,0.9);
+      }
+      .shop-catalog {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 12px;
+        padding: 12px;
+      }
+      .category-panel {
+        border-radius: 18px;
+        padding: 12px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.45);
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .category-title {
+        margin: 0;
+        font-size: 0.92rem;
+        color: #475569;
+      }
+      .category-count {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.82rem;
+      }
+      .category-list {
+        display: grid;
+        gap: 8px;
+      }
+      .category-btn {
+        text-align: left;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        background: rgba(255,255,255,0.85);
+        border-radius: 12px;
+        padding: 10px 12px;
+        color: #334155;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .category-btn.active {
+        background: linear-gradient(135deg, #fb7185, #f43f5e);
+        border-color: transparent;
+        color: #fff;
+        box-shadow: 0 12px 22px rgba(244, 63, 94, 0.24);
+      }
+      .category-btn:hover {
+        transform: translateY(-1px);
+      }
+      .catalog-main {
+        border-radius: 18px;
+        background: rgba(255,255,255,0.46);
+        border: 1px solid rgba(255,255,255,0.3);
+      }
       .section-band {
         display: flex;
         justify-content: space-between;
@@ -437,6 +630,9 @@
         grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: 18px;
         padding: 18px 20px 20px;
+      }
+      .catalog-main .notice-card {
+        margin: 0 20px 20px;
       }
       .product-card {
         grid-column: span 4;
@@ -978,24 +1174,29 @@
         background: rgba(255,255,255,0.08);
         color: #e2e8f0;
       }
-      .admin-modal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 18px;
-        background: rgba(2, 6, 23, 0.78);
-        backdrop-filter: blur(12px);
-        z-index: 80;
+      .admin-inline {
+        width: min(1180px, calc(100% - 28px));
+        margin: 14px auto 48px;
+        margin-top: 14px;
       }
-      .admin-modal.open {
-        display: flex;
+      .admin-inline[hidden] {
+        display: none;
+      }
+      .admin-locked {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.06);
+        color: #dc2626;
+        font-size: 0.92rem;
+      }
+      html[data-theme="night"] .admin-locked {
+        background: rgba(255,255,255,0.08);
+        color: #fecaca;
       }
       .admin-card {
-        width: min(980px, 100%);
-        max-height: calc(100vh - 28px);
-        overflow-y: auto;
+        width: 100%;
+        max-height: none;
+        overflow: visible;
         border-radius: 24px;
         padding: 20px;
         background: rgba(255,255,255,0.96);
@@ -1017,6 +1218,14 @@
       }
       .admin-head h3 {
         margin: 0;
+      }
+      .admin-section-title {
+        margin: 2px 0 0;
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
       .admin-grid {
         display: grid;
@@ -1100,7 +1309,21 @@
       @media (max-width: 980px) {
         .hero-shell { grid-template-columns: 1fr; }
         .hero { grid-template-columns: 1fr; }
-        .product-card { grid-column: span 12; }
+        .product-card,
+        .product-card.featured { grid-column: span 12; }
+        .feature-grid { grid-template-columns: 1fr 1fr; }
+        .shop-catalog { grid-template-columns: 1fr; }
+        .category-list {
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          padding-bottom: 4px;
+        }
+        .category-list::-webkit-scrollbar { display: none; }
+        .category-btn {
+          white-space: nowrap;
+          min-width: max-content;
+        }
         .admin-grid {
           grid-template-columns: 1fr 1fr;
         }
@@ -1114,6 +1337,75 @@
         .top-actions { justify-content: center; flex-wrap: wrap; }
         .hero, .summary-card, .feed-card, .notice-card { border-radius: 22px; }
         .hero-stats { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 560px) {
+        .shell { width: min(100% - 12px, 1180px); padding-top: 12px; }
+        .brand,
+        .top-actions,
+        .hero,
+        .summary-card,
+        .feed-card,
+        .notice-card,
+        .category-panel,
+        .catalog-main { border-radius: 16px; }
+        .top-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 8px;
+          padding: 8px;
+        }
+        .top-actions .theme-toggle,
+        .top-actions .auth-trigger,
+        .top-actions [data-control-panel] {
+          width: 100%;
+          min-height: 42px;
+          justify-content: center;
+        }
+        .hero { padding: 16px; }
+        .hero-title { font-size: clamp(1.7rem, 9vw, 2.2rem); }
+        .chip-row { gap: 8px; padding: 10px; }
+        .shop-catalog { padding: 10px; gap: 10px; }
+        .category-panel { padding: 10px; }
+        .chip,
+        .action-chip { font-size: 0.86rem; padding: 9px 12px; }
+        .feed-card { padding: 14px; }
+        .product-grid { gap: 10px; }
+        .product-card { padding: 12px; border-radius: 14px; }
+        .catalog-main .notice-card { margin: 0 12px 12px; }
+        .feature-grid { grid-template-columns: 1fr; }
+        .payment-modal,
+        .auth-modal,
+        .card-secret-modal { padding: 10px; }
+        .admin-inline {
+          width: min(100% - 12px, 1180px);
+          margin: 12px auto 24px;
+        }
+        .payment-card,
+        .auth-card,
+        .card-secret-card,
+        .admin-card {
+          width: 100%;
+          max-height: calc(100vh - 12px);
+          padding: 14px;
+          border-radius: 16px;
+        }
+        .payment-head,
+        .auth-head,
+        .admin-head {
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .payment-code-frame { height: min(240px, 38vh); border-radius: 16px; }
+        .payment-status,
+        .payment-order-row { gap: 6px; padding: 10px 12px; }
+        .payment-actions { gap: 8px; }
+        .payment-actions .btn,
+        .payment-actions .btn-primary,
+        .auth-send-btn,
+        .auth-verify-btn,
+        .admin-submit { width: 100%; justify-content: center; }
+        .auth-captcha-row { flex-direction: column; }
+        .admin-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -1169,32 +1461,73 @@
               <strong data-summary-categories>0</strong>
             </div>
             <div class="side-stat">
-              <span>查单状态</span>
-              <strong>暂停</strong>
+              <span>在线人数</span>
+              <strong data-site-online>--</strong>
+            </div>
+            <div class="side-stat">
+              <span>今日访问</span>
+              <strong data-site-today-visits>--</strong>
             </div>
           </div>
         </aside>
       </section>
 
       <section class="chip-row">
-        <div class="chip" data-chip-primary>动态上架</div>
-        <div class="chip">付款码支付</div>
-        <button class="action-chip" type="button" disabled>查单暂未开放</button>
+        <div class="summary-watch">
+          <span class="watch-whitelist">管理白名单</span>
+          <div class="watch-row">
+            <span class="watch-role">管理</span>
+            <strong data-watch-naicha-name>naicha638104@163.com</strong>
+            <b class="offline" data-watch-naicha>离线</b>
+          </div>
+          <div class="watch-row">
+            <span class="watch-role">管理</span>
+            <strong data-watch-qq-name>3805506653@qq.com</strong>
+            <b class="offline" data-watch-qq>离线</b>
+          </div>
+        </div>
+      </section>
+
+      <section class="feature-hub">
+        <div class="feature-hub-head">
+          <h3>功能分区</h3>
+          <p>把购买、账号、开发操作分开，减少误触</p>
+        </div>
+        <div class="feature-grid">
+          <button class="feature-btn" type="button" data-feature-action="auth">
+            <strong>账号中心</strong>
+            <span>登录、注册、切换账号</span>
+          </button>
+          <a class="feature-btn warn" href="/store-admin.html">
+            <strong>开发者后台</strong>
+            <span>新增、调价、上下架商品</span>
+          </a>
+        </div>
       </section>
 
       <section class="feed-card">
-        <div class="section-band">
-          <div>
-            <h2>推荐商品</h2>
-            <p data-feed-description>商品由控制面板动态管理，可自行上架、下架和调价。</p>
+        <div class="shop-catalog">
+          <aside class="category-panel">
+            <h3 class="category-title">物品分类</h3>
+            <p class="category-count" data-category-count>共 0 类</p>
+            <div class="category-list" data-category-list></div>
+          </aside>
+
+          <div class="catalog-main">
+            <div class="section-band">
+              <div>
+                <h2>推荐商品</h2>
+                <p data-feed-description>商品由控制面板动态管理，可自行上架、下架和调价。</p>
+              </div>
+              <div class="feed-meta" data-feed-meta>0 个商品在线</div>
+            </div>
+
+            <div class="product-grid" data-product-grid></div>
+
+            <div class="notice-card">
+              购买按钮已接入支付流程，可直接使用。商品运营改为动态配置，你可以在控制面板上自行上架、下架和调价。
+            </div>
           </div>
-          <div class="feed-meta" data-feed-meta>0 个商品在线</div>
-        </div>
-
-        <div class="product-grid" data-product-grid></div>
-
-        <div class="notice-card">
-          购买按钮已经接到微信支付下单流程。先注册账号并通过验证码后才能购买。商品运营改为动态配置，你可以在控制面板上自行上架、下架和调价。
         </div>
       </section>
     </main>
@@ -1202,7 +1535,7 @@
     <div class="payment-modal" data-payment-modal aria-hidden="true">
       <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="payment-title">
         <div class="payment-head">
-          <h3 id="payment-title">付款码支付</h3>
+          <h3 id="payment-title">购买</h3>
           <button class="btn" type="button" data-close-payment>关闭</button>
         </div>
         <div class="payment-code-frame">
@@ -1219,7 +1552,7 @@
           <div>提示：扫码后请保留支付结果截图，方便后续核对。</div>
           <div>购买成功后请把凭证发给 QQ3805506653。</div>
         </div>
-        <div class="payment-status" data-payment-status>点击“付款码支付”后，后端会创建微信订单。</div>
+        <div class="payment-status" data-payment-status>点击“购买”后，后端会创建微信订单。</div>
         <div class="payment-order-row">
           <span>订单号</span>
           <strong data-payment-order-no>未创建</strong>
@@ -1252,7 +1585,7 @@
             <button class="btn" type="button" data-close-auth>关闭</button>
           </div>
         </div>
-          <div class="auth-message" data-auth-message>请先注册或登录，之后才能购买商品。验证码会发送到你的邮箱。</div>
+          <div class="auth-message" data-auth-message>账号功能可用于同步购买记录与开发者操作。</div>
         <div class="auth-tabs">
           <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
           <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
@@ -1268,6 +1601,10 @@
               <input id="register-email" type="email" autocomplete="email" placeholder="请输入邮箱地址" data-register-email />
           </div>
           <div class="field">
+            <label for="register-password">登录密码</label>
+            <input id="register-password" type="password" autocomplete="new-password" placeholder="6-64 位密码" data-register-password />
+          </div>
+          <div class="field">
             <label>账号类型</label>
             <div class="auth-developer-row">
               <input id="register-developer-toggle" type="checkbox" data-register-developer-toggle />
@@ -1275,7 +1612,7 @@
             </div>
             <input id="register-developer-secret" type="text" autocomplete="off" placeholder="开发者口令（仅开发者填写）" data-register-developer-secret />
           </div>
-            <div class="auth-note">注册后系统会把邮箱验证码发给你，验证完成后才能购买。</div>
+            <div class="auth-note">注册后系统会把邮箱验证码发给你，验证后可同步账号信息。</div>
             <div class="auth-actions">
               <button class="auth-send-btn" type="button" data-send-code>注册并发送验证码</button>
             </div>
@@ -1301,9 +1638,14 @@
               <label for="login-email">邮箱</label>
               <input id="login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email />
           </div>
-            <div class="auth-note">系统会向邮箱发送验证码，输入后即可登录并继续购买。</div>
+          <div class="field">
+            <label for="login-password">密码登录</label>
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password />
+          </div>
+            <div class="auth-note">系统会向邮箱发送验证码，输入后即可登录。</div>
             <div class="auth-actions">
               <button class="auth-send-btn" type="button" data-send-code>发送验证码</button>
+              <button class="auth-verify-btn" type="button" data-submit-password-login>密码登录</button>
             </div>
             <div class="field auth-code-field">
               <label for="login-code">邮箱验证码</label>
@@ -1317,27 +1659,6 @@
               <button class="auth-verify-btn" type="button" data-submit-login>验证并登录</button>
           </div>
         </section>
-      </div>
-    </div>
-
-    <div class="admin-modal" data-admin-modal aria-hidden="true">
-      <div class="admin-card" role="dialog" aria-modal="true" aria-labelledby="admin-title">
-        <div class="admin-head">
-          <h3 id="admin-title">商品运营控制面板</h3>
-          <button class="btn" type="button" data-close-admin>关闭</button>
-        </div>
-        <div class="admin-status" data-admin-status>加载中...</div>
-        <div class="admin-grid">
-          <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-admin-create-code />
-          <input type="text" placeholder="商品名称" data-admin-create-name />
-          <input type="number" min="1" step="1" placeholder="原价(分)" data-admin-create-original />
-          <input type="number" min="1" step="1" placeholder="优惠价(分)" data-admin-create-sale />
-          <input type="number" step="1" placeholder="排序(小的在前)" data-admin-create-sort />
-        </div>
-        <textarea placeholder="商品描述" data-admin-create-description></textarea>
-        <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-admin-create-tags />
-        <button class="admin-submit" type="button" data-admin-create-submit>新增商品</button>
-        <div class="admin-table" data-admin-table></div>
       </div>
     </div>
 
@@ -1359,12 +1680,15 @@
         const registerEmailInput = document.querySelector('[data-register-email]');
         const registerDeveloperToggleInput = document.querySelector('[data-register-developer-toggle]');
         const registerDeveloperSecretInput = document.querySelector('[data-register-developer-secret]');
+        const registerPasswordInput = document.querySelector('[data-register-password]');
         const registerCodeInput = document.querySelector('[data-register-code]');
         const registerStatus = document.querySelector('[data-register-status]');
         const loginUsernameInput = document.querySelector('[data-login-username]');
         const loginEmailInput = document.querySelector('[data-login-email]');
+        const loginPasswordInput = document.querySelector('[data-login-password]');
         const loginCodeInput = document.querySelector('[data-login-code]');
         const loginStatus = document.querySelector('[data-login-status]');
+        const passwordLoginButton = document.querySelector('[data-submit-password-login]');
 
         const productGrid = document.querySelector('[data-product-grid]');
         const statProducts = document.querySelector('[data-stat-products]');
@@ -1372,9 +1696,17 @@
         const statLowestPrice = document.querySelector('[data-stat-lowest-price]');
         const summaryOnline = document.querySelector('[data-summary-online]');
         const summaryCategories = document.querySelector('[data-summary-categories]');
+        const siteOnline = document.querySelector('[data-site-online]');
+        const siteTodayVisits = document.querySelector('[data-site-today-visits]');
+        const watchNaichaName = document.querySelector('[data-watch-naicha-name]');
+        const watchQqName = document.querySelector('[data-watch-qq-name]');
+        const watchNaicha = document.querySelector('[data-watch-naicha]');
+        const watchQq = document.querySelector('[data-watch-qq]');
         const feedMeta = document.querySelector('[data-feed-meta]');
         const feedDescription = document.querySelector('[data-feed-description]');
-        const chipPrimary = document.querySelector('[data-chip-primary]');
+        const categoryCount = document.querySelector('[data-category-count]');
+        const categoryList = document.querySelector('[data-category-list]');
+        const featureButtons = Array.from(document.querySelectorAll('[data-feature-action]'));
 
         const paymentModal = document.querySelector('[data-payment-modal]');
         const closePaymentButtons = Array.from(document.querySelectorAll('[data-close-payment]'));
@@ -1392,9 +1724,11 @@
         const closeCardSecretButtons = Array.from(document.querySelectorAll('[data-close-card-secret]'));
         const copyCardSecretButton = document.querySelector('[data-copy-card-secret]');
 
-        const adminModal = document.querySelector('[data-admin-modal]');
+        const adminModal = document.querySelector('[data-admin-inline]');
         const closeAdminButton = document.querySelector('[data-close-admin]');
         const adminStatus = document.querySelector('[data-admin-status]');
+        const adminLocked = document.querySelector('[data-admin-locked]');
+        const adminContent = document.querySelector('[data-admin-content]');
         const adminTable = document.querySelector('[data-admin-table]');
         const adminCreateCode = document.querySelector('[data-admin-create-code]');
         const adminCreateName = document.querySelector('[data-admin-create-name]');
@@ -1429,6 +1763,137 @@
         let paymentStatusPollingOrderNo = '';
         let paymentStatusPollingBusy = false;
         let shownCardSecretOrderNo = '';
+        let onlineHeartbeatTimer = null;
+        let selectedCategory = '全部商品';
+        let activePaymentProvider = '';
+
+        function getOrCreateVisitorId() {
+          const storageKey = 'mctools-site-visitor-id';
+          try {
+            const cached = String(localStorage.getItem(storageKey) || '').trim();
+            if (/^[a-z0-9_-]{16,80}$/u.test(cached)) {
+              return cached;
+            }
+          } catch {
+            // ignore storage read errors
+          }
+
+          const randomPart = Math.random().toString(36).slice(2, 12);
+          const nextId = `v_${Date.now().toString(36)}_${randomPart}`;
+
+          try {
+            localStorage.setItem(storageKey, nextId);
+          } catch {
+            // ignore storage write errors
+          }
+
+          return nextId;
+        }
+
+        function setSiteOnlineCount(nextCount) {
+          if (!siteOnline) {
+            return;
+          }
+
+          const count = Number(nextCount);
+          if (!Number.isFinite(count) || count < 0) {
+            siteOnline.textContent = '--';
+            return;
+          }
+
+          siteOnline.textContent = String(Math.round(count));
+        }
+
+        function setTodayVisitCount(nextCount) {
+          if (!siteTodayVisits) {
+            return;
+          }
+
+          const count = Number(nextCount);
+          if (!Number.isFinite(count) || count < 0) {
+            siteTodayVisits.textContent = '--';
+            return;
+          }
+
+          siteTodayVisits.textContent = String(Math.round(count));
+        }
+
+        function setWatchedAccountStatus(target, online) {
+          if (!target) {
+            return;
+          }
+
+          const isOnline = Boolean(online);
+          target.textContent = isOnline ? '在线' : '离线';
+          target.classList.toggle('online', isOnline);
+          target.classList.toggle('offline', !isOnline);
+        }
+
+        function setWatchedAccountName(target, fallbackEmail, username) {
+          if (!target) {
+            return;
+          }
+
+          const normalizedUsername = String(username || '').trim();
+          target.textContent = normalizedUsername || fallbackEmail;
+        }
+
+        async function refreshSiteOnline() {
+          const visitorId = getOrCreateVisitorId();
+          try {
+            await fetch('/api/site/online/ping', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'X-Visitor-Id': visitorId
+              },
+              body: JSON.stringify({ pathname: window.location.pathname })
+            });
+
+            const response = await fetch(`/api/site/online?t=${Date.now()}`, {
+              headers: {
+                'X-Visitor-Id': visitorId
+              }
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '在线人数获取失败');
+            }
+
+            setSiteOnlineCount(result.online);
+            setTodayVisitCount(result.todayVisits);
+
+            const watchedAccounts = Array.isArray(result.watchedAccounts) ? result.watchedAccounts : [];
+            const naicha = watchedAccounts.find((item) => String(item?.email || '').toLowerCase() === 'naicha638104@163.com');
+            const qq = watchedAccounts.find((item) => String(item?.email || '').toLowerCase() === '3805506653@qq.com');
+            setWatchedAccountName(watchNaichaName, 'naicha638104@163.com', naicha?.username);
+            setWatchedAccountName(watchQqName, '3805506653@qq.com', qq?.username);
+            setWatchedAccountStatus(watchNaicha, Boolean(naicha?.online));
+            setWatchedAccountStatus(watchQq, Boolean(qq?.online));
+          } catch {
+            setSiteOnlineCount(NaN);
+            setTodayVisitCount(NaN);
+            setWatchedAccountName(watchNaichaName, 'naicha638104@163.com', '');
+            setWatchedAccountName(watchQqName, '3805506653@qq.com', '');
+            setWatchedAccountStatus(watchNaicha, false);
+            setWatchedAccountStatus(watchQq, false);
+          }
+        }
+
+        function startOnlineHeartbeat() {
+          if (onlineHeartbeatTimer) {
+            clearInterval(onlineHeartbeatTimer);
+          }
+
+          refreshSiteOnline();
+          onlineHeartbeatTimer = setInterval(refreshSiteOnline, 25000);
+
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+              refreshSiteOnline();
+            }
+          });
+        }
 
         function escapeHtml(text) {
           return String(text || '').replace(/[&<>"']/g, (ch) => ({
@@ -1461,6 +1926,52 @@
           };
         }
 
+        function getPrimaryCategory(product) {
+          const normalized = normalizeProduct(product);
+          if (normalized.tags.length > 0) {
+            return String(normalized.tags[0] || '').trim() || '未分类';
+          }
+          return '未分类';
+        }
+
+        function buildCategoryList(products) {
+          const categories = [];
+          const seen = new Set();
+
+          products.forEach((raw) => {
+            const category = getPrimaryCategory(raw);
+            if (!seen.has(category)) {
+              seen.add(category);
+              categories.push(category);
+            }
+          });
+
+          return ['全部商品', ...categories];
+        }
+
+        function renderCategoryList(products) {
+          if (!categoryList) {
+            return;
+          }
+
+          const categories = buildCategoryList(products);
+          if (!categories.includes(selectedCategory)) {
+            selectedCategory = '全部商品';
+          }
+
+          categoryList.innerHTML = categories.map((name) => `
+            <button
+              class="category-btn ${name === selectedCategory ? 'active' : ''}"
+              type="button"
+              data-category-name="${escapeHtml(name)}"
+            >${escapeHtml(name)}</button>
+          `).join('');
+
+          if (categoryCount) {
+            categoryCount.textContent = `共 ${Math.max(0, categories.length - 1)} 类`;
+          }
+        }
+
         function updateStoreStats(products) {
           const normalized = products.map(normalizeProduct);
           const categorySet = new Set();
@@ -1481,7 +1992,6 @@
           if (summaryCategories) summaryCategories.textContent = String(categorySet.size);
           if (statLowestPrice) statLowestPrice.textContent = normalized.length > 0 ? `¥${formatFenToYuan(minPriceFen)}` : '--';
           if (feedMeta) feedMeta.textContent = `${normalized.length} 个商品在线 · ${categorySet.size} 个分类`;
-          if (chipPrimary) chipPrimary.textContent = normalized.length > 0 ? `${normalized[0].name}` : '动态上架';
           if (feedDescription) {
             feedDescription.textContent = normalized.length > 0
               ? '商品由控制面板动态管理，可自行上架、下架和调价。'
@@ -1494,7 +2004,12 @@
             return;
           }
 
-          const normalized = products.map(normalizeProduct);
+          renderCategoryList(products);
+
+          const normalizedAll = products.map(normalizeProduct);
+          const normalized = selectedCategory === '全部商品'
+            ? normalizedAll
+            : normalizedAll.filter((item) => getPrimaryCategory(item) === selectedCategory);
 
           if (normalized.length === 0) {
             productGrid.innerHTML = `
@@ -1543,7 +2058,7 @@
                       data-product-price="${(product.salePriceFen / 100).toFixed(2)}"
                       data-product-code="${escapeHtml(product.productCode)}"
                       data-product-description="${escapeHtml(product.description)}"
-                    >付款码支付</button>
+                    >购买</button>
                   </div>
                 </div>
               </article>
@@ -1579,12 +2094,44 @@
           }
         }
 
+        if (categoryList) {
+          categoryList.addEventListener('click', (event) => {
+            const target = event.target.closest('[data-category-name]');
+            if (!target) {
+              return;
+            }
+
+            selectedCategory = String(target.dataset.categoryName || '全部商品');
+            renderStoreProducts(storeProducts);
+          });
+        }
+
         function setAdminStatus(text, isError = false) {
           if (!adminStatus) {
             return;
           }
           adminStatus.textContent = text;
           adminStatus.style.color = isError ? '#dc2626' : '';
+        }
+
+        function updateAdminAccessView() {
+          const hasAccess = accountState.loggedIn && accountState.isDeveloper;
+          if (adminLocked) {
+            adminLocked.hidden = hasAccess;
+          }
+          if (adminContent) {
+            adminContent.hidden = !hasAccess;
+          }
+
+          if (!hasAccess) {
+            if (!accountState.loggedIn) {
+              setAdminStatus('请先登录社区账号', true);
+            } else {
+              setAdminStatus('当前账号不是开发者，请切换开发者账号', true);
+            }
+          }
+
+          return hasAccess;
         }
 
         function renderAdminTable() {
@@ -1628,6 +2175,10 @@
         }
 
         async function loadAdminProducts() {
+          if (!updateAdminAccessView()) {
+            return;
+          }
+
           try {
             const headers = {};
             if (accountState.token) {
@@ -1648,13 +2199,7 @@
         }
 
         function openAdminModal() {
-          if (!adminModal) {
-            return;
-          }
-
-          adminModal.classList.add('open');
-          adminModal.setAttribute('aria-hidden', 'false');
-          loadAdminProducts();
+          window.location.href = '/store-admin.html';
         }
 
         function closeAdminModal() {
@@ -1662,8 +2207,7 @@
             return;
           }
 
-          adminModal.classList.remove('open');
-          adminModal.setAttribute('aria-hidden', 'true');
+          adminModal.hidden = true;
         }
 
         function applyTheme(theme) {
@@ -1766,8 +2310,8 @@
             panel.classList.toggle('active', isActive);
           });
           setAuthMessage(nextMode === 'register'
-            ? '请先注册账号，再发送邮箱验证码完成登录。'
-            : '请输入已注册的用户名和邮箱，发送验证码后登录。');
+            ? '注册账号后可同步记录与账号状态。'
+            : '请输入已注册的用户名和邮箱，可使用验证码或密码登录。');
         }
 
         function updateAuthTrigger() {
@@ -1787,6 +2331,8 @@
           if (controlPanelButton) {
             controlPanelButton.hidden = !accountState.isDeveloper;
           }
+
+          updateAdminAccessView();
         }
 
         async function loadAccountState() {
@@ -1861,19 +2407,12 @@
           pendingPurchaseProduct = null;
           updateAuthTrigger();
           closeAdminModal();
-          setAuthMessage('你已经退出登录。需要先注册或登录后才能购买。');
-          openAuthModal('register', '你已经退出登录。需要先注册或登录后才能购买。');
+          setAuthMessage('你已经退出登录。');
         }
 
         async function requireLoginBeforePurchase(product) {
           pendingPurchaseProduct = product;
-
-          if (accountState.loggedIn) {
-            return true;
-          }
-
-          openAuthModal('register', '请先注册账号并完成邮箱验证码，之后才能购买。');
-          return false;
+          return true;
         }
 
         function getAuthInputs() {
@@ -1917,12 +2456,17 @@
 
           try {
             if (authMode === 'register') {
+              const password = String(registerPasswordInput?.value || '').trim();
+              if (password.length < 6 || password.length > 64) {
+                throw new Error('请填写 6-64 位登录密码');
+              }
+
               const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
               const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
               const registerResponse = await fetch('/api/community/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify({ username, email, registerAsDeveloper, developerSecret })
+                body: JSON.stringify({ username, email, password, registerAsDeveloper, developerSecret })
               });
 
               const registerResult = await registerResponse.json();
@@ -1999,6 +2543,58 @@
             }
           } catch (error) {
             setAuthStatus(statusKind, error.message || '验证失败', true);
+          }
+        }
+
+        async function submitPasswordLogin() {
+          const username = String(loginUsernameInput?.value || '').trim();
+          const email = String(loginEmailInput?.value || '').trim().toLowerCase();
+          const password = String(loginPasswordInput?.value || '').trim();
+
+          if (!username && !email) {
+            setAuthStatus('login', '请填写用户名或邮箱', true);
+            return;
+          }
+
+          if (!password) {
+            setAuthStatus('login', '请输入登录密码', true);
+            return;
+          }
+
+          setAuthStatus('login', '正在校验密码...');
+
+          try {
+            const response = await fetch('/api/community/password-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '密码登录失败');
+            }
+
+            accountState.loggedIn = true;
+            accountState.username = String(result?.username || username || email);
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = String(result?.token || '').trim() || null;
+            if (accountState.token) {
+              localStorage.setItem('mctools-auth-token', accountState.token);
+            }
+
+            updateAuthTrigger();
+            closeAuthModal();
+            await loadAccountState();
+
+            if (pendingPurchaseProduct) {
+              const nextProduct = pendingPurchaseProduct;
+              pendingPurchaseProduct = null;
+              setPaymentProduct(nextProduct);
+              openPaymentModal();
+            }
+          } catch (error) {
+            setAuthStatus('login', error.message || '密码登录失败', true);
           }
         }
 
@@ -2124,9 +2720,11 @@
           try {
             const response = await fetch('/api/store/wechat/meta');
             const result = await response.json();
+            activePaymentProvider = String(result?.provider || '').trim().toLowerCase();
             paymentConfigReady = Boolean(response.ok && result.ready);
             return paymentConfigReady;
           } catch {
+            activePaymentProvider = '';
             paymentConfigReady = false;
             return false;
           }
@@ -2179,8 +2777,9 @@
           }
 
           currentPaymentOrderRequest = (async () => {
-            setPaymentStatus('正在向微信创建支付订单...');
-            showPaymentPlaceholder('正在创建微信支付二维码', '请稍候，订单创建成功后会自动显示二维码');
+            const providerLabel = activePaymentProvider === 'hongxing' ? '洪星' : '微信';
+            setPaymentStatus(`正在创建${providerLabel}支付订单...`);
+            showPaymentPlaceholder(`正在创建${providerLabel}支付订单`, '请稍候，订单创建成功后会自动显示付款信息');
 
             const response = await fetch('/api/store/wechat/native-order', {
               method: 'POST',
@@ -2196,10 +2795,16 @@
 
             const result = await response.json();
             if (!response.ok) {
-              throw new Error(result.message || '微信支付下单失败');
+              throw new Error(result.message || '支付下单失败');
             }
 
             renderPaymentOrder(result);
+
+            if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.codeUrl || '').trim()) {
+              setPaymentStatus('订单已创建，正在跳转洪星支付页面...');
+              window.location.href = String(result.codeUrl).trim();
+            }
+
             return result;
           })();
 
@@ -2215,8 +2820,29 @@
             return;
           }
 
-          if (!accountState.loggedIn) {
-            await requireLoginBeforePurchase(activePaymentProduct);
+          await requireLoginBeforePurchase(activePaymentProduct);
+
+          const ready = await ensurePaymentConfigReady();
+
+          if (!ready) {
+            paymentModal.classList.add('open');
+            paymentModal.setAttribute('aria-hidden', 'false');
+            if (paymentOrderNo) paymentOrderNo.textContent = '配置缺失';
+            showPaymentPlaceholder('支付配置不完整', '请联系管理员补全支付配置后再试');
+            setPaymentStatus('支付配置不完整，暂时无法发起支付。', true);
+            return;
+          }
+
+          if (activePaymentProvider === 'hongxing') {
+            try {
+              await createPaymentOrder();
+            } catch (error) {
+              paymentModal.classList.add('open');
+              paymentModal.setAttribute('aria-hidden', 'false');
+              if (paymentOrderNo) paymentOrderNo.textContent = '发起失败';
+              showPaymentPlaceholder('发起支付失败', '洪星支付创建订单失败，请稍后重试');
+              setPaymentStatus(error.message || '发起支付失败', true);
+            }
             return;
           }
 
@@ -2237,7 +2863,7 @@
               await createPaymentOrder();
             } catch (error) {
               if (paymentOrderNo) paymentOrderNo.textContent = '本地付款码';
-              showLocalPaymentFallback(`微信支付暂未完成配置，已展示本地付款码。${error.message ? `(${error.message})` : ''}`);
+              showLocalPaymentFallback(`支付暂未完成配置，已展示本地付款码。${error.message ? `(${error.message})` : ''}`);
             }
           }
         }
@@ -2262,37 +2888,36 @@
           authTriggerButton.addEventListener('click', () => {
             openAuthModal(
               accountState.loggedIn ? 'login' : 'register',
-              accountState.loggedIn ? `当前已登录为 ${accountState.username}` : '先注册账号并完成邮箱验证码，才能购买。'
+              accountState.loggedIn ? `当前已登录为 ${accountState.username}` : '可登录账号以同步记录与管理控制面板。'
             );
           });
         }
 
         if (controlPanelButton) {
           controlPanelButton.addEventListener('click', () => {
-            if (!accountState.loggedIn) {
-              openAuthModal('login', '请先登录开发者账号再打开控制面板。');
-              return;
-            }
-
-            if (!accountState.isDeveloper) {
-              setPaymentStatus('当前账号不是开发者，无法操作控制面板。', true);
-              return;
-            }
-
             openAdminModal();
           });
         }
 
-        if (closeAdminButton) {
-          closeAdminButton.addEventListener('click', closeAdminModal);
-        }
+        featureButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            const action = button.dataset.featureAction;
 
-        if (adminModal) {
-          adminModal.addEventListener('click', (event) => {
-            if (event.target === adminModal) {
-              closeAdminModal();
+            if (action === 'auth') {
+              openAuthModal(accountState.loggedIn ? 'login' : 'register', accountState.loggedIn
+                ? `当前已登录为 ${accountState.username}`
+                : '可登录账号以同步记录与管理控制面板。');
+              return;
+            }
+
+            if (action === 'dev') {
+              openAdminModal();
             }
           });
+        });
+
+        if (closeAdminButton) {
+          closeAdminButton.addEventListener('click', closeAdminModal);
         }
 
         if (adminCreateSubmit) {
@@ -2501,6 +3126,10 @@
           button.addEventListener('click', submitVerifyCode);
         });
 
+        if (passwordLoginButton) {
+          passwordLoginButton.addEventListener('click', submitPasswordLogin);
+        }
+
         if (productGrid) {
           productGrid.addEventListener('click', (event) => {
             const button = event.target.closest('[data-open-payment]');
@@ -2581,6 +3210,7 @@
         loadAccountState().then(async () => {
           updateAuthTrigger();
           await loadStoreProducts();
+          startOnlineHeartbeat();
         });
       })();
     </script>

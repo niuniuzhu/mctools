@@ -156,6 +156,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL DEFAULT '',
     is_developer INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TEXT
@@ -169,6 +170,9 @@ try {
   }
   if (!communityColumns.includes('is_developer')) {
     db.exec('ALTER TABLE community_accounts ADD COLUMN is_developer INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!communityColumns.includes('password_hash')) {
+    db.exec("ALTER TABLE community_accounts ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''");
   }
 } catch {
   // Keep startup resilient if migration fails unexpectedly.
@@ -292,6 +296,15 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS site_daily_visits (
+    date_text TEXT NOT NULL,
+    visitor_key TEXT NOT NULL,
+    first_seen_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (date_text, visitor_key)
+  )
+`);
+
 try {
   const serverListingColumns = db.prepare('PRAGMA table_info(server_listings)').all().map((column) => column.name);
 
@@ -315,12 +328,15 @@ const plazaVerifyCodes = new Map(); // email -> {code, username, expiresAt}
 const plazaSessions = new Map();    // token -> {username, email, expiresAt}
 const communityVerifyCodes = new Map(); // email -> {code, username, expiresAt}
 const communitySessions = new Map(); // token -> {username, email, expiresAt}
+const siteOnlineVisitors = new Map(); // visitorKey -> {lastSeenAt, pathname, userAgent}
 const captchaLifetimeMs = 1000 * 60 * 5;
 const qrLoginTicketLifetimeMs = 1000 * 60 * 3;
 const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const communitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
+const siteOnlineVisitorLifetimeMs = 1000 * 75;
+const watchedCommunityEmails = ['naicha638104@163.com', '3805506653@qq.com'];
 const authEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 const defaultStoreProducts = [
@@ -551,6 +567,77 @@ function getWechatPayReadiness() {
   return {
     ready: missing.length === 0,
     missing
+  };
+}
+
+function getHongxingPayConfig() {
+  const createUrl = getConfiguredValue('HONGXING_PAY_CREATE_URL', 'hongxingPayCreateUrl');
+  const queryUrl = getConfiguredValue('HONGXING_PAY_QUERY_URL', 'hongxingPayQueryUrl');
+  const apiKey = getConfiguredValue('HONGXING_PAY_API_KEY', 'hongxingPayApiKey');
+  const merchantId = getConfiguredValue('HONGXING_PAY_MERCHANT_ID', 'hongxingPayMerchantId');
+  const payType = String(getConfiguredValue('HONGXING_PAY_PAY_TYPE', 'hongxingPayPayType', 'wxpay') || 'wxpay').trim().toLowerCase();
+  const signType = String(getConfiguredValue('HONGXING_PAY_SIGN_TYPE', 'hongxingPaySignType', 'MD5') || 'MD5').trim().toUpperCase();
+  const notifyUrl = getConfiguredValue('HONGXING_PAY_NOTIFY_URL', 'hongxingPayNotifyUrl');
+  const returnUrl = getConfiguredValue('HONGXING_PAY_RETURN_URL', 'hongxingPayReturnUrl');
+  const createMethod = String(getConfiguredValue('HONGXING_PAY_CREATE_METHOD', 'hongxingPayCreateMethod', 'POST') || 'POST').trim().toUpperCase();
+  const queryMethod = String(getConfiguredValue('HONGXING_PAY_QUERY_METHOD', 'hongxingPayQueryMethod', 'POST') || 'POST').trim().toUpperCase();
+
+  return {
+    enabled: Boolean(createUrl || queryUrl),
+    createUrl: createUrl || queryUrl,
+    queryUrl,
+    apiKey,
+    merchantId,
+    payType,
+    signType,
+    notifyUrl,
+    returnUrl,
+    createMethod: createMethod === 'GET' ? 'GET' : 'POST',
+    queryMethod: queryMethod === 'GET' ? 'GET' : 'POST'
+  };
+}
+
+function getHongxingPayReadiness() {
+  const config = getHongxingPayConfig();
+  const missing = [];
+
+  if (!config.createUrl) {
+    missing.push('createUrl');
+  }
+
+  if (!config.queryUrl) {
+    missing.push('queryUrl');
+  }
+
+  return {
+    ready: missing.length === 0,
+    missing
+  };
+}
+
+function getStorePaymentReadiness() {
+  const hongxing = getHongxingPayReadiness();
+  if (hongxing.ready) {
+    return {
+      ready: true,
+      provider: 'hongxing',
+      missing: [],
+      providers: {
+        hongxing,
+        wechat: getWechatPayReadiness()
+      }
+    };
+  }
+
+  const wechat = getWechatPayReadiness();
+  return {
+    ready: wechat.ready,
+    provider: wechat.ready ? 'wechat' : '',
+    missing: wechat.missing,
+    providers: {
+      hongxing,
+      wechat
+    }
   };
 }
 
@@ -958,6 +1045,273 @@ function requestJson(urlString, options, bodyText = '') {
   });
 }
 
+function parseMaybeJson(text) {
+  const normalized = String(text || '').trim();
+
+  if (!normalized) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(normalized);
+  } catch {
+    return { raw: normalized };
+  }
+}
+
+function normalizePaymentSuccess(value) {
+  if (value === true) {
+    return true;
+  }
+
+  const normalized = String(value || '').trim().toUpperCase();
+  return ['SUCCESS', 'TRADE_SUCCESS', 'PAID', 'PAY_SUCCESS', '1', 'TRUE', 'Y', 'YES', 'COMPLETED'].includes(normalized);
+}
+
+function pickFirstDefined(source, paths) {
+  for (const pathKey of paths) {
+    const parts = String(pathKey || '').split('.').filter(Boolean);
+    let cursor = source;
+
+    for (const part of parts) {
+      if (!cursor || typeof cursor !== 'object' || !(part in cursor)) {
+        cursor = undefined;
+        break;
+      }
+      cursor = cursor[part];
+    }
+
+    if (cursor !== undefined && cursor !== null && String(cursor).trim() !== '') {
+      return cursor;
+    }
+  }
+
+  return '';
+}
+
+function extractPaymentQrText(payload) {
+  return String(pickFirstDefined(payload, [
+    'code_url',
+    'codeUrl',
+    'qrCode',
+    'qr_code',
+    'qrcode',
+    'payUrl',
+    'pay_url',
+    'url',
+    'data.code_url',
+    'data.codeUrl',
+    'data.qrCode',
+    'data.qr_code',
+    'data.qrcode',
+    'data.payUrl',
+    'data.pay_url',
+    'data.url'
+  ]) || '').trim();
+}
+
+function extractPaymentTransactionId(payload) {
+  return String(pickFirstDefined(payload, [
+    'transactionId',
+    'transaction_id',
+    'tradeNo',
+    'trade_no',
+    'payOrderNo',
+    'pay_order_no',
+    'data.transactionId',
+    'data.transaction_id',
+    'data.tradeNo',
+    'data.trade_no',
+    'data.payOrderNo',
+    'data.pay_order_no'
+  ]) || '').trim();
+}
+
+function extractPaymentStatus(payload, fallback = 'PENDING') {
+  return String(pickFirstDefined(payload, [
+    'status',
+    'tradeStatus',
+    'trade_status',
+    'payStatus',
+    'pay_status',
+    'data.status',
+    'data.tradeStatus',
+    'data.trade_status',
+    'data.payStatus',
+    'data.pay_status'
+  ]) || fallback).trim().toUpperCase();
+}
+
+function isRootPathUrl(urlString) {
+  try {
+    const parsed = new URL(String(urlString || ''));
+    return parsed.pathname === '/' || parsed.pathname === '';
+  } catch {
+    return false;
+  }
+}
+
+function buildHongxingSignText(params, userKey) {
+  const signParams = {
+    money: params.money,
+    name: params.name,
+    notify_url: params.notifyUrl,
+    out_trade_no: params.outTradeNo,
+    pid: params.pid,
+    return_url: params.returnUrl,
+    sitename: params.sitename,
+    type: params.type
+  };
+
+  const signText = Object.keys(signParams)
+    .filter((key) => signParams[key] !== undefined && signParams[key] !== null && String(signParams[key]).trim() !== '')
+    .sort()
+    .map((key) => `${key}=${signParams[key]}`)
+    .join('&');
+
+  return `${signText}${userKey}`;
+}
+
+function buildHongxingSubmitPayUrl(params, config) {
+  const createBase = String(config.createUrl || '').trim();
+  const baseUrl = new URL(createBase);
+  const signText = buildHongxingSignText(params, config.apiKey || '');
+  const sign = crypto.createHash('md5').update(signText, 'utf8').digest('hex');
+  const submitUrl = new URL('/submit.php', `${baseUrl.protocol}//${baseUrl.host}`);
+
+  submitUrl.searchParams.set('pid', params.pid);
+  submitUrl.searchParams.set('type', params.type);
+  submitUrl.searchParams.set('out_trade_no', params.outTradeNo);
+  submitUrl.searchParams.set('notify_url', params.notifyUrl);
+  submitUrl.searchParams.set('return_url', params.returnUrl);
+  submitUrl.searchParams.set('name', params.name);
+  submitUrl.searchParams.set('money', params.money);
+  submitUrl.searchParams.set('sign', sign);
+  submitUrl.searchParams.set('sign_type', config.signType || 'MD5');
+
+  return submitUrl.toString();
+}
+
+function buildHongxingOrderQueryUrl(config, orderNo) {
+  const queryBase = String(config.queryUrl || '').trim();
+
+  if (!queryBase) {
+    return '';
+  }
+
+  if (isRootPathUrl(queryBase) && config.merchantId && config.apiKey) {
+    const baseUrl = new URL(queryBase);
+    const apiUrl = new URL('/api.php', `${baseUrl.protocol}//${baseUrl.host}`);
+    apiUrl.searchParams.set('act', 'order');
+    apiUrl.searchParams.set('pid', String(config.merchantId));
+    apiUrl.searchParams.set('userkey', String(config.apiKey));
+    apiUrl.searchParams.set('out_trade_no', String(orderNo));
+    return apiUrl.toString();
+  }
+
+  return queryBase;
+}
+
+async function trySyncStoreOrderFromHongxing(order) {
+  if (!order || !order.orderNo) {
+    return false;
+  }
+
+  const currentStatus = String(order.status || '').trim().toUpperCase();
+  if (currentStatus === 'SUCCESS' || currentStatus === 'TRADE_SUCCESS') {
+    return true;
+  }
+
+  const config = getHongxingPayConfig();
+  if (!config.enabled || !config.queryUrl) {
+    return false;
+  }
+
+  const resolvedQueryUrl = buildHongxingOrderQueryUrl(config, order.orderNo);
+  if (!resolvedQueryUrl) {
+    return false;
+  }
+
+  const payload = {
+    orderNo: order.orderNo,
+    outTradeNo: order.orderNo,
+    productCode: order.productCode,
+    amountFen: Number(order.amountFen || 0),
+    merchantId: config.merchantId || ''
+  };
+
+  let requestUrl = resolvedQueryUrl;
+  let bodyText = '';
+
+  const useGetQuery = isRootPathUrl(config.queryUrl) || config.queryMethod === 'GET';
+
+  if (useGetQuery) {
+    const url = new URL(resolvedQueryUrl);
+    url.searchParams.set('orderNo', String(payload.orderNo));
+    url.searchParams.set('outTradeNo', String(payload.outTradeNo));
+    if (payload.merchantId) {
+      url.searchParams.set('merchantId', String(payload.merchantId));
+    }
+    requestUrl = url.toString();
+  } else {
+    bodyText = JSON.stringify(payload);
+  }
+
+  const headers = {
+    Accept: 'application/json'
+  };
+
+  if (!useGetQuery) {
+    headers['Content-Type'] = 'application/json; charset=utf-8';
+  }
+
+  if (config.apiKey && !isRootPathUrl(config.queryUrl)) {
+    headers.Authorization = `Bearer ${config.apiKey}`;
+    headers['X-Api-Key'] = config.apiKey;
+  }
+
+  const queryResponse = await requestJson(requestUrl, {
+    method: useGetQuery ? 'GET' : config.queryMethod,
+    headers
+  }, bodyText);
+
+  if (queryResponse.statusCode < 200 || queryResponse.statusCode >= 300) {
+    return false;
+  }
+
+  const parsed = parseMaybeJson(queryResponse.body);
+  const paid = normalizePaymentSuccess(
+    parsed.paid
+    ?? parsed.isPaid
+    ?? parsed.success
+    ?? parsed.tradeSuccess
+    ?? parsed.status
+    ?? parsed.tradeStatus
+    ?? parsed.trade_status
+    ?? parsed.payStatus
+    ?? parsed.pay_status
+  );
+
+  if (!paid) {
+    return false;
+  }
+
+  const nextStatus = extractPaymentStatus(parsed, 'SUCCESS') || 'SUCCESS';
+  const transactionId = extractPaymentTransactionId(parsed);
+
+  updateStoreOrder(order.orderNo, {
+    status: nextStatus,
+    transactionId,
+    responseJson: JSON.stringify({
+      source: 'hongxing-query',
+      queriedAt: new Date().toISOString(),
+      data: parsed
+    })
+  });
+
+  return true;
+}
+
 function getStoreOrderByNo(orderNo) {
   return db.prepare(
     'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
@@ -1081,6 +1435,12 @@ function decryptWechatPayResource(resource, apiV3Key) {
 async function createWechatPayNativeOrder(request, response) {
   try {
     const body = await parseRequestBody(request);
+    const hongxingReadiness = getHongxingPayReadiness();
+    if (hongxingReadiness.ready) {
+      await createHongxingNativeOrder(body, response);
+      return;
+    }
+
     const config = getWechatPayConfig();
     const productCode = String(body.productCode || '').trim().toUpperCase();
     const product = getStoreProductByCode(productCode, false);
@@ -1204,7 +1564,210 @@ async function createWechatPayNativeOrder(request, response) {
   }
 }
 
-function handleStoreOrderStatus(request, response) {
+async function createHongxingNativeOrder(body, response) {
+  const config = getHongxingPayConfig();
+
+  if (!config.createUrl) {
+    sendJson(response, 500, {
+      message: '洪星支付配置不完整，请补全 createUrl'
+    });
+    return;
+  }
+
+  const productCode = String(body?.productCode || '').trim().toUpperCase();
+  const product = getStoreProductByCode(productCode, false);
+
+  if (!product) {
+    sendJson(response, 404, { message: '商品不存在或已下架' });
+    return;
+  }
+
+  const orderNo = createStoreOrderNo();
+  const amountFen = Number(product.salePriceFen || 0);
+  const productName = String(product.name || '').trim();
+
+  if (!Number.isFinite(amountFen) || amountFen <= 0) {
+    sendJson(response, 400, { message: '订单金额无效' });
+    return;
+  }
+
+  if (isRootPathUrl(config.createUrl)) {
+    if (!config.merchantId || !config.apiKey) {
+      sendJson(response, 500, { message: '洪星直连模式缺少 merchantId 或 apiKey' });
+      return;
+    }
+
+    const baseUrl = new URL(String(config.createUrl));
+    const returnUrl = String(config.returnUrl || `${baseUrl.protocol}//${baseUrl.host}/index/payTest`).trim();
+    const notifyUrl = String(config.notifyUrl || `${baseUrl.protocol}//${baseUrl.host}/Payment/UserRechargeNotify?out_trade_no=${encodeURIComponent(orderNo)}`).trim();
+    const payUrl = buildHongxingSubmitPayUrl({
+      pid: String(config.merchantId),
+      type: String(config.payType || 'wxpay').toLowerCase(),
+      outTradeNo: orderNo,
+      notifyUrl,
+      returnUrl,
+      name: productName || '商店订单',
+      money: (amountFen / 100).toFixed(2),
+      sitename: ''
+    }, config);
+
+    const qrDataUrl = await QRCode.toDataURL(payUrl, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 320
+    });
+
+    createStoreOrder({
+      orderNo,
+      productCode,
+      productName,
+      amountFen,
+      currency: product.currency || 'CNY',
+      status: 'PENDING',
+      cardSecret: '',
+      mchId: String(config.merchantId),
+      appId: 'hongxing',
+      codeUrl: payUrl,
+      prepayId: '',
+      transactionId: '',
+      requestJson: JSON.stringify({
+        mode: 'hongxing-direct-submit',
+        payType: config.payType,
+        signType: config.signType,
+        notifyUrl,
+        returnUrl
+      }),
+      responseJson: JSON.stringify({ payUrl }),
+      notifyJson: ''
+    });
+
+    sendJson(response, 200, {
+      message: '洪星支付订单已创建',
+      provider: 'hongxing',
+      orderNo,
+      productCode,
+      productName,
+      amountFen,
+      currency: product.currency || 'CNY',
+      codeUrl: payUrl,
+      qrDataUrl,
+      prepayId: ''
+    });
+    return;
+  }
+
+  const payload = {
+    outTradeNo: orderNo,
+    orderNo,
+    merchantId: config.merchantId || '',
+    productCode,
+    productName,
+    amountFen,
+    amount: Number((amountFen / 100).toFixed(2)),
+    currency: product.currency || 'CNY',
+    notifyUrl: String(config.notifyUrl || '').trim(),
+    attach: {
+      productCode,
+      productName
+    }
+  };
+
+  let requestUrl = config.createUrl;
+  let bodyText = '';
+
+  if (config.createMethod === 'GET') {
+    const url = new URL(config.createUrl);
+    url.searchParams.set('orderNo', orderNo);
+    url.searchParams.set('outTradeNo', orderNo);
+    url.searchParams.set('amountFen', String(amountFen));
+    url.searchParams.set('amount', String(payload.amount));
+    url.searchParams.set('productCode', productCode);
+    if (config.merchantId) {
+      url.searchParams.set('merchantId', config.merchantId);
+    }
+    requestUrl = url.toString();
+  } else {
+    bodyText = JSON.stringify(payload);
+  }
+
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': 'mctools-store/1.0'
+  };
+
+  if (config.createMethod !== 'GET') {
+    headers['Content-Type'] = 'application/json; charset=utf-8';
+  }
+
+  if (config.apiKey) {
+    headers.Authorization = `Bearer ${config.apiKey}`;
+    headers['X-Api-Key'] = config.apiKey;
+  }
+
+  const hongxingResponse = await requestJson(requestUrl, {
+    method: config.createMethod,
+    headers
+  }, bodyText);
+
+  if (hongxingResponse.statusCode < 200 || hongxingResponse.statusCode >= 300) {
+    sendJson(response, 502, {
+      message: '洪星支付下单失败',
+      statusCode: hongxingResponse.statusCode,
+      detail: hongxingResponse.body || ''
+    });
+    return;
+  }
+
+  const parsedResponse = parseMaybeJson(hongxingResponse.body);
+  const qrText = extractPaymentQrText(parsedResponse);
+
+  if (!qrText) {
+    sendJson(response, 502, {
+      message: '洪星支付未返回二维码地址',
+      detail: parsedResponse
+    });
+    return;
+  }
+
+  const qrDataUrl = await QRCode.toDataURL(qrText, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    width: 320
+  });
+
+  createStoreOrder({
+    orderNo,
+    productCode,
+    productName,
+    amountFen,
+    currency: product.currency || 'CNY',
+    status: normalizePaymentSuccess(parsedResponse.paid ?? parsedResponse.status ?? parsedResponse.tradeStatus ?? parsedResponse.payStatus) ? 'SUCCESS' : 'PENDING',
+    cardSecret: '',
+    mchId: config.merchantId || 'hongxing',
+    appId: 'hongxing',
+    codeUrl: qrText,
+    prepayId: extractPaymentTransactionId(parsedResponse),
+    transactionId: '',
+    requestJson: JSON.stringify(payload),
+    responseJson: JSON.stringify(parsedResponse),
+    notifyJson: ''
+  });
+
+  sendJson(response, 200, {
+    message: '洪星支付订单已创建',
+    provider: 'hongxing',
+    orderNo,
+    productCode,
+    productName,
+    amountFen,
+    currency: product.currency || 'CNY',
+    codeUrl: qrText,
+    qrDataUrl,
+    prepayId: extractPaymentTransactionId(parsedResponse)
+  });
+}
+
+async function handleStoreOrderStatus(request, response) {
   const url = new URL(request.url || '/', `http://${host}:${port}`);
   const orderNo = String(url.searchParams.get('orderNo') || '').trim();
 
@@ -1213,11 +1776,18 @@ function handleStoreOrderStatus(request, response) {
     return;
   }
 
-  const order = getStoreOrderByNo(orderNo);
+  let order = getStoreOrderByNo(orderNo);
 
   if (!order) {
     sendJson(response, 404, { message: '订单不存在' });
     return;
+  }
+
+  try {
+    await trySyncStoreOrderFromHongxing(order);
+    order = getStoreOrderByNo(orderNo) || order;
+  } catch {
+    // Keep order-status endpoint resilient even if Hongxing query fails.
   }
 
   const status = String(order.status || '').toUpperCase();
@@ -1368,6 +1938,133 @@ function cleanupExpiredCaptchas() {
       loginCaptchas.delete(captchaId);
     }
   }
+}
+
+function cleanupExpiredSiteOnlineVisitors() {
+  const now = Date.now();
+
+  for (const [visitorKey, visitor] of siteOnlineVisitors.entries()) {
+    if (!visitor || Number(visitor.lastSeenAt || 0) + siteOnlineVisitorLifetimeMs <= now) {
+      siteOnlineVisitors.delete(visitorKey);
+    }
+  }
+}
+
+function getRequestIp(request) {
+  const forwarded = String(request.headers['x-forwarded-for'] || '').trim();
+  if (forwarded) {
+    const first = forwarded.split(',')[0].trim();
+    if (first) {
+      return first;
+    }
+  }
+
+  return String(request.socket?.remoteAddress || '').trim() || '0.0.0.0';
+}
+
+function normalizeVisitorId(rawVisitorId) {
+  const value = String(rawVisitorId || '').trim().toLowerCase();
+  return /^[a-z0-9_-]{16,80}$/u.test(value) ? value : '';
+}
+
+function resolveSiteVisitorKey(request) {
+  const headerVisitorId = normalizeVisitorId(request.headers['x-visitor-id']);
+  if (headerVisitorId) {
+    return `vid:${headerVisitorId}`;
+  }
+
+  const fallbackSource = `${getRequestIp(request)}|${String(request.headers['user-agent'] || '').slice(0, 160)}`;
+  return `fp:${crypto.createHash('sha1').update(fallbackSource).digest('hex')}`;
+}
+
+function touchSiteOnlineVisitor(request) {
+  cleanupExpiredSiteOnlineVisitors();
+
+  const visitorKey = resolveSiteVisitorKey(request);
+  siteOnlineVisitors.set(visitorKey, {
+    lastSeenAt: Date.now(),
+    pathname: getPathname(request.url || '/'),
+    userAgent: String(request.headers['user-agent'] || '').slice(0, 180)
+  });
+
+  recordSiteDailyVisit(visitorKey);
+
+  return visitorKey;
+}
+
+function getLocalDateKey() {
+  const now = new Date();
+  const yyyy = String(now.getFullYear());
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function recordSiteDailyVisit(visitorKey) {
+  const normalizedKey = String(visitorKey || '').trim();
+  if (!normalizedKey) {
+    return;
+  }
+
+  db.prepare(
+    'INSERT OR IGNORE INTO site_daily_visits (date_text, visitor_key) VALUES (?, ?)'
+  ).run(getLocalDateKey(), normalizedKey);
+}
+
+function getTodaySiteVisitCount() {
+  const row = db.prepare('SELECT COUNT(1) AS count FROM site_daily_visits WHERE date_text = ?').get(getLocalDateKey());
+  return Number(row?.count || 0);
+}
+
+function getWatchedCommunityAccountStatuses() {
+  cleanupExpiredCommunityCodes();
+  const now = Date.now();
+
+  return watchedCommunityEmails.map((rawEmail) => {
+    const email = String(rawEmail || '').trim().toLowerCase();
+    let online = false;
+
+    for (const session of communitySessions.values()) {
+      if (!session || session.expiresAt <= now) {
+        continue;
+      }
+
+      if (String(session.email || '').trim().toLowerCase() === email) {
+        online = true;
+        break;
+      }
+    }
+
+    const account = getCommunityAccountByEmail(email);
+    return {
+      email,
+      username: account?.username || '',
+      online
+    };
+  });
+}
+
+function handleSiteOnlinePing(request, response) {
+  touchSiteOnlineVisitor(request);
+
+  sendJson(response, 200, {
+    success: true,
+    online: siteOnlineVisitors.size,
+    todayVisits: getTodaySiteVisitCount(),
+    ttlSeconds: Math.round(siteOnlineVisitorLifetimeMs / 1000)
+  });
+}
+
+function handleSiteOnlineStats(request, response) {
+  touchSiteOnlineVisitor(request);
+
+  sendJson(response, 200, {
+    online: siteOnlineVisitors.size,
+    todayVisits: getTodaySiteVisitCount(),
+    watchedAccounts: getWatchedCommunityAccountStatuses(),
+    ttlSeconds: Math.round(siteOnlineVisitorLifetimeMs / 1000),
+    updatedAt: new Date().toISOString()
+  });
 }
 
 function cleanupExpiredLocalDevQuickEntryTokens() {
@@ -1598,10 +2295,19 @@ function getCommunityAccountByEmail(email) {
   return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
 }
 
-function createCommunityAccount(username, email, isDeveloper = false) {
-  db.prepare('INSERT INTO community_accounts (username, email, is_developer, last_login_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)').run(
+function getCommunityAccountAuthByUsername(username) {
+  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
+}
+
+function getCommunityAccountAuthByEmail(email) {
+  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
+}
+
+function createCommunityAccount(username, email, isDeveloper = false, passwordHash = '') {
+  db.prepare('INSERT INTO community_accounts (username, email, password_hash, is_developer, last_login_at) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)').run(
     username,
     email,
+    String(passwordHash || ''),
     isDeveloper ? 1 : 0
   );
   return getCommunityAccountByUsername(username);
@@ -1636,11 +2342,25 @@ function getCommunitySessionFromRequest(request) {
   return null;
 }
 
+function issueCommunitySession(response, username, email, isCommunityDeveloper) {
+  const token = crypto.randomBytes(32).toString('hex');
+  communitySessions.set(token, {
+    username,
+    email,
+    isDeveloper: Boolean(isCommunityDeveloper),
+    expiresAt: Date.now() + communitySessionLifetimeMs
+  });
+
+  setScopedAuthCookie(response, 'mctools_community', '/api/community/', token, communitySessionLifetimeMs);
+  return token;
+}
+
 function handleCommunityRegister(request, response) {
   parseRequestBody(request)
     .then((body) => {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
+      const password = String(body.password || '');
       const registerAsDeveloper =
         body.registerAsDeveloper === true ||
         body.registerAsDeveloper === 'true' ||
@@ -1655,6 +2375,11 @@ function handleCommunityRegister(request, response) {
 
       if (!isValidAuthEmail(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
+      if (password.length < 6 || password.length > 64) {
+        sendJson(response, 400, { message: '密码长度需在 6-64 位之间' });
         return;
       }
 
@@ -1679,8 +2404,54 @@ function handleCommunityRegister(request, response) {
         isCommunityDeveloper = true;
       }
 
-      const account = createCommunityAccount(username, email, isCommunityDeveloper);
+      const account = createCommunityAccount(username, email, isCommunityDeveloper, hashPassword(password));
       sendJson(response, 201, { message: '社区账号注册成功，请继续发送验证码登录', account });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
+}
+
+function handleCommunityPasswordLogin(request, response) {
+  parseRequestBody(request)
+    .then((body) => {
+      const username = String(body.username || '').trim();
+      const email = String(body.email || '').trim().toLowerCase();
+      const password = String(body.password || '');
+
+      if (!password) {
+        sendJson(response, 400, { message: '请输入密码' });
+        return;
+      }
+
+      let accountAuth = null;
+      if (username) {
+        accountAuth = getCommunityAccountAuthByUsername(username);
+      } else if (email) {
+        accountAuth = getCommunityAccountAuthByEmail(email);
+      }
+
+      if (!accountAuth) {
+        sendJson(response, 401, { message: '账号或密码错误' });
+        return;
+      }
+
+      if (!accountAuth.passwordHash || !verifyPassword(password, accountAuth.passwordHash)) {
+        sendJson(response, 401, { message: '账号或密码错误' });
+        return;
+      }
+
+      markCommunityAccountLogin(accountAuth.email);
+      const isCommunityDeveloper = Boolean(accountAuth?.isDeveloper || isDeveloper(accountAuth.username));
+      const token = issueCommunitySession(response, accountAuth.username, accountAuth.email, isCommunityDeveloper);
+
+      sendJson(response, 200, {
+        message: '密码登录成功',
+        username: accountAuth.username,
+        email: accountAuth.email,
+        isDeveloper: isCommunityDeveloper,
+        token
+      });
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '请求无效' });
@@ -1751,17 +2522,9 @@ function handleCommunityVerify(request, response) {
       communityVerifyCodes.delete(email);
       markCommunityAccountLogin(email);
 
-      const token = crypto.randomBytes(32).toString('hex');
       const account = getCommunityAccountByEmail(email);
       const isCommunityDeveloper = Boolean(account?.isDeveloper || isDeveloper(entry.username));
-      communitySessions.set(token, {
-        username: entry.username,
-        email,
-        isDeveloper: isCommunityDeveloper,
-        expiresAt: Date.now() + communitySessionLifetimeMs
-      });
-
-        setScopedAuthCookie(response, 'mctools_community', '/api/community/', token, communitySessionLifetimeMs);
+      const token = issueCommunitySession(response, entry.username, email, isCommunityDeveloper);
       sendJson(response, 200, {
         message: '社区登录成功',
         username: entry.username,
@@ -4448,6 +5211,7 @@ function buildPreviewPageHtml(staticPath) {
 const server = http.createServer((request, response) => {
   cleanupExpiredSessions();
   cleanupExpiredCaptchas();
+  cleanupExpiredSiteOnlineVisitors();
   cleanupExpiredLocalDevQuickEntryTokens();
   cleanupExpiredQrLoginTickets();
   cleanupExpiredPlazaCodes();
@@ -4586,6 +5350,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/api/community/password-login') {
+      handleCommunityPasswordLogin(request, response);
+      return;
+    }
+
     if (request.method === 'GET' && pathname === '/api/community/me') {
       handleCommunityMe(request, response);
       return;
@@ -4654,6 +5423,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/api/community/password-login') {
+      handleCommunityPasswordLogin(request, response);
+      return;
+    }
+
     if (request.method === 'GET' && pathname === '/api/community/me') {
       handleCommunityMe(request, response);
       return;
@@ -4690,16 +5464,28 @@ const server = http.createServer((request, response) => {
     }
 
     if (request.method === 'GET' && pathname === '/api/store/wechat/meta') {
-      const readiness = getWechatPayReadiness();
+      const readiness = getStorePaymentReadiness();
       sendJson(response, 200, {
         ready: readiness.ready,
-        missing: readiness.missing
+        provider: readiness.provider,
+        missing: readiness.missing,
+        providers: readiness.providers
       });
       return;
     }
 
     if (request.method === 'GET' && pathname === '/api/store/products') {
       handleStoreProducts(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/site/online') {
+      handleSiteOnlineStats(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/site/online/ping') {
+      handleSiteOnlinePing(request, response);
       return;
     }
 
@@ -4806,8 +5592,8 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  const isMaintenancePort = Number(port) === 3001 || Number(port) === 3002;
-  const staticPath = pathname === '/' ? (isMaintenancePort ? '/maintenance.html' : (Number(port) === 3002 ? '/bug-report.html' : '/index.html')) : pathname;
+  const isMaintenancePort = false;
+  const staticPath = pathname === '/' ? (isMaintenancePort ? '/maintenance.html' : '/index.html') : pathname;
   const isLoginAsset = pathname === '/login.html' || pathname === '/login.css' || pathname === '/login.js';
   const isPublicPageScript = pathname === '/fps-test.js';
   const isPublicPreviewPage =

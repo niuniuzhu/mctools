@@ -1,6 +1,16 @@
 {
   "deepseekApiKey": "",
   "deepseekModel": "deepseek-chat",
+  "hongxingPayCreateUrl": "https://pay.xhhlkj.cn/",
+  "hongxingPayCreateMethod": "POST",
+  "hongxingPayQueryUrl": "https://pay.xhhlkj.cn/",
+  "hongxingPayPayType": "wxpay",
+  "hongxingPaySignType": "MD5",
+  "hongxingPayNotifyUrl": "",
+  "hongxingPayReturnUrl": "",
+  "hongxingPayApiKey": "BQ6HCWVICNYIPBBAQLZCYUKWVVKK7EUU",
+  "hongxingPayMerchantId": "568929",
+  "hongxingPayQueryMethod": "POST",
   "smtp": {
     "host": "smtp.qq.com",
     "port": 465,

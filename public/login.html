@@ -1,327 +1,101 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>登录入口已关闭</title>
+    <title>登录入口</title>
     <script>
-      document.documentElement.dataset.ui = 'end';
+      document.documentElement.dataset.ui = 'normal';
     </script>
-    <style>
-      :root {
-        color-scheme: dark;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-        color: #f7fbff;
-        background:
-          radial-gradient(circle at top left, rgba(184, 240, 255, 0.18), transparent 26%),
-          radial-gradient(circle at right top, rgba(101, 217, 255, 0.16), transparent 30%),
-          linear-gradient(145deg, #06101d, #0d2741 48%, #1b4462);
-        overflow-x: hidden;
-      }
-
-      body::before,
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-      }
-
-      body::before {
-        background:
-          linear-gradient(120deg, transparent 18%, rgba(255,255,255,0.07) 38%, transparent 60%);
-        transform: translateX(-120%);
-        animation: sweep 7s ease-in-out infinite;
-      }
-
-      body::after {
-        background-image:
-          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-        background-size: 44px 44px;
-        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent 88%);
-        opacity: 0.7;
-      }
-
-      @keyframes sweep {
-        0%, 18% {
-          transform: translateX(-120%);
-        }
-
-        55% {
-          transform: translateX(120%);
-        }
-
-        100% {
-          transform: translateX(120%);
-        }
-      }
-
-      .close-shell {
-        position: relative;
-        z-index: 1;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-      }
-
-      .close-card {
-        width: min(100%, 760px);
-        padding: 34px;
-        border-radius: 28px;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-        background: rgba(15, 23, 42, 0.84);
-        box-shadow: 0 30px 80px rgba(2, 6, 23, 0.48);
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(56, 189, 248, 0.14);
-        border: 1px solid rgba(56, 189, 248, 0.32);
-        color: #7dd3fc;
-        font-size: 0.82rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      h1 {
-        margin: 18px 0 12px;
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        line-height: 1.08;
-      }
-
-      p {
-        margin: 0;
-        color: #cbd5e1;
-        line-height: 1.8;
-      }
-
-      .lead {
-        max-width: 60ch;
-        font-size: 1.02rem;
-      }
-
-      .notice-grid {
-        display: grid;
-        gap: 14px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin: 22px 0;
-      }
-
-      .notice-item {
-        padding: 16px;
-        border-radius: 20px;
-        border: 1px solid rgba(148, 163, 184, 0.16);
-        background: rgba(15, 23, 42, 0.54);
-      }
-
-      .notice-item strong {
-        display: block;
-        margin-bottom: 6px;
-        color: #f8fafc;
-      }
-
-      .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 22px;
-      }
-
-      .action-link {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 44px;
-        padding: 0 18px;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 700;
-        transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
-      }
-
-      .action-link:hover {
-        transform: translateY(-1px);
-      }
-
-      .action-link.primary {
-        background: linear-gradient(135deg, #38bdf8, #60a5fa);
-        color: #031525;
-      }
-
-      .action-link.secondary {
-        border: 1px solid rgba(191, 219, 254, 0.26);
-        color: #dbeafe;
-        background: transparent;
-      }
-
-      .footer-note {
-        margin-top: 18px;
-        color: #94a3b8;
-        font-size: 0.92rem;
-      }
-
-      @media (max-width: 720px) {
-        .close-card {
-          padding: 24px;
-        }
-
-        .notice-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .notice-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 1200;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(2, 8, 18, 0.66);
-        animation: notice-fade-in 260ms ease-out both;
-      }
-
-      .notice-overlay[hidden] {
-        display: none !important;
-      }
-
-      .notice-card {
-        position: relative;
-        width: min(92vw, 560px);
-        border-radius: 28px;
-        border: 1px solid rgba(148, 163, 184, 0.24);
-        background: linear-gradient(180deg, #111827, #1f2937);
-        box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55);
-        overflow: hidden;
-        transform-origin: center;
-        animation: notice-pop-in 320ms cubic-bezier(.2, .8, .2, 1) both;
-      }
-
-      .notice-card::before,
-      .notice-card::after {
-        content: "";
-        position: absolute;
-        pointer-events: none;
-      }
-
-      .notice-card::before {
-        inset: 1px;
-        border-radius: 27px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 36%);
-        opacity: 0.5;
-      }
-
-      .notice-card::after {
-        left: 18px;
-        right: 18px;
-        top: 10px;
-        height: 1px;
-        background: rgba(255,255,255,0.2);
-        opacity: 0.45;
-      }
-
-      .notice-head {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 16px 18px;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.24);
-      }
-
-      .notice-head strong {
-        color: #e2e8f0;
-        font-size: 1rem;
-      }
-
-      .notice-close {
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        background: rgba(30, 41, 59, 0.9);
-        color: #cbd5e1;
-        border-radius: 10px;
-        padding: 7px 12px;
-        cursor: pointer;
-        transition: background 160ms ease, border-color 160ms ease;
-      }
-
-      .notice-close:hover {
-        border-color: rgba(255,255,255,0.22);
-        background: rgba(51, 65, 85, 0.95);
-      }
-
-      .notice-body {
-        position: relative;
-        z-index: 1;
-        min-height: 180px;
-        padding: 18px;
-      }
-
-      @keyframes notice-fade-in {
-        from {
-          opacity: 0;
-        }
-
-        to {
-          opacity: 1;
-        }
-      }
-
-      @keyframes notice-pop-in {
-        from {
-          opacity: 0;
-          transform: translateY(18px) scale(0.96);
-        }
-
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="/login.css" />
   </head>
   <body>
-    <main class="close-shell">
-      <section class="close-card">
-        <span class="badge">MCTools</span>
-        <h1>登录入口已关闭</h1>
-        <p class="lead">当前这个页面不再提供登录、注册或扫码操作。相关入口已停止使用，请直接从主页或其他功能页继续访问。</p>
+    <main class="auth-shell">
+      <section class="auth-card">
+        <p class="badge">MCTools</p>
+        <h1>登录入口</h1>
+        <p class="lead">登录后可同步账号状态、收藏与工具箱记录。</p>
 
-        <div class="notice-grid">
-          <article class="notice-item">
-            <strong>当前状态</strong>
-            <p>这个页面保留为关闭提示，不再提供任何账号提交或验证流程。</p>
-          </article>
-          <article class="notice-item">
-            <strong>可用入口</strong>
-            <p>如果你只是想继续浏览工具箱，可以返回首页或进入服务器广场、指令社区。</p>
-          </article>
+        <div class="tab-row" role="tablist" aria-label="登录注册切换">
+          <button class="tab-btn active" type="button" data-tab="login">登录</button>
+          <button class="tab-btn" type="button" data-tab="register">注册</button>
         </div>
 
-        <div class="actions">
-          <a class="action-link primary" href="/index.html">返回首页</a>
-          <a class="action-link secondary" href="/server-plaza.html">服务器广场</a>
-          <a class="action-link secondary" href="/command-community.html">指令社区</a>
+        <section class="tab-status" data-tab-status>
+          <span class="tab-status-tag" data-tab-status-tag>当前模式</span>
+          <strong class="tab-status-title" data-tab-status-title>登录工具箱</strong>
+          <p class="tab-status-note" data-tab-status-note>输入账号和密码后直接进入首页。</p>
+        </section>
+
+        <section class="tab-status" aria-label="功能分区提示">
+          <span class="tab-status-tag">功能分区</span>
+          <strong class="tab-status-title">账号、扫码、快捷入口</strong>
+          <p class="tab-status-note">上方用于账号登录/注册，中部支持扫码，下方保留快速跳转入口。</p>
+        </section>
+
+        <form class="auth-form" data-form="login">
+          <label class="field-label" for="login-username">用户名</label>
+          <input id="login-username" class="auth-input" name="username" type="text" autocomplete="username" required />
+
+          <label class="field-label" for="login-password">密码</label>
+          <input id="login-password" class="auth-input" name="password" type="password" autocomplete="current-password" required />
+
+          <button class="submit-btn" type="submit">登录并进入工具箱</button>
+        </form>
+
+        <form class="auth-form hidden" data-form="register">
+          <label class="field-label" for="register-username">用户名</label>
+          <input id="register-username" class="auth-input" name="username" type="text" autocomplete="username" required />
+
+          <label class="field-label" for="register-password">密码</label>
+          <input id="register-password" class="auth-input" name="password" type="password" autocomplete="new-password" required />
+
+          <input name="registerAsDeveloper" data-developer-flag type="hidden" value="0" />
+          <section class="developer-register hidden" data-developer-register>
+            <label class="field-label" for="developer-secret">开发者授权码</label>
+            <input id="developer-secret" class="auth-input" name="developerSecret" data-developer-secret type="text" autocomplete="one-time-code" />
+            <button class="ghost-btn" type="button" data-developer-exit>退出开发者模式</button>
+          </section>
+
+          <button class="submit-btn" type="submit">注册并进入工具箱</button>
+        </form>
+
+        <p class="message" data-message></p>
+
+        <section class="qr-login">
+          <div class="qr-head">
+            <strong>扫码登录</strong>
+            <button class="ghost-btn" type="button" data-qr-refresh>刷新二维码</button>
+          </div>
+          <div class="qr-preview" data-qr-preview>
+            <div class="qr-placeholder" data-qr-placeholder>正在生成二维码...</div>
+          </div>
+          <p class="qr-status" data-qr-status>等待扫码</p>
+          <p class="qr-expire" data-qr-expire>有效期：--</p>
+          <div class="qr-actions">
+            <a class="ghost-btn" data-qr-open href="/scan-login.html" target="_blank" rel="noreferrer">打开确认页</a>
+            <button class="ghost-btn" type="button" data-qr-copy-link>复制确认链接</button>
+          </div>
+          <p class="qr-link" data-qr-link-text>确认链接：--</p>
+        </section>
+
+        <div class="auth-loading" data-auth-loading hidden>
+          <div class="auth-loading-inner">
+            <p data-auth-loading-message>正在进入首页...</p>
+            <div class="auth-loading-track">
+              <div class="auth-loading-progress" data-auth-loading-progress></div>
+            </div>
+          </div>
         </div>
 
-        <p class="footer-note">如需后续重新开放登录，再单独恢复对应入口即可。</p>
+        <div class="actions-row">
+          <a class="ghost-link" href="/index.html">返回首页</a>
+          <a class="ghost-link" href="/store.html">进入商店</a>
+          <a class="ghost-link" href="/niuniu-toolbox.html">直接进入工具箱</a>
+        </div>
       </section>
     </main>
+
+    <script src="/login.js"></script>
   </body>
 </html>
