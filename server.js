@@ -1437,7 +1437,7 @@ async function createWechatPayNativeOrder(request, response) {
     const body = await parseRequestBody(request);
     const hongxingReadiness = getHongxingPayReadiness();
     if (hongxingReadiness.ready) {
-      await createHongxingNativeOrder(body, response);
+      await createHongxingNativeOrder(request, body, response);
       return;
     }
 
@@ -1564,7 +1564,19 @@ async function createWechatPayNativeOrder(request, response) {
   }
 }
 
-async function createHongxingNativeOrder(body, response) {
+function buildHongxingReturnPageUrl(request, orderNo) {
+  const host = String(request?.headers?.host || '').trim();
+
+  if (!host) {
+    return '';
+  }
+
+  const url = new URL(`http://${host}/store.html`);
+  url.searchParams.set('hongxingOrderNo', orderNo);
+  return url.toString();
+}
+
+async function createHongxingNativeOrder(request, body, response) {
   const config = getHongxingPayConfig();
 
   if (!config.createUrl) {
@@ -1598,7 +1610,7 @@ async function createHongxingNativeOrder(body, response) {
     }
 
     const baseUrl = new URL(String(config.createUrl));
-    const returnUrl = String(config.returnUrl || `${baseUrl.protocol}//${baseUrl.host}/index/payTest`).trim();
+    const returnUrl = String(config.returnUrl || buildHongxingReturnPageUrl(request, orderNo) || `${baseUrl.protocol}//${baseUrl.host}/index/payTest`).trim();
     const notifyUrl = String(config.notifyUrl || `${baseUrl.protocol}//${baseUrl.host}/Payment/UserRechargeNotify?out_trade_no=${encodeURIComponent(orderNo)}`).trim();
     const payUrl = buildHongxingSubmitPayUrl({
       pid: String(config.merchantId),

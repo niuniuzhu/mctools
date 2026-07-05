@@ -2666,6 +2666,56 @@
           setPaymentStatus('支付成功，卡密已发放。');
         }
 
+        async function resumeHongxingPaymentFromQuery() {
+          let hongxingOrderNo = '';
+
+          try {
+            const url = new URL(window.location.href);
+            hongxingOrderNo = String(url.searchParams.get('hongxingOrderNo') || '').trim();
+
+            if (hongxingOrderNo) {
+              url.searchParams.delete('hongxingOrderNo');
+              window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+            }
+          } catch {
+            hongxingOrderNo = '';
+          }
+
+          if (!hongxingOrderNo) {
+            return;
+          }
+
+          setPaymentStatus('支付已返回，正在查询卡密...');
+
+          try {
+            await queryCardSecretByOrderNo(hongxingOrderNo);
+          } catch (error) {
+            setPaymentStatus('支付状态确认中，请稍候...', false);
+            paymentStatusPollingOrderNo = hongxingOrderNo;
+            startOrderStatusPolling(hongxingOrderNo);
+
+            let waitCount = 0;
+            const waitForCardSecret = async () => {
+              if (!paymentStatusPollingOrderNo) {
+                return;
+              }
+
+              try {
+                await queryCardSecretByOrderNo(hongxingOrderNo);
+                paymentStatusPollingOrderNo = '';
+                return;
+              } catch {
+                waitCount += 1;
+                if (waitCount < 20 && paymentStatusPollingOrderNo) {
+                  window.setTimeout(waitForCardSecret, 1500);
+                }
+              }
+            };
+
+            window.setTimeout(waitForCardSecret, 1500);
+          }
+        }
+
         function startOrderStatusPolling(orderNo) {
           const normalizedOrderNo = String(orderNo || '').trim();
 
@@ -3211,6 +3261,7 @@
           updateAuthTrigger();
           await loadStoreProducts();
           startOnlineHeartbeat();
+          await resumeHongxingPaymentFromQuery();
         });
       })();
     </script>
