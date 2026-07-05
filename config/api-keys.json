@@ -8,8 +8,8 @@
   "hongxingPaySignType": "MD5",
   "hongxingPayNotifyUrl": "",
   "hongxingPayReturnUrl": "",
-  "hongxingPayApiKey": "BQ6HCWVICNYIPBBAQLZCYUKWVVKK7EUU",
-  "hongxingPayMerchantId": "568929",
+  "hongxingPayApiKey": "4C26RY8URS3SYJP1VKAASB141BLJLSMW",
+  "hongxingPayMerchantId": "348884",
   "hongxingPayQueryMethod": "POST",
   "smtp": {
     "host": "smtp.qq.com",

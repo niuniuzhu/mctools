@@ -163,6 +163,7 @@
       .btn,
       .top-actions .btn,
       .theme-toggle,
+      .music-toggle,
       .chip,
       .action-chip,
       .buy-btn,
@@ -184,6 +185,7 @@
           opacity 180ms ease;
       }
       .theme-toggle,
+      .music-toggle,
       .top-actions .btn,
       .payment-head .btn,
       .payment-actions .btn,
@@ -194,12 +196,18 @@
         box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
       }
       html[data-theme="night"] .theme-toggle,
+      html[data-theme="night"] .music-toggle,
       html[data-theme="night"] .top-actions .btn,
       html[data-theme="night"] .payment-head .btn,
       html[data-theme="night"] .payment-actions .btn,
       html[data-theme="night"] .buy-btn {
         background: rgba(255,255,255,0.08);
         color: #e2e8f0;
+      }
+      .music-toggle.active {
+        background: linear-gradient(135deg, #22c55e, #0ea5e9);
+        color: #fff;
+        box-shadow: 0 12px 26px rgba(14, 165, 233, 0.22);
       }
       .hero-shell {
         display: grid;
@@ -1422,6 +1430,7 @@
         <div class="top-actions">
           <button class="theme-toggle" type="button" data-control-panel hidden>控制面板</button>
           <button class="theme-toggle auth-trigger" type="button" data-auth-trigger>登录 / 注册</button>
+          <button class="music-toggle" type="button" data-music-toggle>开启背景音乐</button>
           <button class="theme-toggle" type="button" data-theme-toggle>切换到白天</button>
         </div>
       </header>
@@ -1662,9 +1671,18 @@
       </div>
     </div>
 
+    <audio
+      data-bg-music
+      loop
+      preload="none"
+      src="/assets/music/yueyu-jichangbei.mp3"
+    ></audio>
+
     <script>
       (function () {
         const toggleButton = document.querySelector('[data-theme-toggle]');
+        const musicToggleButton = document.querySelector('[data-music-toggle]');
+        const bgMusic = document.querySelector('[data-bg-music]');
         const controlPanelButton = document.querySelector('[data-control-panel]');
         const authTriggerButton = document.querySelector('[data-auth-trigger]');
         const authModal = document.querySelector('[data-auth-modal]');
@@ -1766,6 +1784,46 @@
         let onlineHeartbeatTimer = null;
         let selectedCategory = '全部商品';
         let activePaymentProvider = '';
+        const hongxingReturnOrderStorageKey = 'mctools-hongxing-return-order';
+        const musicEnabledStorageKey = 'mctools-store-music-enabled';
+        let musicEnabled = false;
+
+        function updateMusicToggleView() {
+          if (!musicToggleButton) {
+            return;
+          }
+
+          musicToggleButton.classList.toggle('active', musicEnabled);
+          musicToggleButton.textContent = musicEnabled ? '关闭背景音乐' : '开启背景音乐';
+        }
+
+        async function applyMusicEnabled(nextEnabled) {
+          musicEnabled = Boolean(nextEnabled);
+
+          if (!bgMusic) {
+            updateMusicToggleView();
+            return;
+          }
+
+          if (musicEnabled) {
+            bgMusic.volume = 0.45;
+            try {
+              await bgMusic.play();
+            } catch {
+              musicEnabled = false;
+            }
+          } else {
+            bgMusic.pause();
+          }
+
+          try {
+            localStorage.setItem(musicEnabledStorageKey, musicEnabled ? '1' : '0');
+          } catch {
+            // ignore storage write errors
+          }
+
+          updateMusicToggleView();
+        }
 
         function getOrCreateVisitorId() {
           const storageKey = 'mctools-site-visitor-id';
@@ -2622,6 +2680,12 @@
           cardSecretValue.textContent = String(cardSecret || '').trim() || '未获取到卡密';
           cardSecretModal.classList.add('open');
           cardSecretModal.setAttribute('aria-hidden', 'false');
+
+          try {
+            localStorage.removeItem(hongxingReturnOrderStorageKey);
+          } catch {
+            // ignore storage errors
+          }
         }
 
         function closeCardSecretModal() {
@@ -2679,6 +2743,14 @@
             }
           } catch {
             hongxingOrderNo = '';
+          }
+
+          if (!hongxingOrderNo) {
+            try {
+              hongxingOrderNo = String(localStorage.getItem(hongxingReturnOrderStorageKey) || '').trim();
+            } catch {
+              hongxingOrderNo = '';
+            }
           }
 
           if (!hongxingOrderNo) {
@@ -2850,6 +2922,14 @@
 
             renderPaymentOrder(result);
 
+            if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.orderNo || '').trim()) {
+              try {
+                localStorage.setItem(hongxingReturnOrderStorageKey, String(result.orderNo).trim());
+              } catch {
+                // ignore storage errors
+              }
+            }
+
             if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.codeUrl || '').trim()) {
               setPaymentStatus('订单已创建，正在跳转洪星支付页面...');
               window.location.href = String(result.codeUrl).trim();
@@ -2931,6 +3011,12 @@
           toggleButton.addEventListener('click', () => {
             const nextTheme = document.documentElement.dataset.theme === 'day' ? 'night' : 'day';
             applyTheme(nextTheme);
+          });
+        }
+
+        if (musicToggleButton) {
+          musicToggleButton.addEventListener('click', () => {
+            applyMusicEnabled(!musicEnabled);
           });
         }
 
@@ -3256,6 +3342,13 @@
         }
 
         setAuthTab(authMode);
+
+        try {
+          musicEnabled = String(localStorage.getItem(musicEnabledStorageKey) || '') === '1';
+        } catch {
+          musicEnabled = false;
+        }
+        updateMusicToggleView();
 
         loadAccountState().then(async () => {
           updateAuthTrigger();
