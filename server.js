@@ -119,14 +119,22 @@ function canUseDirectory(dirPath) {
 function resolveWritableDatabasePath() {
   const fallbackRoots = [
     process.env.MCTOOLS_DATA_DIR,
+    process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'mctools'),
+    process.env.APPDATA && path.join(process.env.APPDATA, 'mctools'),
+    path.join(os.homedir(), '.mctools-data'),
     path.join(os.tmpdir(), 'mctools-data')
   ].filter(Boolean);
 
   const sourceDatabasePath = databasePath;
-  const candidatePaths = [sourceDatabasePath];
+  const preferFallbacks = String(process.env.MCTOOLS_FORCE_TEMP_DB || process.env.MCTOOLS_REMOTE || '').trim() === '1';
+  const candidatePaths = preferFallbacks ? [] : [sourceDatabasePath];
 
   for (const rootDir of fallbackRoots) {
     candidatePaths.push(path.join(rootDir, 'users.db'));
+  }
+
+  if (preferFallbacks) {
+    candidatePaths.push(sourceDatabasePath);
   }
 
   for (const candidatePath of candidatePaths) {
@@ -141,11 +149,20 @@ function resolveWritableDatabasePath() {
         fs.copyFileSync(sourceDatabasePath, candidatePath);
       }
       const testDb = new DatabaseSync(candidatePath);
-      testDb.exec('CREATE TEMP TABLE IF NOT EXISTS __mctools_write_probe (id INTEGER PRIMARY KEY)');
-      testDb.exec('INSERT OR IGNORE INTO temp.__mctools_write_probe (id) VALUES (1)');
+      testDb.exec('BEGIN IMMEDIATE');
+      testDb.exec('CREATE TABLE IF NOT EXISTS __mctools_write_probe (id INTEGER PRIMARY KEY)');
+      testDb.exec('DROP TABLE IF EXISTS __mctools_write_probe');
+      testDb.exec('COMMIT');
       testDb.close();
       return candidatePath;
     } catch (error) {
+      try {
+        const rollbackDb = new DatabaseSync(candidatePath);
+        rollbackDb.exec('ROLLBACK');
+        rollbackDb.close();
+      } catch {
+        // Ignore rollback probe errors.
+      }
       if (String(error?.message || '').toLowerCase().includes('readonly')) {
         continue;
       }
@@ -160,6 +177,7 @@ function resolveWritableDatabasePath() {
 }
 
 const resolvedDatabasePath = resolveWritableDatabasePath();
+console.log(`SQLite database path: ${resolvedDatabasePath}`);
 const db = new DatabaseSync(resolvedDatabasePath);
 
 db.exec(`

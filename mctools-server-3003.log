@@ -55,3 +55,10 @@ Server is running at http://0.0.0.0:3003  (正式版1.4.6)
 (node:3892) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+(node:17952) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:19620) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
