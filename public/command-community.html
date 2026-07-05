@@ -171,6 +171,226 @@
         flex-wrap: wrap;
       }
 
+      .topbar-right [data-community-guest][hidden],
+      .topbar-right [data-community-user][hidden],
+      .auth-modal-overlay[hidden] {
+        display: none !important;
+      }
+
+      .auth-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 8, 18, 0.72);
+        backdrop-filter: blur(10px);
+      }
+
+      .auth-modal {
+        position: relative;
+        overflow: hidden;
+        width: min(520px, 100%);
+        max-height: min(90vh, 760px);
+        overflow-y: auto;
+        padding: 28px;
+        border-radius: 30px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: linear-gradient(180deg, rgba(12, 24, 39, 0.98), rgba(16, 40, 63, 0.98));
+        box-shadow: 0 28px 72px rgba(0, 0, 0, 0.45);
+        animation: modal-in 220ms var(--ease-out-soft) both;
+      }
+
+      @keyframes modal-in {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .auth-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .auth-modal-close:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .auth-modal-title {
+        padding-right: 48px;
+        font-size: 1.45rem;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+      }
+
+      .auth-modal-sub {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .auth-tabs,
+      .auth-stepper {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+
+      .auth-tab,
+      .auth-step,
+      .auth-code-meta .pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(255, 255, 255, 0.04);
+        color: #dbeafe;
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .auth-tab {
+        cursor: pointer;
+      }
+
+      .auth-tab.is-active,
+      .auth-step.is-active {
+        border-color: rgba(101, 217, 255, 0.4);
+        background: rgba(101, 217, 255, 0.12);
+        color: #d9f8ff;
+      }
+
+      .auth-stepper {
+        margin-top: 18px;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 14px;
+        margin-top: 16px;
+      }
+
+      .auth-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .auth-label {
+        color: #dbeafe;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .auth-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+
+      .auth-input {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(8, 18, 30, 0.75);
+        color: var(--text);
+        font: inherit;
+        outline: none;
+      }
+
+      .auth-input::placeholder {
+        color: rgba(203, 213, 225, 0.5);
+      }
+
+      .auth-input:focus {
+        border-color: rgba(101, 217, 255, 0.42);
+        box-shadow: 0 0 0 3px rgba(101, 217, 255, 0.14);
+      }
+
+      .auth-message {
+        min-height: 20px;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .auth-message.error {
+        color: #fca5a5;
+      }
+
+      .auth-code-card {
+        margin-top: 18px;
+        padding: 16px;
+        border-radius: 22px;
+        border: 1px solid rgba(101, 217, 255, 0.22);
+        background: linear-gradient(180deg, rgba(10, 20, 35, 0.96), rgba(16, 35, 56, 0.96));
+      }
+
+      .auth-code-digits {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .auth-code-digit {
+        min-height: 56px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(255, 255, 255, 0.04);
+        color: #f8fafc;
+        font-size: 1.6rem;
+        font-weight: 900;
+      }
+
+      .auth-code-digit.is-empty {
+        color: rgba(248, 250, 252, 0.25);
+      }
+
+      .auth-code-helper {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      .auth-code-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .auth-code-meta .pill {
+        background: rgba(255, 255, 255, 0.05);
+        color: #d7e3f4;
+      }
+
       .action-btn {
         display: inline-flex;
         align-items: center;
@@ -699,16 +919,57 @@
         }
 
         async function api(path, options = {}) {
-          const resp = await fetch(apiUrl(path), {
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-            ...options
-          });
-          const data = await resp.json().catch(() => ({}));
-          if (!resp.ok) {
-            throw Object.assign(new Error(data.message || '请求失败'), { status: resp.status, code: data.code });
+          let resp;
+
+          try {
+            resp = await fetch(apiUrl(path), {
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+              },
+              ...options
+            });
+          } catch (error) {
+            throw Object.assign(new Error('网络请求失败，请检查 3003 服务是否已启动'), {
+              cause: error
+            });
           }
+
+          const rawText = await resp.text().catch(() => '');
+          let data = {};
+
+          if (rawText) {
+            try {
+              data = JSON.parse(rawText);
+            } catch {
+              data = { rawText };
+            }
+          }
+
+          if (!resp.ok) {
+            throw Object.assign(new Error(data.message || '请求失败，请重试'), { status: resp.status, code: data.code });
+          }
+
           return data;
+        }
+
+        function applyCommunityUI(user) {
+          const guest = $('[data-community-guest]');
+          const userEl = $('[data-community-user]');
+          const nameEl = $('[data-community-user-name]');
+
+          if (user) {
+            if (guest) { guest.hidden = true; }
+            if (userEl) { userEl.hidden = false; }
+            if (nameEl) { nameEl.textContent = user.username || ''; }
+            return;
+          }
+
+          if (guest) { guest.hidden = false; }
+          if (userEl) { userEl.hidden = true; }
+          if (nameEl) { nameEl.textContent = ''; }
         }
 
         function showStep(step) {
@@ -756,17 +1017,15 @@
         }
 
         async function refreshMe() {
-          const guest = $('[data-community-guest]');
-          const user = $('[data-community-user]');
-          const nameEl = $('[data-community-user-name]');
           try {
             const res = await api('/api/community/me', { method: 'GET' });
-            if (guest) { guest.hidden = true; }
-            if (user) { user.hidden = false; }
-            if (nameEl) { nameEl.textContent = res.username || ''; }
+            if (!res.loggedIn) {
+              applyCommunityUI(null);
+              return;
+            }
+            applyCommunityUI({ username: res.username });
           } catch {
-            if (guest) { guest.hidden = false; }
-            if (user) { user.hidden = true; }
+            applyCommunityUI(null);
           }
         }
 
@@ -811,9 +1070,16 @@
 
             if (res.sent) {
               msg(sendMsg, res.message || '验证码已发送，请查看邮箱。', 'info');
+              if (res.devCode) {
+                updateCodePreview(res.devCode);
+                const codeInput = $('[data-community-code]', authModal);
+                if (codeInput) { codeInput.value = res.devCode; }
+              }
             } else if (res.devCode) {
               msg(sendMsg, '邮件发送失败，当前验证码已显示在调试框。', 'error');
               updateCodePreview(res.devCode);
+              const codeInput = $('[data-community-code]', authModal);
+              if (codeInput) { codeInput.value = res.devCode; }
             } else {
               msg(sendMsg, res.message || '验证码已发送，请查看邮箱。', 'info');
             }

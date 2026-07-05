@@ -1,8 +1,10 @@
 ﻿const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const QRCode = require('qrcode');
 const { DatabaseSync } = require('node:sqlite');
 
 const host = process.env.HOST || '0.0.0.0';
@@ -53,6 +55,7 @@ const previewablePublicPages = new Set([
   '/server-hub.html',
   '/settings.html',
   '/shader-download.html',
+  '/store.html',
   '/sandbox-1201.html',
   '/time-management.html',
   '/modpack-installer-1201.html',
@@ -153,6 +156,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
+    is_developer INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TEXT
   )
@@ -162,6 +166,9 @@ try {
   const communityColumns = db.prepare('PRAGMA table_info(community_accounts)').all().map((column) => column.name);
   if (!communityColumns.includes('last_login_at')) {
     db.exec('ALTER TABLE community_accounts ADD COLUMN last_login_at TEXT');
+  }
+  if (!communityColumns.includes('is_developer')) {
+    db.exec('ALTER TABLE community_accounts ADD COLUMN is_developer INTEGER NOT NULL DEFAULT 0');
   }
 } catch {
   // Keep startup resilient if migration fails unexpectedly.
@@ -202,6 +209,55 @@ db.exec(`
     description TEXT NOT NULL,
     contact TEXT NOT NULL DEFAULT '',
     status TEXT NOT NULL DEFAULT 'OPEN',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_no TEXT NOT NULL UNIQUE,
+    product_code TEXT NOT NULL,
+    product_name TEXT NOT NULL,
+    amount_fen INTEGER NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'CNY',
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    card_secret TEXT NOT NULL DEFAULT '',
+    mch_id TEXT NOT NULL DEFAULT '',
+    app_id TEXT NOT NULL DEFAULT '',
+    code_url TEXT NOT NULL DEFAULT '',
+    wechat_prepay_id TEXT NOT NULL DEFAULT '',
+    wechat_transaction_id TEXT NOT NULL DEFAULT '',
+    request_json TEXT NOT NULL DEFAULT '',
+    response_json TEXT NOT NULL DEFAULT '',
+    notify_json TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+try {
+  const storeOrderColumns = db.prepare('PRAGMA table_info(store_orders)').all().map((column) => column.name);
+  if (!storeOrderColumns.includes('card_secret')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN card_secret TEXT NOT NULL DEFAULT \"\"');
+  }
+} catch {
+  // Keep startup resilient if migration fails unexpectedly.
+}
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    original_price_fen INTEGER NOT NULL DEFAULT 100,
+    sale_price_fen INTEGER NOT NULL DEFAULT 100,
+    currency TEXT NOT NULL DEFAULT 'CNY',
+    is_active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 100,
+    tags_json TEXT NOT NULL DEFAULT '[]',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
@@ -265,6 +321,107 @@ const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const communitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
+const authEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
+
+const defaultStoreProducts = [
+  {
+    productCode: '65997548',
+    name: '星际无限资源服管理',
+    description: '主商品：资源服管理服务。',
+    originalPriceFen: 1500,
+    salePriceFen: 100,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 10,
+    tags: ['资源服', '官方', '热卖']
+  },
+  {
+    productCode: 'CMD-20CB-IN',
+    name: '指令代做 · 20cb 以内',
+    description: '适合 20cb 以内基础指令代做。',
+    originalPriceFen: 2000,
+    salePriceFen: 100,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 20,
+    tags: ['指令代做', '20cb以内']
+  },
+  {
+    productCode: 'CMD-20CB-PLUS',
+    name: '指令代做 · 20cb 以上',
+    description: '适合 20cb 以上复杂指令代做。',
+    originalPriceFen: 4000,
+    salePriceFen: 100,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 30,
+    tags: ['指令代做', '20cb以上']
+  },
+  {
+    productCode: 'BUILD-IMPORT-ONCE',
+    name: '建筑导入一次',
+    description: '一次性建筑导入服务。',
+    originalPriceFen: 2000,
+    salePriceFen: 100,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 40,
+    tags: ['建筑导入', '一次']
+  }
+];
+
+function seedStoreProductsIfEmpty() {
+  const row = db.prepare('SELECT COUNT(1) AS count FROM store_products').get();
+  const count = Number(row?.count || 0);
+
+  if (count > 0) {
+    return;
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO store_products (
+      product_code, name, description, original_price_fen, sale_price_fen, currency, is_active, sort_order, tags_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  for (const product of defaultStoreProducts) {
+    insert.run(
+      product.productCode,
+      product.name,
+      product.description,
+      product.originalPriceFen,
+      product.salePriceFen,
+      product.currency,
+      product.isActive,
+      product.sortOrder,
+      JSON.stringify(product.tags || [])
+    );
+  }
+}
+
+seedStoreProductsIfEmpty();
+
+function isValidAuthUsername(username) {
+  return typeof username === 'string' && username.length > 0 && username.length <= 32;
+}
+
+function isValidAuthEmail(email) {
+  return typeof email === 'string' && authEmailRegex.test(email);
+}
+
+function setScopedAuthCookie(response, cookieName, cookiePath, token, lifetimeMs) {
+  response.setHeader('Set-Cookie', [
+    `${cookieName}=${token}; HttpOnly; Path=${cookiePath}; Max-Age=${Math.floor(lifetimeMs / 1000)}; SameSite=Lax`,
+    `${cookieName}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax`
+  ]);
+}
+
+function clearScopedAuthCookie(response, cookieName, cookiePath) {
+  response.setHeader('Set-Cookie', [
+    `${cookieName}=; HttpOnly; Path=${cookiePath}; Max-Age=0; SameSite=Lax`,
+    `${cookieName}=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax`
+  ]);
+}
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -341,8 +498,775 @@ function getConfiguredValue(envKey, configKey, fallbackValue = '') {
   return configValue || fallbackValue;
 }
 
+function readConfiguredFileText(filePath) {
+  const normalizedPath = String(filePath || '').trim();
+
+  if (!normalizedPath) {
+    return '';
+  }
+
+  const absolutePath = path.isAbsolute(normalizedPath) ? normalizedPath : path.join(__dirname, normalizedPath);
+
+  if (!fs.existsSync(absolutePath)) {
+    return '';
+  }
+
+  try {
+    return fs.readFileSync(absolutePath, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function normalizePemText(text) {
+  return String(text || '').replace(/\r\n/g, '\n').replace(/\\n/g, '\n').trim();
+}
+
+function getWechatPayConfig() {
+  const privateKeyPath = getConfiguredValue('WECHATPAY_PRIVATE_KEY_PATH', 'wechatPayPrivateKeyPath');
+  const inlinePrivateKey = getConfiguredValue('WECHATPAY_PRIVATE_KEY', 'wechatPayPrivateKey');
+  const privateKeyPem = normalizePemText(privateKeyPath ? readConfiguredFileText(privateKeyPath) : inlinePrivateKey);
+
+  return {
+    appId: getConfiguredValue('WECHATPAY_APPID', 'wechatPayAppId'),
+    mchId: getConfiguredValue('WECHATPAY_MCHID', 'wechatPayMchId'),
+    serialNo: getConfiguredValue('WECHATPAY_MERCHANT_SERIAL_NO', 'wechatPayMerchantSerialNo'),
+    apiV3Key: getConfiguredValue('WECHATPAY_API_V3_KEY', 'wechatPayApiV3Key'),
+    notifyUrl: getConfiguredValue('WECHATPAY_NOTIFY_URL', 'wechatPayNotifyUrl'),
+    privateKeyPem
+  };
+}
+
+function getWechatPayReadiness() {
+  const config = getWechatPayConfig();
+  const missing = [];
+
+  if (!config.appId) missing.push('appId');
+  if (!config.mchId) missing.push('mchId');
+  if (!config.serialNo) missing.push('serialNo');
+  if (!config.apiV3Key) missing.push('apiV3Key');
+  if (!config.notifyUrl) missing.push('notifyUrl');
+  if (!config.privateKeyPem) missing.push('privateKey');
+
+  return {
+    ready: missing.length === 0,
+    missing
+  };
+}
+
+function normalizeStoreProductRow(row) {
+  if (!row) {
+    return null;
+  }
+
+  let tags = [];
+  try {
+    const parsedTags = JSON.parse(String(row.tagsJson || '[]'));
+    tags = Array.isArray(parsedTags) ? parsedTags.map((tag) => String(tag || '').trim()).filter(Boolean) : [];
+  } catch {
+    tags = [];
+  }
+
+  const originalPriceFen = Number(row.originalPriceFen || 0);
+  const salePriceFen = Number(row.salePriceFen || 0);
+
+  return {
+    id: Number(row.id || 0),
+    productCode: String(row.productCode || ''),
+    name: String(row.name || ''),
+    description: String(row.description || ''),
+    originalPriceFen,
+    salePriceFen,
+    currency: String(row.currency || 'CNY').toUpperCase(),
+    isActive: Boolean(Number(row.isActive || 0)),
+    sortOrder: Number(row.sortOrder || 100),
+    tags,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    originalPrice: Number((originalPriceFen / 100).toFixed(2)),
+    salePrice: Number((salePriceFen / 100).toFixed(2)),
+    discountFen: Math.max(0, originalPriceFen - salePriceFen)
+  };
+}
+
+function getStoreProductByCode(productCode, includeInactive = false) {
+  const normalizedCode = String(productCode || '').trim();
+
+  if (!normalizedCode) {
+    return null;
+  }
+
+  const row = includeInactive
+    ? db.prepare(
+      `SELECT id, product_code AS productCode, name, description,
+        original_price_fen AS originalPriceFen,
+        sale_price_fen AS salePriceFen,
+        currency, is_active AS isActive, sort_order AS sortOrder,
+        tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
+      FROM store_products WHERE product_code = ?`
+    ).get(normalizedCode)
+    : db.prepare(
+      `SELECT id, product_code AS productCode, name, description,
+        original_price_fen AS originalPriceFen,
+        sale_price_fen AS salePriceFen,
+        currency, is_active AS isActive, sort_order AS sortOrder,
+        tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
+      FROM store_products WHERE product_code = ? AND is_active = 1`
+    ).get(normalizedCode);
+
+  return normalizeStoreProductRow(row);
+}
+
+function listStoreProducts(includeInactive = false) {
+  const rows = includeInactive
+    ? db.prepare(
+      `SELECT id, product_code AS productCode, name, description,
+        original_price_fen AS originalPriceFen,
+        sale_price_fen AS salePriceFen,
+        currency, is_active AS isActive, sort_order AS sortOrder,
+        tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
+      FROM store_products
+      ORDER BY sort_order ASC, id ASC`
+    ).all()
+    : db.prepare(
+      `SELECT id, product_code AS productCode, name, description,
+        original_price_fen AS originalPriceFen,
+        sale_price_fen AS salePriceFen,
+        currency, is_active AS isActive, sort_order AS sortOrder,
+        tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
+      FROM store_products
+      WHERE is_active = 1
+      ORDER BY sort_order ASC, id ASC`
+    ).all();
+
+  return rows.map(normalizeStoreProductRow).filter(Boolean);
+}
+
+function sanitizeStoreTags(tagsInput) {
+  if (Array.isArray(tagsInput)) {
+    return tagsInput.map((tag) => String(tag || '').trim()).filter(Boolean).slice(0, 8);
+  }
+
+  return String(tagsInput || '')
+    .split(/[,，]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function requireCommunityDeveloper(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号' });
+    return null;
+  }
+
+  const account = getCommunityAccountByEmail(session.email);
+  const isCommunityDeveloper = Boolean(session.isDeveloper || account?.isDeveloper || isDeveloper(session.username));
+
+  if (!isCommunityDeveloper) {
+    sendJson(response, 403, { message: '仅开发者可操作商品配置' });
+    return null;
+  }
+
+  return {
+    username: session.username,
+    email: session.email,
+    isDeveloper: true
+  };
+}
+
+function handleStoreProducts(request, response) {
+  sendJson(response, 200, {
+    products: listStoreProducts(false)
+  });
+}
+
+function handleStoreProductsAdmin(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  sendJson(response, 200, {
+    products: listStoreProducts(true),
+    operator: session.username
+  });
+}
+
+function handleStoreProductsCreate(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const name = String(body.name || '').trim();
+      const description = String(body.description || '').trim();
+      const originalPriceFen = Number(body.originalPriceFen);
+      const salePriceFen = Number(body.salePriceFen);
+      const sortOrder = Number(body.sortOrder ?? 100);
+      const isActive = body.isActive === false || body.isActive === 0 || body.isActive === '0' ? 0 : 1;
+      const tags = sanitizeStoreTags(body.tags);
+
+      if (!/^[A-Z0-9_-]{3,48}$/.test(productCode)) {
+        sendJson(response, 400, { message: '商品编码仅支持 3-48 位大写字母、数字、下划线或中划线' });
+        return;
+      }
+
+      if (!name || name.length > 60) {
+        sendJson(response, 400, { message: '商品名称不能为空，且不能超过 60 个字符' });
+        return;
+      }
+
+      if (!Number.isInteger(originalPriceFen) || originalPriceFen <= 0) {
+        sendJson(response, 400, { message: '原价必须为大于 0 的整数分' });
+        return;
+      }
+
+      if (!Number.isInteger(salePriceFen) || salePriceFen <= 0) {
+        sendJson(response, 400, { message: '优惠价必须为大于 0 的整数分' });
+        return;
+      }
+
+      if (salePriceFen > originalPriceFen) {
+        sendJson(response, 400, { message: '优惠价不能高于原价' });
+        return;
+      }
+
+      db.prepare(
+        `INSERT INTO store_products (
+          product_code, name, description, original_price_fen, sale_price_fen,
+          currency, is_active, sort_order, tags_json, updated_at
+        ) VALUES (?, ?, ?, ?, ?, 'CNY', ?, ?, ?, CURRENT_TIMESTAMP)`
+      ).run(
+        productCode,
+        name,
+        description,
+        originalPriceFen,
+        salePriceFen,
+        isActive,
+        Number.isFinite(sortOrder) ? Math.round(sortOrder) : 100,
+        JSON.stringify(tags)
+      );
+
+      sendJson(response, 201, {
+        message: '商品创建成功',
+        product: getStoreProductByCode(productCode, true)
+      });
+    })
+    .catch((error) => {
+      const message = String(error?.message || '创建商品失败');
+      if (message.includes('UNIQUE')) {
+        sendJson(response, 409, { message: '商品编码已存在' });
+        return;
+      }
+      sendJson(response, 400, { message });
+    });
+}
+
+function handleStoreProductsUpdate(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const existing = getStoreProductByCode(productCode, true);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '商品不存在' });
+        return;
+      }
+
+      const name = body.name === undefined ? existing.name : String(body.name || '').trim();
+      const description = body.description === undefined ? existing.description : String(body.description || '').trim();
+      const originalPriceFen = body.originalPriceFen === undefined ? existing.originalPriceFen : Number(body.originalPriceFen);
+      const salePriceFen = body.salePriceFen === undefined ? existing.salePriceFen : Number(body.salePriceFen);
+      const sortOrder = body.sortOrder === undefined ? existing.sortOrder : Number(body.sortOrder);
+      const tags = body.tags === undefined ? existing.tags : sanitizeStoreTags(body.tags);
+
+      if (!name || name.length > 60) {
+        sendJson(response, 400, { message: '商品名称不能为空，且不能超过 60 个字符' });
+        return;
+      }
+
+      if (!Number.isInteger(originalPriceFen) || originalPriceFen <= 0) {
+        sendJson(response, 400, { message: '原价必须为大于 0 的整数分' });
+        return;
+      }
+
+      if (!Number.isInteger(salePriceFen) || salePriceFen <= 0) {
+        sendJson(response, 400, { message: '优惠价必须为大于 0 的整数分' });
+        return;
+      }
+
+      if (salePriceFen > originalPriceFen) {
+        sendJson(response, 400, { message: '优惠价不能高于原价' });
+        return;
+      }
+
+      db.prepare(
+        `UPDATE store_products SET
+          name = ?,
+          description = ?,
+          original_price_fen = ?,
+          sale_price_fen = ?,
+          sort_order = ?,
+          tags_json = ?,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE product_code = ?`
+      ).run(
+        name,
+        description,
+        originalPriceFen,
+        salePriceFen,
+        Number.isFinite(sortOrder) ? Math.round(sortOrder) : existing.sortOrder,
+        JSON.stringify(tags),
+        productCode
+      );
+
+      sendJson(response, 200, {
+        message: '商品更新成功',
+        product: getStoreProductByCode(productCode, true)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '更新商品失败' });
+    });
+}
+
+function handleStoreProductsToggle(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const nextActive = body.isActive === true || body.isActive === 1 || body.isActive === '1';
+      const existing = getStoreProductByCode(productCode, true);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '商品不存在' });
+        return;
+      }
+
+      db.prepare('UPDATE store_products SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE product_code = ?').run(
+        nextActive ? 1 : 0,
+        productCode
+      );
+
+      sendJson(response, 200, {
+        message: nextActive ? '商品已上架' : '商品已下架',
+        product: getStoreProductByCode(productCode, true)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '切换状态失败' });
+    });
+}
+
+function getClientIpAddress(request) {
+  const forwardedFor = String(request.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  const remoteAddress = String(request.socket?.remoteAddress || request.connection?.remoteAddress || '').trim();
+  return forwardedFor || remoteAddress || '127.0.0.1';
+}
+
+function readRequestText(request) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+
+    request.on('data', (chunk) => {
+      body += chunk;
+
+      if (body.length > 1024 * 1024 * 5) {
+        reject(new Error('Payload too large'));
+        request.destroy();
+      }
+    });
+
+    request.on('end', () => {
+      resolve(body);
+    });
+
+    request.on('error', reject);
+  });
+}
+
+function createStoreOrderNo() {
+  return `SP${Date.now()}${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+}
+
+function signWechatPayRequest(method, requestPath, bodyText, mchId, serialNo, privateKeyPem) {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const nonceStr = crypto.randomBytes(16).toString('hex');
+  const message = `${method}\n${requestPath}\n${timestamp}\n${nonceStr}\n${bodyText}\n`;
+  const signer = crypto.createSign('RSA-SHA256');
+  signer.update(message);
+  signer.end();
+
+  const signature = signer.sign(normalizePemText(privateKeyPem), 'base64');
+  return `WECHATPAY2-SHA256-RSA2048 mchid="${mchId}",nonce_str="${nonceStr}",timestamp="${timestamp}",serial_no="${serialNo}",signature="${signature}"`;
+}
+
+function requestJson(urlString, options, bodyText = '') {
+  const url = new URL(urlString);
+  const requestOptions = {
+    protocol: url.protocol,
+    hostname: url.hostname,
+    port: url.port || undefined,
+    path: `${url.pathname}${url.search}`,
+    method: options.method || 'GET',
+    headers: options.headers || {}
+  };
+  const transport = url.protocol === 'https:' ? https : http;
+
+  return new Promise((resolve, reject) => {
+    const request = transport.request(requestOptions, (response) => {
+      let responseBody = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        responseBody += chunk;
+      });
+      response.on('end', () => {
+        resolve({
+          statusCode: response.statusCode || 0,
+          headers: response.headers,
+          body: responseBody
+        });
+      });
+    });
+
+    request.on('error', reject);
+
+    if (bodyText) {
+      request.write(bodyText);
+    }
+
+    request.end();
+  });
+}
+
+function getStoreOrderByNo(orderNo) {
+  return db.prepare(
+    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
+  ).get(orderNo) || null;
+}
+
+function createStoreCardSecret(orderNo) {
+  const normalizedOrderNo = String(orderNo || '').trim().toUpperCase();
+  const suffix = normalizedOrderNo.slice(-6) || crypto.randomBytes(3).toString('hex').toUpperCase();
+  return `MC-${suffix}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+}
+
+function ensureStoreOrderCardSecret(orderNo) {
+  const order = getStoreOrderByNo(orderNo);
+
+  if (!order) {
+    return '';
+  }
+
+  if (String(order.cardSecret || '').trim()) {
+    return String(order.cardSecret).trim();
+  }
+
+  const cardSecret = createStoreCardSecret(orderNo);
+  db.prepare('UPDATE store_orders SET card_secret = ?, updated_at = CURRENT_TIMESTAMP WHERE order_no = ?').run(cardSecret, orderNo);
+  return cardSecret;
+}
+
+function createStoreOrder(record) {
+  db.prepare(
+    `INSERT INTO store_orders (
+      order_no, product_code, product_name, amount_fen, currency, status,
+      card_secret, mch_id, app_id, code_url, wechat_prepay_id, wechat_transaction_id,
+      request_json, response_json, notify_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    record.orderNo,
+    record.productCode,
+    record.productName,
+    record.amountFen,
+    record.currency,
+    record.status,
+    record.cardSecret,
+    record.mchId,
+    record.appId,
+    record.codeUrl,
+    record.prepayId,
+    record.transactionId,
+    record.requestJson,
+    record.responseJson,
+    record.notifyJson
+  );
+}
+
+function updateStoreOrder(orderNo, updates) {
+  const current = getStoreOrderByNo(orderNo);
+
+  if (!current) {
+    return null;
+  }
+
+  const nextOrder = {
+    ...current,
+    ...updates
+  };
+
+  db.prepare(
+    `UPDATE store_orders SET
+      status = ?,
+      card_secret = ?,
+      code_url = ?,
+      wechat_prepay_id = ?,
+      wechat_transaction_id = ?,
+      response_json = ?,
+      notify_json = ?,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE order_no = ?`
+  ).run(
+    nextOrder.status || current.status,
+    nextOrder.cardSecret || current.cardSecret || '',
+    nextOrder.codeUrl || current.codeUrl || '',
+    nextOrder.prepayId || current.prepayId || '',
+    nextOrder.transactionId || current.transactionId || '',
+    nextOrder.responseJson || current.responseJson || '',
+    nextOrder.notifyJson || current.notifyJson || '',
+    orderNo
+  );
+
+  return getStoreOrderByNo(orderNo);
+}
+
+function decryptWechatPayResource(resource, apiV3Key) {
+  if (!resource || !apiV3Key) {
+    return null;
+  }
+
+  const key = Buffer.from(normalizePemText(apiV3Key), 'utf8');
+
+  if (key.length !== 32) {
+    return null;
+  }
+
+  const ciphertext = Buffer.from(String(resource.ciphertext || ''), 'base64');
+  if (ciphertext.length <= 16) {
+    return null;
+  }
+
+  const authTag = ciphertext.subarray(ciphertext.length - 16);
+  const encrypted = ciphertext.subarray(0, ciphertext.length - 16);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(String(resource.nonce || ''), 'utf8'));
+
+  if (resource.associated_data) {
+    decipher.setAAD(Buffer.from(String(resource.associated_data), 'utf8'));
+  }
+
+  decipher.setAuthTag(authTag);
+  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  return JSON.parse(decrypted.toString('utf8'));
+}
+
+async function createWechatPayNativeOrder(request, response) {
+  try {
+    const body = await parseRequestBody(request);
+    const config = getWechatPayConfig();
+    const productCode = String(body.productCode || '').trim().toUpperCase();
+    const product = getStoreProductByCode(productCode, false);
+
+    if (!config.appId || !config.mchId || !config.serialNo || !config.apiV3Key || !config.notifyUrl || !config.privateKeyPem) {
+      sendJson(response, 500, {
+        message: '微信支付配置不完整，请补全 appId、mchId、serialNo、privateKey、apiV3Key 和 notifyUrl'
+      });
+      return;
+    }
+
+    if (!product) {
+      sendJson(response, 404, { message: '商品不存在或已下架' });
+      return;
+    }
+
+    const orderNo = createStoreOrderNo();
+    const amountFen = Number(product.salePriceFen || 0);
+    const productName = String(product.name || '').trim();
+
+    if (!Number.isFinite(amountFen) || amountFen <= 0) {
+      sendJson(response, 400, { message: '订单金额无效' });
+      return;
+    }
+
+    const orderBody = {
+      appid: config.appId,
+      mchid: config.mchId,
+      description: `${productName} · 官方商店订单`,
+      out_trade_no: orderNo,
+      notify_url: config.notifyUrl,
+      amount: {
+        total: amountFen,
+        currency: product.currency || 'CNY'
+      },
+      attach: JSON.stringify({
+        productCode,
+        productName
+      })
+    };
+
+    const requestPath = '/v3/pay/transactions/native';
+    const requestBodyText = JSON.stringify(orderBody);
+    const authorization = signWechatPayRequest('POST', requestPath, requestBodyText, config.mchId, config.serialNo, config.privateKeyPem);
+
+    const wechatResponse = await requestJson('https://api.mch.weixin.qq.com/v3/pay/transactions/native', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        Accept: 'application/json',
+        Authorization: authorization,
+        'User-Agent': 'mctools-store/1.0'
+      }
+    }, requestBodyText);
+
+    if (wechatResponse.statusCode < 200 || wechatResponse.statusCode >= 300) {
+      sendJson(response, 502, {
+        message: '微信支付下单失败',
+        statusCode: wechatResponse.statusCode,
+        detail: wechatResponse.body || ''
+      });
+      return;
+    }
+
+    let parsedResponse = {};
+    try {
+      parsedResponse = wechatResponse.body ? JSON.parse(wechatResponse.body) : {};
+    } catch {
+      parsedResponse = { raw: wechatResponse.body || '' };
+    }
+
+    const codeUrl = String(parsedResponse.code_url || '').trim();
+
+    if (!codeUrl) {
+      sendJson(response, 502, {
+        message: '微信支付未返回 code_url',
+        detail: parsedResponse
+      });
+      return;
+    }
+
+    const qrDataUrl = await QRCode.toDataURL(codeUrl, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 320
+    });
+
+    createStoreOrder({
+      orderNo,
+      productCode,
+      productName,
+      amountFen,
+      currency: product.currency || 'CNY',
+      status: 'PENDING',
+      cardSecret: '',
+      mchId: config.mchId,
+      appId: config.appId,
+      codeUrl,
+      prepayId: parsedResponse.prepay_id || '',
+      transactionId: '',
+      requestJson: JSON.stringify(orderBody),
+      responseJson: JSON.stringify(parsedResponse),
+      notifyJson: ''
+    });
+
+    sendJson(response, 200, {
+      message: '微信支付订单已创建',
+      orderNo,
+      productCode,
+      productName,
+      amountFen,
+      currency: product.currency || 'CNY',
+      codeUrl,
+      qrDataUrl,
+      prepayId: parsedResponse.prepay_id || ''
+    });
+  } catch (error) {
+    sendJson(response, 500, {
+      message: error.message || '创建微信支付订单失败'
+    });
+  }
+}
+
+function handleStoreOrderStatus(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const orderNo = String(url.searchParams.get('orderNo') || '').trim();
+
+  if (!orderNo) {
+    sendJson(response, 400, { message: '缺少订单号' });
+    return;
+  }
+
+  const order = getStoreOrderByNo(orderNo);
+
+  if (!order) {
+    sendJson(response, 404, { message: '订单不存在' });
+    return;
+  }
+
+  const status = String(order.status || '').toUpperCase();
+  const paid = status === 'SUCCESS' || status === 'TRADE_SUCCESS';
+  const cardSecret = paid ? ensureStoreOrderCardSecret(orderNo) : '';
+
+  sendJson(response, 200, {
+    orderNo: order.orderNo,
+    status,
+    paid,
+    cardSecret,
+    productCode: order.productCode,
+    productName: order.productName,
+    amountFen: order.amountFen,
+    updatedAt: order.updatedAt
+  });
+}
+
+async function handleStoreWechatNotify(request, response) {
+  try {
+    const rawBody = await readRequestText(request);
+    const payload = rawBody ? JSON.parse(rawBody) : {};
+    const config = getWechatPayConfig();
+    const decrypted = decryptWechatPayResource(payload.resource, config.apiV3Key);
+
+    if (decrypted && decrypted.out_trade_no) {
+      updateStoreOrder(decrypted.out_trade_no, {
+        status: String(decrypted.trade_state || 'SUCCESS').toUpperCase(),
+        transactionId: decrypted.transaction_id || '',
+        notifyJson: rawBody,
+        responseJson: JSON.stringify(decrypted)
+      });
+    }
+
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ code: 'SUCCESS', message: '成功' }));
+  } catch (error) {
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ code: 'SUCCESS', message: error.message || '成功' }));
+  }
+}
+
 function getMimeTypeFromExtension(extension) {
   return mimeTypes[extension] || 'application/octet-stream';
+}
+
+function shouldExposeDevCode(request) {
+  const hostHeader = String(request?.headers?.host || '').trim().toLowerCase();
+  return hostHeader.startsWith('127.0.0.1') || hostHeader.startsWith('localhost') || hostHeader.startsWith('[::1]');
 }
 
 function parseRequestBody(request) {
@@ -667,15 +1591,19 @@ function cleanupExpiredCommunityCodes() {
 }
 
 function getCommunityAccountByUsername(username) {
-  return db.prepare('SELECT id, username, email, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
 }
 
 function getCommunityAccountByEmail(email) {
-  return db.prepare('SELECT id, username, email, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
 }
 
-function createCommunityAccount(username, email) {
-  db.prepare('INSERT INTO community_accounts (username, email, last_login_at) VALUES (?, ?, CURRENT_TIMESTAMP)').run(username, email);
+function createCommunityAccount(username, email, isDeveloper = false) {
+  db.prepare('INSERT INTO community_accounts (username, email, is_developer, last_login_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)').run(
+    username,
+    email,
+    isDeveloper ? 1 : 0
+  );
   return getCommunityAccountByUsername(username);
 }
 
@@ -684,16 +1612,28 @@ function markCommunityAccountLogin(email) {
 }
 
 function getCommunitySessionFromRequest(request) {
+  // 方法1：从Authorization header中获取 token
+  const authHeader = request.headers['authorization'] || '';
+  if (authHeader.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    const session = communitySessions.get(token);
+    if (session && session.expiresAt > Date.now()) {
+      return session;
+    }
+  }
+  
+  // 方法2：从Cookie header中获取 token
   const cookieHeader = request.headers['cookie'] || '';
   const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
-  if (!match) { return null; }
-  const token = decodeURIComponent(match[1]);
-  const session = communitySessions.get(token);
-  if (!session || session.expiresAt <= Date.now()) {
-    communitySessions.delete(token);
-    return null;
+  if (match) {
+    const token = decodeURIComponent(match[1]);
+    const session = communitySessions.get(token);
+    if (session && session.expiresAt > Date.now()) {
+      return session;
+    }
   }
-  return session;
+  
+  return null;
 }
 
 function handleCommunityRegister(request, response) {
@@ -701,14 +1641,19 @@ function handleCommunityRegister(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
+      const registerAsDeveloper =
+        body.registerAsDeveloper === true ||
+        body.registerAsDeveloper === 'true' ||
+        body.registerAsDeveloper === 1 ||
+        body.registerAsDeveloper === '1';
+      const developerSecret = String(body.developerSecret || '').trim();
 
-      if (!username || username.length > 32) {
+      if (!isValidAuthUsername(username)) {
         sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
         return;
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
-      if (!emailRegex.test(email)) {
+      if (!isValidAuthEmail(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
         return;
       }
@@ -723,7 +1668,18 @@ function handleCommunityRegister(request, response) {
         return;
       }
 
-      const account = createCommunityAccount(username, email);
+      let isCommunityDeveloper = Boolean(isDeveloper(username));
+
+      if (registerAsDeveloper) {
+        if (developerSecret !== developerRegistrationSecret) {
+          sendJson(response, 403, { message: '开发者口令错误，无法创建开发者账号' });
+          return;
+        }
+
+        isCommunityDeveloper = true;
+      }
+
+      const account = createCommunityAccount(username, email, isCommunityDeveloper);
       sendJson(response, 201, { message: '社区账号注册成功，请继续发送验证码登录', account });
     })
     .catch((error) => {
@@ -737,14 +1693,24 @@ function handleCommunitySendCode(request, response) {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
 
-      if (!username || username.length > 32) {
+      if (!isValidAuthUsername(username)) {
         sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
         return;
       }
 
+      if (!isValidAuthEmail(email)) {
+        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        return;
+      }
+
       const account = getCommunityAccountByEmail(email);
-      if (!account || account.username !== username) {
-        sendJson(response, 404, { message: '社区账号不存在，请先注册' });
+      if (!account) {
+        sendJson(response, 403, { message: '请先注册账户后再登录', code: 'REGISTRATION_REQUIRED' });
+        return;
+      }
+
+      if (account.username !== username) {
+        sendJson(response, 400, { message: '用户名与注册账户不一致' });
         return;
       }
 
@@ -757,18 +1723,8 @@ function handleCommunitySendCode(request, response) {
       const code = String(Math.floor(100000 + Math.random() * 900000));
       communityVerifyCodes.set(email, { code, username, expiresAt: Date.now() + communityVerifyCodeLifetimeMs });
 
-      const smtpResult = await trySmtpSend(email, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
-
-      if (smtpResult.ok) {
-        sendJson(response, 200, { message: `验证码已发送至 ${email}，10 分钟内有效`, sent: true });
-      } else {
-        sendJson(response, 200, {
-          message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
-          sent: false,
-          devCode: code,
-          smtpError: smtpResult.reason || ''
-        });
-      }
+      const result = await sendAuthCodeEmail('Community', email, code, username, shouldExposeDevCode(request));
+      sendJson(response, 200, result);
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '请求无效' });
@@ -796,17 +1752,22 @@ function handleCommunityVerify(request, response) {
       markCommunityAccountLogin(email);
 
       const token = crypto.randomBytes(32).toString('hex');
+      const account = getCommunityAccountByEmail(email);
+      const isCommunityDeveloper = Boolean(account?.isDeveloper || isDeveloper(entry.username));
       communitySessions.set(token, {
         username: entry.username,
         email,
+        isDeveloper: isCommunityDeveloper,
         expiresAt: Date.now() + communitySessionLifetimeMs
       });
 
-      response.setHeader('Set-Cookie', [
-        `mctools_community=${token}; HttpOnly; Path=/api/community/; Max-Age=${communitySessionLifetimeMs / 1000}; SameSite=Lax`,
-        'mctools_community=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
-      ]);
-      sendJson(response, 200, { message: '社区登录成功', username: entry.username });
+        setScopedAuthCookie(response, 'mctools_community', '/api/community/', token, communitySessionLifetimeMs);
+      sendJson(response, 200, {
+        message: '社区登录成功',
+        username: entry.username,
+        isDeveloper: isCommunityDeveloper,
+        token
+      });
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '请求无效' });
@@ -816,13 +1777,17 @@ function handleCommunityVerify(request, response) {
 function handleCommunityMe(request, response) {
   const session = getCommunitySessionFromRequest(request);
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 200, { loggedIn: false });
     return;
   }
+  const account = getCommunityAccountByEmail(session.email);
+  const isCommunityDeveloper = Boolean(session.isDeveloper || account?.isDeveloper || isDeveloper(session.username));
   sendJson(response, 200, {
+    loggedIn: true,
     username: session.username,
     email: session.email,
-    registered: Boolean(getCommunityAccountByEmail(session.email))
+    registered: Boolean(account),
+    isDeveloper: isCommunityDeveloper
   });
 }
 
@@ -833,10 +1798,7 @@ function handleCommunityLogout(request, response) {
     const token = decodeURIComponent(match[1]);
     communitySessions.delete(token);
   }
-  response.setHeader('Set-Cookie', [
-    'mctools_community=; HttpOnly; Path=/api/community/; Max-Age=0; SameSite=Lax',
-    'mctools_community=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
-  ]);
+      clearScopedAuthCookie(response, 'mctools_community', '/api/community/');
   sendJson(response, 200, { message: '已退出社区账号' });
 }
 
@@ -924,7 +1886,7 @@ async function trySmtpSend(toEmail, code, username) {
       from: smtpConfig.from || smtpConfig.user,
       to: toEmail,
       subject: `验证码 ${code}`,
-      text: `你好 ${username}，\n\n你的“星际_服务器广场”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际_服务器广场`
+      text: `你好 ${username}，\n\n你的“星际_服务器广场”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际-小卖部`
     });
 
     return { ok: true, reason: info?.response || '' };
@@ -933,19 +1895,38 @@ async function trySmtpSend(toEmail, code, username) {
   }
 }
 
+async function sendAuthCodeEmail(scopeLabel, toEmail, code, username, exposeDevCode = false) {
+  const smtpResult = await trySmtpSend(toEmail, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
+
+  if (smtpResult.ok) {
+    return {
+      sent: true,
+      message: `验证码已发送至 ${toEmail}，10 分钟内有效`,
+      ...(exposeDevCode ? { devCode: code } : {})
+    };
+  }
+
+  console.warn(`[${scopeLabel}] SMTP 发送失败 -> ${toEmail} (${username}): ${smtpResult.reason || 'unknown'}`);
+  return {
+    sent: false,
+    message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
+    devCode: code,
+    smtpError: smtpResult.reason || ''
+  };
+}
+
 function handlePlazaSendCode(request, response) {
   parseRequestBody(request)
     .then(async (body) => {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
 
-      if (!username || username.length > 32) {
+      if (!isValidAuthUsername(username)) {
         sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
         return;
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
-      if (!emailRegex.test(email)) {
+      if (!isValidAuthEmail(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
         return;
       }
@@ -975,21 +1956,10 @@ function handlePlazaSendCode(request, response) {
         expiresAt: Date.now() + plazaVerifyCodeLifetimeMs
       });
 
-      console.log(`[Plaza] 验证码 ${code} -> ${email} (${username})`);
 
-      const smtpResult = await trySmtpSend(email, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
 
-      if (smtpResult.ok) {
-        sendJson(response, 200, { message: `验证码已发送至 ${email}，10 分钟内有效`, sent: true });
-      } else {
-        console.warn(`[Plaza] SMTP 发送失败 -> ${email} (${username}): ${smtpResult.reason || 'unknown'}`);
-        sendJson(response, 200, {
-          message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
-          sent: false,
-          devCode: code,
-          smtpError: smtpResult.reason || ''
-        });
-      }
+        const result = await sendAuthCodeEmail('Plaza', email, code, username, shouldExposeDevCode(request));
+        sendJson(response, 200, result);
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '请求无效' });
@@ -1002,13 +1972,12 @@ function handlePlazaDirectLogin(request, response) {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
 
-      if (!username || username.length > 32) {
+      if (!isValidAuthUsername(username)) {
         sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
         return;
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
-      if (!emailRegex.test(email)) {
+      if (!isValidAuthEmail(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
         return;
       }
@@ -1020,10 +1989,7 @@ function handlePlazaDirectLogin(request, response) {
         expiresAt: Date.now() + plazaSessionLifetimeMs
       });
 
-      response.setHeader('Set-Cookie', [
-        `mctools_plaza=${token}; HttpOnly; Path=/api/plaza/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`,
-        'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
-      ]);
+      setScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/', token, plazaSessionLifetimeMs);
       sendJson(response, 200, { message: '登录成功', username, email });
     })
     .catch((error) => {
@@ -1037,13 +2003,12 @@ function handlePlazaRegister(request, response) {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
 
-      if (!username || username.length > 32) {
+      if (!isValidAuthUsername(username)) {
         sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
         return;
       }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
-      if (!emailRegex.test(email)) {
+      if (!isValidAuthEmail(email)) {
         sendJson(response, 400, { message: '请填写有效的邮箱地址' });
         return;
       }
@@ -1097,10 +2062,7 @@ function handlePlazaVerify(request, response) {
         expiresAt: Date.now() + plazaSessionLifetimeMs
       });
 
-      response.setHeader('Set-Cookie', [
-        `mctools_plaza=${token}; HttpOnly; Path=/api/plaza/; Max-Age=${plazaSessionLifetimeMs / 1000}; SameSite=Lax`,
-        'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
-      ]);
+        setScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/', token, plazaSessionLifetimeMs);
       sendJson(response, 200, { message: '登录成功', username: entry.username });
     })
     .catch((error) => {
@@ -1111,10 +2073,11 @@ function handlePlazaVerify(request, response) {
 function handlePlazaMe(request, response) {
   const session = getPlazaSessionFromRequest(request);
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 200, { loggedIn: false });
     return;
   }
   sendJson(response, 200, {
+    loggedIn: true,
     username: session.username,
     email: session.email,
     registered: Boolean(getPlazaAccountByEmail(session.email)),
@@ -1129,10 +2092,7 @@ function handlePlazaLogout(request, response) {
     const token = decodeURIComponent(match[1]);
     plazaSessions.delete(token);
   }
-  response.setHeader('Set-Cookie', [
-    'mctools_plaza=; HttpOnly; Path=/api/plaza/; Max-Age=0; SameSite=Lax',
-    'mctools_plaza=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax'
-  ]);
+      clearScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/');
   sendJson(response, 200, { message: '已退出登录' });
 }
 
@@ -1800,6 +2760,8 @@ function handleRegister(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const captchaId = String(body.captchaId || '').trim();
+      const captchaCode = String(body.captchaCode || '').trim();
       const registerAsDeveloper =
         body.registerAsDeveloper === true ||
         body.registerAsDeveloper === 'true' ||
@@ -1814,6 +2776,13 @@ function handleRegister(request, response) {
 
       if (password.length < 6) {
         sendJson(response, 400, { message: '密码长度至少 6 位' });
+        return;
+      }
+
+      const captchaCheck = verifyLoginCaptcha(captchaId, captchaCode);
+
+      if (!captchaCheck.ok) {
+        sendJson(response, 400, { message: captchaCheck.message });
         return;
       }
 
@@ -3246,11 +4215,14 @@ function handleMe(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 200, { loggedIn: false, username: '' });
     return;
   }
 
-  sendJson(response, 200, getUserPayload(session.username));
+  sendJson(response, 200, {
+    loggedIn: true,
+    ...getUserPayload(session.username)
+  });
 }
 
 function serveStatic(pathname, response) {
@@ -3655,6 +4627,159 @@ const server = http.createServer((request, response) => {
 
       if (communityFilePath) {
         serveStatic(communityPath, response);
+      } else {
+        sendPortClosedNotice(response, request);
+      }
+
+      return;
+    }
+
+    sendJson(response, 405, { message: '方法不允许' });
+    return;
+  }
+
+  if (Number(port) === 3004) {
+    if (request.method === 'POST' && pathname === '/api/community/register') {
+      handleCommunityRegister(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/send-code') {
+      handleCommunitySendCode(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/verify') {
+      handleCommunityVerify(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/me') {
+      handleCommunityMe(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/logout') {
+      handleCommunityLogout(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/login/captcha') {
+      handleLoginCaptcha(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/me') {
+      handleMe(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/register') {
+      handleRegister(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/login') {
+      handleLogin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/logout') {
+      handleLogout(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/wechat/meta') {
+      const readiness = getWechatPayReadiness();
+      sendJson(response, 200, {
+        ready: readiness.ready,
+        missing: readiness.missing
+      });
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/products') {
+      handleStoreProducts(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/products/admin') {
+      handleStoreProductsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/products') {
+      handleStoreProductsCreate(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/products/update') {
+      handleStoreProductsUpdate(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/products/toggle') {
+      handleStoreProductsToggle(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/wechat/native-order') {
+      createWechatPayNativeOrder(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/wechat/order-status') {
+      handleStoreOrderStatus(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/wechat/notify') {
+      handleStoreWechatNotify(request, response);
+      return;
+    }
+
+    // 快速创建测试开发者账号（仅用于测试）
+    if (request.method === 'POST' && pathname === '/api/dev-test/create-dev-account') {
+      const username = 'devtest' + Date.now().toString().slice(-6);
+      const email = 'devtest' + Date.now().toString().slice(-6) + '@test.local';
+      
+      const account = createCommunityAccount(username, email, true);
+      const token = crypto.randomBytes(32).toString('hex');
+      const session = {
+        username,
+        email,
+        isDeveloper: true,
+        expiresAt: Date.now() + communitySessionLifetimeMs
+      };
+      
+      communitySessions.set(token, session);
+      
+      // 直接处理响应，确保Set-Cookie在其他响应头之前
+      response.writeHead(200, {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Set-Cookie': `mctools_community=${token}; Path=/; Max-Age=${Math.floor(communitySessionLifetimeMs / 1000)}`
+      });
+      response.end(JSON.stringify({
+        message: '测试账号创建成功',
+        username,
+        email,
+        token,
+        isDeveloper: true
+      }));
+      return;
+    }
+
+    if (request.method === 'GET' && (pathname === '/styles.css' || pathname.startsWith('/assets/'))) {
+      serveStatic(pathname, response);
+      return;
+    }
+
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const storePath = pathname === '/' ? '/store.html' : pathname;
+      const staticFilePath = resolvePublicFilePath(storePath);
+
+      if (staticFilePath) {
+        serveStatic(storePath, response);
       } else {
         sendPortClosedNotice(response, request);
       }

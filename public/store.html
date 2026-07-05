@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商店 · 星际无限资源服</title>
+    <script>
+      (function () {
+        try {
+          const storedTheme = localStorage.getItem('mctools-store-theme') || 'day';
+          const nextTheme = storedTheme === 'night' ? 'night' : 'day';
+          document.documentElement.dataset.theme = nextTheme;
+        } catch {
+          document.documentElement.dataset.theme = 'day';
+        }
+      })();
+    </script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.92), transparent 48%),
+          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.8), transparent 44%),
+          linear-gradient(180deg, #f7fbff 0%, #e8eef7 45%, #d9edf4 100%);
+        color: #1f2937;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 20% 22%, rgba(255,255,255,0.5), transparent 18%),
+          radial-gradient(circle at 78% 12%, rgba(255,255,255,0.38), transparent 16%),
+          radial-gradient(circle at 50% 88%, rgba(255,255,255,0.22), transparent 20%);
+        opacity: 0.95;
+      }
+      html[data-theme="night"] body {
+        background:
+          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.18), transparent 48%),
+          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.12), transparent 44%),
+          linear-gradient(180deg, #0f172a 0%, #111827 55%, #0f172a 100%);
+        color: #e2e8f0;
+      }
+      .shell {
+        width: min(1180px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 18px 0 80px;
+      }
+      @keyframes float-soft {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0px); }
+      }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes shimmer {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 20px 40px rgba(37, 99, 235, 0.24); }
+        50% { box-shadow: 0 20px 46px rgba(249, 115, 22, 0.34); }
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+        animation: fade-up 520ms ease both;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.58);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+      }
+      html[data-theme="night"] .brand,
+      html[data-theme="night"] .top-actions,
+      html[data-theme="night"] .hero,
+      html[data-theme="night"] .summary-card,
+      html[data-theme="night"] .feed-card,
+      html[data-theme="night"] .notice-card,
+      html[data-theme="night"] .chip-row,
+      html[data-theme="night"] .product-card,
+      html[data-theme="night"] .sidebar-card {
+        background: rgba(15, 23, 42, 0.72);
+        color: #e2e8f0;
+        box-shadow: 0 22px 50px rgba(2, 6, 23, 0.24);
+      }
+      .brand-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #ff86b8, #9b8cff);
+        color: #fff;
+        font-weight: 900;
+      }
+      .brand strong,
+      .brand span {
+        display: block;
+      }
+      .brand small {
+        color: #64748b;
+      }
+      html[data-theme="night"] .brand small,
+      html[data-theme="night"] .summary-text,
+      html[data-theme="night"] .hero-desc,
+      html[data-theme="night"] .card-desc,
+      html[data-theme="night"] .notice-card,
+      html[data-theme="night"] .feed-meta,
+      html[data-theme="night"] .side-stat span,
+      html[data-theme="night"] .section-caption {
+        color: #cbd5e1;
+      }
+      .top-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.58);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+      }
+      .btn,
+      .top-actions .btn,
+      .theme-toggle,
+      .chip,
+      .action-chip,
+      .buy-btn,
+      .floating-button {
+        -webkit-appearance: none;
+        appearance: none;
+        border: none;
+        border-radius: 999px;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          background 180ms ease,
+          color 180ms ease,
+          opacity 180ms ease;
+      }
+      .theme-toggle,
+      .top-actions .btn,
+      .payment-head .btn,
+      .payment-actions .btn,
+      .buy-btn {
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.9);
+        font-weight: 700;
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+      }
+      html[data-theme="night"] .theme-toggle,
+      html[data-theme="night"] .top-actions .btn,
+      html[data-theme="night"] .payment-head .btn,
+      html[data-theme="night"] .payment-actions .btn,
+      html[data-theme="night"] .buy-btn {
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+      }
+      .hero-shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 232px;
+        gap: 14px;
+        align-items: stretch;
+        animation: fade-up 640ms ease both;
+      }
+      .hero,
+      .summary-card {
+        border-radius: 28px;
+        padding: 24px;
+        backdrop-filter: blur(18px);
+        background: rgba(255,255,255,0.7);
+        box-shadow: 0 22px 50px rgba(15, 23, 42, 0.1);
+        border: 1px solid rgba(255,255,255,0.36);
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .hero-copy {
+        display: grid;
+        gap: 16px;
+      }
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255,255,255,0.86), rgba(255, 231, 240, 0.86), rgba(222, 236, 255, 0.86));
+        background-size: 200% 200%;
+        animation: shimmer 7s ease infinite;
+        color: #5b21b6;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: 0.74rem;
+      }
+      .hero-title {
+        margin: 0;
+        font-size: clamp(2.2rem, 5vw, 4.8rem);
+        line-height: 0.98;
+        letter-spacing: -0.05em;
+      }
+      .hero-title .accent {
+        color: #ff4f93;
+      }
+      .hero-desc {
+        margin: 0;
+        max-width: 64ch;
+        line-height: 1.7;
+        color: #1f2937;
+      }
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .stat-box {
+        padding: 14px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,250,252,0.8));
+        border: 1px solid rgba(255,255,255,0.4);
+        animation: float-soft 5.8s ease-in-out infinite;
+      }
+      .stat-box:nth-child(2) { animation-delay: .6s; }
+      .stat-box:nth-child(3) { animation-delay: 1.2s; }
+      .stat-title {
+        display: block;
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.78rem;
+        margin-bottom: 6px;
+      }
+      .stat-value {
+        color: #ff5f98;
+        font-size: 1.2rem;
+        font-weight: 900;
+      }
+      .product-art {
+        min-height: 100%;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 20% 18%, rgba(255, 198, 224, 0.92), transparent 22%),
+          radial-gradient(circle at 78% 14%, rgba(200, 191, 255, 0.72), transparent 16%),
+          linear-gradient(145deg, #ffd6e8, #f7f1ff 45%, #dff4f2);
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        animation: fade-up 740ms ease both;
+      }
+      .product-art::before {
+        content: '';
+        position: absolute;
+        inset: auto -16% -8% -16%;
+        height: 34%;
+        border-radius: 50% 50% 0 0;
+        background: rgba(255,255,255,0.82);
+      }
+      .product-art::after {
+        content: '';
+        position: absolute;
+        inset: 16px auto auto 16px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.92);
+        box-shadow:
+          28px 10px 0 rgba(255,255,255,0.76),
+          56px 22px 0 rgba(255,255,255,0.56);
+      }
+      .orb-card {
+        position: relative;
+        z-index: 1;
+        width: min(260px, 100%);
+        aspect-ratio: 1 / 1;
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 30% 26%, rgba(255,255,255,0.86), transparent 14%),
+          radial-gradient(circle at 50% 56%, rgba(255,255,255,0.1), transparent 34%),
+          linear-gradient(135deg, #fef2f2, #c7d2fe 42%, #bae6fd 76%, #fbcfe8);
+        box-shadow: 0 24px 44px rgba(168, 85, 247, 0.18);
+        border: 1px solid rgba(255,255,255,0.5);
+        display: grid;
+        place-items: center;
+        text-align: center;
+        overflow: hidden;
+        animation: float-soft 7s ease-in-out infinite;
+      }
+      .orb-card .orb-title {
+        display: grid;
+        gap: 8px;
+        padding: 18px;
+      }
+      .orb-card strong {
+        font-size: 1.5rem;
+        line-height: 1.2;
+        color: #1f2937;
+      }
+      .orb-card span {
+        color: #475569;
+        font-weight: 700;
+      }
+      .summary-card {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+        animation: fade-up 680ms ease both;
+      }
+      .summary-label {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .summary-text {
+        margin: 0;
+        color: #334155;
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+      .summary-line {
+        display: grid;
+        gap: 12px;
+      }
+      .side-stat {
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.56);
+        border: 1px solid rgba(255,255,255,0.42);
+      }
+      .side-stat strong {
+        display: block;
+        color: #ff5f98;
+        font-size: 1.4rem;
+        line-height: 1.1;
+      }
+      .side-stat span {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+      }
+      .feed-card,
+      .notice-card,
+      .chip-row {
+        margin-top: 14px;
+        border-radius: 24px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.36);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
+        animation: fade-up 760ms ease both;
+      }
+      .chip-row {
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .chip-row::-webkit-scrollbar { display: none; }
+      .chip,
+      .action-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        white-space: nowrap;
+        background: rgba(255,255,255,0.74);
+        color: #334155;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        font-weight: 700;
+      }
+      .action-chip:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .chip:hover,
+      .action-chip:hover,
+      .theme-toggle:hover,
+      .top-actions .btn:hover,
+      .ghost-btn:hover,
+      .buy-btn:hover {
+        transform: translateY(-2px);
+      }
+      .action-chip {
+        margin-left: auto;
+        background: rgba(241, 245, 249, 0.9);
+      }
+      .section-band {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 20px 0;
+        flex-wrap: wrap;
+      }
+      .section-band h2,
+      .section-band p {
+        margin: 0;
+      }
+      .section-band p { color: #64748b; }
+      .feed-meta {
+        color: #64748b;
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+      .product-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+        padding: 18px 20px 20px;
+      }
+      .product-card {
+        grid-column: span 4;
+        min-height: 280px;
+        border-radius: 24px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.74);
+        border: 1px solid rgba(255,255,255,0.34);
+        display: grid;
+        grid-template-rows: 1fr auto;
+        animation: fade-up 760ms ease both;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+      .product-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 26px 58px rgba(15, 23, 42, 0.12);
+      }
+      .product-card.featured {
+        grid-column: span 4;
+      }
+      .product-card-header {
+        padding: 18px 18px 0;
+        display: grid;
+        gap: 10px;
+      }
+      .index-tag {
+        color: #5b8def;
+        font-size: 0.82rem;
+        font-weight: 900;
+      }
+      .card-name {
+        margin: 0;
+        color: #1f2937;
+        font-size: 1.1rem;
+        line-height: 1.35;
+      }
+      .card-price {
+        color: #ef5da8;
+        font-size: 1.9rem;
+        font-weight: 900;
+        margin: 10px 0 0;
+      }
+      .price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .price-original {
+        color: #94a3b8;
+        font-size: 0.92rem;
+        text-decoration: line-through;
+        font-weight: 700;
+      }
+      .price-discount {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 900;
+        color: #fff;
+        background: linear-gradient(135deg, #f97316, #ef4444);
+      }
+      .card-body {
+        padding: 0 18px 18px;
+        display: grid;
+        gap: 12px;
+      }
+      .card-desc {
+        margin: 0;
+        color: #64748b;
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+      .card-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .card-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 236, 245, 0.95);
+        color: #8b5cf6;
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+      .card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .buy-btn {
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #ff78b1, #7c7cff, #32c5ff);
+        background-size: 200% 200%;
+        animation: shimmer 6s ease infinite, pulse-glow 3.6s ease-in-out infinite;
+        color: #fff;
+        font-weight: 800;
+        box-shadow: 0 16px 34px rgba(124, 92, 255, 0.28);
+      }
+      .ghost-btn {
+        padding: 10px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        background: rgba(255,255,255,0.75);
+        color: #334155;
+        font-weight: 700;
+      }
+      .notice-card {
+        margin-top: 14px;
+        padding: 18px 20px;
+        color: #475569;
+        line-height: 1.8;
+      }
+      .payment-head .btn,
+      .payment-actions .btn {
+        background: rgba(255,255,255,0.98);
+        color: #111827;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        min-width: 88px;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 16px;
+      }
+      html[data-theme="night"] .payment-head .btn,
+      html[data-theme="night"] .payment-actions .btn {
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+      }
+      .payment-actions .btn-primary {
+        background: linear-gradient(135deg, #ff78b1, #8b5cf6, #38bdf8);
+        color: #fff;
+        font-weight: 900;
+      }
+      .btn:hover,
+      .payment-head .btn:hover,
+      .payment-actions .btn:hover,
+      .theme-toggle:hover,
+      .top-actions .btn:hover,
+      .ghost-btn:hover,
+      .buy-btn:hover,
+      .floating-button:hover {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+      }
+      .btn:active,
+      .payment-head .btn:active,
+      .payment-actions .btn:active,
+      .theme-toggle:active,
+      .top-actions .btn:active,
+      .ghost-btn:active,
+      .buy-btn:active,
+      .floating-button:active {
+        transform: translateY(0) scale(0.99);
+      }
+      .payment-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 50;
+      }
+      .card-secret-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 70;
+      }
+      .card-secret-modal.open { display: flex; }
+      .card-secret-card {
+        width: min(460px, 100%);
+        border-radius: 24px;
+        padding: 22px;
+        background: rgba(15, 23, 42, 0.96);
+        color: #e2e8f0;
+        border: 1px solid rgba(255,255,255,0.12);
+        box-shadow: 0 28px 70px rgba(0,0,0,0.35);
+        display: grid;
+        gap: 14px;
+      }
+      html[data-theme="day"] .card-secret-card {
+        background: rgba(255,255,255,0.98);
+        color: #111827;
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+      .card-secret-value {
+        padding: 12px 14px;
+        border-radius: 16px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+        font-size: 1rem;
+        letter-spacing: 0.03em;
+        background: rgba(255,255,255,0.08);
+        border: 1px dashed rgba(148, 163, 184, 0.4);
+        word-break: break-all;
+      }
+      html[data-theme="day"] .card-secret-value {
+        background: rgba(15, 23, 42, 0.04);
+      }
+      .payment-modal.open { display: flex; }
+      .payment-card {
+        width: min(420px, 100%);
+        max-height: calc(100vh - 28px);
+        overflow-y: auto;
+        scrollbar-width: none;
+        border-radius: 28px;
+        padding: 22px;
+        border: 1px solid rgba(255,255,255,0.14);
+        background: rgba(15, 23, 42, 0.96);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+        display: grid;
+        gap: 16px;
+      }
+      .payment-card::-webkit-scrollbar { display: none; }
+      html[data-theme="day"] .payment-card {
+        background: rgba(255,255,255,0.96);
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+      .payment-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding-bottom: 4px;
+        background: inherit;
+      }
+      .payment-head h3 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .payment-code-frame {
+        aspect-ratio: 1 / 1;
+        height: min(280px, 34vh);
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.12);
+        background:
+          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), transparent 26%),
+          linear-gradient(160deg, rgba(34,197,94,0.16), rgba(16,185,129,0.06));
+        display: grid;
+        place-items: center;
+        position: relative;
+      }
+      .payment-code-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        background: #fff;
+      }
+      .payment-code-placeholder {
+        display: grid;
+        gap: 10px;
+        place-items: center;
+        text-align: center;
+        padding: 24px;
+        color: #334155;
+        line-height: 1.6;
+      }
+      .payment-code-placeholder strong {
+        color: #111827;
+      }
+      .payment-meta {
+        display: grid;
+        gap: 10px;
+        color: #334155;
+        line-height: 1.7;
+      }
+      .payment-status,
+      .payment-order-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.05);
+        color: #334155;
+      }
+      .payment-status strong,
+      .payment-order-row strong {
+        color: #111827;
+      }
+      .payment-product-name {
+        font-weight: 800;
+      }
+      .payment-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        position: sticky;
+        bottom: 0;
+        z-index: 1;
+        padding-top: 4px;
+        background: inherit;
+      }
+      .auth-trigger {
+        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 16px 30px rgba(20, 184, 166, 0.28);
+      }
+      .auth-trigger:hover,
+      .auth-trigger:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 36px rgba(20, 184, 166, 0.36);
+      }
+      .auth-trigger.auth-logged-in {
+        background: linear-gradient(135deg, #38bdf8, #818cf8);
+      }
+      .purchase-disabled {
+        opacity: 0.62;
+        filter: grayscale(0.2);
+      }
+      .auth-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 60;
+      }
+      .auth-modal.open { display: flex; }
+      .auth-card {
+        width: min(480px, 100%);
+        max-height: calc(100vh - 28px);
+        overflow-y: auto;
+        scrollbar-width: none;
+        border-radius: 28px;
+        padding: 22px;
+        background: rgba(15, 23, 42, 0.96);
+        border: 1px solid rgba(255,255,255,0.14);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.35);
+        display: grid;
+        gap: 16px;
+      }
+      .auth-card::-webkit-scrollbar { display: none; }
+      html[data-theme="day"] .auth-card {
+        background: rgba(255,255,255,0.96);
+        border-color: rgba(148, 163, 184, 0.28);
+      }
+      .auth-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+      .auth-head-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .auth-head h3 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .auth-tabs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .auth-tab {
+        padding: 11px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+        font-weight: 800;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+      }
+      .auth-tab:hover,
+      .auth-tab:focus-visible,
+      .auth-captcha-image button:hover,
+      .auth-captcha-image button:focus-visible,
+      .auth-logout:hover,
+      .auth-logout:focus-visible,
+      .auth-head .btn:hover,
+      .auth-head .btn:focus-visible,
+      .auth-actions .btn-primary:hover,
+      .auth-actions .btn-primary:focus-visible {
+        transform: translateY(-1px);
+      }
+      .auth-logout {
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(248, 113, 113, 0.32);
+        background: rgba(248, 113, 113, 0.14);
+        color: #fecaca;
+        font-weight: 800;
+      }
+      html[data-theme="day"] .auth-tab {
+        background: rgba(255,255,255,0.92);
+        color: #111827;
+      }
+      .auth-tab.active {
+        background: linear-gradient(135deg, #ff78b1, #8b5cf6, #38bdf8);
+        color: #fff;
+        border-color: transparent;
+      }
+      .auth-panel {
+        display: none;
+        gap: 12px;
+      }
+      .auth-panel.active {
+        display: grid;
+      }
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+      .field label {
+        font-weight: 800;
+        color: #cbd5e1;
+      }
+      html[data-theme="day"] .field label {
+        color: #334155;
+      }
+      .field input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(255,255,255,0.96);
+        color: #111827;
+        font: inherit;
+      }
+      .auth-captcha-row {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+      }
+      .auth-code-field {
+        display: grid;
+        gap: 10px;
+      }
+      .auth-code-input {
+        flex: 1 1 auto;
+      }
+      .auth-send-btn {
+        min-width: 132px;
+        padding: 10px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(34, 197, 94, 0.94));
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.25);
+      }
+      .auth-send-btn:hover,
+      .auth-send-btn:focus-visible,
+      .auth-verify-btn:hover,
+      .auth-verify-btn:focus-visible {
+        transform: translateY(-1px);
+      }
+      .auth-verify-btn {
+        padding: 10px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.96), rgba(56, 189, 248, 0.92));
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 16px 30px rgba(16, 185, 129, 0.22);
+      }
+      .auth-note {
+        color: #cbd5e1;
+        line-height: 1.7;
+        font-size: 0.95rem;
+      }
+      html[data-theme="day"] .auth-note {
+        color: #475569;
+      }
+      .auth-message,
+      .auth-status {
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.08);
+        color: #cbd5e1;
+        line-height: 1.6;
+      }
+      html[data-theme="day"] .auth-message,
+      html[data-theme="day"] .auth-status {
+        background: rgba(15, 23, 42, 0.05);
+        color: #334155;
+      }
+      .auth-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .auth-developer-row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .auth-developer-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+      }
+      .auth-actions .btn-primary {
+        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 16px 30px rgba(34, 197, 94, 0.25);
+      }
+      .auth-actions .btn-primary:hover,
+      .auth-actions .btn-primary:focus-visible {
+        box-shadow: 0 18px 36px rgba(34, 197, 94, 0.32);
+      }
+      .auth-captcha-refresh {
+        padding: 10px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(255,255,255,0.92);
+        color: #111827;
+        font-weight: 800;
+      }
+      html[data-theme="night"] .auth-captcha-refresh {
+        background: rgba(255,255,255,0.08);
+        color: #e2e8f0;
+      }
+      .admin-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 80;
+      }
+      .admin-modal.open {
+        display: flex;
+      }
+      .admin-card {
+        width: min(980px, 100%);
+        max-height: calc(100vh - 28px);
+        overflow-y: auto;
+        border-radius: 24px;
+        padding: 20px;
+        background: rgba(255,255,255,0.96);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 28px 70px rgba(2, 6, 23, 0.24);
+        display: grid;
+        gap: 14px;
+      }
+      html[data-theme="night"] .admin-card {
+        background: rgba(15, 23, 42, 0.96);
+        border-color: rgba(255,255,255,0.12);
+      }
+      .admin-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .admin-head h3 {
+        margin: 0;
+      }
+      .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .admin-grid input,
+      .admin-grid textarea,
+      .admin-table input,
+      .admin-table textarea,
+      .admin-table select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        font: inherit;
+      }
+      .admin-grid textarea,
+      .admin-table textarea {
+        resize: vertical;
+        min-height: 42px;
+      }
+      .admin-submit {
+        justify-self: start;
+        padding: 10px 16px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        color: #fff;
+        font-weight: 900;
+      }
+      .admin-table {
+        display: grid;
+        gap: 10px;
+      }
+      .admin-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1.6fr 1fr 1fr 1fr 1.2fr;
+        gap: 10px;
+        align-items: start;
+        padding: 10px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(248, 250, 252, 0.8);
+      }
+      html[data-theme="night"] .admin-row {
+        background: rgba(30, 41, 59, 0.62);
+      }
+      .admin-row-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .admin-mini-btn {
+        padding: 8px 12px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.08);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        font-weight: 800;
+      }
+      .admin-mini-btn.primary {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff;
+        border: none;
+      }
+      .admin-mini-btn.warn {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: #fff;
+        border: none;
+      }
+      .admin-status {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.06);
+        color: #334155;
+        font-size: 0.92rem;
+      }
+      html[data-theme="night"] .admin-status {
+        background: rgba(255,255,255,0.08);
+        color: #cbd5e1;
+      }
+      @media (max-width: 980px) {
+        .hero-shell { grid-template-columns: 1fr; }
+        .hero { grid-template-columns: 1fr; }
+        .product-card { grid-column: span 12; }
+        .admin-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .admin-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .shell { width: min(100% - 18px, 1180px); }
+        .topbar { flex-direction: column; align-items: stretch; }
+        .top-actions { justify-content: center; flex-wrap: wrap; }
+        .hero, .summary-card, .feed-card, .notice-card { border-radius: 22px; }
+        .hero-stats { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-badge">S</div>
+          <div>
+            <strong>星际商店</strong>
+            <small>MCTools Store · 3004</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="theme-toggle" type="button" data-control-panel hidden>控制面板</button>
+          <button class="theme-toggle auth-trigger" type="button" data-auth-trigger>登录 / 注册</button>
+          <button class="theme-toggle" type="button" data-theme-toggle>切换到白天</button>
+        </div>
+      </header>
+
+      <section class="hero-shell">
+        <section class="hero">
+          <div class="hero-copy">
+            <span class="kicker">CARD SHOP FEED</span>
+            <h1 class="hero-title"><span class="accent">星际</span>小卖部</h1>
+            <p class="hero-desc">欢迎大家进入星际的小卖部！目前正在测试中，商品不要购买哦！</p>
+            <div class="hero-stats">
+              <div class="stat-box">
+                <span class="stat-title">可售商品</span>
+                <div class="stat-value" data-stat-products>0</div>
+              </div>
+              <div class="stat-box">
+                <span class="stat-title">商品分类</span>
+                <div class="stat-value" data-stat-categories>0</div>
+              </div>
+              <div class="stat-box">
+                <span class="stat-title">当前价格</span>
+                <div class="stat-value" data-stat-lowest-price>--</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="summary-card">
+          <p class="summary-label">今日商品</p>
+          <div class="summary-line">
+            <div class="side-stat">
+              <span>在线商品</span>
+              <strong data-summary-online>0</strong>
+            </div>
+            <div class="side-stat">
+              <span>商品分类</span>
+              <strong data-summary-categories>0</strong>
+            </div>
+            <div class="side-stat">
+              <span>查单状态</span>
+              <strong>暂停</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="chip-row">
+        <div class="chip" data-chip-primary>动态上架</div>
+        <div class="chip">付款码支付</div>
+        <button class="action-chip" type="button" disabled>查单暂未开放</button>
+      </section>
+
+      <section class="feed-card">
+        <div class="section-band">
+          <div>
+            <h2>推荐商品</h2>
+            <p data-feed-description>商品由控制面板动态管理，可自行上架、下架和调价。</p>
+          </div>
+          <div class="feed-meta" data-feed-meta>0 个商品在线</div>
+        </div>
+
+        <div class="product-grid" data-product-grid></div>
+
+        <div class="notice-card">
+          购买按钮已经接到微信支付下单流程。先注册账号并通过验证码后才能购买。商品运营改为动态配置，你可以在控制面板上自行上架、下架和调价。
+        </div>
+      </section>
+    </main>
+
+    <div class="payment-modal" data-payment-modal aria-hidden="true">
+      <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="payment-title">
+        <div class="payment-head">
+          <h3 id="payment-title">付款码支付</h3>
+          <button class="btn" type="button" data-close-payment>关闭</button>
+        </div>
+        <div class="payment-code-frame">
+          <img alt="付款码" data-payment-code hidden />
+          <div class="payment-code-placeholder" data-payment-placeholder>
+            <strong>正在准备支付二维码</strong>
+            <span>订单创建后会自动显示，弹窗可向下滚动查看按钮</span>
+          </div>
+        </div>
+        <div class="payment-meta">
+          <div>金额：<strong data-payment-amount>1 元</strong></div>
+          <div>商品：<strong class="payment-product-name" data-payment-product-name>星际无限资源服管理</strong></div>
+          <div>商品编号：<span data-payment-product-code>65997548</span></div>
+          <div>提示：扫码后请保留支付结果截图，方便后续核对。</div>
+          <div>购买成功后请把凭证发给 QQ3805506653。</div>
+        </div>
+        <div class="payment-status" data-payment-status>点击“付款码支付”后，后端会创建微信订单。</div>
+        <div class="payment-order-row">
+          <span>订单号</span>
+          <strong data-payment-order-no>未创建</strong>
+        </div>
+        <div class="payment-actions">
+          <button class="btn" type="button" data-check-card-secret>我已支付，查询卡密</button>
+          <button class="btn btn-primary" type="button" data-close-payment>我知道了</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-secret-modal" data-card-secret-modal aria-hidden="true">
+      <div class="card-secret-card" role="dialog" aria-modal="true" aria-labelledby="card-secret-title">
+        <h3 id="card-secret-title">支付成功 · 卡密已发放</h3>
+        <div>订单支付成功后自动发放卡密，请妥善保存。</div>
+        <div class="card-secret-value" data-card-secret-value>加载中...</div>
+        <div class="payment-actions">
+          <button class="btn" type="button" data-copy-card-secret>复制卡密</button>
+          <button class="btn btn-primary" type="button" data-close-card-secret>我已保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-modal" data-auth-modal aria-hidden="true">
+      <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <div class="auth-head">
+          <h3 id="auth-title">账号系统</h3>
+          <div class="auth-head-actions">
+            <button class="auth-logout" type="button" data-auth-logout hidden>退出登录</button>
+            <button class="btn" type="button" data-close-auth>关闭</button>
+          </div>
+        </div>
+          <div class="auth-message" data-auth-message>请先注册或登录，之后才能购买商品。验证码会发送到你的邮箱。</div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
+          <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
+        </div>
+
+        <section class="auth-panel active" data-auth-panel="register">
+          <div class="field">
+            <label for="register-username">用户名</label>
+            <input id="register-username" type="text" autocomplete="username" placeholder="3-32 位用户名" data-register-username />
+          </div>
+          <div class="field">
+              <label for="register-email">邮箱</label>
+              <input id="register-email" type="email" autocomplete="email" placeholder="请输入邮箱地址" data-register-email />
+          </div>
+          <div class="field">
+            <label>账号类型</label>
+            <div class="auth-developer-row">
+              <input id="register-developer-toggle" type="checkbox" data-register-developer-toggle />
+              <label for="register-developer-toggle">注册为开发者账号</label>
+            </div>
+            <input id="register-developer-secret" type="text" autocomplete="off" placeholder="开发者口令（仅开发者填写）" data-register-developer-secret />
+          </div>
+            <div class="auth-note">注册后系统会把邮箱验证码发给你，验证完成后才能购买。</div>
+            <div class="auth-actions">
+              <button class="auth-send-btn" type="button" data-send-code>注册并发送验证码</button>
+            </div>
+            <div class="field auth-code-field">
+              <label for="register-code">邮箱验证码</label>
+              <div class="auth-captcha-row">
+                <input id="register-code" class="auth-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位验证码" data-register-code />
+                <button class="auth-captcha-refresh" type="button" data-resend-code>重新发送</button>
+              </div>
+            </div>
+          <div class="auth-status" data-register-status>等待填写注册信息。</div>
+          <div class="auth-actions">
+              <button class="auth-verify-btn" type="button" data-submit-register>验证并登录</button>
+          </div>
+        </section>
+
+        <section class="auth-panel" data-auth-panel="login" hidden>
+          <div class="field">
+            <label for="login-username">用户名</label>
+            <input id="login-username" type="text" autocomplete="username" placeholder="输入已有账号" data-login-username />
+          </div>
+          <div class="field">
+              <label for="login-email">邮箱</label>
+              <input id="login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email />
+          </div>
+            <div class="auth-note">系统会向邮箱发送验证码，输入后即可登录并继续购买。</div>
+            <div class="auth-actions">
+              <button class="auth-send-btn" type="button" data-send-code>发送验证码</button>
+            </div>
+            <div class="field auth-code-field">
+              <label for="login-code">邮箱验证码</label>
+              <div class="auth-captcha-row">
+                <input id="login-code" class="auth-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位验证码" data-login-code />
+                <button class="auth-captcha-refresh" type="button" data-resend-code>重新发送</button>
+              </div>
+            </div>
+          <div class="auth-status" data-login-status>等待登录。</div>
+          <div class="auth-actions">
+              <button class="auth-verify-btn" type="button" data-submit-login>验证并登录</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="admin-modal" data-admin-modal aria-hidden="true">
+      <div class="admin-card" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+        <div class="admin-head">
+          <h3 id="admin-title">商品运营控制面板</h3>
+          <button class="btn" type="button" data-close-admin>关闭</button>
+        </div>
+        <div class="admin-status" data-admin-status>加载中...</div>
+        <div class="admin-grid">
+          <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-admin-create-code />
+          <input type="text" placeholder="商品名称" data-admin-create-name />
+          <input type="number" min="1" step="1" placeholder="原价(分)" data-admin-create-original />
+          <input type="number" min="1" step="1" placeholder="优惠价(分)" data-admin-create-sale />
+          <input type="number" step="1" placeholder="排序(小的在前)" data-admin-create-sort />
+        </div>
+        <textarea placeholder="商品描述" data-admin-create-description></textarea>
+        <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-admin-create-tags />
+        <button class="admin-submit" type="button" data-admin-create-submit>新增商品</button>
+        <div class="admin-table" data-admin-table></div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const toggleButton = document.querySelector('[data-theme-toggle]');
+        const controlPanelButton = document.querySelector('[data-control-panel]');
+        const authTriggerButton = document.querySelector('[data-auth-trigger]');
+        const authModal = document.querySelector('[data-auth-modal]');
+        const authMessage = document.querySelector('[data-auth-message]');
+        const authLogoutButton = document.querySelector('[data-auth-logout]');
+        const authTabs = Array.from(document.querySelectorAll('[data-auth-tab]'));
+        const authPanels = Array.from(document.querySelectorAll('[data-auth-panel]'));
+        const closeAuthButtons = Array.from(document.querySelectorAll('[data-close-auth]'));
+        const sendCodeButtons = Array.from(document.querySelectorAll('[data-send-code]'));
+        const resendCodeButtons = Array.from(document.querySelectorAll('[data-resend-code]'));
+        const verifyButtons = Array.from(document.querySelectorAll('[data-submit-register], [data-submit-login]'));
+        const registerUsernameInput = document.querySelector('[data-register-username]');
+        const registerEmailInput = document.querySelector('[data-register-email]');
+        const registerDeveloperToggleInput = document.querySelector('[data-register-developer-toggle]');
+        const registerDeveloperSecretInput = document.querySelector('[data-register-developer-secret]');
+        const registerCodeInput = document.querySelector('[data-register-code]');
+        const registerStatus = document.querySelector('[data-register-status]');
+        const loginUsernameInput = document.querySelector('[data-login-username]');
+        const loginEmailInput = document.querySelector('[data-login-email]');
+        const loginCodeInput = document.querySelector('[data-login-code]');
+        const loginStatus = document.querySelector('[data-login-status]');
+
+        const productGrid = document.querySelector('[data-product-grid]');
+        const statProducts = document.querySelector('[data-stat-products]');
+        const statCategories = document.querySelector('[data-stat-categories]');
+        const statLowestPrice = document.querySelector('[data-stat-lowest-price]');
+        const summaryOnline = document.querySelector('[data-summary-online]');
+        const summaryCategories = document.querySelector('[data-summary-categories]');
+        const feedMeta = document.querySelector('[data-feed-meta]');
+        const feedDescription = document.querySelector('[data-feed-description]');
+        const chipPrimary = document.querySelector('[data-chip-primary]');
+
+        const paymentModal = document.querySelector('[data-payment-modal]');
+        const closePaymentButtons = Array.from(document.querySelectorAll('[data-close-payment]'));
+        const paymentCodeImage = document.querySelector('[data-payment-code]');
+        const paymentPlaceholder = document.querySelector('[data-payment-placeholder]');
+        const paymentStatus = document.querySelector('[data-payment-status]');
+        const paymentOrderNo = document.querySelector('[data-payment-order-no]');
+        const paymentProductName = document.querySelector('[data-payment-product-name]');
+        const paymentProductCode = document.querySelector('[data-payment-product-code]');
+        const paymentAmount = document.querySelector('[data-payment-amount]');
+        const checkCardSecretButton = document.querySelector('[data-check-card-secret]');
+
+        const cardSecretModal = document.querySelector('[data-card-secret-modal]');
+        const cardSecretValue = document.querySelector('[data-card-secret-value]');
+        const closeCardSecretButtons = Array.from(document.querySelectorAll('[data-close-card-secret]'));
+        const copyCardSecretButton = document.querySelector('[data-copy-card-secret]');
+
+        const adminModal = document.querySelector('[data-admin-modal]');
+        const closeAdminButton = document.querySelector('[data-close-admin]');
+        const adminStatus = document.querySelector('[data-admin-status]');
+        const adminTable = document.querySelector('[data-admin-table]');
+        const adminCreateCode = document.querySelector('[data-admin-create-code]');
+        const adminCreateName = document.querySelector('[data-admin-create-name]');
+        const adminCreateOriginal = document.querySelector('[data-admin-create-original]');
+        const adminCreateSale = document.querySelector('[data-admin-create-sale]');
+        const adminCreateSort = document.querySelector('[data-admin-create-sort]');
+        const adminCreateDescription = document.querySelector('[data-admin-create-description]');
+        const adminCreateTags = document.querySelector('[data-admin-create-tags]');
+        const adminCreateSubmit = document.querySelector('[data-admin-create-submit]');
+
+        const accountState = {
+          loggedIn: false,
+          username: '',
+          isDeveloper: false,
+          token: localStorage.getItem('mctools-auth-token') || null
+        };
+
+        let storeProducts = [];
+        let adminProducts = [];
+        let currentPaymentOrder = null;
+        let currentPaymentOrderRequest = null;
+        let paymentConfigReady = null;
+        let activePaymentProduct = {
+          name: '星际无限资源服管理',
+          price: 1,
+          code: '65997548',
+          description: '星际无限资源服管理'
+        };
+        let authMode = 'register';
+        let pendingPurchaseProduct = null;
+        let paymentStatusPollTimer = null;
+        let paymentStatusPollingOrderNo = '';
+        let paymentStatusPollingBusy = false;
+        let shownCardSecretOrderNo = '';
+
+        function escapeHtml(text) {
+          return String(text || '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[ch] || ch));
+        }
+
+        function formatFenToYuan(fen) {
+          return (Number(fen || 0) / 100).toFixed(2);
+        }
+
+        function normalizeProduct(product) {
+          const salePriceFen = Number(product?.salePriceFen || Math.round(Number(product?.salePrice || 0) * 100) || 100);
+          const originalPriceFen = Number(product?.originalPriceFen || salePriceFen);
+          return {
+            productCode: String(product?.productCode || '').trim(),
+            name: String(product?.name || '').trim(),
+            description: String(product?.description || '').trim(),
+            salePriceFen,
+            originalPriceFen,
+            isActive: Boolean(product?.isActive),
+            sortOrder: Number(product?.sortOrder || 100),
+            tags: Array.isArray(product?.tags) ? product.tags : [],
+            currency: String(product?.currency || 'CNY').toUpperCase(),
+            discountFen: Math.max(0, originalPriceFen - salePriceFen)
+          };
+        }
+
+        function updateStoreStats(products) {
+          const normalized = products.map(normalizeProduct);
+          const categorySet = new Set();
+
+          normalized.forEach((product) => {
+            if (product.tags.length > 0) {
+              categorySet.add(String(product.tags[0]));
+            } else {
+              categorySet.add('未分类');
+            }
+          });
+
+          const minPriceFen = normalized.length > 0 ? Math.min(...normalized.map((item) => item.salePriceFen)) : 0;
+
+          if (statProducts) statProducts.textContent = String(normalized.length);
+          if (summaryOnline) summaryOnline.textContent = String(normalized.length);
+          if (statCategories) statCategories.textContent = String(categorySet.size);
+          if (summaryCategories) summaryCategories.textContent = String(categorySet.size);
+          if (statLowestPrice) statLowestPrice.textContent = normalized.length > 0 ? `¥${formatFenToYuan(minPriceFen)}` : '--';
+          if (feedMeta) feedMeta.textContent = `${normalized.length} 个商品在线 · ${categorySet.size} 个分类`;
+          if (chipPrimary) chipPrimary.textContent = normalized.length > 0 ? `${normalized[0].name}` : '动态上架';
+          if (feedDescription) {
+            feedDescription.textContent = normalized.length > 0
+              ? '商品由控制面板动态管理，可自行上架、下架和调价。'
+              : '当前暂无上架商品，请在控制面板里新增并上架。';
+          }
+        }
+
+        function renderStoreProducts(products) {
+          if (!productGrid) {
+            return;
+          }
+
+          const normalized = products.map(normalizeProduct);
+
+          if (normalized.length === 0) {
+            productGrid.innerHTML = `
+              <article class="product-card featured">
+                <div class="product-card-header">
+                  <div class="index-tag">#--</div>
+                  <h3 class="card-name">暂无上架商品</h3>
+                  <div class="card-price">--</div>
+                </div>
+                <div class="card-body">
+                  <p class="card-desc">请使用开发者控制面板新增商品并上架。</p>
+                </div>
+              </article>
+            `;
+            return;
+          }
+
+          productGrid.innerHTML = normalized.map((product, index) => {
+            const original = formatFenToYuan(product.originalPriceFen);
+            const sale = formatFenToYuan(product.salePriceFen);
+            const saved = formatFenToYuan(product.discountFen);
+            const tags = product.tags.length > 0 ? product.tags : ['动态商品'];
+
+            return `
+              <article class="product-card ${index === 0 ? 'featured' : ''}">
+                <div class="product-card-header">
+                  <div class="index-tag">#${String(index + 1).padStart(2, '0')}</div>
+                  <h3 class="card-name">${escapeHtml(product.name)}</h3>
+                  <div class="price-row">
+                    <div class="card-price">¥${sale}</div>
+                    ${product.discountFen > 0 ? `<div class="price-original">原价 ¥${original}</div>` : ''}
+                    ${product.discountFen > 0 ? `<span class="price-discount">立省 ¥${saved}</span>` : ''}
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="card-desc">${escapeHtml(product.description || '暂无描述')}</p>
+                  <div class="card-pills">
+                    ${tags.map((tag) => `<span class="card-pill">${escapeHtml(tag)}</span>`).join('')}
+                  </div>
+                  <div class="card-actions">
+                    <button
+                      class="buy-btn"
+                      type="button"
+                      data-open-payment
+                      data-product-name="${escapeHtml(product.name)}"
+                      data-product-price="${(product.salePriceFen / 100).toFixed(2)}"
+                      data-product-code="${escapeHtml(product.productCode)}"
+                      data-product-description="${escapeHtml(product.description)}"
+                    >付款码支付</button>
+                  </div>
+                </div>
+              </article>
+            `;
+          }).join('');
+        }
+
+        async function loadStoreProducts() {
+          try {
+            const response = await fetch('/api/store/products');
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '加载商品失败');
+            }
+
+            storeProducts = Array.isArray(result?.products) ? result.products : [];
+            updateStoreStats(storeProducts);
+            renderStoreProducts(storeProducts);
+
+            if (!activePaymentProduct.code && storeProducts.length > 0) {
+              const first = normalizeProduct(storeProducts[0]);
+              setPaymentProduct({
+                name: first.name,
+                price: first.salePriceFen / 100,
+                code: first.productCode,
+                description: first.description
+              });
+            }
+          } catch (error) {
+            updateStoreStats([]);
+            renderStoreProducts([]);
+            setPaymentStatus(error.message || '加载商品失败', true);
+          }
+        }
+
+        function setAdminStatus(text, isError = false) {
+          if (!adminStatus) {
+            return;
+          }
+          adminStatus.textContent = text;
+          adminStatus.style.color = isError ? '#dc2626' : '';
+        }
+
+        function renderAdminTable() {
+          if (!adminTable) {
+            return;
+          }
+
+          if (adminProducts.length === 0) {
+            adminTable.innerHTML = '<div class="admin-status">暂无商品，先新增一条。</div>';
+            return;
+          }
+
+          adminTable.innerHTML = adminProducts.map((raw) => {
+            const product = normalizeProduct(raw);
+            return `
+              <div class="admin-row" data-admin-product-row data-product-code="${escapeHtml(product.productCode)}" data-is-active="${product.isActive ? '1' : '0'}">
+                <div>
+                  <input type="text" value="${escapeHtml(product.productCode)}" disabled />
+                </div>
+                <div>
+                  <input type="text" value="${escapeHtml(product.name)}" data-admin-name />
+                  <textarea data-admin-description>${escapeHtml(product.description)}</textarea>
+                </div>
+                <div>
+                  <input type="number" min="1" step="1" value="${Math.round(product.originalPriceFen)}" data-admin-original />
+                </div>
+                <div>
+                  <input type="number" min="1" step="1" value="${Math.round(product.salePriceFen)}" data-admin-sale />
+                </div>
+                <div>
+                  <input type="number" step="1" value="${Math.round(product.sortOrder)}" data-admin-sort />
+                  <input type="text" value="${escapeHtml(product.tags.join(', '))}" data-admin-tags />
+                </div>
+                <div class="admin-row-actions">
+                  <button class="admin-mini-btn primary" type="button" data-admin-save>保存</button>
+                  <button class="admin-mini-btn warn" type="button" data-admin-toggle>${product.isActive ? '下架' : '上架'}</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        async function loadAdminProducts() {
+          try {
+            const headers = {};
+            if (accountState.token) {
+              headers.Authorization = `Bearer ${accountState.token}`;
+            }
+            const response = await fetch('/api/store/products/admin', { headers });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '加载管理商品失败');
+            }
+
+            adminProducts = Array.isArray(result?.products) ? result.products : [];
+            renderAdminTable();
+            setAdminStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
+          } catch (error) {
+            setAdminStatus(error.message || '加载失败', true);
+          }
+        }
+
+        function openAdminModal() {
+          if (!adminModal) {
+            return;
+          }
+
+          adminModal.classList.add('open');
+          adminModal.setAttribute('aria-hidden', 'false');
+          loadAdminProducts();
+        }
+
+        function closeAdminModal() {
+          if (!adminModal) {
+            return;
+          }
+
+          adminModal.classList.remove('open');
+          adminModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function applyTheme(theme) {
+          document.documentElement.dataset.theme = theme;
+          if (toggleButton) {
+            toggleButton.textContent = theme === 'day' ? '切换到黑夜' : '切换到白天';
+          }
+          try {
+            localStorage.setItem('mctools-store-theme', theme);
+          } catch {
+            // ignore storage failures
+          }
+        }
+
+        const initialTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
+        applyTheme(initialTheme);
+
+        function setPaymentStatus(text, isError = false) {
+          if (!paymentStatus) {
+            return;
+          }
+
+          paymentStatus.textContent = text;
+          paymentStatus.style.color = isError ? '#dc2626' : '';
+        }
+
+        function showPaymentPlaceholder(messageTitle, messageBody) {
+          if (paymentPlaceholder) {
+            paymentPlaceholder.hidden = false;
+            paymentPlaceholder.innerHTML = `
+              <strong>${messageTitle}</strong>
+              <span>${messageBody}</span>
+            `;
+          }
+
+          if (paymentCodeImage) {
+            paymentCodeImage.hidden = true;
+            paymentCodeImage.removeAttribute('src');
+          }
+        }
+
+        function resolveFallbackPaymentImagePath(product) {
+          const code = String(product?.code || '').toUpperCase();
+
+          if (code === 'CMD-20CB-IN') return '/assets/payment/wechat-pay-code-20.png';
+          if (code === 'CMD-20CB-PLUS') return '/assets/payment/wechat-pay-code-40.png';
+          if (code === 'IMPORT-ONCE' || code === 'BUILD-IMPORT-ONCE') return '/assets/payment/wechat-pay-code-20.png';
+          return '/assets/payment/wechat-pay-code.png';
+        }
+
+        function showLocalPaymentFallback(message) {
+          if (paymentOrderNo) {
+            paymentOrderNo.textContent = '本地付款码';
+          }
+
+          const fallbackImagePath = resolveFallbackPaymentImagePath(activePaymentProduct);
+
+          if (paymentCodeImage) {
+            paymentCodeImage.onload = () => {
+              if (paymentPlaceholder) paymentPlaceholder.hidden = true;
+            };
+            paymentCodeImage.onerror = () => {
+              showPaymentPlaceholder('付款码加载失败', `请检查 public${fallbackImagePath} 是否存在`);
+            };
+            paymentCodeImage.src = fallbackImagePath;
+            paymentCodeImage.hidden = false;
+          }
+
+          if (paymentPlaceholder) paymentPlaceholder.hidden = true;
+          setPaymentStatus(message || '当前微信支付未配置，已展示本地付款码作为兜底。');
+        }
+
+        function setAuthMessage(text, isError = false) {
+          if (!authMessage) {
+            return;
+          }
+
+          authMessage.textContent = text;
+          authMessage.style.color = isError ? '#fca5a5' : '';
+        }
+
+        function setAuthStatus(kind, text, isError = false) {
+          const target = kind === 'login' ? loginStatus : registerStatus;
+          if (!target) {
+            return;
+          }
+
+          target.textContent = text;
+          target.style.color = isError ? '#fca5a5' : '';
+        }
+
+        function setAuthTab(nextMode) {
+          authMode = nextMode;
+          authTabs.forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.authTab === nextMode);
+          });
+          authPanels.forEach((panel) => {
+            const isActive = panel.dataset.authPanel === nextMode;
+            panel.hidden = !isActive;
+            panel.classList.toggle('active', isActive);
+          });
+          setAuthMessage(nextMode === 'register'
+            ? '请先注册账号，再发送邮箱验证码完成登录。'
+            : '请输入已注册的用户名和邮箱，发送验证码后登录。');
+        }
+
+        function updateAuthTrigger() {
+          if (!authTriggerButton) {
+            return;
+          }
+
+          authTriggerButton.textContent = accountState.loggedIn
+            ? `已登录：${accountState.username}`
+            : '登录 / 注册';
+          authTriggerButton.classList.toggle('auth-logged-in', accountState.loggedIn);
+
+          if (authLogoutButton) {
+            authLogoutButton.hidden = !accountState.loggedIn;
+          }
+
+          if (controlPanelButton) {
+            controlPanelButton.hidden = !accountState.isDeveloper;
+          }
+        }
+
+        async function loadAccountState() {
+          try {
+            const token = localStorage.getItem('mctools-auth-token');
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            
+            const response = await fetch('/api/community/me', { headers });
+            if (!response.ok) {
+              accountState.loggedIn = false;
+              accountState.username = '';
+              accountState.isDeveloper = false;
+              accountState.token = null;
+              localStorage.removeItem('mctools-auth-token');
+              updateAuthTrigger();
+              return;
+            }
+
+            const result = await response.json();
+            accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
+            accountState.username = String(result?.username || '');
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = accountState.loggedIn ? token : null;
+            if (!accountState.loggedIn) {
+              localStorage.removeItem('mctools-auth-token');
+            }
+            updateAuthTrigger();
+          } catch {
+            accountState.loggedIn = false;
+            accountState.username = '';
+            accountState.isDeveloper = false;
+            accountState.token = null;
+            updateAuthTrigger();
+          }
+        }
+
+        function openAuthModal(mode = 'register', message) {
+          if (!authModal) {
+            return;
+          }
+
+          setAuthTab(mode);
+          if (message) setAuthMessage(message);
+          authModal.classList.add('open');
+          authModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeAuthModal() {
+          if (!authModal) {
+            return;
+          }
+
+          authModal.classList.remove('open');
+          authModal.setAttribute('aria-hidden', 'true');
+        }
+
+        async function submitLogout() {
+          try {
+            await fetch('/api/community/logout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' }
+            });
+          } catch {
+            // Ignore logout transport failures and still clear local state.
+          }
+
+          localStorage.removeItem('mctools-auth-token');
+          accountState.loggedIn = false;
+          accountState.username = '';
+          accountState.isDeveloper = false;
+          accountState.token = null;
+          pendingPurchaseProduct = null;
+          updateAuthTrigger();
+          closeAdminModal();
+          setAuthMessage('你已经退出登录。需要先注册或登录后才能购买。');
+          openAuthModal('register', '你已经退出登录。需要先注册或登录后才能购买。');
+        }
+
+        async function requireLoginBeforePurchase(product) {
+          pendingPurchaseProduct = product;
+
+          if (accountState.loggedIn) {
+            return true;
+          }
+
+          openAuthModal('register', '请先注册账号并完成邮箱验证码，之后才能购买。');
+          return false;
+        }
+
+        function getAuthInputs() {
+          if (authMode === 'login') {
+            return {
+              usernameInput: loginUsernameInput,
+              emailInput: loginEmailInput,
+              codeInput: loginCodeInput,
+              statusKind: 'login'
+            };
+          }
+
+          return {
+            usernameInput: registerUsernameInput,
+            emailInput: registerEmailInput,
+            codeInput: registerCodeInput,
+            statusKind: 'register'
+          };
+        }
+
+        async function submitSendCode() {
+          const { usernameInput, emailInput, statusKind } = getAuthInputs();
+          if (!usernameInput || !emailInput) {
+            return;
+          }
+
+          const username = usernameInput.value.trim();
+          const email = emailInput.value.trim().toLowerCase();
+
+          if (!username) {
+            setAuthStatus(statusKind, '请先填写用户名', true);
+            return;
+          }
+
+          if (!email) {
+            setAuthStatus(statusKind, '请先填写邮箱地址', true);
+            return;
+          }
+
+          setAuthStatus(statusKind, authMode === 'register' ? '正在注册并发送验证码...' : '正在发送验证码...');
+
+          try {
+            if (authMode === 'register') {
+              const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
+              const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
+              const registerResponse = await fetch('/api/community/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ username, email, registerAsDeveloper, developerSecret })
+              });
+
+              const registerResult = await registerResponse.json();
+              if (!registerResponse.ok) {
+                throw new Error(registerResult.message || '注册失败');
+              }
+            }
+
+            const response = await fetch('/api/community/send-code', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ username, email })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '验证码发送失败');
+            }
+
+            setAuthStatus(statusKind, result.message || '验证码已发送到邮箱，请继续验证。');
+            setAuthMessage(authMode === 'register'
+              ? '验证码已发送到邮箱，输入后即可完成注册并登录。'
+              : '验证码已发送到邮箱，输入后即可完成登录。');
+          } catch (error) {
+            setAuthStatus(statusKind, error.message || '请求失败', true);
+          }
+        }
+
+        async function submitVerifyCode() {
+          const { usernameInput, emailInput, codeInput, statusKind } = getAuthInputs();
+          if (!usernameInput || !emailInput || !codeInput) {
+            return;
+          }
+
+          const username = usernameInput.value.trim();
+          const email = emailInput.value.trim().toLowerCase();
+          const code = codeInput.value.trim();
+
+          if (!code) {
+            setAuthStatus(statusKind, '请输入邮箱验证码', true);
+            return;
+          }
+
+          setAuthStatus(statusKind, '正在验证验证码...');
+
+          try {
+            const response = await fetch('/api/community/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ email, code })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '验证失败');
+            }
+
+            accountState.loggedIn = true;
+            accountState.username = result.username || username;
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = String(result?.token || '').trim() || null;
+            if (accountState.token) {
+              localStorage.setItem('mctools-auth-token', accountState.token);
+            }
+            updateAuthTrigger();
+            closeAuthModal();
+            await loadAccountState();
+
+            if (pendingPurchaseProduct) {
+              const nextProduct = pendingPurchaseProduct;
+              pendingPurchaseProduct = null;
+              setPaymentProduct(nextProduct);
+              openPaymentModal();
+            }
+          } catch (error) {
+            setAuthStatus(statusKind, error.message || '验证失败', true);
+          }
+        }
+
+        function setPaymentProduct(product) {
+          activePaymentProduct = {
+            name: String(product?.name || '商品').trim(),
+            price: Number(product?.price || 1),
+            code: String(product?.code || '').trim().toUpperCase(),
+            description: String(product?.description || '').trim()
+          };
+
+          if (paymentOrderNo) paymentOrderNo.textContent = '未创建';
+          if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
+          if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
+          if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
+
+          currentPaymentOrder = null;
+        }
+
+        function openCardSecretModal(cardSecret) {
+          if (!cardSecretModal || !cardSecretValue) {
+            return;
+          }
+
+          cardSecretValue.textContent = String(cardSecret || '').trim() || '未获取到卡密';
+          cardSecretModal.classList.add('open');
+          cardSecretModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeCardSecretModal() {
+          if (!cardSecretModal) {
+            return;
+          }
+
+          cardSecretModal.classList.remove('open');
+          cardSecretModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function stopOrderStatusPolling() {
+          if (paymentStatusPollTimer) {
+            clearInterval(paymentStatusPollTimer);
+            paymentStatusPollTimer = null;
+          }
+
+          paymentStatusPollingOrderNo = '';
+          paymentStatusPollingBusy = false;
+        }
+
+        async function queryCardSecretByOrderNo(orderNo) {
+          const normalizedOrderNo = String(orderNo || '').trim();
+
+          if (!normalizedOrderNo) {
+            throw new Error('当前订单还未创建，请先生成付款码');
+          }
+
+          const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`);
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.message || '查询订单失败');
+          }
+
+          if (!result.paid || !result.cardSecret) {
+            throw new Error('订单尚未支付成功，请完成付款后重试');
+          }
+
+          shownCardSecretOrderNo = String(result.orderNo || '');
+          openCardSecretModal(result.cardSecret);
+          setPaymentStatus('支付成功，卡密已发放。');
+        }
+
+        function startOrderStatusPolling(orderNo) {
+          const normalizedOrderNo = String(orderNo || '').trim();
+
+          if (!normalizedOrderNo) {
+            return;
+          }
+
+          if (paymentStatusPollTimer && paymentStatusPollingOrderNo === normalizedOrderNo) {
+            return;
+          }
+
+          stopOrderStatusPolling();
+          paymentStatusPollingOrderNo = normalizedOrderNo;
+
+          const poll = async () => {
+            if (!paymentStatusPollingOrderNo || paymentStatusPollingBusy) {
+              return;
+            }
+
+            paymentStatusPollingBusy = true;
+
+            try {
+              const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(paymentStatusPollingOrderNo)}`);
+              if (!response.ok) return;
+
+              const result = await response.json();
+              if (result?.paid && result?.cardSecret) {
+                stopOrderStatusPolling();
+                setPaymentStatus('微信支付已确认，卡密已自动发放。');
+
+                if (shownCardSecretOrderNo !== result.orderNo) {
+                  shownCardSecretOrderNo = String(result.orderNo || '');
+                  openCardSecretModal(result.cardSecret);
+                }
+              }
+            } catch {
+              // Keep polling for transient network failures.
+            } finally {
+              paymentStatusPollingBusy = false;
+            }
+          };
+
+          paymentStatusPollTimer = setInterval(poll, 3000);
+          poll();
+        }
+
+        async function ensurePaymentConfigReady() {
+          if (paymentConfigReady !== null) {
+            return paymentConfigReady;
+          }
+
+          try {
+            const response = await fetch('/api/store/wechat/meta');
+            const result = await response.json();
+            paymentConfigReady = Boolean(response.ok && result.ready);
+            return paymentConfigReady;
+          } catch {
+            paymentConfigReady = false;
+            return false;
+          }
+        }
+
+        function renderPaymentOrder(order) {
+          if (!order) {
+            return;
+          }
+
+          currentPaymentOrder = order;
+
+          if (paymentOrderNo) {
+            paymentOrderNo.textContent = order.orderNo || '未生成';
+          }
+
+          if (paymentCodeImage && order.qrDataUrl) {
+            paymentCodeImage.onload = () => {
+              if (paymentPlaceholder) {
+                paymentPlaceholder.hidden = true;
+              }
+            };
+            paymentCodeImage.onerror = () => {
+              showPaymentPlaceholder('二维码加载失败', '请重新打开付款弹窗或稍后重试');
+              setPaymentStatus('二维码加载失败，请重试。', true);
+            };
+            paymentCodeImage.src = order.qrDataUrl;
+            paymentCodeImage.hidden = false;
+          }
+
+          setPaymentStatus(`微信订单已创建，订单号 ${order.orderNo}`);
+
+          if (order.orderNo) {
+            startOrderStatusPolling(order.orderNo);
+          }
+        }
+
+        async function createPaymentOrder() {
+          if (currentPaymentOrder?.qrDataUrl) {
+            return currentPaymentOrder;
+          }
+
+          const ready = await ensurePaymentConfigReady();
+          if (!ready) {
+            throw new Error('微信支付配置不完整');
+          }
+
+          if (currentPaymentOrderRequest) {
+            return currentPaymentOrderRequest;
+          }
+
+          currentPaymentOrderRequest = (async () => {
+            setPaymentStatus('正在向微信创建支付订单...');
+            showPaymentPlaceholder('正在创建微信支付二维码', '请稍候，订单创建成功后会自动显示二维码');
+
+            const response = await fetch('/api/store/wechat/native-order', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json; charset=utf-8'
+              },
+              body: JSON.stringify({
+                productCode: activePaymentProduct.code,
+                productName: activePaymentProduct.name,
+                description: activePaymentProduct.description
+              })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '微信支付下单失败');
+            }
+
+            renderPaymentOrder(result);
+            return result;
+          })();
+
+          try {
+            return await currentPaymentOrderRequest;
+          } finally {
+            currentPaymentOrderRequest = null;
+          }
+        }
+
+        async function openPaymentModal() {
+          if (!paymentModal) {
+            return;
+          }
+
+          if (!accountState.loggedIn) {
+            await requireLoginBeforePurchase(activePaymentProduct);
+            return;
+          }
+
+          if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
+          if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
+          if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
+          if (paymentOrderNo) paymentOrderNo.textContent = currentPaymentOrder?.orderNo || '正在创建';
+
+          paymentModal.classList.add('open');
+          paymentModal.setAttribute('aria-hidden', 'false');
+
+          if (currentPaymentOrder?.orderNo) {
+            startOrderStatusPolling(currentPaymentOrder.orderNo);
+          }
+
+          if (!currentPaymentOrder?.qrDataUrl) {
+            try {
+              await createPaymentOrder();
+            } catch (error) {
+              if (paymentOrderNo) paymentOrderNo.textContent = '本地付款码';
+              showLocalPaymentFallback(`微信支付暂未完成配置，已展示本地付款码。${error.message ? `(${error.message})` : ''}`);
+            }
+          }
+        }
+
+        function closePaymentModal() {
+          if (!paymentModal) {
+            return;
+          }
+
+          paymentModal.classList.remove('open');
+          paymentModal.setAttribute('aria-hidden', 'true');
+        }
+
+        if (toggleButton) {
+          toggleButton.addEventListener('click', () => {
+            const nextTheme = document.documentElement.dataset.theme === 'day' ? 'night' : 'day';
+            applyTheme(nextTheme);
+          });
+        }
+
+        if (authTriggerButton) {
+          authTriggerButton.addEventListener('click', () => {
+            openAuthModal(
+              accountState.loggedIn ? 'login' : 'register',
+              accountState.loggedIn ? `当前已登录为 ${accountState.username}` : '先注册账号并完成邮箱验证码，才能购买。'
+            );
+          });
+        }
+
+        if (controlPanelButton) {
+          controlPanelButton.addEventListener('click', () => {
+            if (!accountState.loggedIn) {
+              openAuthModal('login', '请先登录开发者账号再打开控制面板。');
+              return;
+            }
+
+            if (!accountState.isDeveloper) {
+              setPaymentStatus('当前账号不是开发者，无法操作控制面板。', true);
+              return;
+            }
+
+            openAdminModal();
+          });
+        }
+
+        if (closeAdminButton) {
+          closeAdminButton.addEventListener('click', closeAdminModal);
+        }
+
+        if (adminModal) {
+          adminModal.addEventListener('click', (event) => {
+            if (event.target === adminModal) {
+              closeAdminModal();
+            }
+          });
+        }
+
+        if (adminCreateSubmit) {
+          adminCreateSubmit.addEventListener('click', async () => {
+            try {
+              const code = String(adminCreateCode?.value || '').trim().toUpperCase();
+              const name = String(adminCreateName?.value || '').trim();
+              const originalStr = String(adminCreateOriginal?.value || '').trim();
+              const saleStr = String(adminCreateSale?.value || '').trim();
+
+              // 前端验证
+              if (!code) {
+                throw new Error('请填写商品编码');
+              }
+              if (!name) {
+                throw new Error('请填写商品名称');
+              }
+              if (!originalStr) {
+                throw new Error('请填写原价');
+              }
+              if (!saleStr) {
+                throw new Error('请填写优惠价');
+              }
+
+              const originalPrice = Number(originalStr);
+              const salePrice = Number(saleStr);
+
+              if (!Number.isInteger(originalPrice) || originalPrice <= 0) {
+                throw new Error('原价必须为大于 0 的整数（分）');
+              }
+              if (!Number.isInteger(salePrice) || salePrice <= 0) {
+                throw new Error('优惠价必须为大于 0 的整数（分）');
+              }
+              if (salePrice > originalPrice) {
+                throw new Error('优惠价不能高于原价');
+              }
+
+              const body = {
+                productCode: code,
+                name: name,
+                description: String(adminCreateDescription?.value || '').trim(),
+                originalPriceFen: originalPrice,
+                salePriceFen: salePrice,
+                sortOrder: Number(adminCreateSort?.value || 100),
+                tags: String(adminCreateTags?.value || '')
+              };
+
+              setAdminStatus('正在提交...');
+              const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+              if (accountState.token) {
+                headers['Authorization'] = `Bearer ${accountState.token}`;
+              }
+              const response = await fetch('/api/store/products', {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+              });
+              const result = await response.json();
+              if (!response.ok) {
+                throw new Error(result.message || `请求失败 (${response.status})`);
+              }
+
+              setAdminStatus('新增商品成功。');
+              if (adminCreateCode) adminCreateCode.value = '';
+              if (adminCreateName) adminCreateName.value = '';
+              if (adminCreateDescription) adminCreateDescription.value = '';
+              if (adminCreateOriginal) adminCreateOriginal.value = '';
+              if (adminCreateSale) adminCreateSale.value = '';
+              if (adminCreateSort) adminCreateSort.value = '';
+              if (adminCreateTags) adminCreateTags.value = '';
+
+              await loadAdminProducts();
+              await loadStoreProducts();
+            } catch (error) {
+              console.error('Admin create error:', error);
+              setAdminStatus(error.message || '新增失败', true);
+            }
+          });
+        }
+
+        if (adminTable) {
+          adminTable.addEventListener('click', async (event) => {
+            const saveButton = event.target.closest('[data-admin-save]');
+            const toggleButton = event.target.closest('[data-admin-toggle]');
+            const row = event.target.closest('[data-admin-product-row]');
+
+            if (!row) {
+              return;
+            }
+
+            const productCode = String(row.dataset.productCode || '').trim();
+            const nameInput = row.querySelector('[data-admin-name]');
+            const descInput = row.querySelector('[data-admin-description]');
+            const originalInput = row.querySelector('[data-admin-original]');
+            const saleInput = row.querySelector('[data-admin-sale]');
+            const sortInput = row.querySelector('[data-admin-sort]');
+            const tagsInput = row.querySelector('[data-admin-tags]');
+
+            if (saveButton) {
+              try {
+                const name = String(nameInput?.value || '').trim();
+                const originalStr = String(originalInput?.value || '').trim();
+                const saleStr = String(saleInput?.value || '').trim();
+
+                // 前端验证
+                if (!name) {
+                  throw new Error('商品名称不能为空');
+                }
+                if (originalStr && !Number.isInteger(Number(originalStr))) {
+                  throw new Error('原价必须为整数（分）');
+                }
+                if (saleStr && !Number.isInteger(Number(saleStr))) {
+                  throw new Error('优惠价必须为整数（分）');
+                }
+
+                setAdminStatus('正在保存...');
+                const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+                if (accountState.token) {
+                  headers['Authorization'] = `Bearer ${accountState.token}`;
+                }
+                const response = await fetch('/api/store/products/update', {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify({
+                    productCode,
+                    name: name,
+                    description: String(descInput?.value || '').trim(),
+                    originalPriceFen: originalStr ? Number(originalStr) : undefined,
+                    salePriceFen: saleStr ? Number(saleStr) : undefined,
+                    sortOrder: Number(sortInput?.value || 100),
+                    tags: String(tagsInput?.value || '')
+                  })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || `保存失败 (${response.status})`);
+                }
+
+                setAdminStatus(`商品 ${productCode} 已保存。`);
+                await loadAdminProducts();
+                await loadStoreProducts();
+              } catch (error) {
+                console.error('Admin save error:', error);
+                setAdminStatus(error.message || '保存失败', true);
+              }
+              return;
+            }
+
+            if (toggleButton) {
+              try {
+                const isActive = String(row.dataset.isActive || '0') === '1';
+                setAdminStatus('正在切换状态...');
+                const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+                if (accountState.token) {
+                  headers['Authorization'] = `Bearer ${accountState.token}`;
+                }
+                const response = await fetch('/api/store/products/toggle', {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify({
+                    productCode,
+                    isActive: !isActive
+                  })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || `切换失败 (${response.status})`);
+                }
+
+                setAdminStatus(result.message || '状态已更新');
+                await loadAdminProducts();
+                await loadStoreProducts();
+              } catch (error) {
+                console.error('Admin toggle error:', error);
+                setAdminStatus(error.message || '切换失败', true);
+              }
+            }
+          });
+        }
+
+        if (authLogoutButton) {
+          authLogoutButton.addEventListener('click', submitLogout);
+        }
+
+        authTabs.forEach((tab) => {
+          tab.addEventListener('click', () => {
+            setAuthTab(tab.dataset.authTab || 'register');
+          });
+        });
+
+        closeAuthButtons.forEach((button) => {
+          button.addEventListener('click', closeAuthModal);
+        });
+
+        sendCodeButtons.forEach((button) => {
+          button.addEventListener('click', submitSendCode);
+        });
+
+        resendCodeButtons.forEach((button) => {
+          button.addEventListener('click', submitSendCode);
+        });
+
+        verifyButtons.forEach((button) => {
+          button.addEventListener('click', submitVerifyCode);
+        });
+
+        if (productGrid) {
+          productGrid.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-open-payment]');
+            if (!button) {
+              return;
+            }
+
+            setPaymentProduct({
+              name: button.dataset.productName,
+              price: button.dataset.productPrice,
+              code: button.dataset.productCode,
+              description: button.dataset.productDescription
+            });
+            openPaymentModal();
+          });
+        }
+
+        closePaymentButtons.forEach((button) => {
+          button.addEventListener('click', closePaymentModal);
+        });
+
+        closeCardSecretButtons.forEach((button) => {
+          button.addEventListener('click', closeCardSecretModal);
+        });
+
+        if (copyCardSecretButton) {
+          copyCardSecretButton.addEventListener('click', async () => {
+            const value = String(cardSecretValue?.textContent || '').trim();
+            if (!value) {
+              return;
+            }
+
+            try {
+              await navigator.clipboard.writeText(value);
+              setPaymentStatus('卡密已复制到剪贴板。');
+            } catch {
+              setPaymentStatus('复制失败，请手动复制卡密。', true);
+            }
+          });
+        }
+
+        if (checkCardSecretButton) {
+          checkCardSecretButton.addEventListener('click', async () => {
+            try {
+              await queryCardSecretByOrderNo(currentPaymentOrder?.orderNo || paymentStatusPollingOrderNo || '');
+            } catch (error) {
+              setPaymentStatus(error.message || '查询卡密失败', true);
+            }
+          });
+        }
+
+        if (paymentModal) {
+          paymentModal.addEventListener('click', (event) => {
+            if (event.target === paymentModal) {
+              closePaymentModal();
+            }
+          });
+        }
+
+        if (cardSecretModal) {
+          cardSecretModal.addEventListener('click', (event) => {
+            if (event.target === cardSecretModal) {
+              closeCardSecretModal();
+            }
+          });
+        }
+
+        if (authModal) {
+          authModal.addEventListener('click', (event) => {
+            if (event.target === authModal) {
+              closeAuthModal();
+            }
+          });
+        }
+
+        setAuthTab(authMode);
+
+        loadAccountState().then(async () => {
+          updateAuthTrigger();
+          await loadStoreProducts();
+        });
+      })();
+    </script>
+  </body>
+</html>

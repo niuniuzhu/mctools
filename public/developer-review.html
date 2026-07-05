@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开发者审核中心 · MCTools</title>
+    <script>
+      try {
+        const storedUi = localStorage.getItem('mctools-ui') || 'milktea';
+        const nextUi = storedUi === 'normal' || storedUi === 'classic' || storedUi === 'end' ? storedUi : 'normal';
+        localStorage.setItem('mctools-ui', nextUi);
+        document.documentElement.dataset.ui = nextUi;
+      } catch {
+        document.documentElement.dataset.ui = 'normal';
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      .review-tabs {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      .review-tabs .active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .review-section {
+        display: grid;
+        gap: 18px;
+      }
+
+      .review-section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .review-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .review-card {
+        padding: 18px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(14, 24, 38, 0.72);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+        display: grid;
+        gap: 12px;
+      }
+
+      .review-card-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .review-card-head h3 {
+        margin: 0;
+      }
+
+      .review-card-head p,
+      .review-card-body,
+      .review-card-meta {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .review-card-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.92rem;
+      }
+
+      .review-note-input {
+        width: 100%;
+        min-height: 92px;
+      }
+
+      .review-actions {
+        gap: 10px;
+      }
+
+      .review-actions .ghost-button {
+        flex: 0 0 auto;
+      }
+    </style>
+    <script defer src="/developer-review.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="badge">Developer Review</p>
+          <h1>开发者审核中心</h1>
+          <p class="lead">这里可以统一审核命令投稿、服务器投稿和 bug 反馈。支持通过、拒绝与回退审核状态。</p>
+          <div class="meta-row">
+            <div class="version-pill" data-app-version>当前版本 loading...</div>
+            <div class="version-pill" data-review-username>审核员：读取中...</div>
+          </div>
+          <div class="workspace-nav">
+            <a class="ghost-link-button" href="/developer.html">返回开发者控制台</a>
+            <a class="ghost-link-button" href="/index.html">返回首页</a>
+          </div>
+        </div>
+        <div class="hero-card">
+          <p class="hero-card-label">审核状态</p>
+          <p class="toolbox-summary" data-review-summary>正在加载审核队列...</p>
+          <p class="tool-card-note" data-review-note>默认优先显示待审核内容，可切换查看全部记录。</p>
+          <div class="button-row">
+            <button type="button" class="ghost-button compact-button" data-refresh-all>刷新全部</button>
+            <button type="button" class="ghost-button compact-button" data-show-pending>只看待审</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="content-panel">
+        <div class="review-tabs" role="tablist" aria-label="审核类型切换">
+          <button type="button" class="ghost-button compact-button active" data-tab-target="commands">命令投稿</button>
+          <button type="button" class="ghost-button compact-button" data-tab-target="servers">服务器投稿</button>
+          <button type="button" class="ghost-button compact-button" data-tab-target="bugs">BUG反馈</button>
+        </div>
+
+        <section class="review-section" data-review-panel="commands">
+          <div class="review-section-head">
+            <h2>命令投稿审核</h2>
+            <span class="version-pill" data-count-commands>0 条</span>
+          </div>
+          <div class="review-list" data-list-commands>
+            <p class="empty-state">正在加载命令投稿...</p>
+          </div>
+        </section>
+
+        <section class="review-section" data-review-panel="servers" hidden>
+          <div class="review-section-head">
+            <h2>服务器投稿审核</h2>
+            <span class="version-pill" data-count-servers>0 条</span>
+          </div>
+          <div class="review-list" data-list-servers>
+            <p class="empty-state">正在加载服务器投稿...</p>
+          </div>
+        </section>
+
+        <section class="review-section" data-review-panel="bugs" hidden>
+          <div class="review-section-head">
+            <h2>BUG 反馈审核</h2>
+            <span class="version-pill" data-count-bugs>0 条</span>
+          </div>
+          <div class="review-list" data-list-bugs>
+            <p class="empty-state">正在加载 BUG 反馈...</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

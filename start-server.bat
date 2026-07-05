@@ -12,6 +12,8 @@ if "%~1"=="" (
   if errorlevel 1 exit /b 1
   call "%~f0" 3003
   if errorlevel 1 exit /b 1
+  call "%~f0" 3004
+  if errorlevel 1 exit /b 1
   endlocal
   exit /b 0
 )
