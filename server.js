@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
+const os = require('os');
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
 const { DatabaseSync } = require('node:sqlite');
@@ -102,7 +103,64 @@ if (!fs.existsSync(avatarsDir)) {
   fs.mkdirSync(avatarsDir, { recursive: true });
 }
 
-const db = new DatabaseSync(databasePath);
+function canUseDirectory(dirPath) {
+  try {
+    fs.mkdirSync(dirPath, { recursive: true });
+    fs.accessSync(dirPath, fs.constants.W_OK);
+    const probePath = path.join(dirPath, `.probe-${process.pid}-${Date.now()}`);
+    fs.writeFileSync(probePath, 'ok');
+    fs.unlinkSync(probePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveWritableDatabasePath() {
+  const fallbackRoots = [
+    process.env.MCTOOLS_DATA_DIR,
+    path.join(os.tmpdir(), 'mctools-data')
+  ].filter(Boolean);
+
+  const sourceDatabasePath = databasePath;
+  const candidatePaths = [sourceDatabasePath];
+
+  for (const rootDir of fallbackRoots) {
+    candidatePaths.push(path.join(rootDir, 'users.db'));
+  }
+
+  for (const candidatePath of candidatePaths) {
+    const candidateDir = path.dirname(candidatePath);
+
+    if (!canUseDirectory(candidateDir)) {
+      continue;
+    }
+
+    try {
+      if (candidatePath !== sourceDatabasePath && fs.existsSync(sourceDatabasePath) && !fs.existsSync(candidatePath)) {
+        fs.copyFileSync(sourceDatabasePath, candidatePath);
+      }
+      const testDb = new DatabaseSync(candidatePath);
+      testDb.exec('CREATE TEMP TABLE IF NOT EXISTS __mctools_write_probe (id INTEGER PRIMARY KEY)');
+      testDb.exec('INSERT OR IGNORE INTO temp.__mctools_write_probe (id) VALUES (1)');
+      testDb.close();
+      return candidatePath;
+    } catch (error) {
+      if (String(error?.message || '').toLowerCase().includes('readonly')) {
+        continue;
+      }
+      if (String(error?.message || '').toLowerCase().includes('permission')) {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to open a writable database file. Checked: ${candidatePaths.join(', ')}`);
+}
+
+const resolvedDatabasePath = resolveWritableDatabasePath();
+const db = new DatabaseSync(resolvedDatabasePath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
