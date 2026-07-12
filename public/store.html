@@ -7,9 +7,8 @@
     <script>
       (function () {
         try {
-          const storedTheme = localStorage.getItem('mctools-store-theme') || 'day';
-          const nextTheme = storedTheme === 'night' ? 'night' : 'day';
-          document.documentElement.dataset.theme = nextTheme;
+          document.documentElement.dataset.theme = 'day';
+          localStorage.setItem('mctools-store-theme', 'day');
         } catch {
           document.documentElement.dataset.theme = 'day';
         }
@@ -92,6 +91,28 @@
         0%, 100% { box-shadow: 0 20px 40px rgba(37, 99, 235, 0.24); }
         50% { box-shadow: 0 20px 46px rgba(249, 115, 22, 0.34); }
       }
+      @keyframes button-breathe {
+        0% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          filter: brightness(1);
+        }
+        50% {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 16px 30px rgba(236, 72, 153, 0.22);
+          filter: brightness(1.06);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          filter: brightness(1);
+        }
+      }
+      @keyframes button-click-pop {
+        0% { transform: translateY(0) scale(1); }
+        40% { transform: translateY(1px) scale(0.95); }
+        100% { transform: translateY(0) scale(1); }
+      }
       .topbar {
         display: flex;
         justify-content: space-between;
@@ -161,10 +182,10 @@
         border: 1px solid rgba(148, 163, 184, 0.18);
         box-shadow: 0 20px 44px rgba(15, 23, 42, 0.1);
       }
+      button,
       .btn,
       .top-actions .btn,
       .theme-toggle,
-      .music-toggle,
       .chip,
       .action-chip,
       .buy-btn,
@@ -178,27 +199,39 @@
         cursor: pointer;
         font: inherit;
         line-height: 1;
+        min-height: 42px;
         transition:
-          transform 180ms ease,
-          box-shadow 180ms ease,
-          background 180ms ease,
-          color 180ms ease,
-          opacity 180ms ease;
+          transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
+          box-shadow 260ms ease,
+          background 260ms ease,
+          color 220ms ease,
+          opacity 220ms ease,
+          filter 220ms ease,
+          border-color 220ms ease;
+        animation: button-breathe 2.2s ease-in-out infinite;
+      }
+      button:active,
+      .btn:active,
+      .theme-toggle:active,
+      .chip:active,
+      .action-chip:active,
+      .buy-btn:active,
+      .floating-button:active {
+        animation: button-click-pop 220ms ease-out;
       }
       .theme-toggle,
-      .music-toggle,
       .top-actions .btn,
       .payment-head .btn,
       .payment-actions .btn,
       .buy-btn {
-        padding: 10px 14px;
+        min-width: 112px;
+        padding: 10px 18px;
         background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,245,249,0.9));
         border: 1px solid rgba(148, 163, 184, 0.24);
         font-weight: 800;
         box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
       }
       html[data-theme="night"] .theme-toggle,
-      html[data-theme="night"] .music-toggle,
       html[data-theme="night"] .top-actions .btn,
       html[data-theme="night"] .payment-head .btn,
       html[data-theme="night"] .payment-actions .btn,
@@ -206,10 +239,88 @@
         background: rgba(255,255,255,0.08);
         color: #e2e8f0;
       }
-      .music-toggle.active {
-        background: linear-gradient(135deg, #22c55e, #0ea5e9);
-        color: #fff;
-        box-shadow: 0 12px 26px rgba(14, 165, 233, 0.22);
+      html[data-theme="night"] .top-actions,
+      html[data-theme="night"] .chip-row,
+      html[data-theme="night"] .online-board,
+      html[data-theme="night"] .feed-card,
+      html[data-theme="night"] .feature-hub,
+      html[data-theme="night"] .notice-card,
+      html[data-theme="night"] .payment-card,
+      html[data-theme="night"] .auth-card,
+      html[data-theme="night"] .order-query-card,
+      html[data-theme="night"] .card-secret-card,
+      html[data-theme="night"] .admin-card {
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 26px 56px rgba(2, 6, 23, 0.42);
+      }
+      html[data-theme="night"] .hero-title,
+      html[data-theme="night"] .card-name,
+      html[data-theme="night"] .summary-card h3,
+      html[data-theme="night"] .online-board h3,
+      html[data-theme="night"] .section-title {
+        color: #f8fafc;
+      }
+      html[data-theme="night"] .stat-box,
+      html[data-theme="night"] .side-stat,
+      html[data-theme="night"] .watch-row,
+      html[data-theme="night"] .online-rank-item,
+      html[data-theme="night"] .admin-row,
+      html[data-theme="night"] .order-query-result,
+      html[data-theme="night"] .payment-confirm-panel {
+        background: rgba(30, 41, 59, 0.62);
+        border: 1px solid rgba(148, 163, 184, 0.24);
+      }
+      html[data-theme="night"] .stat-title,
+      html[data-theme="night"] .online-rank-path,
+      html[data-theme="night"] .watch-row strong,
+      html[data-theme="night"] .watch-role,
+      html[data-theme="night"] .panel-label,
+      html[data-theme="night"] .hint,
+      html[data-theme="night"] .auth-note,
+      html[data-theme="night"] .payment-contact-field label,
+      html[data-theme="night"] .order-query-field label {
+        color: #cbd5e1;
+      }
+      html[data-theme="night"] .stat-value,
+      html[data-theme="night"] .side-stat strong,
+      html[data-theme="night"] .card-price,
+      html[data-theme="night"] .online-rank-main strong,
+      html[data-theme="night"] .price-discount,
+      html[data-theme="night"] .payment-amount,
+      html[data-theme="night"] .card-secret-value {
+        color: #f8fafc;
+      }
+      html[data-theme="night"] input,
+      html[data-theme="night"] textarea,
+      html[data-theme="night"] select,
+      html[data-theme="night"] .payment-contact-field input,
+      html[data-theme="night"] .field input,
+      html[data-theme="night"] .field textarea,
+      html[data-theme="night"] .order-query-field input,
+      html[data-theme="night"] .admin-row input,
+      html[data-theme="night"] .admin-row textarea {
+        background: rgba(15, 23, 42, 0.86);
+        color: #f8fafc;
+        border-color: rgba(148, 163, 184, 0.32);
+      }
+      html[data-theme="night"] .theme-toggle:hover,
+      html[data-theme="night"] .top-actions .btn:hover,
+      html[data-theme="night"] .buy-btn:hover,
+      html[data-theme="night"] .payment-actions .btn:hover,
+      html[data-theme="night"] .auth-verify-btn:hover,
+      html[data-theme="night"] .auth-send-btn:hover {
+        background: rgba(99, 102, 241, 0.34);
+        border-color: rgba(129, 140, 248, 0.6);
+        box-shadow: 0 18px 34px rgba(30, 64, 175, 0.38);
+      }
+      html[data-theme="night"] .theme-toggle:focus-visible,
+      html[data-theme="night"] .top-actions .btn:focus-visible,
+      html[data-theme="night"] .buy-btn:focus-visible,
+      html[data-theme="night"] .payment-actions .btn:focus-visible,
+      html[data-theme="night"] input:focus,
+      html[data-theme="night"] textarea:focus {
+        outline: 2px solid rgba(96, 165, 250, 0.9);
+        outline-offset: 1px;
       }
       .hero-shell {
         display: grid;
@@ -231,6 +342,7 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
+        max-width: 760px;
       }
       .hero-copy {
         display: grid;
@@ -239,22 +351,26 @@
       .kicker {
         display: inline-flex;
         width: fit-content;
-        padding: 8px 12px;
-        border-radius: 999px;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 3px 6px;
+        border-radius: 8px;
         background: linear-gradient(90deg, rgba(255,255,255,0.86), rgba(255, 231, 240, 0.86), rgba(222, 236, 255, 0.86));
         background-size: 200% 200%;
         animation: shimmer 7s ease infinite;
         color: #5b21b6;
         font-weight: 800;
-        letter-spacing: 0.1em;
+        letter-spacing: 0;
+        line-height: 1;
         text-transform: uppercase;
-        font-size: 0.74rem;
+        font-size: 0.66rem;
       }
       .hero-title {
         margin: 0;
         font-size: clamp(2.2rem, 5vw, 4.8rem);
         line-height: 0.98;
-        letter-spacing: -0.05em;
+        letter-spacing: -0.015em;
       }
       .hero-title .accent {
         color: #ff4f93;
@@ -649,7 +765,8 @@
         border: 1px solid rgba(148, 163, 184, 0.2);
         background: rgba(255,255,255,0.8);
         border-radius: 16px;
-        padding: 12px;
+        padding: 14px 16px;
+        min-height: 84px;
         text-align: left;
         display: grid;
         gap: 4px;
@@ -773,6 +890,21 @@
       .product-card.featured {
         grid-column: span 4;
       }
+      .card-cover {
+        width: calc(100% - 36px);
+        margin: 18px 18px 0;
+        border-radius: 18px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(15, 23, 42, 0.06);
+        aspect-ratio: 16 / 9;
+      }
+      .card-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
       .product-card-header {
         padding: 18px 18px 0;
         font-size: 1.1rem;
@@ -833,6 +965,20 @@
         flex-wrap: wrap;
         gap: 8px;
       }
+      .stock-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.08);
+        color: #334155;
+        font-size: 0.76rem;
+        font-weight: 900;
+      }
+      .stock-pill.out {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+      }
       .card-pill {
         display: inline-flex;
         align-items: center;
@@ -859,6 +1005,13 @@
         border-radius: 18px;
         box-shadow: 0 18px 38px rgba(124, 92, 255, 0.3);
       }
+      .buy-btn[disabled] {
+        cursor: not-allowed;
+        opacity: 0.58;
+        filter: grayscale(0.2);
+        box-shadow: none;
+        animation: none;
+      }
       .ghost-btn {
         padding: 10px 14px;
         border-radius: 18px;
@@ -880,7 +1033,7 @@
         background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.92));
         color: #111827;
         border: 1px solid rgba(148, 163, 184, 0.28);
-        min-width: 88px;
+        min-width: 112px;
         justify-content: center;
         padding: 10px 16px;
         border-radius: 18px;
@@ -944,6 +1097,167 @@
         z-index: 70;
       }
       .card-secret-modal.open { display: flex; }
+      .order-query-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 68;
+      }
+      .order-query-modal.open { display: flex; }
+      .order-query-card {
+        width: min(520px, 100%);
+        border-radius: 28px;
+        padding: 22px;
+        background: rgba(255,255,255,0.98);
+        color: #111827;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+        display: grid;
+        gap: 14px;
+      }
+      .order-query-title {
+        display: grid;
+        gap: 6px;
+      }
+      .order-query-title h3 {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .order-query-title p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.6;
+      }
+      .order-query-field {
+        display: grid;
+        gap: 8px;
+      }
+      .order-query-field label {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #334155;
+      }
+      .order-query-field input {
+        width: 100%;
+        min-height: 52px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        padding: 12px 14px;
+        font: inherit;
+        background: rgba(255,255,255,0.96);
+        color: #111827;
+      }
+      .order-query-field input:focus {
+        outline: none;
+        border-color: rgba(37, 99, 235, 0.5);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      }
+      .order-query-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .order-query-actions .btn {
+        min-height: 48px;
+        flex: 1 1 160px;
+      }
+      .order-query-result {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(248, 250, 252, 0.96);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+      }
+      .order-query-result-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        line-height: 1.6;
+      }
+      .order-query-result-item span {
+        color: #64748b;
+      }
+      .order-query-result-item strong {
+        color: #111827;
+        word-break: break-all;
+        text-align: right;
+      }
+      .order-query-note {
+        color: #475569;
+        line-height: 1.7;
+        font-size: 0.92rem;
+      }
+      .order-query-result.success {
+        border-color: rgba(22, 163, 74, 0.2);
+        background: rgba(240, 253, 244, 0.96);
+      }
+      .order-query-result.error {
+        border-color: rgba(220, 38, 38, 0.2);
+        background: rgba(254, 242, 242, 0.96);
+      }
+      .order-query-result.pending {
+        border-color: rgba(245, 158, 11, 0.24);
+        background: rgba(255, 251, 235, 0.96);
+      }
+      .order-query-contact {
+        display: grid;
+        gap: 8px;
+      }
+      .order-query-contact-list {
+        display: grid;
+        gap: 8px;
+      }
+      .order-query-contact-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(255,255,255,0.88);
+      }
+      .order-query-contact-item span {
+        color: #64748b;
+        font-size: 0.88rem;
+      }
+      .order-query-contact-item strong {
+        display: block;
+        font-size: 0.92rem;
+        color: #0f172a;
+      }
+      .order-query-contact-item button {
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        background: rgba(255,255,255,0.95);
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .floating-button.lottery-entry {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 90;
+        min-height: 50px;
+        padding: 0 18px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 900;
+        background: linear-gradient(135deg, #1d4ed8, #2563eb, #3b82f6);
+        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.34);
+      }
       .announcement-modal {
         position: fixed;
         inset: 0;
@@ -1112,6 +1426,98 @@
       .payment-head h3 {
         margin: 0;
         font-size: 1.25rem;
+      }
+      .payment-confirm-panel {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.86);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      html[data-theme="night"] .payment-confirm-panel {
+        background: rgba(15, 23, 42, 0.32);
+      }
+      .payment-login-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .payment-login-state {
+        display: grid;
+        gap: 4px;
+      }
+      .payment-login-state strong {
+        font-size: 1rem;
+      }
+      .payment-login-state span {
+        color: #64748b;
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      .payment-method-group {
+        display: grid;
+        gap: 8px;
+      }
+      .payment-method-label,
+      .payment-contact-label {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #334155;
+      }
+      .payment-method-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .payment-method-btn {
+        flex: 1 1 150px;
+        min-width: 130px;
+        min-height: 46px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(255,255,255,0.92);
+        font-weight: 800;
+        color: #334155;
+      }
+      .payment-method-btn.active {
+        color: #fff;
+        border-color: transparent;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        box-shadow: 0 12px 24px rgba(124, 58, 237, 0.2);
+      }
+      .payment-contact-field {
+        display: grid;
+        gap: 8px;
+      }
+      .payment-contact-field input {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        padding: 12px 14px;
+        font: inherit;
+        background: rgba(255,255,255,0.95);
+      }
+      html[data-theme="night"] .payment-contact-field input {
+        background: rgba(15, 23, 42, 0.42);
+        color: #e2e8f0;
+      }
+      .payment-contact-hint,
+      .payment-login-state span {
+        color: #64748b;
+        font-size: 0.88rem;
+        line-height: 1.5;
+      }
+      .payment-login-action {
+        min-width: 120px;
+        min-height: 44px;
+      }
+      .payment-confirm-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
       }
       .payment-code-frame {
         aspect-ratio: 1 / 1;
@@ -1293,6 +1699,31 @@
       }
       .auth-panel.active {
         display: grid;
+      }
+      .auth-remember {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #cbd5e1;
+      }
+      .auth-remember input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+      .auth-remember small {
+        color: #94a3b8;
+      }
+      html[data-theme="day"] .auth-remember {
+        background: rgba(15, 23, 42, 0.04);
+        color: #334155;
+      }
+      html[data-theme="day"] .auth-remember small {
+        color: #64748b;
       }
       .field {
         display: grid;
@@ -1659,8 +2090,6 @@
         <div class="top-actions">
           <button class="theme-toggle" type="button" data-control-panel hidden>控制面板</button>
           <button class="theme-toggle auth-trigger" type="button" data-auth-trigger>登录 / 注册</button>
-          <button class="music-toggle" type="button" data-music-toggle>开启背景音乐</button>
-          <button class="theme-toggle" type="button" data-theme-toggle>切换到白天</button>
         </div>
       </header>
 
@@ -1745,12 +2174,18 @@
             <strong>账号中心</strong>
             <span>登录、注册、切换账号</span>
           </button>
+          <button class="feature-btn primary" type="button" data-feature-action="order-query">
+            <strong>查单中心</strong>
+            <span>输入订单号查询状态和卡密</span>
+          </button>
           <a class="feature-btn warn" href="/store-admin.html">
             <strong>开发者后台</strong>
             <span>新增、调价、上下架商品</span>
           </a>
         </div>
       </section>
+
+      <a class="floating-button lottery-entry" href="/lottery.html" title="抽奖活动入口">抽奖活动</a>
 
       <section class="feed-card">
         <div class="shop-catalog">
@@ -1803,20 +2238,45 @@
     <div class="payment-modal" data-payment-modal aria-hidden="true">
       <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="payment-title">
         <div class="payment-head">
-          <h3 id="payment-title">购买</h3>
+          <h3 id="payment-title">支付确认</h3>
           <button class="btn" type="button" data-close-payment>关闭</button>
+        </div>
+        <div class="payment-confirm-panel">
+          <div class="payment-login-row">
+            <div class="payment-login-state">
+              <strong data-payment-login-state>未登录</strong>
+              <span data-payment-login-hint>请先登录后再确认支付，登录后会自动保留本次购买信息。</span>
+            </div>
+            <button class="btn payment-login-action" type="button" data-payment-open-auth>去登录</button>
+          </div>
+          <div class="payment-method-group">
+            <div class="payment-method-label">选择支付方式</div>
+            <div class="payment-method-row">
+              <button class="payment-method-btn active" type="button" data-payment-method="wechat">微信支付</button>
+              <button class="payment-method-btn" type="button" data-payment-method="alipay">支付宝</button>
+            </div>
+          </div>
+          <div class="payment-contact-field">
+            <label class="payment-contact-label" for="payment-contact">联系方式</label>
+            <input id="payment-contact" type="text" autocomplete="off" placeholder="QQ、微信号、手机号或邮箱" data-payment-contact />
+            <div class="payment-contact-hint">用于核对订单、发送说明和联系你发放卡密。</div>
+          </div>
+          <div class="payment-confirm-actions">
+            <button class="btn btn-primary" type="button" data-create-payment-order>确认并生成支付码</button>
+          </div>
         </div>
         <div class="payment-code-frame">
           <img alt="付款码" data-payment-code hidden />
           <div class="payment-code-placeholder" data-payment-placeholder>
-            <strong>正在准备支付二维码</strong>
-            <span>订单创建后会自动显示，弹窗可向下滚动查看按钮</span>
+            <strong>等待确认下单</strong>
+            <span>先选择支付方式并填写联系方式，再生成二维码</span>
           </div>
         </div>
         <div class="payment-meta">
           <div>金额：<strong data-payment-amount>1 元</strong></div>
           <div>商品：<strong class="payment-product-name" data-payment-product-name>星际无限资源服管理</strong></div>
           <div>商品编号：<span data-payment-product-code>65997548</span></div>
+          <div>当前方式：<strong data-payment-method-label>微信支付</strong></div>
           <div>提示：扫码后请保留支付结果截图，方便后续核对。</div>
           <div>购买成功后请把凭证发给 QQ3805506653。</div>
         </div>
@@ -1844,6 +2304,32 @@
       </div>
     </div>
 
+    <div class="order-query-modal" data-order-query-modal aria-hidden="true">
+      <div class="order-query-card" role="dialog" aria-modal="true" aria-labelledby="order-query-title">
+        <div class="order-query-title">
+          <h3 id="order-query-title">查单中心</h3>
+          <p>输入订单号后查询当前状态。已支付的订单会直接显示卡密。</p>
+        </div>
+        <div class="order-query-field">
+          <label for="order-query-input">订单号</label>
+          <input id="order-query-input" type="text" autocomplete="off" placeholder="例如：SP178341930260678AECB" data-order-query-input />
+        </div>
+        <div class="order-query-contact">
+          <label for="order-query-contact-input">联系方式查单</label>
+          <input id="order-query-contact-input" type="text" autocomplete="off" placeholder="输入联系方式（QQ/微信/手机号/邮箱）" data-order-query-contact-input />
+          <button class="btn" type="button" data-submit-contact-query>通过联系方式查单</button>
+          <div class="order-query-contact-list" data-order-query-contact-list hidden></div>
+        </div>
+        <div class="order-query-actions">
+          <button class="btn btn-primary" type="button" data-submit-order-query>立即查单</button>
+          <button class="btn" type="button" data-close-order-query>关闭</button>
+        </div>
+        <div class="order-query-result" data-order-query-result>
+          <div class="order-query-note">请输入订单号后点击查单。</div>
+        </div>
+      </div>
+    </div>
+
     <div class="auth-modal" data-auth-modal aria-hidden="true">
       <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
         <div class="auth-head">
@@ -1858,6 +2344,14 @@
           <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
           <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
         </div>
+
+        <label class="auth-remember" for="auth-remember-login">
+          <input id="auth-remember-login" type="checkbox" data-auth-remember-login checked />
+          <span>
+            <strong>保持登录</strong>
+            <small>勾选后登录状态保持 30 天，不勾选保持 3 天。</small>
+          </span>
+        </label>
 
         <section class="auth-panel active" data-auth-panel="register">
           <div class="field">
@@ -1930,20 +2424,12 @@
       </div>
     </div>
 
-    <audio
-      data-bg-music
-      loop
-      preload="none"
-      src="/assets/music/yueyu-jichangbei.mp3"
-    ></audio>
-
     <script>
       (function () {
         const toggleButton = document.querySelector('[data-theme-toggle]');
-        const musicToggleButton = document.querySelector('[data-music-toggle]');
-        const bgMusic = document.querySelector('[data-bg-music]');
         const controlPanelButton = document.querySelector('[data-control-panel]');
         const authTriggerButton = document.querySelector('[data-auth-trigger]');
+        const orderQueryTriggerButtons = Array.from(document.querySelectorAll('[data-feature-action="order-query"]'));
         const authModal = document.querySelector('[data-auth-modal]');
         const authMessage = document.querySelector('[data-auth-message]');
         const authLogoutButton = document.querySelector('[data-auth-logout]');
@@ -1966,6 +2452,7 @@
         const loginCodeInput = document.querySelector('[data-login-code]');
         const loginStatus = document.querySelector('[data-login-status]');
         const passwordLoginButton = document.querySelector('[data-submit-password-login]');
+        const authRememberLoginInput = document.querySelector('[data-auth-remember-login]');
 
         const productGrid = document.querySelector('[data-product-grid]');
         const statProducts = document.querySelector('[data-stat-products]');
@@ -1999,12 +2486,27 @@
         const paymentProductName = document.querySelector('[data-payment-product-name]');
         const paymentProductCode = document.querySelector('[data-payment-product-code]');
         const paymentAmount = document.querySelector('[data-payment-amount]');
+        const paymentMethodLabel = document.querySelector('[data-payment-method-label]');
+        const paymentLoginState = document.querySelector('[data-payment-login-state]');
+        const paymentLoginHint = document.querySelector('[data-payment-login-hint]');
+        const paymentOpenAuthButton = document.querySelector('[data-payment-open-auth]');
+        const paymentCreateOrderButton = document.querySelector('[data-create-payment-order]');
+        const paymentContactInput = document.querySelector('[data-payment-contact]');
+        const paymentMethodButtons = Array.from(document.querySelectorAll('[data-payment-method]'));
         const checkCardSecretButton = document.querySelector('[data-check-card-secret]');
 
         const cardSecretModal = document.querySelector('[data-card-secret-modal]');
         const cardSecretValue = document.querySelector('[data-card-secret-value]');
         const closeCardSecretButtons = Array.from(document.querySelectorAll('[data-close-card-secret]'));
         const copyCardSecretButton = document.querySelector('[data-copy-card-secret]');
+        const orderQueryModal = document.querySelector('[data-order-query-modal]');
+        const orderQueryInput = document.querySelector('[data-order-query-input]');
+        const orderQueryContactInput = document.querySelector('[data-order-query-contact-input]');
+        const orderQueryContactList = document.querySelector('[data-order-query-contact-list]');
+        const orderQueryResult = document.querySelector('[data-order-query-result]');
+        const submitOrderQueryButton = document.querySelector('[data-submit-order-query]');
+        const submitContactQueryButton = document.querySelector('[data-submit-contact-query]');
+        const closeOrderQueryButton = document.querySelector('[data-close-order-query]');
 
         const adminModal = document.querySelector('[data-admin-inline]');
         const closeAdminButton = document.querySelector('[data-close-admin]');
@@ -2039,57 +2541,73 @@
           code: '65997548',
           description: '星际无限资源服管理'
         };
+        let paymentCheckoutState = {
+          method: 'wechat',
+          contact: ''
+        };
         let authMode = 'register';
         let pendingPurchaseProduct = null;
         let paymentStatusPollTimer = null;
         let paymentStatusPollingOrderNo = '';
         let paymentStatusPollingBusy = false;
         let shownCardSecretOrderNo = '';
+        let lastOrderQueryResult = null;
         let onlineHeartbeatTimer = null;
         let selectedCategory = '全部商品';
         let activePaymentProvider = '';
         const hongxingReturnOrderStorageKey = 'mctools-hongxing-return-order';
-        const musicEnabledStorageKey = 'mctools-store-music-enabled';
-        let musicEnabled = false;
         let storeAnnouncementText = '购买功能已正常开放';
         let storeWhitelistUsernames = [];
         let onlineAccountsSnapshot = [];
 
-        function updateMusicToggleView() {
-          if (!musicToggleButton) {
-            return;
-          }
-
-          musicToggleButton.classList.toggle('active', musicEnabled);
-          musicToggleButton.textContent = musicEnabled ? '关闭背景音乐' : '开启背景音乐';
+        function getPaymentMethodLabel(method) {
+          return String(method || '').toLowerCase() === 'alipay' ? '支付宝支付' : '微信支付';
         }
 
-        async function applyMusicEnabled(nextEnabled) {
-          musicEnabled = Boolean(nextEnabled);
+        function buildCheckoutUrl(product) {
+          const url = new URL('/store-checkout.html', window.location.origin);
+          url.searchParams.set('productCode', String(product?.code || '').trim());
+          url.searchParams.set('productName', String(product?.name || '').trim());
+          url.searchParams.set('price', String(product?.price || ''));
+          url.searchParams.set('description', String(product?.description || '').trim());
+          return url.toString();
+        }
 
-          if (!bgMusic) {
-            updateMusicToggleView();
-            return;
+        function updatePaymentCheckoutView() {
+          const method = String(paymentCheckoutState.method || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
+          paymentCheckoutState.method = method;
+
+          paymentMethodButtons.forEach((button) => {
+            const buttonMethod = String(button.dataset.paymentMethod || '').toLowerCase();
+            button.classList.toggle('active', buttonMethod === method);
+          });
+
+          if (paymentMethodLabel) {
+            paymentMethodLabel.textContent = getPaymentMethodLabel(method);
           }
 
-          if (musicEnabled) {
-            bgMusic.volume = 0.45;
-            try {
-              await bgMusic.play();
-            } catch {
-              musicEnabled = false;
-            }
-          } else {
-            bgMusic.pause();
+          if (paymentContactInput && paymentContactInput.value !== paymentCheckoutState.contact) {
+            paymentContactInput.value = paymentCheckoutState.contact;
           }
 
-          try {
-            localStorage.setItem(musicEnabledStorageKey, musicEnabled ? '1' : '0');
-          } catch {
-            // ignore storage write errors
+          if (paymentLoginState) {
+            paymentLoginState.textContent = accountState.loggedIn ? `已登录：${accountState.username}` : '未登录';
           }
 
-          updateMusicToggleView();
+          if (paymentLoginHint) {
+            paymentLoginHint.textContent = accountState.loggedIn
+              ? '登录状态已确认，可以继续选择支付方式并生成二维码。'
+              : '请先登录后再确认支付，登录后会自动保留本次购买信息。';
+          }
+
+          if (paymentOpenAuthButton) {
+            paymentOpenAuthButton.textContent = accountState.loggedIn ? '切换账号' : '去登录';
+          }
+
+          if (paymentCreateOrderButton) {
+            paymentCreateOrderButton.disabled = false;
+            paymentCreateOrderButton.textContent = accountState.loggedIn ? '确认并生成支付码' : '去登录后生成支付码';
+          }
         }
 
         function getOrCreateVisitorId() {
@@ -2343,6 +2861,10 @@
           }[ch] || ch));
         }
 
+        function confirmCriticalAction(message) {
+          return window.confirm(String(message || '确认继续执行该操作？'));
+        }
+
         function formatFenToYuan(fen) {
           return (Number(fen || 0) / 100).toFixed(2);
         }
@@ -2354,8 +2876,10 @@
             productCode: String(product?.productCode || '').trim(),
             name: String(product?.name || '').trim(),
             description: String(product?.description || '').trim(),
+            imageUrl: String(product?.imageUrl || '').trim(),
             salePriceFen,
             originalPriceFen,
+            stock: Math.max(0, Number(product?.stock || 0)),
             isActive: Boolean(product?.isActive),
             sortOrder: Number(product?.sortOrder || 100),
             tags: Array.isArray(product?.tags) ? product.tags : [],
@@ -2470,9 +2994,12 @@
             const sale = formatFenToYuan(product.salePriceFen);
             const saved = formatFenToYuan(product.discountFen);
             const tags = product.tags.length > 0 ? product.tags : ['动态商品'];
+            const stock = Math.max(0, Number(product.stock || 0));
+            const hasStock = stock > 0;
 
             return `
               <article class="product-card ${index === 0 ? 'featured' : ''}">
+                ${product.imageUrl ? `<div class="card-cover"><img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy" /></div>` : ''}
                 <div class="product-card-header">
                   <div class="index-tag">#${String(index + 1).padStart(2, '0')}</div>
                   <h3 class="card-name">${escapeHtml(product.name)}</h3>
@@ -2484,6 +3011,7 @@
                 </div>
                 <div class="card-body">
                   <p class="card-desc">${escapeHtml(product.description || '暂无描述')}</p>
+                  <div class="stock-pill ${hasStock ? '' : 'out'}">库存：${hasStock ? String(stock) : '无货'}</div>
                   <div class="card-pills">
                     ${tags.map((tag) => `<span class="card-pill">${escapeHtml(tag)}</span>`).join('')}
                   </div>
@@ -2492,11 +3020,12 @@
                       class="buy-btn"
                       type="button"
                       data-open-payment
+                      ${hasStock ? '' : 'disabled'}
                       data-product-name="${escapeHtml(product.name)}"
                       data-product-price="${(product.salePriceFen / 100).toFixed(2)}"
                       data-product-code="${escapeHtml(product.productCode)}"
                       data-product-description="${escapeHtml(product.description)}"
-                    >购买</button>
+                    >${hasStock ? '购买' : '已售罄'}</button>
                   </div>
                 </div>
               </article>
@@ -2649,19 +3178,15 @@
         }
 
         function applyTheme(theme) {
-          document.documentElement.dataset.theme = theme;
-          if (toggleButton) {
-            toggleButton.textContent = theme === 'day' ? '切换到黑夜' : '切换到白天';
-          }
+          document.documentElement.dataset.theme = 'day';
           try {
-            localStorage.setItem('mctools-store-theme', theme);
+            localStorage.setItem('mctools-store-theme', 'day');
           } catch {
             // ignore storage failures
           }
         }
 
-        const initialTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
-        applyTheme(initialTheme);
+        applyTheme('day');
 
         function setPaymentStatus(text, isError = false) {
           if (!paymentStatus) {
@@ -2770,6 +3295,8 @@
             controlPanelButton.hidden = !accountState.isDeveloper;
           }
 
+          updatePaymentCheckoutView();
+
           updateAdminAccessView();
         }
 
@@ -2828,6 +3355,11 @@
         }
 
         async function submitLogout() {
+          if (!confirmCriticalAction('确认退出当前账号吗？')) {
+            setAuthMessage('已取消退出登录。');
+            return;
+          }
+
           try {
             await fetch('/api/community/logout', {
               method: 'POST',
@@ -2850,6 +3382,7 @@
 
         async function requireLoginBeforePurchase(product) {
           pendingPurchaseProduct = product;
+          updatePaymentCheckoutView();
           return true;
         }
 
@@ -2924,10 +3457,15 @@
               throw new Error(result.message || '验证码发送失败');
             }
 
-            setAuthStatus(statusKind, result.message || '验证码已发送到邮箱，请继续验证。');
+            const devCode = String(result?.devCode || '').trim();
+            const messageWithCode = devCode
+              ? `${result.message || '验证码已发送到邮箱，请继续验证。'}（备用验证码：${devCode}）`
+              : (result.message || '验证码已发送到邮箱，请继续验证。');
+
+            setAuthStatus(statusKind, messageWithCode);
             setAuthMessage(authMode === 'register'
-              ? '验证码已发送到邮箱，输入后即可完成注册并登录。'
-              : '验证码已发送到邮箱，输入后即可完成登录。');
+              ? (devCode ? '邮件异常时可直接使用备用验证码登录。' : '验证码已发送到邮箱，输入后即可完成注册并登录。')
+              : (devCode ? '邮件异常时可直接使用备用验证码登录。' : '验证码已发送到邮箱，输入后即可完成登录。'));
           } catch (error) {
             setAuthStatus(statusKind, error.message || '请求失败', true);
           }
@@ -2942,6 +3480,7 @@
           const username = usernameInput.value.trim();
           const email = emailInput.value.trim().toLowerCase();
           const code = codeInput.value.trim();
+          const rememberLogin = Boolean(authRememberLoginInput?.checked);
 
           if (!code) {
             setAuthStatus(statusKind, '请输入邮箱验证码', true);
@@ -2954,7 +3493,7 @@
             const response = await fetch('/api/community/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ email, code })
+              body: JSON.stringify({ email, code, rememberLogin })
             });
 
             const result = await response.json();
@@ -2988,6 +3527,7 @@
           const username = String(loginUsernameInput?.value || '').trim();
           const email = String(loginEmailInput?.value || '').trim().toLowerCase();
           const password = String(loginPasswordInput?.value || '').trim();
+          const rememberLogin = Boolean(authRememberLoginInput?.checked);
 
           if (!username && !email) {
             setAuthStatus('login', '请填写用户名或邮箱', true);
@@ -3005,7 +3545,7 @@
             const response = await fetch('/api/community/password-login', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ username, email, password })
+              body: JSON.stringify({ username, email, password, rememberLogin })
             });
 
             const result = await response.json();
@@ -3044,10 +3584,18 @@
             description: String(product?.description || '').trim()
           };
 
+          paymentCheckoutState.contact = paymentCheckoutState.contact || '';
+
           if (paymentOrderNo) paymentOrderNo.textContent = '未创建';
           if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
           if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
           if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
+
+          if (paymentContactInput) {
+            paymentContactInput.value = paymentCheckoutState.contact;
+          }
+
+          updatePaymentCheckoutView();
 
           currentPaymentOrder = null;
         }
@@ -3077,6 +3625,160 @@
 
           cardSecretModal.classList.remove('open');
           cardSecretModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function renderOrderQueryResult(result, kind = '') {
+          if (!orderQueryResult) {
+            return;
+          }
+
+          if (!result) {
+            orderQueryResult.className = 'order-query-result';
+            orderQueryResult.innerHTML = '<div class="order-query-note">请输入订单号后点击查单。</div>';
+            return;
+          }
+
+          if (result.error) {
+            orderQueryResult.className = 'order-query-result error';
+            orderQueryResult.innerHTML = `
+              <div class="order-query-note">${escapeHtml(result.error)}</div>
+              ${result.orderNo ? `<div class="order-query-result-item"><span>订单号</span><strong>${escapeHtml(result.orderNo)}</strong></div>` : ''}
+            `;
+            return;
+          }
+
+          const paidLabel = result.paid ? '已支付' : '未支付';
+          const cardSecret = String(result.cardSecret || '').trim();
+          const status = String(result.status || '').trim() || 'PENDING';
+          const note = result.paid
+            ? (cardSecret ? '订单已支付，卡密已发放。' : '订单已支付，卡密正在生成，请稍候。')
+            : '订单尚未支付成功，请完成付款后再查。';
+
+          orderQueryResult.className = `order-query-result ${kind || (result.paid ? 'success' : 'pending')}`;
+          orderQueryResult.innerHTML = `
+            <div class="order-query-result-item"><span>订单号</span><strong>${escapeHtml(result.orderNo || '--')}</strong></div>
+            <div class="order-query-result-item"><span>商品</span><strong>${escapeHtml(result.productName || '--')}</strong></div>
+            <div class="order-query-result-item"><span>状态</span><strong>${escapeHtml(status)}</strong></div>
+            <div class="order-query-result-item"><span>支付结果</span><strong>${escapeHtml(paidLabel)}</strong></div>
+            <div class="order-query-result-item"><span>更新时间</span><strong>${escapeHtml(result.updatedAt || '--')}</strong></div>
+            <div class="order-query-note">${escapeHtml(note)}</div>
+            ${cardSecret ? `<div class="order-query-result-item"><span>卡密</span><strong>${escapeHtml(cardSecret)}</strong></div>` : ''}
+          `;
+        }
+
+        function normalizeLookupOrderNo(orderNo) {
+          const raw = String(orderNo || '').trim().toUpperCase();
+          if (!raw) {
+            return '';
+          }
+
+          const stripped = raw
+            .replace(/^#+/, '')
+            .replace(/^\*+/, '')
+            .replace(/\*+$/, '')
+            .replace(/^\s+|\s+$/g, '');
+
+          const matched = stripped.match(/[A-Z0-9][A-Z0-9_-]{6,}/);
+          return String(matched ? matched[0] : stripped).replace(/[^A-Z0-9_-]/g, '');
+        }
+
+        function openOrderQueryModal(prefillOrderNo = '') {
+          if (!orderQueryModal) {
+            return;
+          }
+
+          if (orderQueryInput && prefillOrderNo) {
+            orderQueryInput.value = String(prefillOrderNo || '').trim();
+          }
+
+          orderQueryModal.classList.add('open');
+          orderQueryModal.setAttribute('aria-hidden', 'false');
+          renderOrderQueryResult(lastOrderQueryResult);
+
+          if (orderQueryInput) {
+            orderQueryInput.focus();
+            orderQueryInput.select();
+          }
+        }
+
+        function closeOrderQueryModal() {
+          if (!orderQueryModal) {
+            return;
+          }
+
+          orderQueryModal.classList.remove('open');
+          orderQueryModal.setAttribute('aria-hidden', 'true');
+        }
+
+        async function queryOrderByOrderNo(orderNo) {
+          const normalizedOrderNo = normalizeLookupOrderNo(orderNo);
+
+          if (!normalizedOrderNo) {
+            throw new Error('请输入订单号');
+          }
+
+          const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`);
+          const result = await response.json();
+
+          if (!response.ok) {
+            const error = new Error(result.message || '查询订单失败');
+            error.orderNo = normalizedOrderNo;
+            throw error;
+          }
+
+          lastOrderQueryResult = result;
+          renderOrderQueryResult(result);
+
+          if (result.paid && String(result.cardSecret || '').trim()) {
+            shownCardSecretOrderNo = String(result.orderNo || '');
+            openCardSecretModal(result.cardSecret);
+          }
+
+          return result;
+        }
+
+        function renderContactQueryOrders(contact, orders) {
+          if (!orderQueryContactList) {
+            return;
+          }
+
+          if (!Array.isArray(orders) || orders.length === 0) {
+            orderQueryContactList.hidden = false;
+            orderQueryContactList.innerHTML = '<div class="order-query-note">该联系方式暂无订单。</div>';
+            return;
+          }
+
+          orderQueryContactList.hidden = false;
+          orderQueryContactList.innerHTML = orders.map((order) => {
+            const orderNo = String(order?.orderNo || '').trim();
+            const status = String(order?.status || 'PENDING').trim();
+            const paidLabel = status === 'SUCCESS' || status === 'TRADE_SUCCESS' || status === 'PAID' || status === '1' ? '已支付' : '未支付';
+            return `
+              <div class="order-query-contact-item" data-contact-order-item data-order-no="${escapeHtml(orderNo)}">
+                <div>
+                  <strong>${escapeHtml(orderNo)}</strong>
+                  <span>${escapeHtml(String(order?.productName || '--'))} · ${escapeHtml(status)} · ${escapeHtml(paidLabel)}</span>
+                </div>
+                <button type="button" data-contact-order-open="${escapeHtml(orderNo)}">查看</button>
+              </div>
+            `;
+          }).join('');
+        }
+
+        async function queryOrdersByContact(contact) {
+          const normalizedContact = String(contact || '').trim();
+          if (!normalizedContact || normalizedContact.length < 4) {
+            throw new Error('联系方式长度至少 4 位');
+          }
+
+          const response = await fetch(`/api/store/orders/by-contact?contact=${encodeURIComponent(normalizedContact)}&limit=20`);
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '联系方式查单失败');
+          }
+
+          renderContactQueryOrders(normalizedContact, result.orders || []);
+          return result.orders || [];
         }
 
         function stopOrderStatusPolling() {
@@ -3290,8 +3992,28 @@
             return currentPaymentOrderRequest;
           }
 
+          if (!accountState.loggedIn) {
+            openAuthModal('login', '请先登录后再继续支付，登录完成会自动回到确认页。');
+            pendingPurchaseProduct = activePaymentProduct;
+            setPaymentStatus('未登录，请先登录后再生成支付码。', true);
+            return null;
+          }
+
+          const contactValue = String(paymentContactInput?.value || paymentCheckoutState.contact || '').trim();
+          const selectedMethod = String(paymentCheckoutState.method || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
+
+          if (!contactValue) {
+            setPaymentStatus('请填写联系方式后再生成支付码。', true);
+            paymentContactInput?.focus();
+            return null;
+          }
+
+          paymentCheckoutState.contact = contactValue;
+          updatePaymentCheckoutView();
+
           currentPaymentOrderRequest = (async () => {
             const providerLabel = activePaymentProvider === 'hongxing' ? '洪星' : '微信';
+            const methodLabel = getPaymentMethodLabel(selectedMethod);
             setPaymentStatus(`正在创建${providerLabel}支付订单...`);
             showPaymentPlaceholder(`正在创建${providerLabel}支付订单`, '请稍候，订单创建成功后会自动显示付款信息');
 
@@ -3303,7 +4025,9 @@
               body: JSON.stringify({
                 productCode: activePaymentProduct.code,
                 productName: activePaymentProduct.name,
-                description: activePaymentProduct.description
+                description: activePaymentProduct.description,
+                paymentMethod: selectedMethod,
+                contact: contactValue
               })
             });
 
@@ -3313,6 +4037,9 @@
             }
 
             renderPaymentOrder(result);
+            if (paymentMethodLabel) {
+              paymentMethodLabel.textContent = String(result?.paymentMethod || selectedMethod || methodLabel).toLowerCase() === 'alipay' ? '支付宝支付' : '微信支付';
+            }
 
             if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.orderNo || '').trim()) {
               try {
@@ -3338,56 +4065,7 @@
         }
 
         async function openPaymentModal() {
-          if (!paymentModal) {
-            return;
-          }
-
-          await requireLoginBeforePurchase(activePaymentProduct);
-
-          const ready = await ensurePaymentConfigReady();
-
-          if (!ready) {
-            paymentModal.classList.add('open');
-            paymentModal.setAttribute('aria-hidden', 'false');
-            if (paymentOrderNo) paymentOrderNo.textContent = '配置缺失';
-            showPaymentPlaceholder('支付配置不完整', '请联系管理员补全支付配置后再试');
-            setPaymentStatus('支付配置不完整，暂时无法发起支付。', true);
-            return;
-          }
-
-          if (activePaymentProvider === 'hongxing') {
-            try {
-              await createPaymentOrder();
-            } catch (error) {
-              paymentModal.classList.add('open');
-              paymentModal.setAttribute('aria-hidden', 'false');
-              if (paymentOrderNo) paymentOrderNo.textContent = '发起失败';
-              showPaymentPlaceholder('发起支付失败', '洪星支付创建订单失败，请稍后重试');
-              setPaymentStatus(error.message || '发起支付失败', true);
-            }
-            return;
-          }
-
-          if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
-          if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
-          if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
-          if (paymentOrderNo) paymentOrderNo.textContent = currentPaymentOrder?.orderNo || '正在创建';
-
-          paymentModal.classList.add('open');
-          paymentModal.setAttribute('aria-hidden', 'false');
-
-          if (currentPaymentOrder?.orderNo) {
-            startOrderStatusPolling(currentPaymentOrder.orderNo);
-          }
-
-          if (!currentPaymentOrder?.qrDataUrl) {
-            try {
-              await createPaymentOrder();
-            } catch (error) {
-              if (paymentOrderNo) paymentOrderNo.textContent = '本地付款码';
-              showLocalPaymentFallback(`支付暂未完成配置，已展示本地付款码。${error.message ? `(${error.message})` : ''}`);
-            }
-          }
+          window.location.href = buildCheckoutUrl(activePaymentProduct);
         }
 
         function closePaymentModal() {
@@ -3403,12 +4081,6 @@
           toggleButton.addEventListener('click', () => {
             const nextTheme = document.documentElement.dataset.theme === 'day' ? 'night' : 'day';
             applyTheme(nextTheme);
-          });
-        }
-
-        if (musicToggleButton) {
-          musicToggleButton.addEventListener('click', () => {
-            applyMusicEnabled(!musicEnabled);
           });
         }
 
@@ -3493,6 +4165,11 @@
                 tags: String(adminCreateTags?.value || '')
               };
 
+              if (!confirmCriticalAction(`确认新增商品「${name}」吗？`)) {
+                setAdminStatus('已取消新增商品。');
+                return;
+              }
+
               setAdminStatus('正在提交...');
               const headers = { 'Content-Type': 'application/json; charset=utf-8' };
               if (accountState.token) {
@@ -3561,6 +4238,11 @@
                   throw new Error('优惠价必须为整数（分）');
                 }
 
+                if (!confirmCriticalAction(`确认保存商品 ${productCode} 的修改吗？`)) {
+                  setAdminStatus('已取消商品保存。');
+                  return;
+                }
+
                 setAdminStatus('正在保存...');
                 const headers = { 'Content-Type': 'application/json; charset=utf-8' };
                 if (accountState.token) {
@@ -3598,6 +4280,11 @@
             if (toggleButton) {
               try {
                 const isActive = String(row.dataset.isActive || '0') === '1';
+                const nextActionText = isActive ? '下架' : '上架';
+                if (!confirmCriticalAction(`确认${nextActionText}商品 ${productCode} 吗？`)) {
+                  setAdminStatus('已取消商品状态切换。');
+                  return;
+                }
                 setAdminStatus('正在切换状态...');
                 const headers = { 'Content-Type': 'application/json; charset=utf-8' };
                 if (accountState.token) {
@@ -3679,6 +4366,119 @@
           button.addEventListener('click', closePaymentModal);
         });
 
+        paymentMethodButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            paymentCheckoutState.method = String(button.dataset.paymentMethod || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
+            updatePaymentCheckoutView();
+          });
+        });
+
+        if (paymentContactInput) {
+          paymentContactInput.addEventListener('input', () => {
+            paymentCheckoutState.contact = String(paymentContactInput.value || '').trim();
+          });
+        }
+
+        if (paymentOpenAuthButton) {
+          paymentOpenAuthButton.addEventListener('click', () => {
+            pendingPurchaseProduct = activePaymentProduct;
+            openAuthModal('login', accountState.loggedIn
+              ? `当前已登录为 ${accountState.username}，可切换账号后继续支付。`
+              : '请先登录后再继续支付，登录完成会自动回到确认页。');
+          });
+        }
+
+        orderQueryTriggerButtons.forEach((button) => {
+          button.addEventListener('click', () => openOrderQueryModal());
+        });
+
+        if (submitOrderQueryButton) {
+          submitOrderQueryButton.addEventListener('click', async () => {
+            try {
+              const result = await queryOrderByOrderNo(orderQueryInput?.value || '');
+              renderOrderQueryResult(result, result.paid ? 'success' : 'pending');
+            } catch (error) {
+              lastOrderQueryResult = null;
+              renderOrderQueryResult({
+                error: error.message || '查询订单失败',
+                orderNo: normalizeLookupOrderNo(orderQueryInput?.value || '')
+              }, 'error');
+            }
+          });
+        }
+
+        if (submitContactQueryButton) {
+          submitContactQueryButton.addEventListener('click', async () => {
+            try {
+              await queryOrdersByContact(orderQueryContactInput?.value || '');
+            } catch (error) {
+              if (orderQueryContactList) {
+                orderQueryContactList.hidden = false;
+                orderQueryContactList.innerHTML = `<div class="order-query-note">${escapeHtml(error.message || '联系方式查单失败')}</div>`;
+              }
+            }
+          });
+        }
+
+        if (orderQueryContactList) {
+          orderQueryContactList.addEventListener('click', async (event) => {
+            const openButton = event.target.closest('[data-contact-order-open]');
+            if (!openButton) {
+              return;
+            }
+
+            const orderNo = String(openButton.dataset.contactOrderOpen || '').trim();
+            if (!orderNo) {
+              return;
+            }
+
+            try {
+              const result = await queryOrderByOrderNo(orderNo);
+              renderOrderQueryResult(result, result.paid ? 'success' : 'pending');
+            } catch (error) {
+              renderOrderQueryResult({
+                error: error.message || '查询订单失败',
+                orderNo
+              }, 'error');
+            }
+          });
+        }
+
+        if (orderQueryInput) {
+          orderQueryInput.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') {
+              return;
+            }
+
+            event.preventDefault();
+            if (submitOrderQueryButton) {
+              submitOrderQueryButton.click();
+            }
+          });
+        }
+
+        if (closeOrderQueryButton) {
+          closeOrderQueryButton.addEventListener('click', closeOrderQueryModal);
+        }
+
+        if (orderQueryModal) {
+          orderQueryModal.addEventListener('click', (event) => {
+            if (event.target === orderQueryModal) {
+              closeOrderQueryModal();
+            }
+          });
+        }
+
+        if (paymentCreateOrderButton) {
+          paymentCreateOrderButton.addEventListener('click', async () => {
+            try {
+              await createPaymentOrder();
+            } catch (error) {
+              setPaymentStatus(error.message || '创建支付订单失败', true);
+            }
+          });
+        }
+
         closeCardSecretButtons.forEach((button) => {
           button.addEventListener('click', closeCardSecretModal);
         });
@@ -3748,11 +4548,16 @@
         setAuthTab(authMode);
 
         try {
-          musicEnabled = String(localStorage.getItem(musicEnabledStorageKey) || '') === '1';
+          const bootUrl = new URL(window.location.href);
+          const authModeFromUrl = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
+          if (authModeFromUrl === 'login') {
+            openAuthModal('login', '请使用正常登录流程登录开发者账号。');
+          } else if (authModeFromUrl === 'register') {
+            openAuthModal('register', '请先注册账号后再进行开发者操作。');
+          }
         } catch {
-          musicEnabled = false;
+          // ignore URL parsing errors
         }
-        updateMusicToggleView();
 
         loadAccountState().then(async () => {
           updateAuthTrigger();

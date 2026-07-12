@@ -24,6 +24,7 @@ const qrExpire = document.querySelector('[data-qr-expire]');
 const qrOpenLink = document.querySelector('[data-qr-open]');
 const qrCopyLinkButton = document.querySelector('[data-qr-copy-link]');
 const qrLinkText = document.querySelector('[data-qr-link-text]');
+const rememberLoginInput = document.querySelector('[data-remember-login]');
 const developerEntryVerifiedStorageKey = 'mctools-developer-entry-verified';
 const loginRedirectDelayMs = 0;
 const loginPageVersion = '正式版1.4';
@@ -334,8 +335,10 @@ async function pollQrLoginStatus() {
     return;
   }
 
+  const rememberLogin = Boolean(rememberLoginInput?.checked);
+
   try {
-    const response = await fetch(appUrl('/api/login/qr/status?token=' + encodeURIComponent(qrLoginToken)), {
+    const response = await fetch(appUrl('/api/login/qr/status?token=' + encodeURIComponent(qrLoginToken) + (rememberLogin ? '&rememberLogin=1' : '')), {
       credentials: 'same-origin'
     });
     const result = await response.json().catch(() => ({}));
@@ -403,6 +406,9 @@ async function refreshQrLogin() {
     qrLoginExpiresAt = Date.now() + Math.max(0, Number(result.expiresInMs) || 0);
     const confirmUrl = new URL('/scan-login.html', appOrigin);
     confirmUrl.searchParams.set('token', qrLoginToken);
+    if (rememberLoginInput?.checked) {
+      confirmUrl.searchParams.set('rememberLogin', '1');
+    }
     updateQrManualLink(confirmUrl.toString());
     renderQrImage(buildQrUrls(confirmUrl.toString(), 220));
     setQrExpireText();
@@ -478,7 +484,8 @@ async function submitForm(event) {
   const formData = new FormData(form);
   const payload = {
     username: String(formData.get('username') || '').trim(),
-    password: String(formData.get('password') || '')
+    password: String(formData.get('password') || ''),
+    rememberLogin: Boolean(rememberLoginInput?.checked)
   };
 
   if (tabName === 'register') {

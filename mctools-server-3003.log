@@ -62,3 +62,169 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:19620) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:10736) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:3884) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:8416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:24672) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26880) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26876) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:4500) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+D:\Projects\mctools\server.js:1726
+  const nextOrder = getStoreOrderByNo(orderNo);
+        ^
+
+SyntaxError: Identifier 'nextOrder' has already been declared
+    at wrapSafe (node:internal/modules/cjs/loader:1743:18)
+    at Module._compile (node:internal/modules/cjs/loader:1786:20)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:13524) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:28416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:3003
+    at Server.setupListenHandle [as _listen2] (node:net:1948:16)
+    at listenInCluster (node:net:2005:12)
+    at node:net:2214:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1984:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 3003
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:7188) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26584) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:28144) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:15100) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29280) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:22392) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29944) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:9680) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:13640) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29920) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:25184) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:10416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:18508) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:5908) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:5836) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:30448) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:16276) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:28252) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:28956) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:6964) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:32456) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:1196) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:30620) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:5908) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3003  (正式版1.4.6)

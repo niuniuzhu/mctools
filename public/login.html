@@ -33,6 +33,16 @@
           <p class="tab-status-note">上方用于账号登录/注册，中部支持扫码，下方保留快速跳转入口。</p>
         </section>
 
+        <section class="remember-login" aria-label="保持登录">
+          <label class="remember-login-row" for="remember-login">
+            <input id="remember-login" data-remember-login type="checkbox" checked />
+            <span>
+              <strong>保持登录</strong>
+              <em>登录后保持会话 30 天，扫码登录也会沿用此设置。</em>
+            </span>
+          </label>
+        </section>
+
         <form class="auth-form" data-form="login">
           <label class="field-label" for="login-username">用户名</label>
           <input id="login-username" class="auth-input" name="username" type="text" autocomplete="username" required />

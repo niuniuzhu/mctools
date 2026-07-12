@@ -14,6 +14,7 @@ const publicDir = path.join(__dirname, 'public');
 const configDir = path.join(__dirname, 'config');
 const dataDir = path.join(__dirname, 'data');
 const avatarsDir = path.join(dataDir, 'avatars');
+const productImagesDir = path.join(dataDir, 'product-images');
 const databasePath = path.join(dataDir, 'users.db');
 const apiKeysConfigPath = path.join(configDir, 'api-keys.json');
 const sourceAppVersion = '正式版1.4';
@@ -21,6 +22,7 @@ let appVersion = sourceAppVersion;
 const vipSystemPaused = true;
 const aiMaintenanceEndsAt = new Date('2026-05-17T17:40:00+08:00');
 const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
+const rememberedSessionLifetimeMs = 1000 * 60 * 60 * 24 * 30;
 const developerRegistrationSecret = 'McTools2026!';
 const localDevQuickEntryLifetimeMs = 1000 * 60 * 5;
 const developerEditableExtensions = new Set(['.js', '.html', '.css', '.json', '.md', '.txt', '.bat', '.svg']);
@@ -101,6 +103,10 @@ if (!fs.existsSync(configDir)) {
 
 if (!fs.existsSync(avatarsDir)) {
   fs.mkdirSync(avatarsDir, { recursive: true });
+}
+
+if (!fs.existsSync(productImagesDir)) {
+  fs.mkdirSync(productImagesDir, { recursive: true });
 }
 
 function canUseDirectory(dirPath) {
@@ -281,6 +287,19 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS auth_sessions (
+    token TEXT PRIMARY KEY,
+    scope TEXT NOT NULL,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    is_developer INTEGER NOT NULL DEFAULT 0,
+    expires_at INTEGER NOT NULL,
+    last_seen_at INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS bug_reports (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
@@ -303,6 +322,9 @@ db.exec(`
     amount_fen INTEGER NOT NULL,
     currency TEXT NOT NULL DEFAULT 'CNY',
     status TEXT NOT NULL DEFAULT 'PENDING',
+    payment_method TEXT NOT NULL DEFAULT '',
+    contact TEXT NOT NULL DEFAULT '',
+    buyer_note TEXT NOT NULL DEFAULT '',
     card_secret TEXT NOT NULL DEFAULT '',
     mch_id TEXT NOT NULL DEFAULT '',
     app_id TEXT NOT NULL DEFAULT '',
@@ -319,8 +341,34 @@ db.exec(`
 
 try {
   const storeOrderColumns = db.prepare('PRAGMA table_info(store_orders)').all().map((column) => column.name);
+  if (!storeOrderColumns.includes('payment_method')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN payment_method TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeOrderColumns.includes('contact')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN contact TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeOrderColumns.includes('buyer_note')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN buyer_note TEXT NOT NULL DEFAULT ""');
+  }
   if (!storeOrderColumns.includes('card_secret')) {
     db.exec('ALTER TABLE store_orders ADD COLUMN card_secret TEXT NOT NULL DEFAULT \"\"');
+  }
+} catch {
+  // Keep startup resilient if migration fails unexpectedly.
+}
+
+try {
+  let addedStockColumn = false;
+  const storeProductColumns = db.prepare('PRAGMA table_info(store_products)').all().map((column) => column.name);
+  if (!storeProductColumns.includes('image_url')) {
+    db.exec('ALTER TABLE store_products ADD COLUMN image_url TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeProductColumns.includes('stock')) {
+    db.exec('ALTER TABLE store_products ADD COLUMN stock INTEGER NOT NULL DEFAULT 0');
+    addedStockColumn = true;
+  }
+  if (addedStockColumn) {
+    db.exec('UPDATE store_products SET stock = 0');
   }
 } catch {
   // Keep startup resilient if migration fails unexpectedly.
@@ -332,14 +380,41 @@ db.exec(`
     product_code TEXT NOT NULL UNIQUE,
     name TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
+    image_url TEXT NOT NULL DEFAULT '',
     original_price_fen INTEGER NOT NULL DEFAULT 100,
     sale_price_fen INTEGER NOT NULL DEFAULT 100,
+    stock INTEGER NOT NULL DEFAULT 0,
     currency TEXT NOT NULL DEFAULT 'CNY',
     is_active INTEGER NOT NULL DEFAULT 1,
     sort_order INTEGER NOT NULL DEFAULT 100,
     tags_json TEXT NOT NULL DEFAULT '[]',
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lottery_prizes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    stock INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 100,
+    is_active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS lottery_draw_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    prize_id INTEGER NOT NULL,
+    prize_name TEXT NOT NULL,
+    price_fen INTEGER NOT NULL DEFAULT 5000,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
 
@@ -411,10 +486,14 @@ const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const communitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
+const rememberedCommunitySessionLifetimeMs = 1000 * 60 * 60 * 24 * 30;
+const sessionScopePublic = 'public';
+const sessionScopeCommunity = 'community';
 const siteOnlineVisitorLifetimeMs = 1000 * 75;
 const watchedCommunityEmails = ['naicha638104@163.com', '3805506653@qq.com'];
 const defaultStoreWhitelistUsernames = ['霜庭幻影'];
 const defaultStoreAnnouncement = '购买功能已正常开放';
+const defaultStoreMaintenanceMessage = '当前服务维护中，请稍后再试。';
 const authEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 const defaultStoreProducts = [
@@ -424,6 +503,7 @@ const defaultStoreProducts = [
     description: '主商品：资源服管理服务。',
     originalPriceFen: 1500,
     salePriceFen: 100,
+    stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 10,
@@ -435,6 +515,7 @@ const defaultStoreProducts = [
     description: '适合 20cb 以内基础指令代做。',
     originalPriceFen: 2000,
     salePriceFen: 100,
+    stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 20,
@@ -446,6 +527,7 @@ const defaultStoreProducts = [
     description: '适合 20cb 以上复杂指令代做。',
     originalPriceFen: 4000,
     salePriceFen: 100,
+    stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 30,
@@ -457,10 +539,46 @@ const defaultStoreProducts = [
     description: '一次性建筑导入服务。',
     originalPriceFen: 2000,
     salePriceFen: 100,
+    stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 40,
     tags: ['建筑导入', '一次']
+  }
+];
+
+const lotteryDrawPriceFen = 5000;
+const lotteryDailyDrawLimit = 2;
+const lotteryFeatureEnabled = false;
+const lotteryDisabledMessage = '抽奖活动暂时关闭，请等待后续开放通知';
+const defaultLotteryPrizes = [
+  {
+    name: 'NB导入器一天',
+    description: 'NovaBuilder导入器【服务器/山头/本地联机/联网/大厅】 / 库存 1',
+    stock: 1,
+    sortOrder: 10,
+    isActive: 1
+  },
+  {
+    name: 'NF商业版一天',
+    description: 'NexusEgo导入器【山头/本地联机/服务器/联机大厅】 / 库存 61',
+    stock: 61,
+    sortOrder: 20,
+    isActive: 1
+  },
+  {
+    name: 'FN导入器一天',
+    description: 'FlewNixe导入器【山头/本地联机/服务器】【动画群服/插件/开服工具】 / 库存 20',
+    stock: 20,
+    sortOrder: 30,
+    isActive: 1
+  },
+  {
+    name: '商业面板-日卡',
+    description: 'Ae导入器（下版本不中支持，尽量购买ne弥NB） / 库存 6',
+    stock: 6,
+    sortOrder: 40,
+    isActive: 1
   }
 ];
 
@@ -474,8 +592,8 @@ function seedStoreProductsIfEmpty() {
 
   const insert = db.prepare(
     `INSERT INTO store_products (
-      product_code, name, description, original_price_fen, sale_price_fen, currency, is_active, sort_order, tags_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      product_code, name, description, image_url, original_price_fen, sale_price_fen, stock, currency, is_active, sort_order, tags_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
 
   for (const product of defaultStoreProducts) {
@@ -483,8 +601,10 @@ function seedStoreProductsIfEmpty() {
       product.productCode,
       product.name,
       product.description,
+      '',
       product.originalPriceFen,
       product.salePriceFen,
+      Math.max(0, Number(product.stock || 0)),
       product.currency,
       product.isActive,
       product.sortOrder,
@@ -494,6 +614,33 @@ function seedStoreProductsIfEmpty() {
 }
 
 seedStoreProductsIfEmpty();
+
+function seedLotteryPrizesIfEmpty() {
+  const row = db.prepare('SELECT COUNT(1) AS count FROM lottery_prizes').get();
+  const count = Number(row?.count || 0);
+
+  if (count > 0) {
+    return;
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO lottery_prizes (
+      name, description, stock, sort_order, is_active
+    ) VALUES (?, ?, ?, ?, ?)`
+  );
+
+  for (const prize of defaultLotteryPrizes) {
+    insert.run(
+      prize.name,
+      prize.description,
+      Number(prize.stock || 0),
+      Number(prize.sortOrder || 100),
+      Number(prize.isActive ? 1 : 0)
+    );
+  }
+}
+
+seedLotteryPrizesIfEmpty();
 
 function isValidAuthUsername(username) {
   return typeof username === 'string' && username.length > 0 && username.length <= 32;
@@ -525,6 +672,8 @@ const mimeTypes = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon'
 };
@@ -740,8 +889,10 @@ function normalizeStoreProductRow(row) {
     productCode: String(row.productCode || ''),
     name: String(row.name || ''),
     description: String(row.description || ''),
+    imageUrl: String(row.imageUrl || ''),
     originalPriceFen,
     salePriceFen,
+    stock: Math.max(0, Number(row.stock || 0)),
     currency: String(row.currency || 'CNY').toUpperCase(),
     isActive: Boolean(Number(row.isActive || 0)),
     sortOrder: Number(row.sortOrder || 100),
@@ -764,16 +915,20 @@ function getStoreProductByCode(productCode, includeInactive = false) {
   const row = includeInactive
     ? db.prepare(
       `SELECT id, product_code AS productCode, name, description,
+        image_url AS imageUrl,
         original_price_fen AS originalPriceFen,
         sale_price_fen AS salePriceFen,
+        stock,
         currency, is_active AS isActive, sort_order AS sortOrder,
         tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
       FROM store_products WHERE product_code = ?`
     ).get(normalizedCode)
     : db.prepare(
       `SELECT id, product_code AS productCode, name, description,
+        image_url AS imageUrl,
         original_price_fen AS originalPriceFen,
         sale_price_fen AS salePriceFen,
+        stock,
         currency, is_active AS isActive, sort_order AS sortOrder,
         tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
       FROM store_products WHERE product_code = ? AND is_active = 1`
@@ -786,8 +941,10 @@ function listStoreProducts(includeInactive = false) {
   const rows = includeInactive
     ? db.prepare(
       `SELECT id, product_code AS productCode, name, description,
+        image_url AS imageUrl,
         original_price_fen AS originalPriceFen,
         sale_price_fen AS salePriceFen,
+        stock,
         currency, is_active AS isActive, sort_order AS sortOrder,
         tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
       FROM store_products
@@ -795,8 +952,10 @@ function listStoreProducts(includeInactive = false) {
     ).all()
     : db.prepare(
       `SELECT id, product_code AS productCode, name, description,
+        image_url AS imageUrl,
         original_price_fen AS originalPriceFen,
         sale_price_fen AS salePriceFen,
+        stock,
         currency, is_active AS isActive, sort_order AS sortOrder,
         tags_json AS tagsJson, created_at AS createdAt, updated_at AS updatedAt
       FROM store_products
@@ -817,6 +976,70 @@ function sanitizeStoreTags(tagsInput) {
     .map((tag) => tag.trim())
     .filter(Boolean)
     .slice(0, 8);
+}
+
+function sanitizeStoreProductImageUrl(imageUrl) {
+  const normalized = String(imageUrl || '').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.startsWith('/product-images/') || normalized.startsWith('/assets/')) {
+    return normalized;
+  }
+
+  if (/^https?:\/\//iu.test(normalized)) {
+    return normalized;
+  }
+
+  return '';
+}
+
+function deleteStoreProductImageFiles(productCode) {
+  if (!fs.existsSync(productImagesDir)) {
+    return;
+  }
+
+  const normalizedCode = String(productCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '_');
+  const prefix = `product-${normalizedCode}-`;
+
+  fs.readdirSync(productImagesDir)
+    .filter((name) => name.startsWith(prefix))
+    .forEach((name) => {
+      const filePath = path.join(productImagesDir, name);
+      try {
+        fs.unlinkSync(filePath);
+      } catch {
+        // ignore cleanup failures
+      }
+    });
+}
+
+function saveStoreProductImageFromDataUrl(productCode, imageData) {
+  const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,([a-z0-9+/=\r\n]+)$/iu.exec(String(imageData || '').trim());
+  if (!match) {
+    throw new Error('图片格式无效，仅支持 png/jpeg/jpg/webp/gif 的 Data URL');
+  }
+
+  const extension = match[1].toLowerCase() === 'jpeg' ? '.jpg' : `.${match[1].toLowerCase()}`;
+  const buffer = Buffer.from(match[2], 'base64');
+
+  if (buffer.length === 0) {
+    throw new Error('图片内容为空');
+  }
+
+  if (buffer.length > 1024 * 1024 * 4) {
+    throw new Error('商品图片不能超过 4MB');
+  }
+
+  const normalizedCode = String(productCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '_');
+  const fileName = `product-${normalizedCode}-${Date.now()}${extension}`;
+  const absolutePath = path.join(productImagesDir, fileName);
+
+  deleteStoreProductImageFiles(productCode);
+  fs.writeFileSync(absolutePath, buffer);
+
+  return `/product-images/${fileName}`;
 }
 
 function requireCommunityDeveloper(request, response) {
@@ -861,6 +1084,440 @@ function handleStoreProductsAdmin(request, response) {
   });
 }
 
+function handleStoreOrdersAdmin(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号' });
+    return;
+  }
+
+  const role = getStorePermissionRole(session.username);
+  const isCommunityDeveloper = Boolean(session.isDeveloper || isDeveloper(session.username));
+
+  if (!isCommunityDeveloper && role !== 'order-viewer') {
+    sendJson(response, 403, { message: '仅开发者或订单查看员可查看订单' });
+    return;
+  }
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const limit = Number(url.searchParams.get('limit') || 50);
+  const status = String(url.searchParams.get('status') || '').trim().toUpperCase();
+  const paymentMethod = String(url.searchParams.get('paymentMethod') || '').trim().toLowerCase();
+  const query = String(url.searchParams.get('query') || '').trim();
+  const exportFormat = String(url.searchParams.get('export') || '').trim().toLowerCase();
+
+  const orders = listStoreOrdersAdmin({
+    limit,
+    status,
+    paymentMethod,
+    query
+  });
+
+  if (exportFormat === 'csv') {
+    const header = ['orderNo', 'productCode', 'productName', 'amountFen', 'currency', 'status', 'paymentMethod', 'contact', 'buyerNote', 'cardSecret', 'createdAt', 'updatedAt'];
+    const csv = [
+      header.join(','),
+      ...orders.map((order) => header.map((key) => csvEscapeValue(order[key])).join(','))
+    ].join('\r\n');
+
+    response.writeHead(200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="store-orders-${new Date().toISOString().slice(0, 10)}.csv"`
+    });
+    response.end(`\uFEFF${csv}`);
+    return;
+  }
+
+  sendJson(response, 200, {
+    operator: session.username,
+    role: isCommunityDeveloper ? 'developer' : role,
+    filters: {
+      limit: Math.max(1, Math.min(200, Number(limit) || 50)),
+      status: status || 'ALL',
+      paymentMethod: paymentMethod || 'ALL',
+      query
+    },
+    orders
+  });
+}
+
+function listStoreOrdersByContact(contact, limit = 20) {
+  const normalizedContact = String(contact || '').trim();
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 20));
+  if (!normalizedContact) {
+    return [];
+  }
+
+  return db.prepare(
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, created_at AS createdAt, updated_at AS updatedAt
+     FROM store_orders
+     WHERE contact = ?
+     ORDER BY id DESC
+     LIMIT ?`
+  ).all(normalizedContact, safeLimit);
+}
+
+function handleStoreOrdersByContact(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const contact = String(url.searchParams.get('contact') || '').trim();
+  const limit = Number(url.searchParams.get('limit') || 20);
+
+  if (!contact || contact.length < 4) {
+    sendJson(response, 400, { message: '联系方式长度至少 4 位' });
+    return;
+  }
+
+  const orders = listStoreOrdersByContact(contact, limit);
+  sendJson(response, 200, {
+    contact,
+    count: orders.length,
+    orders
+  });
+}
+
+function csvEscapeValue(value) {
+  const text = String(value == null ? '' : value);
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function normalizeStoreOrderStatus(value) {
+  const normalized = String(value || '').trim().toUpperCase();
+  if (!normalized) {
+    return '';
+  }
+
+  if (['PENDING', 'SUCCESS', 'TRADE_SUCCESS', 'PAID', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'FAILED', 'SHIPPED', 'DELIVERED'].includes(normalized)) {
+    return normalized;
+  }
+
+  throw new Error('不支持的订单状态');
+}
+
+function handleStoreOrderUpdate(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号' });
+    return;
+  }
+
+  const role = getStorePermissionRole(session.username);
+  const isCommunityDeveloper = Boolean(session.isDeveloper || isDeveloper(session.username));
+
+  if (!isCommunityDeveloper && role !== 'order-viewer') {
+    sendJson(response, 403, { message: '仅开发者或订单查看员可操作订单' });
+    return;
+  }
+
+  if (!isCommunityDeveloper) {
+    sendJson(response, 403, { message: '订单查看员仅支持查看，不能修改订单' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const orderNo = String(body.orderNo || '').trim();
+      if (!orderNo) {
+        sendJson(response, 400, { message: '缺少订单号' });
+        return;
+      }
+
+      const current = getStoreOrderByNo(orderNo);
+      if (!current) {
+        sendJson(response, 404, { message: '订单不存在' });
+        return;
+      }
+
+      const updates = {};
+
+      if (Object.prototype.hasOwnProperty.call(body, 'status')) {
+        updates.status = normalizeStoreOrderStatus(body.status);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(body, 'contact')) {
+        updates.contact = String(body.contact || '').trim();
+      }
+
+      if (Object.prototype.hasOwnProperty.call(body, 'buyerNote')) {
+        updates.buyerNote = String(body.buyerNote || '').trim();
+      }
+
+      if (Object.prototype.hasOwnProperty.call(body, 'cardSecret')) {
+        updates.cardSecret = String(body.cardSecret || '').trim();
+      }
+
+      const next = updateStoreOrder(orderNo, updates);
+      sendJson(response, 200, {
+        message: '订单已更新',
+        order: next
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 400;
+      sendJson(response, statusCode, { message: error.message || '更新失败' });
+    });
+}
+
+function handleStoreOrderRefund(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const orderNo = String(body.orderNo || '').trim();
+      const reason = String(body.reason || '后台退款').trim();
+
+      if (!orderNo) {
+        sendJson(response, 400, { message: '缺少订单号' });
+        return;
+      }
+
+      const order = getStoreOrderByNo(orderNo);
+      if (!order) {
+        sendJson(response, 404, { message: '订单不存在' });
+        return;
+      }
+
+      const previousResponse = parseMaybeJson(order.responseJson);
+      const next = updateStoreOrder(orderNo, {
+        status: 'REFUNDED',
+        responseJson: JSON.stringify({
+          ...previousResponse,
+          adminActions: [
+            ...Array.isArray(previousResponse?.adminActions) ? previousResponse.adminActions : [],
+            {
+              action: 'refund',
+              operator: session.username,
+              reason,
+              at: new Date().toISOString()
+            }
+          ]
+        })
+      });
+
+      sendJson(response, 200, {
+        message: '订单已退款',
+        order: next
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '退款失败' });
+    });
+}
+
+function handleStoreOrderReissue(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const orderNo = String(body.orderNo || '').trim();
+      if (!orderNo) {
+        sendJson(response, 400, { message: '缺少订单号' });
+        return;
+      }
+
+      const order = getStoreOrderByNo(orderNo);
+      if (!order) {
+        sendJson(response, 404, { message: '订单不存在' });
+        return;
+      }
+
+      if (!normalizePaymentSuccess(order.status)) {
+        sendJson(response, 400, { message: '仅已支付订单可以补发卡密' });
+        return;
+      }
+
+      const newCardSecret = createStoreCardSecret(orderNo);
+      const previousResponse = parseMaybeJson(order.responseJson);
+      const next = updateStoreOrder(orderNo, {
+        cardSecret: newCardSecret,
+        responseJson: JSON.stringify({
+          ...previousResponse,
+          adminActions: [
+            ...Array.isArray(previousResponse?.adminActions) ? previousResponse.adminActions : [],
+            {
+              action: 'reissue-card-secret',
+              operator: session.username,
+              previousCardSecret: String(order.cardSecret || ''),
+              nextCardSecret: newCardSecret,
+              at: new Date().toISOString()
+            }
+          ]
+        })
+      });
+
+      sendJson(response, 200, {
+        message: '卡密补发成功',
+        order: next,
+        cardSecret: newCardSecret
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '补发失败' });
+    });
+}
+
+function listLotteryPrizes(activeOnly = true) {
+  const rows = activeOnly
+    ? db.prepare('SELECT id, name, description, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes WHERE is_active = 1 ORDER BY sort_order ASC, id ASC').all()
+    : db.prepare('SELECT id, name, description, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes ORDER BY sort_order ASC, id ASC').all();
+
+  return rows.map((row) => ({
+    id: Number(row.id || 0),
+    name: String(row.name || ''),
+    description: String(row.description || ''),
+    stock: Math.max(0, Number(row.stock || 0)),
+    sortOrder: Number(row.sortOrder || 100),
+    isActive: Boolean(row.isActive)
+  }));
+}
+
+function listLotteryRecordsByUsername(username, limit = 50) {
+  const safeLimit = Math.max(1, Math.min(200, Number(limit) || 50));
+  return db.prepare(
+    `SELECT id, username, email, prize_id AS prizeId, prize_name AS prizeName, price_fen AS priceFen, created_at AS createdAt
+     FROM lottery_draw_records
+     WHERE username = ?
+     ORDER BY id DESC
+     LIMIT ?`
+  ).all(String(username || '').trim(), safeLimit);
+}
+
+function countTodayLotteryDraws(username) {
+  const today = new Date().toISOString().slice(0, 10);
+  const row = db.prepare(
+    `SELECT COUNT(1) AS count
+     FROM lottery_draw_records
+     WHERE username = ? AND substr(created_at, 1, 10) = ?`
+  ).get(String(username || '').trim(), today);
+  return Number(row?.count || 0);
+}
+
+function drawLotteryPrize(username, email) {
+  const todayCount = countTodayLotteryDraws(username);
+  if (todayCount >= lotteryDailyDrawLimit) {
+    return { error: '今日抽奖次数已用完' };
+  }
+
+  const prizes = listLotteryPrizes(true).filter((item) => item.stock > 0);
+  if (prizes.length === 0) {
+    return { error: '当前奖池已空，请稍后再试' };
+  }
+
+  const weightedPool = prizes.flatMap((prize) => Array.from({ length: Math.max(1, prize.stock) }, () => prize));
+  const selected = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+  if (!selected) {
+    return { error: '抽奖失败，请稍后重试' };
+  }
+
+  db.exec('BEGIN IMMEDIATE');
+
+  try {
+    const result = db.prepare('UPDATE lottery_prizes SET stock = stock - 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND stock > 0').run(selected.id);
+    if (!result || Number(result.changes || 0) <= 0) {
+      db.exec('ROLLBACK');
+      return { error: '奖品库存不足，请重试' };
+    }
+
+    db.prepare('INSERT INTO lottery_draw_records (username, email, prize_id, prize_name, price_fen) VALUES (?, ?, ?, ?, ?)').run(
+      String(username || '').trim(),
+      String(email || '').trim(),
+      selected.id,
+      selected.name,
+      lotteryDrawPriceFen
+    );
+
+    db.exec('COMMIT');
+
+    return {
+      prize: selected,
+      todayDrawCount: todayCount + 1,
+      remainingTodayDraws: Math.max(0, lotteryDailyDrawLimit - (todayCount + 1))
+    };
+  } catch (error) {
+    try {
+      db.exec('ROLLBACK');
+    } catch {
+      // ignore rollback errors
+    }
+    return { error: error.message || '抽奖失败' };
+  }
+}
+
+function handleLotteryConfig(request, response) {
+  sendJson(response, 200, {
+    enabled: lotteryFeatureEnabled,
+    message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+    priceFen: lotteryDrawPriceFen,
+    dailyLimit: lotteryDailyDrawLimit,
+    prizeCount: listLotteryPrizes(true).length,
+    prizes: listLotteryPrizes(true)
+  });
+}
+
+function handleLotteryRecords(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 200, {
+      enabled: lotteryFeatureEnabled,
+      message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+      loggedIn: false,
+      records: [],
+      todayDrawCount: 0,
+      remainingTodayDraws: lotteryFeatureEnabled ? lotteryDailyDrawLimit : 0
+    });
+    return;
+  }
+
+  const records = listLotteryRecordsByUsername(session.username, 30);
+  const todayDrawCount = countTodayLotteryDraws(session.username);
+  sendJson(response, 200, {
+    enabled: lotteryFeatureEnabled,
+    message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+    loggedIn: true,
+    username: session.username,
+    records,
+    todayDrawCount,
+    remainingTodayDraws: lotteryFeatureEnabled ? Math.max(0, lotteryDailyDrawLimit - todayDrawCount) : 0
+  });
+}
+
+function handleLotteryDraw(request, response) {
+  if (!lotteryFeatureEnabled) {
+    sendJson(response, 503, { message: lotteryDisabledMessage, enabled: false });
+    return;
+  }
+
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号后再抽奖' });
+    return;
+  }
+
+  const result = drawLotteryPrize(session.username, session.email);
+  if (result.error) {
+    sendJson(response, 400, { message: result.error });
+    return;
+  }
+
+  sendJson(response, 200, {
+    message: '抽奖成功',
+    prize: result.prize,
+    todayDrawCount: result.todayDrawCount,
+    remainingTodayDraws: result.remainingTodayDraws,
+    records: listLotteryRecordsByUsername(session.username, 10)
+  });
+}
+
 function handleStoreSettingsRead(request, response) {
   sendJson(response, 200, getStorePublicSettings());
 }
@@ -876,14 +1533,24 @@ function handleStoreSettingsSave(request, response) {
     .then((body) => {
       const announcement = String(body.announcement || '').trim();
       const whitelistUsernames = normalizeStoreWhitelistUsernames(body.whitelistUsernames || body.whitelist || []);
+      const maintenanceEnabled = normalizeStoreBoolean(body.maintenanceEnabled ?? body.siteMaintenanceEnabled ?? body.maintenance, false);
+      const maintenanceMessage = String(body.maintenanceMessage || body.siteMaintenanceMessage || '').trim();
+      const maintenanceReason = String(body.maintenanceReason || '').trim();
+      const maintenanceUntil = String(body.maintenanceUntil || '').trim();
+      const orderViewerUsernames = normalizeStoreWhitelistUsernames(body.orderViewerUsernames || body.orderViewers || []);
 
       saveStorePublicSettings({
         announcement,
-        whitelistUsernames
+        whitelistUsernames,
+        maintenanceEnabled,
+        maintenanceMessage,
+        maintenanceReason,
+        maintenanceUntil,
+        orderViewerUsernames
       });
 
       sendJson(response, 200, {
-        message: '公告和白名单已更新',
+        message: '公告、白名单和维护设置已更新',
         ...getStorePublicSettings(),
         operator: session.username
       });
@@ -906,8 +1573,10 @@ function handleStoreProductsCreate(request, response) {
       const productCode = String(body.productCode || '').trim().toUpperCase();
       const name = String(body.name || '').trim();
       const description = String(body.description || '').trim();
+      const imageUrl = sanitizeStoreProductImageUrl(body.imageUrl);
       const originalPriceFen = Number(body.originalPriceFen);
       const salePriceFen = Number(body.salePriceFen);
+      const stock = body.stock === undefined ? 0 : Number(body.stock);
       const sortOrder = Number(body.sortOrder ?? 100);
       const isActive = body.isActive === false || body.isActive === 0 || body.isActive === '0' ? 0 : 1;
       const tags = sanitizeStoreTags(body.tags);
@@ -937,17 +1606,24 @@ function handleStoreProductsCreate(request, response) {
         return;
       }
 
+      if (!Number.isInteger(stock) || stock < 0) {
+        sendJson(response, 400, { message: '库存必须为大于等于 0 的整数' });
+        return;
+      }
+
       db.prepare(
         `INSERT INTO store_products (
-          product_code, name, description, original_price_fen, sale_price_fen,
+          product_code, name, description, image_url, original_price_fen, sale_price_fen, stock,
           currency, is_active, sort_order, tags_json, updated_at
-        ) VALUES (?, ?, ?, ?, ?, 'CNY', ?, ?, ?, CURRENT_TIMESTAMP)`
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'CNY', ?, ?, ?, CURRENT_TIMESTAMP)`
       ).run(
         productCode,
         name,
         description,
+        imageUrl,
         originalPriceFen,
         salePriceFen,
+        stock,
         isActive,
         Number.isFinite(sortOrder) ? Math.round(sortOrder) : 100,
         JSON.stringify(tags)
@@ -987,8 +1663,10 @@ function handleStoreProductsUpdate(request, response) {
 
       const name = body.name === undefined ? existing.name : String(body.name || '').trim();
       const description = body.description === undefined ? existing.description : String(body.description || '').trim();
+      const imageUrl = body.imageUrl === undefined ? String(existing.imageUrl || '') : sanitizeStoreProductImageUrl(body.imageUrl);
       const originalPriceFen = body.originalPriceFen === undefined ? existing.originalPriceFen : Number(body.originalPriceFen);
       const salePriceFen = body.salePriceFen === undefined ? existing.salePriceFen : Number(body.salePriceFen);
+      const stock = body.stock === undefined ? existing.stock : Number(body.stock);
       const sortOrder = body.sortOrder === undefined ? existing.sortOrder : Number(body.sortOrder);
       const tags = body.tags === undefined ? existing.tags : sanitizeStoreTags(body.tags);
 
@@ -1012,12 +1690,19 @@ function handleStoreProductsUpdate(request, response) {
         return;
       }
 
+      if (!Number.isInteger(stock) || stock < 0) {
+        sendJson(response, 400, { message: '库存必须为大于等于 0 的整数' });
+        return;
+      }
+
       db.prepare(
         `UPDATE store_products SET
           name = ?,
           description = ?,
+          image_url = ?,
           original_price_fen = ?,
           sale_price_fen = ?,
+          stock = ?,
           sort_order = ?,
           tags_json = ?,
           updated_at = CURRENT_TIMESTAMP
@@ -1025,8 +1710,10 @@ function handleStoreProductsUpdate(request, response) {
       ).run(
         name,
         description,
+        imageUrl,
         originalPriceFen,
         salePriceFen,
+        stock,
         Number.isFinite(sortOrder) ? Math.round(sortOrder) : existing.sortOrder,
         JSON.stringify(tags),
         productCode
@@ -1039,6 +1726,43 @@ function handleStoreProductsUpdate(request, response) {
     })
     .catch((error) => {
       sendJson(response, 400, { message: error.message || '更新商品失败' });
+    });
+}
+
+function handleStoreProductImageUpload(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const imageData = String(body.imageData || '').trim();
+      const existing = getStoreProductByCode(productCode, true);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '商品不存在' });
+        return;
+      }
+
+      if (!imageData) {
+        sendJson(response, 400, { message: '请提供图片数据' });
+        return;
+      }
+
+      const imageUrl = saveStoreProductImageFromDataUrl(productCode, imageData);
+      db.prepare('UPDATE store_products SET image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE product_code = ?').run(imageUrl, productCode);
+
+      sendJson(response, 200, {
+        message: '商品图片上传成功',
+        imageUrl,
+        product: getStoreProductByCode(productCode, true)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '上传商品图片失败' });
     });
 }
 
@@ -1315,6 +2039,14 @@ function buildHongxingSubmitPayUrl(params, config) {
   return submitUrl.toString();
 }
 
+function normalizeStorePaymentMethod(method, fallback = 'wechat') {
+  const normalized = String(method || fallback || '').trim().toLowerCase();
+  if (normalized === 'alipay' || normalized === 'ali' || normalized === 'zfb') {
+    return 'alipay';
+  }
+  return 'wechat';
+}
+
 function buildHongxingOrderQueryUrl(config, orderNo) {
   const queryBase = String(config.queryUrl || '').trim();
 
@@ -1404,22 +2136,40 @@ async function trySyncStoreOrderFromHongxing(order) {
 
   const parsed = parseMaybeJson(queryResponse.body);
   const paid = normalizePaymentSuccess(
-    parsed.paid
-    ?? parsed.isPaid
-    ?? parsed.success
-    ?? parsed.tradeSuccess
-    ?? parsed.status
-    ?? parsed.tradeStatus
-    ?? parsed.trade_status
-    ?? parsed.payStatus
-    ?? parsed.pay_status
+    pickFirstDefined(parsed, [
+      'paid',
+      'isPaid',
+      'success',
+      'tradeSuccess',
+      'status',
+      'tradeStatus',
+      'trade_status',
+      'payStatus',
+      'pay_status',
+      'result.status',
+      'result.tradeStatus',
+      'result.trade_status',
+      'result.payStatus',
+      'result.pay_status',
+      'data.status',
+      'data.tradeStatus',
+      'data.trade_status',
+      'data.payStatus',
+      'data.pay_status',
+      'data.result.status',
+      'data.result.tradeStatus',
+      'data.result.trade_status',
+      'data.result.payStatus',
+      'data.result.pay_status'
+    ])
   );
 
   if (!paid) {
     return false;
   }
 
-  const nextStatus = extractPaymentStatus(parsed, 'SUCCESS') || 'SUCCESS';
+  const rawNextStatus = extractPaymentStatus(parsed, 'SUCCESS') || 'SUCCESS';
+  const nextStatus = normalizePaymentSuccess(rawNextStatus) ? 'SUCCESS' : rawNextStatus;
   const transactionId = extractPaymentTransactionId(parsed);
 
   updateStoreOrder(order.orderNo, {
@@ -1437,7 +2187,7 @@ async function trySyncStoreOrderFromHongxing(order) {
 
 function getStoreOrderByNo(orderNo) {
   return db.prepare(
-    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
+    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
   ).get(orderNo) || null;
 }
 
@@ -1466,10 +2216,10 @@ function ensureStoreOrderCardSecret(orderNo) {
 function createStoreOrder(record) {
   db.prepare(
     `INSERT INTO store_orders (
-      order_no, product_code, product_name, amount_fen, currency, status,
+      order_no, product_code, product_name, amount_fen, currency, status, payment_method, contact, buyer_note,
       card_secret, mch_id, app_id, code_url, wechat_prepay_id, wechat_transaction_id,
       request_json, response_json, notify_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     record.orderNo,
     record.productCode,
@@ -1477,6 +2227,9 @@ function createStoreOrder(record) {
     record.amountFen,
     record.currency,
     record.status,
+    record.paymentMethod || '',
+    record.contact || '',
+    record.buyerNote || '',
     record.cardSecret,
     record.mchId,
     record.appId,
@@ -1487,6 +2240,10 @@ function createStoreOrder(record) {
     record.responseJson,
     record.notifyJson
   );
+
+  if (normalizePaymentSuccess(record.status)) {
+    ensureStoreOrderCardSecret(record.orderNo);
+  }
 }
 
 function updateStoreOrder(orderNo, updates) {
@@ -1501,9 +2258,23 @@ function updateStoreOrder(orderNo, updates) {
     ...updates
   };
 
+  const nextStatus = nextOrder.status || current.status;
+  const nextPaymentMethod = nextOrder.paymentMethod || current.paymentMethod || '';
+  const nextContact = nextOrder.contact || current.contact || '';
+  const nextBuyerNote = nextOrder.buyerNote || current.buyerNote || '';
+  const nextCardSecret = nextOrder.cardSecret || current.cardSecret || '';
+  const nextCodeUrl = nextOrder.codeUrl || current.codeUrl || '';
+  const nextPrepayId = nextOrder.prepayId || current.prepayId || '';
+  const nextTransactionId = nextOrder.transactionId || current.transactionId || '';
+  const nextResponseJson = nextOrder.responseJson || current.responseJson || '';
+  const nextNotifyJson = nextOrder.notifyJson || current.notifyJson || '';
+
   db.prepare(
     `UPDATE store_orders SET
       status = ?,
+      payment_method = ?,
+      contact = ?,
+      buyer_note = ?,
       card_secret = ?,
       code_url = ?,
       wechat_prepay_id = ?,
@@ -1513,15 +2284,24 @@ function updateStoreOrder(orderNo, updates) {
       updated_at = CURRENT_TIMESTAMP
     WHERE order_no = ?`
   ).run(
-    nextOrder.status || current.status,
-    nextOrder.cardSecret || current.cardSecret || '',
-    nextOrder.codeUrl || current.codeUrl || '',
-    nextOrder.prepayId || current.prepayId || '',
-    nextOrder.transactionId || current.transactionId || '',
-    nextOrder.responseJson || current.responseJson || '',
-    nextOrder.notifyJson || current.notifyJson || '',
+    nextStatus,
+    nextPaymentMethod,
+    nextContact,
+    nextBuyerNote,
+    nextCardSecret,
+    nextCodeUrl,
+    nextPrepayId,
+    nextTransactionId,
+    nextResponseJson,
+    nextNotifyJson,
     orderNo
   );
+
+  const reloadedOrder = getStoreOrderByNo(orderNo);
+
+  if (reloadedOrder && normalizePaymentSuccess(reloadedOrder.status) && !String(reloadedOrder.cardSecret || '').trim()) {
+    ensureStoreOrderCardSecret(orderNo);
+  }
 
   return getStoreOrderByNo(orderNo);
 }
@@ -1580,12 +2360,25 @@ async function createWechatPayNativeOrder(request, response) {
       return;
     }
 
+    if (Number(product.stock || 0) <= 0) {
+      sendJson(response, 400, { message: '该商品库存不足，暂时无法购买' });
+      return;
+    }
+
     const orderNo = createStoreOrderNo();
     const amountFen = Number(product.salePriceFen || 0);
     const productName = String(product.name || '').trim();
+    const paymentMethod = normalizeStorePaymentMethod(body.paymentMethod, config.payType);
+    const contact = String(body.contact || '').trim();
+    const buyerNote = String(body.buyerNote || '').trim();
 
     if (!Number.isFinite(amountFen) || amountFen <= 0) {
       sendJson(response, 400, { message: '订单金额无效' });
+      return;
+    }
+
+    if (paymentMethod === 'alipay') {
+      sendJson(response, 400, { message: '当前微信支付通道不支持支付宝，请切换为微信支付' });
       return;
     }
 
@@ -1601,7 +2394,10 @@ async function createWechatPayNativeOrder(request, response) {
       },
       attach: JSON.stringify({
         productCode,
-        productName
+        productName,
+        paymentMethod,
+        contact,
+        buyerNote
       })
     };
 
@@ -1657,6 +2453,9 @@ async function createWechatPayNativeOrder(request, response) {
       productName,
       amountFen,
       currency: product.currency || 'CNY',
+      paymentMethod,
+      contact,
+      buyerNote,
       status: 'PENDING',
       cardSecret: '',
       mchId: config.mchId,
@@ -1676,6 +2475,9 @@ async function createWechatPayNativeOrder(request, response) {
       productName,
       amountFen,
       currency: product.currency || 'CNY',
+      paymentMethod,
+      contact,
+      buyerNote,
       codeUrl,
       qrDataUrl,
       prepayId: parsedResponse.prepay_id || ''
@@ -1717,9 +2519,17 @@ async function createHongxingNativeOrder(request, body, response) {
     return;
   }
 
+  if (Number(product.stock || 0) <= 0) {
+    sendJson(response, 400, { message: '该商品库存不足，暂时无法购买' });
+    return;
+  }
+
   const orderNo = createStoreOrderNo();
   const amountFen = Number(product.salePriceFen || 0);
   const productName = String(product.name || '').trim();
+  const paymentMethod = normalizeStorePaymentMethod(body?.paymentMethod, config.payType);
+  const contact = String(body?.contact || '').trim();
+  const buyerNote = String(body?.buyerNote || '').trim();
 
   if (!Number.isFinite(amountFen) || amountFen <= 0) {
     sendJson(response, 400, { message: '订单金额无效' });
@@ -1737,7 +2547,7 @@ async function createHongxingNativeOrder(request, body, response) {
     const notifyUrl = String(config.notifyUrl || `${baseUrl.protocol}//${baseUrl.host}/Payment/UserRechargeNotify?out_trade_no=${encodeURIComponent(orderNo)}`).trim();
     const payUrl = buildHongxingSubmitPayUrl({
       pid: String(config.merchantId),
-      type: String(config.payType || 'wxpay').toLowerCase(),
+      type: paymentMethod === 'alipay' ? 'alipay' : 'wxpay',
       outTradeNo: orderNo,
       notifyUrl,
       returnUrl,
@@ -1758,6 +2568,8 @@ async function createHongxingNativeOrder(request, body, response) {
       productName,
       amountFen,
       currency: product.currency || 'CNY',
+      paymentMethod,
+      contact,
       status: 'PENDING',
       cardSecret: '',
       mchId: String(config.merchantId),
@@ -1767,10 +2579,11 @@ async function createHongxingNativeOrder(request, body, response) {
       transactionId: '',
       requestJson: JSON.stringify({
         mode: 'hongxing-direct-submit',
-        payType: config.payType,
+        payType: paymentMethod,
         signType: config.signType,
         notifyUrl,
-        returnUrl
+        returnUrl,
+        contact
       }),
       responseJson: JSON.stringify({ payUrl }),
       notifyJson: ''
@@ -1784,6 +2597,8 @@ async function createHongxingNativeOrder(request, body, response) {
       productName,
       amountFen,
       currency: product.currency || 'CNY',
+      paymentMethod,
+      contact,
       codeUrl: payUrl,
       qrDataUrl,
       prepayId: ''
@@ -1801,9 +2616,15 @@ async function createHongxingNativeOrder(request, body, response) {
     amount: Number((amountFen / 100).toFixed(2)),
     currency: product.currency || 'CNY',
     notifyUrl: String(config.notifyUrl || '').trim(),
+    paymentMethod: normalizeStorePaymentMethod(body.paymentMethod, config.payType),
+    contact: String(body.contact || '').trim(),
+      buyerNote,
     attach: {
       productCode,
-      productName
+      productName,
+      paymentMethod: normalizeStorePaymentMethod(body.paymentMethod, config.payType),
+        contact: String(body.contact || '').trim(),
+        buyerNote
     }
   };
 
@@ -1854,6 +2675,32 @@ async function createHongxingNativeOrder(request, body, response) {
   }
 
   const parsedResponse = parseMaybeJson(hongxingResponse.body);
+  const initialPaidFlag = pickFirstDefined(parsedResponse, [
+    'paid',
+    'isPaid',
+    'success',
+    'tradeSuccess',
+    'status',
+    'tradeStatus',
+    'trade_status',
+    'payStatus',
+    'pay_status',
+    'result.status',
+    'result.tradeStatus',
+    'result.trade_status',
+    'result.payStatus',
+    'result.pay_status',
+    'data.status',
+    'data.tradeStatus',
+    'data.trade_status',
+    'data.payStatus',
+    'data.pay_status',
+    'data.result.status',
+    'data.result.tradeStatus',
+    'data.result.trade_status',
+    'data.result.payStatus',
+    'data.result.pay_status'
+  ]);
   const qrText = extractPaymentQrText(parsedResponse);
 
   if (!qrText) {
@@ -1876,7 +2723,10 @@ async function createHongxingNativeOrder(request, body, response) {
     productName,
     amountFen,
     currency: product.currency || 'CNY',
-    status: normalizePaymentSuccess(parsedResponse.paid ?? parsedResponse.status ?? parsedResponse.tradeStatus ?? parsedResponse.payStatus) ? 'SUCCESS' : 'PENDING',
+    paymentMethod: normalizeStorePaymentMethod(payload.paymentMethod, config.payType),
+    contact: String(payload.contact || '').trim(),
+    buyerNote: String(payload.buyerNote || '').trim(),
+    status: normalizePaymentSuccess(initialPaidFlag) ? 'SUCCESS' : 'PENDING',
     cardSecret: '',
     mchId: config.merchantId || 'hongxing',
     appId: 'hongxing',
@@ -1926,7 +2776,7 @@ async function handleStoreOrderStatus(request, response) {
   }
 
   const status = String(order.status || '').toUpperCase();
-  const paid = status === 'SUCCESS' || status === 'TRADE_SUCCESS';
+  const paid = normalizePaymentSuccess(status);
   const cardSecret = paid ? ensureStoreOrderCardSecret(orderNo) : '';
 
   sendJson(response, 200, {
@@ -1939,6 +2789,39 @@ async function handleStoreOrderStatus(request, response) {
     amountFen: order.amountFen,
     updatedAt: order.updatedAt
   });
+}
+
+function listStoreOrdersAdmin(filters = {}) {
+  const safeLimit = Math.max(1, Math.min(200, Number(filters.limit) || 50));
+  const conditions = [];
+  const params = [];
+
+  if (filters.status && filters.status !== 'ALL') {
+    conditions.push('UPPER(status) = ?');
+    params.push(String(filters.status).trim().toUpperCase());
+  }
+
+  if (filters.paymentMethod && filters.paymentMethod !== 'all') {
+    conditions.push('LOWER(payment_method) = ?');
+    params.push(String(filters.paymentMethod).trim().toLowerCase());
+  }
+
+  if (filters.query) {
+    const keyword = `%${String(filters.query).trim()}%`;
+    conditions.push('(order_no LIKE ? OR product_code LIKE ? OR product_name LIKE ? OR contact LIKE ? OR buyer_note LIKE ? OR card_secret LIKE ?)');
+    params.push(keyword, keyword, keyword, keyword, keyword, keyword);
+  }
+
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+  params.push(safeLimit);
+
+  return db.prepare(
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
+     FROM store_orders
+     ${whereClause}
+     ORDER BY id DESC
+     LIMIT ?`
+  ).all(...params);
 }
 
 async function handleStoreWechatNotify(request, response) {
@@ -2017,9 +2900,9 @@ function parseCookies(cookieHeader) {
   }, {});
 }
 
-function setSessionCookie(response, sessionToken) {
+function setSessionCookie(response, sessionToken, lifetimeMs = sessionLifetimeMs) {
   response.setHeader('Set-Cookie', [
-    `mctools_session=${encodeURIComponent(sessionToken)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${sessionLifetimeMs / 1000}`
+    `mctools_session=${encodeURIComponent(sessionToken)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${Math.floor(lifetimeMs / 1000)}`
   ]);
 }
 
@@ -2046,17 +2929,88 @@ function verifyPassword(password, storedHash) {
   return crypto.timingSafeEqual(Buffer.from(candidate, 'hex'), Buffer.from(hash, 'hex'));
 }
 
-function createSession(username) {
+function createSession(username, lifetimeMs = sessionLifetimeMs) {
   const sessionToken = crypto.randomBytes(32).toString('hex');
-  sessions.set(sessionToken, {
+  const session = {
     username,
-    expiresAt: Date.now() + sessionLifetimeMs
-  });
+    expiresAt: Date.now() + lifetimeMs
+  };
+  sessions.set(sessionToken, session);
+  persistAuthSession(sessionToken, sessionScopePublic, session);
   return sessionToken;
+}
+
+function persistAuthSession(token, scope, session) {
+  db.prepare(
+    `INSERT INTO auth_sessions (token, scope, username, email, is_developer, expires_at, last_seen_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(token) DO UPDATE SET
+       scope = excluded.scope,
+       username = excluded.username,
+       email = excluded.email,
+       is_developer = excluded.is_developer,
+       expires_at = excluded.expires_at,
+       last_seen_at = excluded.last_seen_at`
+  ).run(
+    String(token || '').trim(),
+    String(scope || '').trim() || sessionScopePublic,
+    String(session?.username || '').trim(),
+    String(session?.email || '').trim(),
+    session?.isDeveloper ? 1 : 0,
+    Number(session?.expiresAt || 0),
+    Number(session?.lastSeenAt || Date.now())
+  );
+}
+
+function loadAuthSession(token, scope) {
+  const normalizedToken = String(token || '').trim();
+  const normalizedScope = String(scope || '').trim();
+
+  if (!normalizedToken || !normalizedScope) {
+    return null;
+  }
+
+  const row = db.prepare(
+    `SELECT token, scope, username, email, is_developer AS isDeveloper, expires_at AS expiresAt, last_seen_at AS lastSeenAt
+     FROM auth_sessions
+     WHERE token = ? AND scope = ?`
+  ).get(normalizedToken, normalizedScope);
+
+  if (!row) {
+    return null;
+  }
+
+  const expiresAt = Number(row.expiresAt || 0);
+  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
+    db.prepare('DELETE FROM auth_sessions WHERE token = ?').run(normalizedToken);
+    return null;
+  }
+
+  return {
+    username: String(row.username || '').trim(),
+    email: String(row.email || '').trim(),
+    isDeveloper: Boolean(row.isDeveloper),
+    expiresAt,
+    lastSeenAt: Number(row.lastSeenAt || Date.now())
+  };
+}
+
+function deleteAuthSession(token) {
+  const normalizedToken = String(token || '').trim();
+  if (!normalizedToken) {
+    return;
+  }
+  db.prepare('DELETE FROM auth_sessions WHERE token = ?').run(normalizedToken);
+}
+
+function cleanupExpiredAuthSessions() {
+  db.prepare('DELETE FROM auth_sessions WHERE expires_at <= ?').run(Date.now());
 }
 
 function cleanupExpiredSessions() {
   const now = Date.now();
+
+  cleanupExpiredAuthSessions();
 
   for (const [sessionToken, session] of sessions.entries()) {
     if (session.expiresAt <= now) {
@@ -2446,14 +3400,23 @@ function getSessionFromRequest(request) {
     return null;
   }
 
-  const session = sessions.get(sessionToken);
+  let session = sessions.get(sessionToken);
 
   if (!session) {
-    return null;
+    const storedSession = loadAuthSession(sessionToken, sessionScopePublic);
+    if (!storedSession) {
+      return null;
+    }
+    session = {
+      username: storedSession.username,
+      expiresAt: storedSession.expiresAt
+    };
+    sessions.set(sessionToken, session);
   }
 
   if (session.expiresAt <= Date.now()) {
     sessions.delete(sessionToken);
+    deleteAuthSession(sessionToken);
     return null;
   }
 
@@ -2517,7 +3480,10 @@ function cleanupExpiredCommunityCodes() {
     if (entry.expiresAt <= now) { communityVerifyCodes.delete(email); }
   }
   for (const [token, session] of communitySessions.entries()) {
-    if (session.expiresAt <= now) { communitySessions.delete(token); }
+    if (session.expiresAt <= now) {
+      communitySessions.delete(token);
+      deleteAuthSession(token);
+    }
   }
 }
 
@@ -2552,13 +3518,43 @@ function markCommunityAccountLogin(email) {
 }
 
 function getCommunitySessionFromRequest(request) {
+  function resolveCommunitySessionByToken(token) {
+    if (!token) {
+      return null;
+    }
+
+    let session = communitySessions.get(token);
+    if (!session) {
+      const storedSession = loadAuthSession(token, sessionScopeCommunity);
+      if (!storedSession) {
+        return null;
+      }
+      session = {
+        username: storedSession.username,
+        email: storedSession.email,
+        isDeveloper: Boolean(storedSession.isDeveloper),
+        lastSeenAt: Number(storedSession.lastSeenAt || Date.now()),
+        expiresAt: storedSession.expiresAt
+      };
+      communitySessions.set(token, session);
+    }
+
+    if (session.expiresAt <= Date.now()) {
+      communitySessions.delete(token);
+      deleteAuthSession(token);
+      return null;
+    }
+
+    session.lastSeenAt = Date.now();
+    return session;
+  }
+
   // 方法1：从Authorization header中获取 token
   const authHeader = request.headers['authorization'] || '';
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
-    const session = communitySessions.get(token);
-    if (session && session.expiresAt > Date.now()) {
-      session.lastSeenAt = Date.now();
+    const session = resolveCommunitySessionByToken(token);
+    if (session) {
       return session;
     }
   }
@@ -2568,9 +3564,8 @@ function getCommunitySessionFromRequest(request) {
   const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
   if (match) {
     const token = decodeURIComponent(match[1]);
-    const session = communitySessions.get(token);
-    if (session && session.expiresAt > Date.now()) {
-      session.lastSeenAt = Date.now();
+    const session = resolveCommunitySessionByToken(token);
+    if (session) {
       return session;
     }
   }
@@ -2578,17 +3573,65 @@ function getCommunitySessionFromRequest(request) {
   return null;
 }
 
-function issueCommunitySession(response, username, email, isCommunityDeveloper) {
+function getCommunityAdminSessionFromRequest(request) {
+  const cookieHeader = request.headers['cookie'] || '';
+  const match = cookieHeader.match(/(?:^|;)\s*mctools_community_admin=([^;]+)/);
+
+  if (!match) {
+    return null;
+  }
+
+  const token = decodeURIComponent(match[1]);
+  let session = communitySessions.get(token);
+
+  if (!session) {
+    const storedSession = loadAuthSession(token, sessionScopeCommunity);
+    if (!storedSession) {
+      return null;
+    }
+    session = {
+      username: storedSession.username,
+      email: storedSession.email,
+      isDeveloper: Boolean(storedSession.isDeveloper),
+      lastSeenAt: Number(storedSession.lastSeenAt || Date.now()),
+      expiresAt: storedSession.expiresAt
+    };
+    communitySessions.set(token, session);
+  }
+
+  if (session && session.expiresAt > Date.now() && session.isDeveloper) {
+    session.lastSeenAt = Date.now();
+    return session;
+  }
+
+  if (session && session.expiresAt <= Date.now()) {
+    communitySessions.delete(token);
+    deleteAuthSession(token);
+  }
+
+  return null;
+}
+
+function issueCommunitySession(response, username, email, isCommunityDeveloper, lifetimeMs = communitySessionLifetimeMs) {
   const token = crypto.randomBytes(32).toString('hex');
-  communitySessions.set(token, {
+  const sessionLifetime = Math.max(60 * 1000, Number(lifetimeMs) || communitySessionLifetimeMs);
+  const session = {
     username,
     email,
     isDeveloper: Boolean(isCommunityDeveloper),
     lastSeenAt: Date.now(),
-    expiresAt: Date.now() + communitySessionLifetimeMs
-  });
+    expiresAt: Date.now() + sessionLifetime
+  };
+  communitySessions.set(token, session);
+  persistAuthSession(token, sessionScopeCommunity, session);
 
-  setScopedAuthCookie(response, 'mctools_community', '/api/community/', token, communitySessionLifetimeMs);
+  setScopedAuthCookie(response, 'mctools_community', '/api/community/', token, sessionLifetime);
+  if (isCommunityDeveloper) {
+    response.setHeader('Set-Cookie', [
+      `${'mctools_community_admin'}=${token}; HttpOnly; Path=/; Max-Age=${Math.floor(sessionLifetime / 1000)}; SameSite=Lax`,
+      ...(Array.isArray(response.getHeader('Set-Cookie')) ? response.getHeader('Set-Cookie') : [response.getHeader('Set-Cookie')]).filter(Boolean)
+    ]);
+  }
   return token;
 }
 
@@ -2655,6 +3698,7 @@ function handleCommunityPasswordLogin(request, response) {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
       const password = String(body.password || '');
+      const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
 
       if (!password) {
         sendJson(response, 400, { message: '请输入密码' });
@@ -2680,7 +3724,13 @@ function handleCommunityPasswordLogin(request, response) {
 
       markCommunityAccountLogin(accountAuth.email);
       const isCommunityDeveloper = Boolean(accountAuth?.isDeveloper || isDeveloper(accountAuth.username));
-      const token = issueCommunitySession(response, accountAuth.username, accountAuth.email, isCommunityDeveloper);
+      const token = issueCommunitySession(
+        response,
+        accountAuth.username,
+        accountAuth.email,
+        isCommunityDeveloper,
+        rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
+      );
 
       sendJson(response, 200, {
         message: '密码登录成功',
@@ -2744,6 +3794,7 @@ function handleCommunityVerify(request, response) {
     .then((body) => {
       const email = String(body.email || '').trim().toLowerCase();
       const code = String(body.code || '').trim();
+      const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
 
       const entry = communityVerifyCodes.get(email);
       if (!entry || entry.expiresAt <= Date.now()) {
@@ -2761,7 +3812,13 @@ function handleCommunityVerify(request, response) {
 
       const account = getCommunityAccountByEmail(email);
       const isCommunityDeveloper = Boolean(account?.isDeveloper || isDeveloper(entry.username));
-      const token = issueCommunitySession(response, entry.username, email, isCommunityDeveloper);
+      const token = issueCommunitySession(
+        response,
+        entry.username,
+        email,
+        isCommunityDeveloper,
+        rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
+      );
       sendJson(response, 200, {
         message: '社区登录成功',
         username: entry.username,
@@ -2782,23 +3839,35 @@ function handleCommunityMe(request, response) {
   }
   const account = getCommunityAccountByEmail(session.email);
   const isCommunityDeveloper = Boolean(session.isDeveloper || account?.isDeveloper || isDeveloper(session.username));
+  const permissionRole = isCommunityDeveloper ? 'developer' : getStorePermissionRole(session.username);
   sendJson(response, 200, {
     loggedIn: true,
     username: session.username,
     email: session.email,
     registered: Boolean(account),
-    isDeveloper: isCommunityDeveloper
+    isDeveloper: isCommunityDeveloper,
+    permissionRole,
+    canViewOrders: permissionRole === 'developer' || permissionRole === 'order-viewer',
+    canEditStore: permissionRole === 'developer'
   });
 }
 
 function handleCommunityLogout(request, response) {
   const cookieHeader = request.headers['cookie'] || '';
   const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
+  const adminMatch = cookieHeader.match(/(?:^|;)\s*mctools_community_admin=([^;]+)/);
   if (match) {
     const token = decodeURIComponent(match[1]);
     communitySessions.delete(token);
+    deleteAuthSession(token);
+  }
+  if (adminMatch) {
+    const token = decodeURIComponent(adminMatch[1]);
+    communitySessions.delete(token);
+    deleteAuthSession(token);
   }
       clearScopedAuthCookie(response, 'mctools_community', '/api/community/');
+      clearScopedAuthCookie(response, 'mctools_community_admin', '/');
   sendJson(response, 200, { message: '已退出社区账号' });
 }
 
@@ -2886,7 +3955,7 @@ async function trySmtpSend(toEmail, code, username) {
       from: smtpConfig.from || smtpConfig.user,
       to: toEmail,
       subject: `验证码 ${code}`,
-      text: `你好 ${username}，\n\n你的“星际_服务器广场”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际-小卖部`
+      text: `你好 ${username}，\n\n你的“星际_小卖部”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际-小卖部`
     });
 
     return { ok: true, reason: info?.response || '' };
@@ -2907,9 +3976,12 @@ async function sendAuthCodeEmail(scopeLabel, toEmail, code, username, exposeDevC
   }
 
   console.warn(`[${scopeLabel}] SMTP 发送失败 -> ${toEmail} (${username}): ${smtpResult.reason || 'unknown'}`);
+  const fallbackCodeMessage = exposeDevCode ? `（备用验证码：${code}）` : '';
   return {
     sent: false,
-    message: smtpResult.reason ? `邮件发送失败：${smtpResult.reason}` : '邮件发送失败，已切换到调试验证码',
+    message: smtpResult.reason
+      ? `邮件发送失败：${smtpResult.reason}${fallbackCodeMessage}`
+      : `邮件发送失败，已切换到调试验证码${fallbackCodeMessage}`,
     devCode: code,
     smtpError: smtpResult.reason || ''
   };
@@ -3659,6 +4731,54 @@ function normalizeStoreWhitelistUsernames(value) {
   return Array.from(new Set(normalized));
 }
 
+function normalizeStoreBoolean(value, fallback = false) {
+  if (value === true || value === 1) {
+    return true;
+  }
+
+  if (value === false || value === 0) {
+    return false;
+  }
+
+  const normalized = String(value || '').trim().toLowerCase();
+  if (!normalized) {
+    return Boolean(fallback);
+  }
+
+  return ['1', 'true', 'yes', 'on', 'y'].includes(normalized);
+}
+
+function normalizeStoreDateTime(value) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return '';
+  }
+
+  const timestamp = Date.parse(normalized);
+  if (Number.isNaN(timestamp)) {
+    return '';
+  }
+
+  return new Date(timestamp).toISOString();
+}
+
+function getStoreMaintenanceEnabled() {
+  return normalizeStoreBoolean(getSettingValue('site_maintenance_enabled', '0'), false);
+}
+
+function getStoreMaintenanceMessage() {
+  const value = String(getSettingValue('site_maintenance_message', defaultStoreMaintenanceMessage) || '').trim();
+  return value || defaultStoreMaintenanceMessage;
+}
+
+function getStoreMaintenanceReason() {
+  return String(getSettingValue('site_maintenance_reason', '') || '').trim();
+}
+
+function getStoreMaintenanceUntil() {
+  return String(getSettingValue('site_maintenance_until', '') || '').trim();
+}
+
 function getStoreWhitelistUsernames() {
   try {
     return normalizeStoreWhitelistUsernames(
@@ -3677,7 +4797,12 @@ function getStoreAnnouncementText() {
 function getStorePublicSettings() {
   return {
     announcement: getStoreAnnouncementText(),
-    whitelistUsernames: getStoreWhitelistUsernames()
+    whitelistUsernames: getStoreWhitelistUsernames(),
+    maintenanceEnabled: getStoreMaintenanceEnabled(),
+    maintenanceMessage: getStoreMaintenanceMessage(),
+    maintenanceReason: getStoreMaintenanceReason(),
+    maintenanceUntil: getStoreMaintenanceUntil(),
+    orderViewerUsernames: getStoreOrderViewerUsernames()
   };
 }
 
@@ -3688,6 +4813,26 @@ function saveStorePublicSettings(nextSettings) {
 
   if (Object.prototype.hasOwnProperty.call(nextSettings, 'whitelistUsernames')) {
     setSettingValue('store_whitelist_usernames', JSON.stringify(normalizeStoreWhitelistUsernames(nextSettings.whitelistUsernames)));
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceEnabled')) {
+    setSettingValue('site_maintenance_enabled', normalizeStoreBoolean(nextSettings.maintenanceEnabled) ? '1' : '0');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceMessage')) {
+    setSettingValue('site_maintenance_message', String(nextSettings.maintenanceMessage || '').trim() || defaultStoreMaintenanceMessage);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceReason')) {
+    setSettingValue('site_maintenance_reason', String(nextSettings.maintenanceReason || '').trim());
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceUntil')) {
+    setSettingValue('site_maintenance_until', normalizeStoreDateTime(nextSettings.maintenanceUntil));
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'orderViewerUsernames')) {
+    setSettingValue('store_order_viewer_usernames', JSON.stringify(normalizeStoreWhitelistUsernames(nextSettings.orderViewerUsernames)));
   }
 }
 
@@ -3718,8 +4863,80 @@ function isDeveloper(username) {
   return getStoreWhitelistUsernames().includes(String(username || '').trim());
 }
 
+function getStoreOrderViewerUsernames() {
+  try {
+    return normalizeStoreWhitelistUsernames(
+      JSON.parse(getSettingValue('store_order_viewer_usernames', '[]'))
+    );
+  } catch {
+    return [];
+  }
+}
+
+function isStoreOrderViewer(username) {
+  const normalizedUsername = String(username || '').trim();
+  return Boolean(normalizedUsername) && getStoreOrderViewerUsernames().includes(normalizedUsername);
+}
+
+function getStorePermissionRole(username) {
+  if (!username) {
+    return 'none';
+  }
+
+  if (isDeveloper(username)) {
+    return 'developer';
+  }
+
+  if (isStoreOrderViewer(username)) {
+    return 'order-viewer';
+  }
+
+  return 'none';
+}
+
 function isPrivilegedUser(username) {
   return isDeveloper(username);
+}
+
+function hasMaintenanceBypass(request) {
+  const publicSession = getSessionFromRequest(request);
+  if (publicSession?.username && isDeveloper(publicSession.username)) {
+    return true;
+  }
+
+  const communityAdminSession = getCommunityAdminSessionFromRequest(request);
+  if (communityAdminSession && (communityAdminSession.isDeveloper || (communityAdminSession.username && isDeveloper(communityAdminSession.username)))) {
+    return true;
+  }
+
+  const communitySession = getCommunitySessionFromRequest(request);
+  if (communitySession?.username && (communitySession.isDeveloper || isDeveloper(communitySession.username) || isStoreOrderViewer(communitySession.username))) {
+    return true;
+  }
+
+  return false;
+}
+
+function isMaintenanceFriendlyPath(pathname) {
+  return (
+    pathname === '/maintenance.html' ||
+    pathname === '/store-admin.html' ||
+    pathname === '/login.html' ||
+    pathname === '/login.css' ||
+    pathname === '/login.js' ||
+    pathname === '/styles.css' ||
+    pathname.startsWith('/assets/')
+  );
+}
+
+function isMaintenanceAllowedApi(pathname) {
+  return (
+    pathname.startsWith('/api/community/') ||
+    pathname.startsWith('/api/login') ||
+    pathname === '/api/me' ||
+    pathname === '/api/developer/quick-entry-token' ||
+    pathname === '/api/app-version'
+  );
 }
 
 function isTextLikeFile(filePath) {
@@ -3814,6 +5031,31 @@ function ensureStoreSettings() {
   if (!storedWhitelist) {
     setSettingValue('store_whitelist_usernames', JSON.stringify(defaultStoreWhitelistUsernames));
   }
+
+  const storedMaintenanceMessage = String(getSettingValue('site_maintenance_message', '') || '').trim();
+  if (!storedMaintenanceMessage) {
+    setSettingValue('site_maintenance_message', defaultStoreMaintenanceMessage);
+  }
+
+  const storedMaintenanceReason = String(getSettingValue('site_maintenance_reason', '') || '').trim();
+  if (!storedMaintenanceReason) {
+    setSettingValue('site_maintenance_reason', '');
+  }
+
+  const storedMaintenanceUntil = String(getSettingValue('site_maintenance_until', '') || '').trim();
+  if (!storedMaintenanceUntil) {
+    setSettingValue('site_maintenance_until', '');
+  }
+
+  const storedMaintenanceEnabled = String(getSettingValue('site_maintenance_enabled', '') || '').trim();
+  if (!storedMaintenanceEnabled) {
+    setSettingValue('site_maintenance_enabled', '0');
+  }
+
+  const storedOrderViewers = String(getSettingValue('store_order_viewer_usernames', '') || '').trim();
+  if (!storedOrderViewers) {
+    setSettingValue('store_order_viewer_usernames', '[]');
+  }
 }
 
 ensureStoreSettings();
@@ -3825,6 +5067,7 @@ function handleRegister(request, response) {
       const password = String(body.password || '');
       const captchaId = String(body.captchaId || '').trim();
       const captchaCode = String(body.captchaCode || '').trim();
+      const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
       const registerAsDeveloper =
         body.registerAsDeveloper === true ||
         body.registerAsDeveloper === 'true' ||
@@ -3878,8 +5121,9 @@ function handleRegister(request, response) {
         registerAsDeveloper ? 1 : 0
       );
 
-      const sessionToken = createSession(username);
-      setSessionCookie(response, sessionToken);
+      const sessionLifetime = rememberLogin ? rememberedSessionLifetimeMs : sessionLifetimeMs;
+      const sessionToken = createSession(username, sessionLifetime);
+      setSessionCookie(response, sessionToken, sessionLifetime);
       sendJson(response, 201, {
         message: registerAsDeveloper
           ? '开发者账号注册成功'
@@ -3913,6 +5157,7 @@ function handleLogin(request, response) {
     .then((body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
+      const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
       const bypassDeveloperRestriction = canUseGeneralUserLogin(request);
 
       if (!username || !password) {
@@ -3932,8 +5177,9 @@ function handleLogin(request, response) {
         return;
       }
 
-      const sessionToken = createSession(user.username);
-      setSessionCookie(response, sessionToken);
+      const sessionLifetime = rememberLogin ? rememberedSessionLifetimeMs : sessionLifetimeMs;
+      const sessionToken = createSession(user.username, sessionLifetime);
+      setSessionCookie(response, sessionToken, sessionLifetime);
       sendJson(response, 200, { message: '登录成功', username: user.username, version: appVersion });
     })
     .catch((error) => {
@@ -3963,6 +5209,7 @@ function handleQrLoginTicketIssue(request, response) {
 function handleQrLoginStatus(request, response) {
   const url = new URL(request.url || '/', `http://${host}:${port}`);
   const ticket = getQrLoginTicket(url.searchParams.get('token'));
+  const rememberLogin = ['1', 'true', 'yes', 'on'].includes(String(url.searchParams.get('rememberLogin') || '').trim().toLowerCase());
 
   if (!ticket) {
     sendJson(response, 404, { message: '扫码登录二维码已失效，请刷新后重试' });
@@ -3977,8 +5224,9 @@ function handleQrLoginStatus(request, response) {
     return;
   }
 
-  const sessionToken = createSession(ticket.username);
-  setSessionCookie(response, sessionToken);
+  const sessionLifetime = rememberLogin ? rememberedSessionLifetimeMs : sessionLifetimeMs;
+  const sessionToken = createSession(ticket.username, sessionLifetime);
+  setSessionCookie(response, sessionToken, sessionLifetime);
   qrLoginTickets.delete(ticket.token);
   sendJson(response, 200, {
     status: 'approved',
@@ -4028,6 +5276,7 @@ function handleLogout(request, response) {
 
   if (session) {
     sessions.delete(session.sessionToken);
+    deleteAuthSession(session.sessionToken);
   }
 
   clearSessionCookie(response);
@@ -5519,6 +6768,9 @@ const server = http.createServer((request, response) => {
 
   const pathname = getPathname(request.url || '/');
   const session = getSessionFromRequest(request);
+  const siteMaintenanceEnabled = getStoreMaintenanceEnabled();
+  const maintenanceBypass = siteMaintenanceEnabled && hasMaintenanceBypass(request);
+  const isMaintenanceActive = siteMaintenanceEnabled && !maintenanceBypass;
 
   // 允许服务器广场 (3000) 跨域访问 3001 的 API（携带 Cookie）
   const origin = request.headers['origin'] || '';
@@ -5794,6 +7046,46 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'GET' && pathname === '/api/store/orders/admin') {
+      handleStoreOrdersAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/orders/by-contact') {
+      handleStoreOrdersByContact(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/orders/admin/update') {
+      handleStoreOrderUpdate(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/orders/admin/refund') {
+      handleStoreOrderRefund(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/orders/admin/reissue') {
+      handleStoreOrderReissue(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/lottery/config') {
+      handleLotteryConfig(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/lottery/records') {
+      handleLotteryRecords(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/lottery/draw') {
+      handleLotteryDraw(request, response);
+      return;
+    }
+
     if (request.method === 'GET' && pathname === '/api/store/settings') {
       handleStoreSettingsRead(request, response);
       return;
@@ -5819,6 +7111,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/api/store/products/upload-image') {
+      handleStoreProductImageUpload(request, response);
+      return;
+    }
+
     if (request.method === 'POST' && pathname === '/api/store/wechat/native-order') {
       createWechatPayNativeOrder(request, response);
       return;
@@ -5834,6 +7131,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'GET' && pathname === '/api/app-version') {
+      handlePublicVersionRead(request, response);
+      return;
+    }
+
     // 快速创建测试开发者账号（仅用于测试）
     if (request.method === 'POST' && pathname === '/api/dev-test/create-dev-account') {
       const username = 'devtest' + Date.now().toString().slice(-6);
@@ -5845,15 +7147,20 @@ const server = http.createServer((request, response) => {
         username,
         email,
         isDeveloper: true,
+        lastSeenAt: Date.now(),
         expiresAt: Date.now() + communitySessionLifetimeMs
       };
       
       communitySessions.set(token, session);
+      persistAuthSession(token, sessionScopeCommunity, session);
       
       // 直接处理响应，确保Set-Cookie在其他响应头之前
       response.writeHead(200, {
         'Content-Type': 'application/json; charset=utf-8',
-        'Set-Cookie': `mctools_community=${token}; Path=/; Max-Age=${Math.floor(communitySessionLifetimeMs / 1000)}`
+        'Set-Cookie': [
+          `mctools_community=${token}; Path=/; Max-Age=${Math.floor(communitySessionLifetimeMs / 1000)}`,
+          `mctools_community_admin=${token}; Path=/; Max-Age=${Math.floor(communitySessionLifetimeMs / 1000)}`
+        ]
       });
       response.end(JSON.stringify({
         message: '测试账号创建成功',
@@ -5865,8 +7172,45 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (isMaintenanceActive && request.method === 'GET') {
+      const allowedPage = (
+        pathname === '/maintenance.html' ||
+        pathname === '/store-admin.html' ||
+        pathname === '/login.html' ||
+        pathname === '/login.css' ||
+        pathname === '/login.js' ||
+        pathname.startsWith('/assets/')
+      );
+
+      if (!allowedPage) {
+        serveStatic('/maintenance.html', response);
+        return;
+      }
+    }
+
     if (request.method === 'GET' && (pathname === '/styles.css' || pathname.startsWith('/assets/'))) {
       serveStatic(pathname, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname.startsWith('/product-images/')) {
+      const imagePath = path.normalize(path.join(productImagesDir, pathname.replace('/product-images/', '')));
+
+      if (!imagePath.startsWith(productImagesDir)) {
+        sendText(response, 403, '403 Forbidden');
+        return;
+      }
+
+      fs.readFile(imagePath, (error, content) => {
+        if (error) {
+          sendText(response, 404, '404 Not Found');
+          return;
+        }
+
+        const extension = path.extname(imagePath).toLowerCase();
+        response.writeHead(200, { 'Content-Type': getMimeTypeFromExtension(extension) });
+        response.end(content);
+      });
       return;
     }
 
@@ -5933,9 +7277,9 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  if (isMaintenancePort && pathname.startsWith('/api/')) {
+  if (isMaintenanceActive && pathname.startsWith('/api/') && !isMaintenanceAllowedApi(pathname)) {
     sendJson(response, 503, {
-      message: '当前服务维护中，请稍后再试。',
+      message: getStoreMaintenanceMessage(),
       maintenance: true,
       port: Number(port)
     });
@@ -6145,6 +7489,27 @@ const server = http.createServer((request, response) => {
       }
 
       const extension = path.extname(avatarPath).toLowerCase();
+      response.writeHead(200, { 'Content-Type': getMimeTypeFromExtension(extension) });
+      response.end(content);
+    });
+    return;
+  }
+
+  if (pathname.startsWith('/product-images/')) {
+    const imagePath = path.normalize(path.join(productImagesDir, pathname.replace('/product-images/', '')));
+
+    if (!imagePath.startsWith(productImagesDir)) {
+      sendText(response, 403, '403 Forbidden');
+      return;
+    }
+
+    fs.readFile(imagePath, (error, content) => {
+      if (error) {
+        sendText(response, 404, '404 Not Found');
+        return;
+      }
+
+      const extension = path.extname(imagePath).toLowerCase();
       response.writeHead(200, { 'Content-Type': getMimeTypeFromExtension(extension) });
       response.end(content);
     });

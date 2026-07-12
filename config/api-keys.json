@@ -1,9 +1,9 @@
 {
   "deepseekApiKey": "",
   "deepseekModel": "deepseek-chat",
-  "hongxingPayCreateUrl": "https://pay.xhhlkj.cn/",
+  "hongxingPayCreateUrl": "https://dash.xhhlkj.top/",
   "hongxingPayCreateMethod": "POST",
-  "hongxingPayQueryUrl": "https://pay.xhhlkj.cn/",
+  "hongxingPayQueryUrl": "https://dash.xhhlkj.top/",
   "hongxingPayPayType": "wxpay",
   "hongxingPaySignType": "MD5",
   "hongxingPayNotifyUrl": "",

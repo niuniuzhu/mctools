@@ -48,6 +48,28 @@
         gap: 10px;
         flex-wrap: wrap;
       }
+      @keyframes button-breathe {
+        0% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          filter: brightness(1);
+        }
+        50% {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 16px 30px rgba(59, 130, 246, 0.26);
+          filter: brightness(1.06);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          filter: brightness(1);
+        }
+      }
+      @keyframes button-click-pop {
+        0% { transform: translateY(0) scale(1); }
+        40% { transform: translateY(1px) scale(0.95); }
+        100% { transform: translateY(0) scale(1); }
+      }
       button, .link-btn {
         border: 1px solid rgba(148, 163, 184, 0.3);
         background: rgba(255,255,255,0.95);
@@ -58,6 +80,14 @@
         font-weight: 700;
         cursor: pointer;
         text-decoration: none;
+        transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1), box-shadow 260ms ease, opacity 220ms ease, filter 220ms ease, border-color 220ms ease, background 260ms ease;
+        animation: button-breathe 2.2s ease-in-out infinite;
+      }
+      button:active,
+      .link-btn:active,
+      .mini-btn:active,
+      .order-mini-btn:active {
+        animation: button-click-pop 220ms ease-out;
       }
       .primary {
         color: #fff;
@@ -87,6 +117,11 @@
         margin-top: 14px;
         display: grid;
         gap: 12px;
+      }
+      .gate-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
       }
       .gate h2 {
         margin: 0;
@@ -128,6 +163,20 @@
       .settings-block {
         display: grid;
         gap: 10px;
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(248, 250, 252, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      .toggle-row input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
       }
       .settings-inline {
         display: flex;
@@ -193,6 +242,80 @@
         border: 1px solid rgba(148, 163, 184, 0.2);
         background: rgba(248, 250, 252, 0.85);
       }
+      .order-toolbar {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr 0.8fr auto auto auto;
+        gap: 10px;
+      }
+      .order-toolbar input,
+      .order-toolbar select,
+      .order-row input,
+      .order-row textarea,
+      .order-row select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        font: inherit;
+      }
+      .order-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1.5fr 1fr 1fr 1.1fr 1fr;
+        gap: 10px;
+        align-items: start;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(248, 250, 252, 0.9);
+      }
+      .order-row-meta {
+        display: grid;
+        gap: 6px;
+      }
+      .order-row-title {
+        font-weight: 800;
+        word-break: break-all;
+      }
+      .order-row-subtitle {
+        color: #64748b;
+        font-size: 0.88rem;
+        word-break: break-all;
+      }
+      .order-row-actions {
+        display: grid;
+        gap: 8px;
+      }
+      .order-inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .order-mini-btn {
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: rgba(15, 23, 42, 0.06);
+        font-weight: 800;
+      }
+      .order-mini-btn.primary {
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+      }
+      .order-mini-btn.warn {
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, #f97316, #ea580c);
+      }
+      .order-mini-btn.success {
+        border: none;
+        color: #fff;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+      }
+      .order-summary-line {
+        color: #64748b;
+        font-size: 0.9rem;
+      }
       .admin-row-actions {
         display: flex;
         gap: 8px;
@@ -214,6 +337,35 @@
         background: linear-gradient(135deg, #f97316, #ea580c);
         border: none;
         color: #fff;
+      }
+      .image-editor {
+        display: grid;
+        gap: 8px;
+      }
+      .image-preview {
+        width: 100%;
+        max-width: 220px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.26);
+        background: rgba(241, 245, 249, 0.9);
+        aspect-ratio: 16 / 9;
+      }
+      .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .image-upload-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .image-upload-row input[type="file"] {
+        width: auto;
+        max-width: 100%;
       }
       @media (max-width: 980px) {
         .admin-grid { grid-template-columns: 1fr 1fr; }
@@ -238,7 +390,7 @@
         </div>
         <div class="actions">
           <a class="link-btn" href="/store.html">返回商店</a>
-          <a class="link-btn" href="/login.html">登录入口</a>
+          <a class="link-btn" href="/store.html?auth=login">正常登录</a>
           <button type="button" class="warn" data-clear-token>清除本地登录态</button>
           <button type="button" class="primary" data-refresh>刷新数据</button>
         </div>
@@ -250,9 +402,26 @@
         <div class="gate" data-gate hidden>
           <h2>暂时无法操作</h2>
           <div>请先使用开发者账号登录，登录成功后刷新本页面。</div>
+          <div class="gate-actions">
+            <a class="link-btn primary" href="/store.html?auth=login">登录开发者账号</a>
+            <a class="link-btn" href="/developer-entry.html">开发者入口校验</a>
+          </div>
         </div>
 
         <div class="admin-panel" data-admin-panel hidden>
+          <div data-edit-only>
+          <div class="section-title">站点维护</div>
+          <div class="settings-block">
+            <label class="toggle-row">
+              <input type="checkbox" data-site-maintenance-enabled />
+              <span>开启站点维护，普通用户将看到维护页</span>
+            </label>
+            <textarea placeholder="维护提示，例如：站点正在升级，请稍后再来。" data-site-maintenance-message></textarea>
+            <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
+            <input type="text" placeholder="预计恢复时间，例如：2026-07-08 18:00" data-site-maintenance-until />
+            <div class="settings-note">开启后，商店页会自动切换到维护界面；开发者仍可进入后台关闭开关。</div>
+          </div>
+
           <div class="section-title">公告和白名单</div>
           <div class="settings-block">
             <textarea placeholder="公告内容，例如：购买功能已正常开放" data-store-announcement></textarea>
@@ -263,6 +432,8 @@
             <textarea placeholder="白名单用户名，每行一个，例如：霜庭幻影" data-store-whitelist hidden></textarea>
             <div class="whitelist-list" data-store-whitelist-list></div>
             <div class="settings-note">白名单用户名会被识别为管理账号，同时会显示在商店页的管理白名单和在线账号榜中。</div>
+            <textarea placeholder="订单查看员用户名，每行一个，例如：订单小助手" data-store-order-viewers hidden></textarea>
+            <div class="whitelist-list" data-store-order-viewer-list></div>
             <div>
               <button type="button" class="primary" data-store-settings-save>保存公告和白名单</button>
             </div>
@@ -272,18 +443,50 @@
           <div class="admin-grid">
             <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-create-code />
             <input type="text" placeholder="商品名称" data-create-name />
+            <input type="text" placeholder="分类，如 指令代做" data-create-category />
             <input type="number" min="1" step="1" placeholder="原价(分)" data-create-original />
             <input type="number" min="1" step="1" placeholder="优惠价(分)" data-create-sale />
+            <input type="number" min="0" step="1" placeholder="库存(0=无库存)" data-create-stock />
             <input type="number" step="1" placeholder="排序(小的在前)" data-create-sort />
           </div>
           <textarea placeholder="商品描述" data-create-description></textarea>
           <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-create-tags />
+          <input type="text" placeholder="商品图片地址（可选，支持 /product-images/... 或 http(s)://...）" data-create-image-url />
           <div>
             <button type="button" class="primary" data-create-submit>新增商品</button>
           </div>
 
           <div class="section-title">商品管理</div>
           <div class="admin-table" data-admin-table></div>
+          </div>
+
+          <div class="section-title">订单管理</div>
+          <div class="settings-block">
+            <div class="settings-note">这里会显示最近订单，订单查看员可以只看订单，开发者可以查看并继续操作商品和维护设置。</div>
+            <div class="order-toolbar">
+              <input type="text" placeholder="搜索订单号、商品、联系方式或备注" data-order-query />
+              <select data-order-status-filter>
+                <option value="ALL">全部状态</option>
+                <option value="PENDING">PENDING</option>
+                <option value="SUCCESS">SUCCESS</option>
+                <option value="TRADE_SUCCESS">TRADE_SUCCESS</option>
+                <option value="PAID">PAID</option>
+                <option value="SHIPPED">SHIPPED</option>
+                <option value="DELIVERED">DELIVERED</option>
+                <option value="CANCELLED">CANCELLED</option>
+                <option value="REFUNDED">REFUNDED</option>
+              </select>
+              <select data-order-payment-filter>
+                <option value="ALL">全部支付方式</option>
+                <option value="wechat">微信</option>
+                <option value="alipay">支付宝</option>
+              </select>
+              <button type="button" class="primary" data-order-refresh>刷新</button>
+              <button type="button" class="warn" data-order-export>导出CSV</button>
+              <div class="settings-note order-summary-line" data-order-summary>暂无订单数据</div>
+            </div>
+            <div class="admin-table" data-order-table></div>
+          </div>
         </div>
       </section>
     </main>
@@ -297,27 +500,53 @@
         const refreshButton = document.querySelector('[data-refresh]');
         const clearTokenButton = document.querySelector('[data-clear-token]');
         const storeAnnouncementInput = document.querySelector('[data-store-announcement]');
+        const siteMaintenanceEnabledInput = document.querySelector('[data-site-maintenance-enabled]');
+        const siteMaintenanceMessageInput = document.querySelector('[data-site-maintenance-message]');
+        const siteMaintenanceReasonInput = document.querySelector('[data-site-maintenance-reason]');
+        const siteMaintenanceUntilInput = document.querySelector('[data-site-maintenance-until]');
         const storeWhitelistInput = document.querySelector('[data-store-whitelist]');
         const storeWhitelistInputBox = document.querySelector('[data-store-whitelist-input]');
         const storeWhitelistAddButton = document.querySelector('[data-store-whitelist-add]');
         const storeWhitelistList = document.querySelector('[data-store-whitelist-list]');
+        const storeOrderViewersInput = document.querySelector('[data-store-order-viewers]');
+        const storeOrderViewerList = document.querySelector('[data-store-order-viewer-list]');
         const storeSettingsSaveButton = document.querySelector('[data-store-settings-save]');
+        const editOnlySections = Array.from(document.querySelectorAll('[data-edit-only]'));
+        const orderQueryInput = document.querySelector('[data-order-query]');
+        const orderStatusFilter = document.querySelector('[data-order-status-filter]');
+        const orderPaymentFilter = document.querySelector('[data-order-payment-filter]');
+        const refreshOrdersButton = document.querySelector('[data-order-refresh]');
+        const exportOrdersButton = document.querySelector('[data-order-export]');
+        const orderSummary = document.querySelector('[data-order-summary]');
+        const orderTable = document.querySelector('[data-order-table]');
 
         const createCode = document.querySelector('[data-create-code]');
         const createName = document.querySelector('[data-create-name]');
+        const createCategory = document.querySelector('[data-create-category]');
         const createOriginal = document.querySelector('[data-create-original]');
         const createSale = document.querySelector('[data-create-sale]');
+        const createStock = document.querySelector('[data-create-stock]');
         const createSort = document.querySelector('[data-create-sort]');
         const createDescription = document.querySelector('[data-create-description]');
         const createTags = document.querySelector('[data-create-tags]');
+        const createImageUrl = document.querySelector('[data-create-image-url]');
         const createSubmit = document.querySelector('[data-create-submit]');
 
         const accountState = {
           loggedIn: false,
           isDeveloper: false,
+          canViewOrders: false,
+          canEditStore: false,
+          permissionRole: 'none',
           token: localStorage.getItem('mctools-auth-token') || null
         };
         let adminProducts = [];
+        let adminOrders = [];
+        let orderFilters = {
+          query: '',
+          status: 'ALL',
+          paymentMethod: 'ALL'
+        };
 
         function setStatus(text, isError = false) {
           if (!statusBox) return;
@@ -325,9 +554,19 @@
           statusBox.style.color = isError ? '#dc2626' : '#334155';
         }
 
+        function confirmCriticalAction(message) {
+          return window.confirm(String(message || '确认继续执行该操作？'));
+        }
+
         function setAccessView(hasAccess) {
           if (gate) gate.hidden = hasAccess;
           if (adminPanel) adminPanel.hidden = !hasAccess;
+        }
+
+        function setEditOnlyView(canEdit) {
+          editOnlySections.forEach((section) => {
+            section.hidden = !canEdit;
+          });
         }
 
         function escapeHtml(text) {
@@ -347,12 +586,77 @@
             productCode: String(product?.productCode || '').trim(),
             name: String(product?.name || '').trim(),
             description: String(product?.description || '').trim(),
+            imageUrl: String(product?.imageUrl || '').trim(),
             salePriceFen,
             originalPriceFen,
+            stock: Math.max(0, Number(product?.stock || 0)),
             isActive: Boolean(product?.isActive),
             sortOrder: Number(product?.sortOrder || 100),
             tags: Array.isArray(product?.tags) ? product.tags : []
           };
+        }
+
+        function getProductCategory(product) {
+          const tags = Array.isArray(product?.tags) ? product.tags : [];
+          const firstTag = String(tags[0] || '').trim();
+          return firstTag || '未分类';
+        }
+
+        function parseTagText(text) {
+          const list = String(text || '')
+            .split(/[\n,，]+/)
+            .map((item) => String(item || '').trim())
+            .filter(Boolean);
+          return Array.from(new Set(list));
+        }
+
+        function buildCategoryTags(categoryInput, tagsInput) {
+          const category = String(categoryInput || '').trim() || '未分类';
+          const rest = parseTagText(tagsInput).filter((tag) => tag !== category);
+          return [category, ...rest].slice(0, 8);
+        }
+
+        function normalizeImageUrl(value) {
+          const text = String(value || '').trim();
+          if (!text) {
+            return '';
+          }
+          if (text.startsWith('/product-images/') || text.startsWith('/assets/')) {
+            return text;
+          }
+          if (/^https?:\/\//iu.test(text)) {
+            return text;
+          }
+          throw new Error('图片地址仅支持 /product-images/、/assets/ 或 http(s):// 开头');
+        }
+
+        function readFileAsDataUrl(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result || ''));
+            reader.onerror = () => reject(new Error('读取图片失败'));
+            reader.readAsDataURL(file);
+          });
+        }
+
+        async function uploadProductImage(productCode, file) {
+          if (!file) {
+            throw new Error('请先选择图片文件');
+          }
+
+          const imageData = await readFileAsDataUrl(file);
+          const response = await fetch('/api/store/products/upload-image', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ productCode, imageData })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '上传图片失败');
+          }
+
+          return result;
         }
 
         function getAuthHeaders() {
@@ -368,6 +672,32 @@
             .split(/[\n\r,]+/)
             .map((item) => String(item || '').trim())
             .filter(Boolean)));
+        }
+
+        function renderOrderViewerList(list) {
+          const usernames = Array.isArray(list) ? list : [];
+
+          if (!storeOrderViewerList) {
+            return;
+          }
+
+          if (usernames.length === 0) {
+            storeOrderViewerList.innerHTML = '<div class="settings-note">暂无订单查看员。</div>';
+            if (storeOrderViewersInput) {
+              storeOrderViewersInput.value = '';
+            }
+            return;
+          }
+
+          storeOrderViewerList.innerHTML = usernames.map((username) => `
+            <span class="whitelist-pill">
+              <strong>${escapeHtml(username)}</strong>
+            </span>
+          `).join('');
+
+          if (storeOrderViewersInput) {
+            storeOrderViewersInput.value = usernames.join('\n');
+          }
         }
 
         function syncWhitelistTextarea(list) {
@@ -416,12 +746,38 @@
             if (storeAnnouncementInput) {
               storeAnnouncementInput.value = String(result?.announcement || '');
             }
+            if (siteMaintenanceEnabledInput) {
+              siteMaintenanceEnabledInput.checked = Boolean(result?.maintenanceEnabled);
+            }
+            if (siteMaintenanceMessageInput) {
+              siteMaintenanceMessageInput.value = String(result?.maintenanceMessage || '');
+            }
+            if (siteMaintenanceReasonInput) {
+              siteMaintenanceReasonInput.value = String(result?.maintenanceReason || '');
+            }
+            if (siteMaintenanceUntilInput) {
+              siteMaintenanceUntilInput.value = String(result?.maintenanceUntil || '');
+            }
             renderWhitelistList(Array.isArray(result?.whitelistUsernames) ? result.whitelistUsernames : []);
+            renderOrderViewerList(Array.isArray(result?.orderViewerUsernames) ? result.orderViewerUsernames : []);
           } catch (error) {
             if (storeAnnouncementInput) {
               storeAnnouncementInput.value = '购买功能已正常开放';
             }
+            if (siteMaintenanceEnabledInput) {
+              siteMaintenanceEnabledInput.checked = false;
+            }
+            if (siteMaintenanceMessageInput) {
+              siteMaintenanceMessageInput.value = '当前服务维护中，请稍后再试。';
+            }
+            if (siteMaintenanceReasonInput) {
+              siteMaintenanceReasonInput.value = '';
+            }
+            if (siteMaintenanceUntilInput) {
+              siteMaintenanceUntilInput.value = '';
+            }
             renderWhitelistList(['霜庭幻影']);
+            renderOrderViewerList([]);
             setStatus(error.message || '加载公告配置失败', true);
           }
         }
@@ -429,14 +785,24 @@
         async function saveStoreSettings() {
           const announcement = String(storeAnnouncementInput?.value || '').trim();
           const whitelistUsernames = getWhitelistFromUI();
+          const maintenanceEnabled = Boolean(siteMaintenanceEnabledInput?.checked);
+          const maintenanceMessage = String(siteMaintenanceMessageInput?.value || '').trim();
+          const maintenanceReason = String(siteMaintenanceReasonInput?.value || '').trim();
+          const maintenanceUntil = String(siteMaintenanceUntilInput?.value || '').trim();
+          const orderViewerUsernames = normalizeWhitelistText(storeOrderViewersInput?.value || '');
 
-          setStatus('正在保存公告和白名单...');
+          setStatus('正在保存公告、白名单和维护设置...');
           const response = await fetch('/api/store/settings', {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({
               announcement,
-              whitelistUsernames
+              whitelistUsernames,
+              maintenanceEnabled,
+              maintenanceMessage,
+              maintenanceReason,
+              maintenanceUntil,
+              orderViewerUsernames
             })
           });
 
@@ -445,7 +811,7 @@
             throw new Error(result.message || `保存失败 (${response.status})`);
           }
 
-          setStatus(result.message || '公告和白名单已更新');
+          setStatus(result.message || '公告、白名单和维护设置已更新');
           await loadStoreSettings();
         }
 
@@ -465,6 +831,9 @@
             const result = await response.json();
             accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
             accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.canViewOrders = Boolean(result?.canViewOrders || result?.permissionRole === 'order-viewer');
+            accountState.canEditStore = Boolean(result?.canEditStore || result?.permissionRole === 'developer');
+            accountState.permissionRole = String(result?.permissionRole || (accountState.isDeveloper ? 'developer' : 'none'));
 
             if (!accountState.loggedIn) {
               localStorage.removeItem('mctools-auth-token');
@@ -474,14 +843,15 @@
               return false;
             }
 
-            if (!accountState.isDeveloper) {
+            if (!accountState.canEditStore) {
               setAccessView(false);
-              setStatus('当前账号不是开发者账号，无法操作商品控制面板。', true);
+              setStatus('仅开发者账号可进入控制面板。', true);
               return false;
             }
 
             setAccessView(true);
-            setStatus('开发者权限验证通过，正在加载商品数据...');
+            setEditOnlyView(accountState.canEditStore);
+            setStatus(accountState.canEditStore ? '开发者权限验证通过，正在加载数据...' : '订单查看权限验证通过，正在加载订单...');
             return true;
           } catch (error) {
             setAccessView(false);
@@ -500,6 +870,8 @@
 
           adminTable.innerHTML = adminProducts.map((raw) => {
             const product = normalizeProduct(raw);
+            const category = getProductCategory(product);
+            const extraTags = product.tags.slice(1).join(', ');
             return `
               <div class="admin-row" data-admin-product-row data-product-code="${escapeHtml(product.productCode)}" data-is-active="${product.isActive ? '1' : '0'}">
                 <div>
@@ -508,6 +880,14 @@
                 <div>
                   <input type="text" value="${escapeHtml(product.name)}" data-admin-name />
                   <textarea data-admin-description>${escapeHtml(product.description)}</textarea>
+                  <div class="image-editor">
+                    <input type="text" value="${escapeHtml(product.imageUrl)}" placeholder="图片地址（/product-images/... 或 http(s)://...）" data-admin-image-url />
+                    <div class="image-preview">${product.imageUrl ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy" />` : '<div style="display:grid;place-items:center;height:100%;font-size:12px;color:#64748b;">暂无图片</div>'}</div>
+                    <div class="image-upload-row">
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-admin-image-file />
+                      <button class="mini-btn" type="button" data-admin-upload-image>上传图片</button>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <input type="number" min="1" step="1" value="${Math.round(product.originalPriceFen)}" data-admin-original />
@@ -516,8 +896,10 @@
                   <input type="number" min="1" step="1" value="${Math.round(product.salePriceFen)}" data-admin-sale />
                 </div>
                 <div>
+                  <input type="text" value="${escapeHtml(category)}" data-admin-category />
+                  <input type="number" min="0" step="1" value="${Math.max(0, Math.round(product.stock || 0))}" data-admin-stock />
                   <input type="number" step="1" value="${Math.round(product.sortOrder)}" data-admin-sort />
-                  <input type="text" value="${escapeHtml(product.tags.join(', '))}" data-admin-tags />
+                  <input type="text" value="${escapeHtml(extraTags)}" data-admin-tags />
                 </div>
                 <div class="admin-row-actions">
                   <button class="mini-btn primary" type="button" data-admin-save>保存</button>
@@ -528,49 +910,164 @@
           }).join('');
         }
 
+        function formatMoney(fen) {
+          const amount = Number(fen || 0) / 100;
+          return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(amount);
+        }
+
+        function renderOrderTable() {
+          if (!orderTable) return;
+          const canEditOrders = Boolean(accountState.canEditStore);
+
+          if (adminOrders.length === 0) {
+            orderTable.innerHTML = '<div class="status">暂无订单。</div>';
+            if (orderSummary) {
+              orderSummary.textContent = '暂无订单数据';
+            }
+            return;
+          }
+
+          if (orderSummary) {
+            orderSummary.textContent = `最近 ${adminOrders.length} 笔订单`;
+          }
+
+          orderTable.innerHTML = adminOrders.map((raw) => {
+            const orderNo = String(raw?.orderNo || '').trim();
+            const status = String(raw?.status || '').trim() || 'PENDING';
+            const contact = String(raw?.contact || '').trim() || '未填写';
+            const buyerNote = String(raw?.buyerNote || '').trim() || '无';
+            const createdAt = String(raw?.createdAt || '').trim() || '--';
+            const paymentMethod = String(raw?.paymentMethod || 'wechat').trim().toLowerCase();
+            return `
+              <div class="order-row" data-order-row data-order-no="${escapeHtml(orderNo)}">
+                <div class="order-row-meta">
+                  <div class="order-row-title">${escapeHtml(orderNo)}</div>
+                  <div class="order-row-subtitle">${escapeHtml(createdAt)}</div>
+                </div>
+                <div class="order-row-meta">
+                  <div class="order-row-title">${escapeHtml(String(raw?.productName || ''))}</div>
+                  <div class="order-row-subtitle">${escapeHtml(String(raw?.productCode || ''))}</div>
+                </div>
+                <div class="order-row-meta">
+                  <div class="order-row-title">${escapeHtml(formatMoney(raw?.amountFen))}</div>
+                  <div class="order-row-subtitle">${escapeHtml(paymentMethod === 'alipay' ? '支付宝' : '微信支付')}</div>
+                </div>
+                <div class="order-row-actions">
+                    <select data-order-status ${canEditOrders ? '' : 'disabled'}>
+                      ${['PENDING', 'SUCCESS', 'TRADE_SUCCESS', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'].map((item) => `<option value="${item}"${item === status ? ' selected' : ''}>${item}</option>`).join('')}
+                    </select>
+                  <div class="order-row-subtitle">${escapeHtml(String(raw?.cardSecret || '').trim() ? '已出卡密' : '未出卡密')}</div>
+                </div>
+                <div class="order-row-actions">
+                    <input type="text" value="${escapeHtml(contact)}" data-order-contact ${canEditOrders ? '' : 'disabled'} />
+                    <textarea data-order-note ${canEditOrders ? '' : 'disabled'}>${escapeHtml(buyerNote === '无' ? '' : buyerNote)}</textarea>
+                </div>
+                <div class="order-row-actions">
+                    ${canEditOrders ? `
+                      <div class="order-inline-actions">
+                        <button type="button" class="order-mini-btn primary" data-order-save>保存</button>
+                        <button type="button" class="order-mini-btn success" data-order-mark-paid>标记已支付</button>
+                        <button type="button" class="order-mini-btn warn" data-order-mark-cancel>取消</button>
+                        <button type="button" class="order-mini-btn" data-order-refund>退款</button>
+                        <button type="button" class="order-mini-btn" data-order-reissue>补发卡密</button>
+                      </div>
+                    ` : '<div class="order-summary-line">当前账号为只读订单员，仅可查看。</div>'}
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        function buildOrdersQueryUrl(extra = {}) {
+          const url = new URL('/api/store/orders/admin', window.location.origin);
+          url.searchParams.set('limit', '30');
+          url.searchParams.set('query', extra.query ?? orderFilters.query ?? '');
+          url.searchParams.set('status', extra.status ?? orderFilters.status ?? 'ALL');
+          url.searchParams.set('paymentMethod', extra.paymentMethod ?? orderFilters.paymentMethod ?? 'ALL');
+          return url;
+        }
+
+        async function loadOrders() {
+          const response = await fetch(buildOrdersQueryUrl().toString(), {
+            headers: getAuthHeaders()
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '加载订单失败');
+          }
+
+          adminOrders = Array.isArray(result?.orders) ? result.orders : [];
+          renderOrderTable();
+          if (orderSummary) {
+            const filterText = [
+              result?.filters?.query ? `搜索：${result.filters.query}` : '',
+              result?.filters?.status && result.filters.status !== 'ALL' ? `状态：${result.filters.status}` : '',
+              result?.filters?.paymentMethod && result.filters.paymentMethod !== 'ALL' ? `支付：${result.filters.paymentMethod}` : ''
+            ].filter(Boolean).join(' · ');
+            orderSummary.textContent = filterText ? `${adminOrders.length} 笔订单 · ${filterText}` : `${adminOrders.length} 笔订单`;
+          }
+        }
+
+        async function saveOrderRow(row, nextStatus) {
+          const orderNo = String(row?.dataset?.orderNo || '').trim();
+          const statusInput = row.querySelector('[data-order-status]');
+          const contactInput = row.querySelector('[data-order-contact]');
+          const noteInput = row.querySelector('[data-order-note]');
+
+          setStatus(`正在保存订单 ${orderNo}...`);
+          const response = await fetch('/api/store/orders/admin/update', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+              orderNo,
+              status: nextStatus || String(statusInput?.value || '').trim(),
+              contact: String(contactInput?.value || '').trim(),
+              buyerNote: String(noteInput?.value || '').trim()
+            })
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '保存订单失败');
+          }
+
+          setStatus(`订单 ${orderNo} 已更新。`);
+          await loadOrders();
+        }
+
         async function loadAdminProducts() {
           const hasAccess = await loadAccountState();
-
-          // Fallback: in some environments /community/me may fail while token is still valid for admin APIs.
-          if (!hasAccess && accountState.token) {
-            try {
-              const retryResponse = await fetch('/api/store/products/admin', {
-                headers: getAuthHeaders()
-              });
-              const retryResult = await retryResponse.json();
-              if (!retryResponse.ok) {
-                throw new Error(retryResult.message || '重试加载管理商品失败');
-              }
-
-              adminProducts = Array.isArray(retryResult?.products) ? retryResult.products : [];
-              setAccessView(true);
-              renderAdminTable();
-              setStatus(`已加载 ${adminProducts.length} 件商品（本地登录态重试成功）。`);
-              return;
-            } catch {
-              setAccessView(false);
-              setStatus('请先在登录入口使用开发者账号登录，再返回本页刷新。', true);
-              return;
-            }
-          }
 
           if (!hasAccess) {
             return;
           }
 
           try {
-            await loadStoreSettings();
-            const response = await fetch('/api/store/products/admin', {
-              headers: getAuthHeaders()
-            });
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '加载管理商品失败');
+            if (accountState.canEditStore) {
+              await loadStoreSettings();
+              const response = await fetch('/api/store/products/admin', {
+                headers: getAuthHeaders()
+              });
+              const result = await response.json();
+              if (!response.ok) {
+                throw new Error(result.message || '加载管理商品失败');
+              }
+
+              adminProducts = Array.isArray(result?.products) ? result.products : [];
+              renderAdminTable();
             }
 
-            adminProducts = Array.isArray(result?.products) ? result.products : [];
-            renderAdminTable();
-            setStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
+            if (accountState.canViewOrders) {
+              await loadOrders();
+            }
+
+            if (accountState.canEditStore && accountState.canViewOrders) {
+              setStatus(`已加载 ${adminProducts.length} 件商品和 ${adminOrders.length} 笔订单。`);
+            } else if (accountState.canEditStore) {
+              setStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
+            } else {
+              setStatus(`已加载 ${adminOrders.length} 笔订单。`);
+            }
           } catch (error) {
             setStatus(error.message || '加载失败', true);
           }
@@ -583,6 +1080,7 @@
               const name = String(createName?.value || '').trim();
               const originalStr = String(createOriginal?.value || '').trim();
               const saleStr = String(createSale?.value || '').trim();
+              const stockStr = String(createStock?.value || '').trim();
 
               if (!code) throw new Error('请填写商品编码');
               if (!name) throw new Error('请填写商品名称');
@@ -601,6 +1099,21 @@
                 throw new Error('优惠价不能高于原价');
               }
 
+              const stock = stockStr === '' ? 0 : Number(stockStr);
+              if (!Number.isInteger(stock) || stock < 0) {
+                throw new Error('库存必须为大于等于 0 的整数');
+              }
+
+              const category = String(createCategory?.value || '').trim();
+              if (!category) {
+                throw new Error('请填写商品分类');
+              }
+
+              if (!confirmCriticalAction(`确认新增商品「${name}」吗？`)) {
+                setStatus('已取消新增商品。');
+                return;
+              }
+
               setStatus('正在提交...');
               const response = await fetch('/api/store/products', {
                 method: 'POST',
@@ -611,8 +1124,10 @@
                   description: String(createDescription?.value || '').trim(),
                   originalPriceFen: originalPrice,
                   salePriceFen: salePrice,
+                  stock,
                   sortOrder: Number(createSort?.value || 100),
-                  tags: String(createTags?.value || '')
+                  tags: buildCategoryTags(category, String(createTags?.value || '')),
+                  imageUrl: normalizeImageUrl(createImageUrl?.value || '')
                 })
               });
 
@@ -624,11 +1139,14 @@
               setStatus('新增商品成功。');
               if (createCode) createCode.value = '';
               if (createName) createName.value = '';
+              if (createCategory) createCategory.value = '';
               if (createDescription) createDescription.value = '';
               if (createOriginal) createOriginal.value = '';
               if (createSale) createSale.value = '';
+              if (createStock) createStock.value = '';
               if (createSort) createSort.value = '';
               if (createTags) createTags.value = '';
+              if (createImageUrl) createImageUrl.value = '';
 
               await loadAdminProducts();
             } catch (error) {
@@ -640,9 +1158,126 @@
         if (storeSettingsSaveButton) {
           storeSettingsSaveButton.addEventListener('click', async () => {
             try {
+              if (!confirmCriticalAction('确认保存公告、白名单和维护设置吗？')) {
+                setStatus('已取消保存设置。');
+                return;
+              }
               await saveStoreSettings();
             } catch (error) {
-              setStatus(error.message || '保存公告和白名单失败', true);
+              setStatus(error.message || '保存设置失败', true);
+            }
+          });
+        }
+
+        if (refreshOrdersButton) {
+          refreshOrdersButton.addEventListener('click', async () => {
+            try {
+              orderFilters.query = String(orderQueryInput?.value || '').trim();
+              orderFilters.status = String(orderStatusFilter?.value || 'ALL').trim();
+              orderFilters.paymentMethod = String(orderPaymentFilter?.value || 'ALL').trim();
+              await loadOrders();
+              setStatus(`已刷新 ${adminOrders.length} 笔订单。`);
+            } catch (error) {
+              setStatus(error.message || '刷新订单失败', true);
+            }
+          });
+        }
+
+        if (exportOrdersButton) {
+          exportOrdersButton.addEventListener('click', () => {
+            orderFilters.query = String(orderQueryInput?.value || '').trim();
+            orderFilters.status = String(orderStatusFilter?.value || 'ALL').trim();
+            orderFilters.paymentMethod = String(orderPaymentFilter?.value || 'ALL').trim();
+            const url = buildOrdersQueryUrl({ ...orderFilters });
+            url.searchParams.set('export', 'csv');
+            window.location.href = url.toString();
+          });
+        }
+
+        if (orderTable) {
+          orderTable.addEventListener('click', async (event) => {
+            const saveButton = event.target.closest('[data-order-save]');
+            const markPaidButton = event.target.closest('[data-order-mark-paid]');
+            const markCancelButton = event.target.closest('[data-order-mark-cancel]');
+            const refundButton = event.target.closest('[data-order-refund]');
+            const reissueButton = event.target.closest('[data-order-reissue]');
+            const row = event.target.closest('[data-order-row]');
+            if (!row) {
+              return;
+            }
+
+            try {
+              if (saveButton) {
+                if (!confirmCriticalAction('确认保存当前订单修改吗？')) {
+                  setStatus('已取消保存订单。');
+                  return;
+                }
+                await saveOrderRow(row);
+                return;
+              }
+
+              if (markPaidButton) {
+                if (!confirmCriticalAction('确认将该订单标记为已支付吗？')) {
+                  setStatus('已取消订单状态更新。');
+                  return;
+                }
+                await saveOrderRow(row, 'SUCCESS');
+                return;
+              }
+
+              if (markCancelButton) {
+                if (!confirmCriticalAction('确认取消该订单吗？')) {
+                  setStatus('已取消订单状态更新。');
+                  return;
+                }
+                await saveOrderRow(row, 'CANCELLED');
+                return;
+              }
+
+              if (refundButton) {
+                const orderNo = String(row.dataset.orderNo || '').trim();
+                if (!confirmCriticalAction(`确认对订单 ${orderNo} 执行退款吗？`)) {
+                  setStatus('已取消退款操作。');
+                  return;
+                }
+                const reason = window.prompt('请输入退款原因（可留空）', '后台退款') || '后台退款';
+                const response = await fetch('/api/store/orders/admin/refund', {
+                  method: 'POST',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ orderNo, reason })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || '退款失败');
+                }
+
+                setStatus(`订单 ${orderNo} 已退款。`);
+                await loadOrders();
+                return;
+              }
+
+              if (reissueButton) {
+                const orderNo = String(row.dataset.orderNo || '').trim();
+                if (!confirmCriticalAction(`确认为订单 ${orderNo} 补发卡密吗？`)) {
+                  setStatus('已取消补发操作。');
+                  return;
+                }
+                const response = await fetch('/api/store/orders/admin/reissue', {
+                  method: 'POST',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ orderNo })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || '补发失败');
+                }
+
+                const secret = String(result.cardSecret || '').trim();
+                setStatus(secret ? `订单 ${orderNo} 补发成功，新卡密：${secret}` : `订单 ${orderNo} 补发成功。`);
+                await loadOrders();
+              }
+            } catch (error) {
+              setStatus(error.message || '更新订单失败', true);
             }
           });
         }
@@ -652,6 +1287,11 @@
             const nextName = String(storeWhitelistInputBox?.value || '').trim();
             if (!nextName) {
               setStatus('请输入要添加的白名单用户名', true);
+              return;
+            }
+
+            if (!confirmCriticalAction(`确认将 ${nextName} 加入白名单吗？`)) {
+              setStatus('已取消添加白名单。');
               return;
             }
 
@@ -668,6 +1308,12 @@
           });
         }
 
+        if (storeOrderViewerList) {
+          storeOrderViewerList.addEventListener('click', () => {
+            setStatus('订单查看员名单可直接在文本框中编辑后保存。');
+          });
+        }
+
         if (adminTable) {
           adminTable.addEventListener('click', async (event) => {
             const saveButton = event.target.closest('[data-admin-save]');
@@ -680,8 +1326,38 @@
             const descInput = row.querySelector('[data-admin-description]');
             const originalInput = row.querySelector('[data-admin-original]');
             const saleInput = row.querySelector('[data-admin-sale]');
+            const categoryInput = row.querySelector('[data-admin-category]');
+            const stockInput = row.querySelector('[data-admin-stock]');
             const sortInput = row.querySelector('[data-admin-sort]');
             const tagsInput = row.querySelector('[data-admin-tags]');
+            const imageUrlInput = row.querySelector('[data-admin-image-url]');
+            const imageFileInput = row.querySelector('[data-admin-image-file]');
+            const uploadImageButton = event.target.closest('[data-admin-upload-image]');
+
+            if (uploadImageButton) {
+              try {
+                const selectedFile = imageFileInput?.files?.[0];
+                if (!selectedFile) {
+                  throw new Error('请先选择图片文件');
+                }
+
+                if (!confirmCriticalAction(`确认上传商品 ${productCode} 的图片吗？`)) {
+                  setStatus('已取消商品图片上传。');
+                  return;
+                }
+
+                setStatus('正在上传商品图片...');
+                const uploadResult = await uploadProductImage(productCode, selectedFile);
+                if (imageUrlInput) {
+                  imageUrlInput.value = String(uploadResult?.imageUrl || '').trim();
+                }
+                setStatus(`商品 ${productCode} 图片已上传。`);
+                await loadAdminProducts();
+              } catch (error) {
+                setStatus(error.message || '上传图片失败', true);
+              }
+              return;
+            }
 
             if (saveButton) {
               try {
@@ -696,6 +1372,22 @@
                 if (saleStr && !Number.isInteger(Number(saleStr))) {
                   throw new Error('优惠价必须为整数（分）');
                 }
+                const stockStr = String(stockInput?.value || '').trim();
+                if (stockStr && !Number.isInteger(Number(stockStr))) {
+                  throw new Error('库存必须为整数');
+                }
+                if (stockStr && Number(stockStr) < 0) {
+                  throw new Error('库存不能小于 0');
+                }
+                const category = String(categoryInput?.value || '').trim();
+                if (!category) {
+                  throw new Error('商品分类不能为空');
+                }
+
+                if (!confirmCriticalAction(`确认保存商品 ${productCode} 的修改吗？`)) {
+                  setStatus('已取消商品保存。');
+                  return;
+                }
 
                 setStatus('正在保存...');
                 const response = await fetch('/api/store/products/update', {
@@ -707,8 +1399,10 @@
                     description: String(descInput?.value || '').trim(),
                     originalPriceFen: originalStr ? Number(originalStr) : undefined,
                     salePriceFen: saleStr ? Number(saleStr) : undefined,
+                    stock: stockStr ? Number(stockStr) : 0,
                     sortOrder: Number(sortInput?.value || 100),
-                    tags: String(tagsInput?.value || '')
+                    tags: buildCategoryTags(category, String(tagsInput?.value || '')),
+                    imageUrl: normalizeImageUrl(imageUrlInput?.value || '')
                   })
                 });
 
@@ -728,6 +1422,11 @@
             if (toggleButton) {
               try {
                 const isActive = String(row.dataset.isActive || '0') === '1';
+                const nextActionText = isActive ? '下架' : '上架';
+                if (!confirmCriticalAction(`确认${nextActionText}商品 ${productCode} 吗？`)) {
+                  setStatus('已取消商品状态切换。');
+                  return;
+                }
                 setStatus('正在切换状态...');
                 const response = await fetch('/api/store/products/toggle', {
                   method: 'POST',
@@ -760,6 +1459,10 @@
             }
 
             const removeName = String(removeButton.dataset.whitelistRemove || '').trim();
+            if (!confirmCriticalAction(`确认将 ${removeName} 移出白名单吗？`)) {
+              setStatus('已取消白名单移除。');
+              return;
+            }
             const nextList = normalizeWhitelistText(storeWhitelistInput?.value || '').filter((item) => item !== removeName);
             renderWhitelistList(nextList);
             setStatus(`已移出白名单：${removeName}`);
@@ -772,6 +1475,10 @@
 
         if (clearTokenButton) {
           clearTokenButton.addEventListener('click', () => {
+            if (!confirmCriticalAction('确认清除本地登录态吗？')) {
+              setStatus('已取消清除登录态。');
+              return;
+            }
             localStorage.removeItem('mctools-auth-token');
             accountState.token = null;
             setAccessView(false);

@@ -923,6 +923,45 @@ a.text-button {
   color: #052034;
 }
 
+.remember-login {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.remember-login-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.remember-login-row input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent-strong);
+  flex: 0 0 auto;
+}
+
+.remember-login-row span {
+  display: grid;
+  gap: 4px;
+}
+
+.remember-login-row strong {
+  font-size: 1rem;
+}
+
+.remember-login-row em {
+  color: var(--muted);
+  font-style: normal;
+  line-height: 1.55;
+}
+
 .auth-form {
   display: grid;
   gap: 14px;

@@ -5,91 +5,862 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>维护中 · MCTools</title>
     <style>
+      * { box-sizing: border-box; }
+
       :root {
-        --bg0: #0b1020;
-        --bg1: #111b33;
-        --panel: #121a2b;
-        --border: rgba(148, 163, 184, 0.22);
+        --bg0: #08111f;
+        --bg1: #0f1b34;
+        --bg2: #17284a;
+        --panel: rgba(10, 18, 34, 0.84);
+        --border: rgba(148, 163, 184, 0.18);
         --text: #f8fafc;
         --muted: #cbd5e1;
         --accent: #38bdf8;
+        --accent-2: #8b5cf6;
+        --accent-3: #22c55e;
       }
 
-      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+      }
 
       body {
-        margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
         padding: 24px;
         color: var(--text);
         font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
         background:
-          radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 26%),
-          radial-gradient(circle at 80% 25%, rgba(59, 130, 246, 0.14), transparent 28%),
-          linear-gradient(160deg, var(--bg0), var(--bg1));
+          radial-gradient(circle at 18% 18%, rgba(56, 189, 248, 0.22), transparent 24%),
+          radial-gradient(circle at 82% 18%, rgba(139, 92, 246, 0.20), transparent 26%),
+          radial-gradient(circle at 50% 82%, rgba(34, 197, 94, 0.10), transparent 22%),
+          linear-gradient(160deg, var(--bg0), var(--bg1) 54%, var(--bg2));
+        overflow-x: hidden;
+      }
+
+      body::before,
+      body::after {
+        content: '';
+        position: fixed;
+        inset: auto;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(12px);
+        opacity: 0.6;
+      }
+
+      body::before {
+        width: 220px;
+        height: 220px;
+        background: rgba(56, 189, 248, 0.10);
+        top: -60px;
+        left: -60px;
+      }
+
+      body::after {
+        width: 280px;
+        height: 280px;
+        background: rgba(139, 92, 246, 0.10);
+        right: -80px;
+        bottom: -60px;
+      }
+
+      .shell {
+        min-height: calc(100vh - 48px);
+        display: grid;
+        place-items: center;
       }
 
       .card {
-        width: min(92vw, 560px);
-        border-radius: 24px;
+        width: min(100%, 980px);
+        border-radius: 30px;
         border: 1px solid var(--border);
-        background: rgba(17, 24, 39, 0.96);
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+        background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), var(--panel));
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 12% 14%, rgba(56, 189, 248, 0.12), transparent 22%),
+          radial-gradient(circle at 88% 12%, rgba(139, 92, 246, 0.12), transparent 24%),
+          radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.08), transparent 28%);
+        pointer-events: none;
+      }
+
+      .grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .hero,
+      .aside {
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(14px);
+      }
+
+      .hero {
         padding: 28px;
+        display: grid;
+        gap: 18px;
+        align-content: start;
+      }
+
+      .aside {
+        padding: 22px;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+        background: rgba(2, 6, 23, 0.28);
       }
 
       .kicker {
-        margin: 0 0 10px;
-        color: var(--accent);
-        letter-spacing: 0.16em;
+        margin: 0;
+        width: fit-content;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.12);
+        color: #cfefff;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        font-size: 0.8rem;
-        font-weight: 700;
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .kicker::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.16);
       }
 
       h1 {
         margin: 0;
-        font-size: clamp(2rem, 5vw, 3rem);
+        font-size: clamp(2.2rem, 5.8vw, 4.2rem);
+        line-height: 1.02;
+        letter-spacing: -0.03em;
       }
 
-      p {
-        margin: 14px 0 0;
+      .subtitle {
+        margin: 0;
         color: var(--muted);
-        line-height: 1.75;
+        line-height: 1.8;
+        font-size: 1rem;
+        max-width: 48ch;
       }
 
-      .tag-row {
+      .status-banner {
+        padding: 16px 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(139, 92, 246, 0.18));
+        display: grid;
+        gap: 6px;
+      }
+
+      .status-banner strong {
+        font-size: 1.04rem;
+      }
+
+      .status-banner span {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .feature-row {
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
-        margin-top: 18px;
       }
 
-      .pill {
+      .pill,
+      .metric,
+      .action {
         display: inline-flex;
         align-items: center;
-        padding: 8px 12px;
+        justify-content: center;
+        padding: 10px 14px;
         border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.12);
         background: rgba(255,255,255,0.06);
         color: var(--text);
         font-size: 0.9rem;
+        text-decoration: none;
       }
 
+      .panel-title {
+        margin: 0;
+        font-size: 1rem;
+        color: #e2e8f0;
+        letter-spacing: 0.02em;
+      }
+
+      .metric-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .metric {
+        justify-content: space-between;
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .metric span {
+        color: #cbd5e1;
+      }
+
+      .metric strong {
+        color: #fff;
+        font-weight: 800;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-item {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+      }
+
+      .timeline-item strong {
+        display: block;
+        margin-bottom: 4px;
+        color: #fff;
+      }
+
+      .timeline-item span {
+        color: #cbd5e1;
+        line-height: 1.6;
+        font-size: 0.92rem;
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .login-panel {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(2, 6, 23, 0.42);
+      }
+
+      .login-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .login-head strong {
+        font-size: 1.02rem;
+      }
+
+      .login-head span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .login-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .login-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .login-field.wide {
+        grid-column: 1 / -1;
+      }
+
+      .login-field label,
+      .login-remember,
+      .login-note {
+        color: #dbe7f5;
+        font-size: 0.92rem;
+      }
+
+      .login-field input {
+        width: 100%;
+        min-height: 46px;
+        padding: 0 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
+        outline: none;
+      }
+
+      .login-field input:focus {
+        border-color: rgba(56, 189, 248, 0.72);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+      }
+
+      .code-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+      }
+
+      .login-remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .login-remember input {
+        width: 18px;
+        height: 18px;
+        accent-color: #38bdf8;
+      }
+
+      .login-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .login-btn {
+        min-height: 46px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .login-btn.primary {
+        background: linear-gradient(135deg, #38bdf8, #7c3aed);
+        box-shadow: 0 16px 34px rgba(59, 130, 246, 0.22);
+      }
+
+      .login-btn.warn {
+        background: rgba(239, 68, 68, 0.14);
+        color: #fecaca;
+      }
+
+      .login-status {
+        min-height: 24px;
+        color: #dbe7f5;
+        line-height: 1.7;
+        font-size: 0.94rem;
+      }
+
+      .login-status.error {
+        color: #fca5a5;
+      }
+
+      .login-state {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .login-state strong {
+        font-size: 0.95rem;
+      }
+
+      .action {
+        min-height: 48px;
+        padding: 0 16px;
+        border-radius: 16px;
+        font-weight: 800;
+        border: 1px solid rgba(255,255,255,0.12);
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+        animation: button-breathe 3.2s ease-in-out infinite;
+      }
+
+      .login-btn,
+      .auth-send-btn,
+      .auth-verify-btn,
+      .auth-captcha-refresh,
+      button {
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+        animation: button-breathe 3.2s ease-in-out infinite;
+      }
+
+      @keyframes button-breathe {
+        0% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(56, 189, 248, 0.16);
+          filter: brightness(1);
+        }
+        50% {
+          transform: translateY(-3px) scale(1.02);
+          box-shadow: 0 16px 30px rgba(139, 92, 246, 0.26);
+          filter: brightness(1.08);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+          box-shadow: 0 8px 18px rgba(56, 189, 248, 0.16);
+          filter: brightness(1);
+        }
+      }
+      @keyframes button-click-pop {
+        0% { transform: translateY(0) scale(1); }
+        40% { transform: translateY(1px) scale(0.95); }
+        100% { transform: translateY(0) scale(1); }
+      }
+
+      .action:active,
+      .login-btn:active,
+      .auth-send-btn:active,
+      .auth-verify-btn:active,
+      .auth-captcha-refresh:active,
+      button:active {
+        animation: button-click-pop 220ms ease-out;
+      }
+
+      .action.primary {
+        background: linear-gradient(135deg, #38bdf8, #7c3aed);
+        box-shadow: 0 16px 34px rgba(59, 130, 246, 0.22);
+      }
+
+      .action.secondary {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .footer {
+        position: relative;
+        margin-top: 16px;
+        color: #94a3b8;
+        font-size: 0.86rem;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      @media (max-width: 880px) {
+        .grid { grid-template-columns: 1fr; }
+      }
+
+      @media (max-width: 560px) {
+        body { padding: 14px; }
+        .shell { min-height: calc(100vh - 28px); }
+        .card { padding: 14px; border-radius: 22px; }
+        .hero, .aside { padding: 18px; border-radius: 18px; }
+        .login-grid { grid-template-columns: 1fr; }
+        .code-row { grid-template-columns: 1fr; }
+        .login-actions, .login-state { flex-direction: column; align-items: stretch; }
+        .login-btn { width: 100%; }
+        .action-row { flex-direction: column; }
+        .action { width: 100%; }
+      }
     </style>
   </head>
   <body>
-    <main class="card">
-      <p class="kicker">Maintenance</p>
-      <h1>当前服务维护中</h1>
-      <p>3001 和 3002 端口已关闭为维护状态，正在整理功能与内容。你可以稍后再来，或者返回 3000 继续浏览服务器广场。</p>
-      <div class="tag-row">
-        <span class="pill">3001 维护中</span>
-        <span class="pill">3002 维护中</span>
-        <span class="pill">内容已迁移到开发工具</span>
-      </div>
+    <main class="shell">
+      <section class="card">
+        <div class="grid">
+          <div class="hero">
+            <div class="kicker">Maintenance Mode</div>
+            <h1>当前服务正在维护</h1>
+            <p class="subtitle">我们正在整理站点功能、支付链路和内容结构。维护期间，普通访问会暂时关闭，恢复后会第一时间重新开放。</p>
+
+            <div class="status-banner">
+              <strong>系统状态：维护中</strong>
+              <span>如果你是开发者，可以进入后台关闭维护开关；普通访问者请稍后再试。</span>
+            </div>
+
+            <div class="feature-row">
+              <span class="pill">支付系统整理中</span>
+              <span class="pill">商品与公告维护中</span>
+              <span class="pill">后台仍可登录</span>
+            </div>
+
+            <div class="login-panel">
+              <div class="login-head">
+                <div>
+                  <strong>开发者登录</strong>
+                  <span>直接在维护页登录，成功后进入后台关闭维护。</span>
+                </div>
+                <div class="login-state" data-login-state>
+                  <strong data-login-state-text>未登录</strong>
+                </div>
+              </div>
+
+              <div class="login-grid">
+                <div class="login-field">
+                  <label for="dev-login-username">用户名</label>
+                  <input id="dev-login-username" type="text" autocomplete="username" placeholder="输入开发者用户名" data-login-username />
+                </div>
+                <div class="login-field">
+                  <label for="dev-login-email">邮箱</label>
+                  <input id="dev-login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email />
+                </div>
+                <div class="login-field wide">
+                  <label for="dev-login-password">密码登录</label>
+                  <input id="dev-login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password />
+                </div>
+                <div class="login-field wide">
+                  <label for="dev-login-code">邮箱验证码</label>
+                  <div class="code-row">
+                    <input id="dev-login-code" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位验证码" data-login-code />
+                    <button class="login-btn" type="button" data-resend-code>重新发送</button>
+                  </div>
+                </div>
+              </div>
+
+              <label class="login-remember" for="dev-login-remember">
+                <input id="dev-login-remember" type="checkbox" data-login-remember checked />
+                <span>保持登录 30 天，不勾选则保持 3 天。</span>
+              </label>
+
+              <div class="login-note">可用密码直接登录，也可先发验证码再验证登录。邮件异常时会显示备用验证码。</div>
+              <div class="login-status" data-login-status>等待开发者登录。</div>
+
+              <div class="login-actions">
+                <button class="login-btn" type="button" data-send-code>发送验证码</button>
+                <button class="login-btn primary" type="button" data-submit-password-login>密码登录</button>
+                <button class="login-btn primary" type="button" data-submit-login>验证并登录</button>
+                <button class="login-btn" type="button" data-open-admin>进入开发者后台</button>
+                <button class="login-btn warn" type="button" data-logout>退出登录</button>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <a class="action secondary" href="/store-admin.html">进入开发者后台</a>
+            </div>
+          </div>
+
+          <aside class="aside">
+            <p class="panel-title">维护信息</p>
+            <div class="metric-list">
+              <div class="metric"><span>当前页面</span><strong>维护页</strong></div>
+              <div class="metric"><span>普通访问</span><strong>已暂停</strong></div>
+              <div class="metric"><span>开发者入口</span><strong>可继续使用</strong></div>
+            </div>
+
+            <p class="panel-title">正在处理</p>
+            <div class="timeline">
+              <div class="timeline-item">
+                <strong>支付确认页重构</strong>
+                <span>让购买流程更清晰，先确认登录、方式和联系方式，再跳转洪星支付。</span>
+              </div>
+              <div class="timeline-item">
+                <strong>维护开关维护</strong>
+                <span>开发者可以在后台一键开启或关闭维护，不需要修改代码。</span>
+              </div>
+              <div class="timeline-item">
+                <strong>公告与白名单管理</strong>
+                <span>继续沿用后台配置，方便随时调整站点通知与管理成员。</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="footer">站点恢复后会自动回到正常页面。如果你在本机测试维护模式，请先登录开发者账号，再回到后台关闭开关。</div>
+      </section>
     </main>
+
+    <script>
+      (function () {
+        const usernameInput = document.querySelector('[data-login-username]');
+        const emailInput = document.querySelector('[data-login-email]');
+        const passwordInput = document.querySelector('[data-login-password]');
+        const codeInput = document.querySelector('[data-login-code]');
+        const rememberInput = document.querySelector('[data-login-remember]');
+        const statusNode = document.querySelector('[data-login-status]');
+        const stateNode = document.querySelector('[data-login-state-text]');
+        const sendCodeButton = document.querySelector('[data-send-code]');
+        const resendCodeButton = document.querySelector('[data-resend-code]');
+        const passwordLoginButton = document.querySelector('[data-submit-password-login]');
+        const verifyLoginButton = document.querySelector('[data-submit-login]');
+        const openAdminButton = document.querySelector('[data-open-admin]');
+        const logoutButton = document.querySelector('[data-logout]');
+
+        const accountState = {
+          loggedIn: false,
+          username: '',
+          isDeveloper: false,
+          token: localStorage.getItem('mctools-auth-token') || null
+        };
+
+        function setStatus(text, isError = false) {
+          if (!statusNode) {
+            return;
+          }
+
+          statusNode.textContent = text;
+          statusNode.classList.toggle('error', Boolean(isError));
+        }
+
+        function updateStateView() {
+          if (!stateNode) {
+            return;
+          }
+
+          if (!accountState.loggedIn) {
+            stateNode.textContent = '未登录';
+            if (openAdminButton) openAdminButton.disabled = false;
+            return;
+          }
+
+          stateNode.textContent = accountState.isDeveloper
+            ? `已登录：${accountState.username}（开发者）`
+            : `已登录：${accountState.username}（非开发者）`;
+
+          if (openAdminButton) {
+            openAdminButton.disabled = !accountState.isDeveloper;
+          }
+        }
+
+        async function loadAccountState() {
+          try {
+            const token = localStorage.getItem('mctools-auth-token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const response = await fetch('/api/community/me', { headers });
+            if (!response.ok) {
+              throw new Error('未登录');
+            }
+
+            const result = await response.json();
+            accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
+            accountState.username = String(result?.username || '');
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = accountState.loggedIn ? token : null;
+
+            if (accountState.loggedIn) {
+              setStatus(accountState.isDeveloper ? '开发者已登录，可直接进入后台。' : '当前已登录，但该账号不是开发者账号。', !accountState.isDeveloper);
+            } else {
+              setStatus('等待开发者登录。');
+            }
+          } catch {
+            accountState.loggedIn = false;
+            accountState.username = '';
+            accountState.isDeveloper = false;
+            accountState.token = null;
+            try {
+              localStorage.removeItem('mctools-auth-token');
+            } catch {
+              // ignore storage errors
+            }
+            setStatus('等待开发者登录。');
+          }
+
+          updateStateView();
+        }
+
+        async function sendCode() {
+          const username = String(usernameInput?.value || '').trim();
+          const email = String(emailInput?.value || '').trim().toLowerCase();
+
+          if (!username) {
+            setStatus('请先填写用户名。', true);
+            return;
+          }
+
+          if (!email) {
+            setStatus('请先填写邮箱地址。', true);
+            return;
+          }
+
+          setStatus('正在发送验证码...');
+
+          try {
+            const response = await fetch('/api/community/send-code', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ username, email })
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '验证码发送失败');
+            }
+
+            const devCode = String(result?.devCode || '').trim();
+            const message = devCode
+              ? `${result.message || '验证码已发送。'}（备用验证码：${devCode}）`
+              : (result.message || '验证码已发送。');
+            setStatus(message);
+          } catch (error) {
+            setStatus(error.message || '验证码发送失败', true);
+          }
+        }
+
+        async function verifyCodeLogin() {
+          const email = String(emailInput?.value || '').trim().toLowerCase();
+          const code = String(codeInput?.value || '').trim();
+          const rememberLogin = Boolean(rememberInput?.checked);
+
+          if (!email) {
+            setStatus('请先填写邮箱地址。', true);
+            return;
+          }
+
+          if (!code) {
+            setStatus('请输入邮箱验证码。', true);
+            return;
+          }
+
+          setStatus('正在验证验证码...');
+
+          try {
+            const response = await fetch('/api/community/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ email, code, rememberLogin })
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '验证码登录失败');
+            }
+
+            accountState.loggedIn = true;
+            accountState.username = String(result?.username || usernameInput?.value || email);
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = String(result?.token || '').trim() || null;
+
+            if (accountState.token) {
+              localStorage.setItem('mctools-auth-token', accountState.token);
+            }
+
+            updateStateView();
+            setStatus(accountState.isDeveloper ? '登录成功，可直接进入开发者后台。' : '登录成功，但当前账号不是开发者账号。', !accountState.isDeveloper);
+          } catch (error) {
+            setStatus(error.message || '验证码登录失败', true);
+          }
+        }
+
+        async function passwordLogin() {
+          const username = String(usernameInput?.value || '').trim();
+          const email = String(emailInput?.value || '').trim().toLowerCase();
+          const password = String(passwordInput?.value || '').trim();
+          const rememberLogin = Boolean(rememberInput?.checked);
+
+          if (!username && !email) {
+            setStatus('请填写用户名或邮箱。', true);
+            return;
+          }
+
+          if (!password) {
+            setStatus('请输入登录密码。', true);
+            return;
+          }
+
+          setStatus('正在校验密码...');
+
+          try {
+            const response = await fetch('/api/community/password-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ username, email, password, rememberLogin })
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '密码登录失败');
+            }
+
+            accountState.loggedIn = true;
+            accountState.username = String(result?.username || username || email);
+            accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.token = String(result?.token || '').trim() || null;
+
+            if (accountState.token) {
+              localStorage.setItem('mctools-auth-token', accountState.token);
+            }
+
+            updateStateView();
+            setStatus(accountState.isDeveloper ? '登录成功，可直接进入开发者后台。' : '登录成功，但当前账号不是开发者账号。', !accountState.isDeveloper);
+          } catch (error) {
+            setStatus(error.message || '密码登录失败', true);
+          }
+        }
+
+        async function logout() {
+          try {
+            await fetch('/api/community/logout', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' }
+            });
+          } catch {
+            // ignore transport failures
+          }
+
+          try {
+            localStorage.removeItem('mctools-auth-token');
+          } catch {
+            // ignore storage errors
+          }
+
+          accountState.loggedIn = false;
+          accountState.username = '';
+          accountState.isDeveloper = false;
+          accountState.token = null;
+          updateStateView();
+          setStatus('已退出当前账号。');
+        }
+
+        if (sendCodeButton) {
+          sendCodeButton.addEventListener('click', sendCode);
+        }
+
+        if (resendCodeButton) {
+          resendCodeButton.addEventListener('click', sendCode);
+        }
+
+        if (passwordLoginButton) {
+          passwordLoginButton.addEventListener('click', passwordLogin);
+        }
+
+        if (verifyLoginButton) {
+          verifyLoginButton.addEventListener('click', verifyCodeLogin);
+        }
+
+        if (openAdminButton) {
+          openAdminButton.addEventListener('click', () => {
+            if (!accountState.loggedIn) {
+              setStatus('请先登录开发者账号。', true);
+              return;
+            }
+
+            if (!accountState.isDeveloper) {
+              setStatus('当前账号不是开发者账号，无法进入后台。', true);
+              return;
+            }
+
+            window.location.href = '/store-admin.html';
+          });
+        }
+
+        if (logoutButton) {
+          logoutButton.addEventListener('click', logout);
+        }
+
+        loadAccountState();
+      })();
+    </script>
   </body>
 </html>
