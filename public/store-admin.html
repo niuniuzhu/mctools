@@ -967,6 +967,7 @@
                       <div class="order-inline-actions">
                         <button type="button" class="order-mini-btn primary" data-order-save>保存</button>
                         <button type="button" class="order-mini-btn success" data-order-mark-paid>标记已支付</button>
+                        <button type="button" class="order-mini-btn success" data-order-manual-ship>人工发货</button>
                         <button type="button" class="order-mini-btn warn" data-order-mark-cancel>取消</button>
                         <button type="button" class="order-mini-btn" data-order-refund>退款</button>
                         <button type="button" class="order-mini-btn" data-order-reissue>补发卡密</button>
@@ -1198,6 +1199,7 @@
           orderTable.addEventListener('click', async (event) => {
             const saveButton = event.target.closest('[data-order-save]');
             const markPaidButton = event.target.closest('[data-order-mark-paid]');
+            const manualShipButton = event.target.closest('[data-order-manual-ship]');
             const markCancelButton = event.target.closest('[data-order-mark-cancel]');
             const refundButton = event.target.closest('[data-order-refund]');
             const reissueButton = event.target.closest('[data-order-reissue]');
@@ -1222,6 +1224,47 @@
                   return;
                 }
                 await saveOrderRow(row, 'SUCCESS');
+                return;
+              }
+
+              if (manualShipButton) {
+                const orderNo = String(row.dataset.orderNo || '').trim();
+                const noteInput = row.querySelector('[data-order-note]');
+                const shippingContent = window.prompt('请输入发货内容（例如卡密、账号或兑换信息）', '') || '';
+                const cardSecret = String(shippingContent).trim();
+
+                if (!cardSecret) {
+                  setStatus('人工发货已取消：请填写发货内容。', true);
+                  return;
+                }
+
+                if (!confirmCriticalAction(`确认对订单 ${orderNo} 执行人工发货吗？`)) {
+                  setStatus('已取消人工发货。');
+                  return;
+                }
+
+                const existingNote = String(noteInput?.value || '').trim();
+                const shippingNote = `人工发货：${cardSecret}`;
+                const buyerNote = existingNote ? `${existingNote}\n${shippingNote}` : shippingNote;
+
+                const response = await fetch('/api/store/orders/admin/update', {
+                  method: 'POST',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({
+                    orderNo,
+                    status: 'SUCCESS',
+                    buyerNote,
+                    cardSecret
+                  })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || '人工发货失败');
+                }
+
+                setStatus(`订单 ${orderNo} 已人工发货。`);
+                await loadOrders();
                 return;
               }
 
