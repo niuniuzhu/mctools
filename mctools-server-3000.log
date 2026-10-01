@@ -372,3 +372,194 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:30316) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3000  (stop form 1.16.1)
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:20852) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (stop form 1.16.1)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:25180) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (stop form 1.16.1)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:23728) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (stop form 1.16.1)
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+D:\Projects\mctools\server.js:4864
+  ).run(settingKey, String(value));
+    ^
+
+Error: database is locked
+    at setSettingValue (D:\Projects\mctools\server.js:4864:5)
+    at repairLegacyStoreData (D:\Projects\mctools\server.js:5275:3)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:5309:1)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:8148) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:27288) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29028) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:6588) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4)
+D:\Projects\mctools\server.js:3476
+  db.prepare('DELETE FROM auth_sessions WHERE expires_at <= ?').run(Date.now());
+                                                                ^
+
+Error: database is locked
+    at cleanupExpiredAuthSessions (D:\Projects\mctools\server.js:3476:65)
+    at cleanupExpiredSessions (D:\Projects\mctools\server.js:3482:3)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7335:3)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:5872) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3000  (正式版1.4)
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 261,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 261,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1

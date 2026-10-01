@@ -48,6 +48,7 @@ if [ "$#" -eq 0 ]; then
   start_single_port 3002
   start_single_port 3003
   start_single_port 3004
+  start_single_port 3005
   exit 0
 fi
 

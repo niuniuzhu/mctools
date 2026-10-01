@@ -36,6 +36,8 @@
           radial-gradient(circle at 50% 82%, rgba(34, 197, 94, 0.10), transparent 22%),
           linear-gradient(160deg, var(--bg0), var(--bg1) 54%, var(--bg2));
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
 
       body::before,
@@ -73,11 +75,11 @@
 
       .card {
         width: min(100%, 980px);
-        border-radius: 30px;
-        border: 1px solid var(--border);
-        background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), var(--panel));
-        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
-        padding: 24px;
+        border-radius: 32px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.86));
+        box-shadow: 0 30px 90px rgba(2, 6, 23, 0.45);
+        padding: 28px;
         position: relative;
         overflow: hidden;
       }
@@ -107,6 +109,18 @@
         border: 1px solid rgba(255, 255, 255, 0.10);
         background: rgba(255, 255, 255, 0.04);
         backdrop-filter: blur(14px);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      }
+
+      .hero:hover,
+      .aside:hover,
+      .login-panel:hover,
+      .timeline-item:hover,
+      .metric:hover,
+      .pill:hover {
+        transform: translateY(-2px);
+        border-color: rgba(56, 189, 248, 0.28);
+        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.12);
       }
 
       .hero {
@@ -186,6 +200,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        margin-top: 4px;
       }
 
       .pill,
@@ -269,6 +284,8 @@
         border-radius: 22px;
         border: 1px solid rgba(255, 255, 255, 0.12);
         background: rgba(2, 6, 23, 0.42);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 30px rgba(15, 23, 42, 0.18);
+        transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
       }
 
       .login-head {
@@ -359,6 +376,7 @@
         color: var(--text);
         font-weight: 800;
         cursor: pointer;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
       }
 
       .login-btn.primary {
@@ -408,27 +426,9 @@
       .auth-verify-btn,
       .auth-captcha-refresh,
       button {
-        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
-        animation: button-breathe 3.2s ease-in-out infinite;
+        transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, border-color 180ms ease;
       }
 
-      @keyframes button-breathe {
-        0% {
-          transform: translateY(0) scale(1);
-          box-shadow: 0 8px 18px rgba(56, 189, 248, 0.16);
-          filter: brightness(1);
-        }
-        50% {
-          transform: translateY(-3px) scale(1.02);
-          box-shadow: 0 16px 30px rgba(139, 92, 246, 0.26);
-          filter: brightness(1.08);
-        }
-        100% {
-          transform: translateY(0) scale(1);
-          box-shadow: 0 8px 18px rgba(56, 189, 248, 0.16);
-          filter: brightness(1);
-        }
-      }
       @keyframes button-click-pop {
         0% { transform: translateY(0) scale(1); }
         40% { transform: translateY(1px) scale(0.95); }
@@ -491,7 +491,7 @@
 
             <div class="status-banner">
               <strong>系统状态：维护中</strong>
-              <span>如果你是开发者，可以进入后台关闭维护开关；普通访问者请稍后再试。</span>
+              <span>如果你是权限，可以进入后台关闭维护开关；普通访问者请稍后再试。</span>
             </div>
 
             <div class="feature-row">
@@ -503,7 +503,7 @@
             <div class="login-panel">
               <div class="login-head">
                 <div>
-                  <strong>开发者登录</strong>
+                  <strong>权限登录</strong>
                   <span>直接在维护页登录，成功后进入后台关闭维护。</span>
                 </div>
                 <div class="login-state" data-login-state>
@@ -514,7 +514,7 @@
               <div class="login-grid">
                 <div class="login-field">
                   <label for="dev-login-username">用户名</label>
-                  <input id="dev-login-username" type="text" autocomplete="username" placeholder="输入开发者用户名" data-login-username />
+                  <input id="dev-login-username" type="text" autocomplete="username" placeholder="输入权限用户名" data-login-username />
                 </div>
                 <div class="login-field">
                   <label for="dev-login-email">邮箱</label>
@@ -539,19 +539,19 @@
               </label>
 
               <div class="login-note">可用密码直接登录，也可先发验证码再验证登录。邮件异常时会显示备用验证码。</div>
-              <div class="login-status" data-login-status>等待开发者登录。</div>
+              <div class="login-status" data-login-status>等待权限登录。</div>
 
               <div class="login-actions">
                 <button class="login-btn" type="button" data-send-code>发送验证码</button>
                 <button class="login-btn primary" type="button" data-submit-password-login>密码登录</button>
                 <button class="login-btn primary" type="button" data-submit-login>验证并登录</button>
-                <button class="login-btn" type="button" data-open-admin>进入开发者后台</button>
+                <button class="login-btn" type="button" data-open-admin>进入权限后台</button>
                 <button class="login-btn warn" type="button" data-logout>退出登录</button>
               </div>
             </div>
 
             <div class="action-row">
-              <a class="action secondary" href="/store-admin.html">进入开发者后台</a>
+              <a class="action secondary" href="/store-admin.html">进入权限后台</a>
             </div>
           </div>
 
@@ -560,7 +560,7 @@
             <div class="metric-list">
               <div class="metric"><span>当前页面</span><strong>维护页</strong></div>
               <div class="metric"><span>普通访问</span><strong>已暂停</strong></div>
-              <div class="metric"><span>开发者入口</span><strong>可继续使用</strong></div>
+              <div class="metric"><span>权限入口</span><strong>可继续使用</strong></div>
             </div>
 
             <p class="panel-title">正在处理</p>
@@ -571,7 +571,7 @@
               </div>
               <div class="timeline-item">
                 <strong>维护开关维护</strong>
-                <span>开发者可以在后台一键开启或关闭维护，不需要修改代码。</span>
+                <span>权限可以在后台一键开启或关闭维护，不需要修改代码。</span>
               </div>
               <div class="timeline-item">
                 <strong>公告与白名单管理</strong>
@@ -581,7 +581,7 @@
           </aside>
         </div>
 
-        <div class="footer">站点恢复后会自动回到正常页面。如果你在本机测试维护模式，请先登录开发者账号，再回到后台关闭开关。</div>
+        <div class="footer">站点恢复后会自动回到正常页面。如果你在本机测试维护模式，请先登录权限账号，再回到后台关闭开关。</div>
       </section>
     </main>
 
@@ -629,8 +629,8 @@
           }
 
           stateNode.textContent = accountState.isDeveloper
-            ? `已登录：${accountState.username}（开发者）`
-            : `已登录：${accountState.username}（非开发者）`;
+            ? `已登录：${accountState.username}（权限）`
+            : `已登录：${accountState.username}（非权限）`;
 
           if (openAdminButton) {
             openAdminButton.disabled = !accountState.isDeveloper;
@@ -653,9 +653,9 @@
             accountState.token = accountState.loggedIn ? token : null;
 
             if (accountState.loggedIn) {
-              setStatus(accountState.isDeveloper ? '开发者已登录，可直接进入后台。' : '当前已登录，但该账号不是开发者账号。', !accountState.isDeveloper);
+              setStatus(accountState.isDeveloper ? '权限已登录，可直接进入后台。' : '当前已登录，但该账号不是权限账号。', !accountState.isDeveloper);
             } else {
-              setStatus('等待开发者登录。');
+              setStatus('等待权限登录。');
             }
           } catch {
             accountState.loggedIn = false;
@@ -667,7 +667,7 @@
             } catch {
               // ignore storage errors
             }
-            setStatus('等待开发者登录。');
+            setStatus('等待权限登录。');
           }
 
           updateStateView();
@@ -748,7 +748,7 @@
             }
 
             updateStateView();
-            setStatus(accountState.isDeveloper ? '登录成功，可直接进入开发者后台。' : '登录成功，但当前账号不是开发者账号。', !accountState.isDeveloper);
+            setStatus(accountState.isDeveloper ? '登录成功，可直接进入权限后台。' : '登录成功，但当前账号不是权限账号。', !accountState.isDeveloper);
           } catch (error) {
             setStatus(error.message || '验证码登录失败', true);
           }
@@ -793,7 +793,7 @@
             }
 
             updateStateView();
-            setStatus(accountState.isDeveloper ? '登录成功，可直接进入开发者后台。' : '登录成功，但当前账号不是开发者账号。', !accountState.isDeveloper);
+            setStatus(accountState.isDeveloper ? '登录成功，可直接进入权限后台。' : '登录成功，但当前账号不是权限账号。', !accountState.isDeveloper);
           } catch (error) {
             setStatus(error.message || '密码登录失败', true);
           }
@@ -842,12 +842,12 @@
         if (openAdminButton) {
           openAdminButton.addEventListener('click', () => {
             if (!accountState.loggedIn) {
-              setStatus('请先登录开发者账号。', true);
+              setStatus('请先登录权限账号。', true);
               return;
             }
 
             if (!accountState.isDeveloper) {
-              setStatus('当前账号不是开发者账号，无法进入后台。', true);
+              setStatus('当前账号不是权限账号，无法进入后台。', true);
               return;
             }
 

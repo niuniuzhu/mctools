@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>商店账号中心</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.92), transparent 48%),
+          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.8), transparent 44%),
+          linear-gradient(180deg, #f7fbff 0%, #e8eef7 45%, #d9edf4 100%);
+        color: #1f2937;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 20% 22%, rgba(255,255,255,0.5), transparent 18%),
+          radial-gradient(circle at 78% 12%, rgba(255,255,255,0.38), transparent 16%),
+          radial-gradient(circle at 50% 88%, rgba(255,255,255,0.22), transparent 20%);
+        opacity: 0.95;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 18% 16%, rgba(255, 188, 214, 0.34), transparent 28%),
+          radial-gradient(circle at 78% 20%, rgba(196, 181, 253, 0.26), transparent 26%),
+          radial-gradient(circle at 64% 72%, rgba(186, 230, 253, 0.24), transparent 30%),
+          linear-gradient(125deg, rgba(255, 240, 250, 0.58), rgba(226, 244, 255, 0.4) 40%, rgba(240, 246, 255, 0.58));
+        opacity: 0.54;
+        filter: saturate(1.1);
+      }
+      html[data-theme="night"] body {
+        background:
+          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.18), transparent 48%),
+          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.12), transparent 44%),
+          linear-gradient(180deg, #0f172a 0%, #111827 55%, #0f172a 100%);
+        color: #e2e8f0;
+      }
+      html[data-theme="night"] body::after {
+        opacity: 0.3;
+        background:
+          radial-gradient(circle at 18% 16%, rgba(236, 72, 153, 0.14), transparent 28%),
+          radial-gradient(circle at 78% 20%, rgba(129, 140, 248, 0.18), transparent 26%),
+          radial-gradient(circle at 64% 72%, rgba(56, 189, 248, 0.12), transparent 30%),
+          linear-gradient(125deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.32) 40%, rgba(15, 23, 42, 0.65));
+      }
+      .shell {
+        width: min(980px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 18px 0 72px;
+        position: relative;
+        z-index: 1;
+      }
+      @keyframes fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes button-breathe {
+        0% { transform: translateY(0) scale(1); box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14); filter: brightness(1); }
+        50% { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 30px rgba(236, 72, 153, 0.22); filter: brightness(1.06); }
+        100% { transform: translateY(0) scale(1); box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14); filter: brightness(1); }
+      }
+      @keyframes button-click-pop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(1px) scale(0.95); } 100% { transform: translateY(0) scale(1); } }
+      a { text-decoration: none; color: inherit; }
+      button, input { font: inherit; }
+      .topbar {
+        display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px;
+        animation: fade-up 520ms ease both;
+      }
+      .brand {
+        display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px;
+        background: rgba(255,255,255,0.58); backdrop-filter: blur(14px); box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+      }
+      .brand-badge {
+        width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center;
+        background: linear-gradient(135deg, #ff86b8, #9b8cff); color: #fff; font-weight: 900;
+      }
+      .brand strong, .brand small { display: block; }
+      .brand small { color: #64748b; }
+      .top-actions {
+        display: flex; gap: 10px; align-items: center; padding: 10px; border-radius: 22px;
+        background: rgba(255,255,255,0.72); backdrop-filter: blur(16px); border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.1);
+      }
+      .nav-btn, .theme-toggle, .primary-btn, .secondary-btn, .danger-btn, .auth-tab {
+        -webkit-appearance: none; appearance: none; border: none; border-radius: 999px; text-decoration: none; color: inherit;
+        cursor: pointer; font: inherit; line-height: 1; min-height: 42px; transition: transform 220ms ease, box-shadow 260ms ease, background 260ms ease, color 220ms ease, opacity 220ms ease;
+        animation: button-breathe 2.2s ease-in-out infinite;
+      }
+      .nav-btn:active, .theme-toggle:active, .primary-btn:active, .secondary-btn:active, .danger-btn:active, .auth-tab:active {
+        animation: button-click-pop 220ms ease-out;
+      }
+      .theme-toggle, .nav-btn, .secondary-btn {
+        padding: 10px 18px; background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,245,249,0.9));
+        border: 1px solid rgba(148, 163, 184, 0.24); font-weight: 800; box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+      }
+      .nav-btn.primary, .primary-btn, .auth-tab.active {
+        background: linear-gradient(135deg, #7dd3fc, #60a5fa 30%, #a78bfa 100%);
+        color: #081521; border: 1px solid transparent; box-shadow: 0 16px 30px rgba(96, 165, 250, 0.26);
+      }
+      .auth-card {
+        background: rgba(255,255,255,0.7); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 28px;
+        box-shadow: 0 30px 70px rgba(15, 23, 42, 0.12); overflow: hidden; backdrop-filter: blur(18px);
+      }
+      .card-head {
+        padding: 22px 24px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      }
+      .card-head h1 { margin: 0; font-size: clamp(2rem, 4vw, 2.6rem); }
+      .card-body { padding: 8px 24px 24px; }
+      .lead { color: #4b5a6a; line-height: 1.8; margin: 0 0 20px; }
+      .auth-tabs { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+      .auth-tab {
+        padding: 10px 16px; background: rgba(255,255,255,0.38); border: 1px solid rgba(148, 163, 184, 0.22); color: #334155; font-weight: 700;
+      }
+      .auth-panel { display: none; }
+      .auth-panel.active { display: block; }
+      .field { display: grid; gap: 8px; margin-bottom: 16px; }
+      .field label { color: #586f86; font-size: 0.82rem; }
+      input {
+        width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(148, 163, 184, 0.26); background: rgba(255,255,255,0.56); color: #111827; outline: none;
+      }
+      input:focus { border-color: rgba(96, 165, 250, 0.65); box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12); }
+      .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      .auth-remember {
+        display: flex; align-items: flex-start; gap: 10px; border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; background: rgba(255,255,255,0.26);
+      }
+      .auth-remember input { width: auto; margin-top: 3px; }
+      .auth-remember strong { display: block; }
+      .auth-remember small { color: #64748b; }
+      .auth-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+      .oauth-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .primary-btn, .secondary-btn, .muted-btn, .danger-btn {
+        border: 1px solid transparent; border-radius: 12px; padding: 12px 18px; cursor: pointer; font-weight: 800;
+      }
+      .google-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.92));
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.24);
+      }
+      .google-mark {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: inline-grid;
+        place-items: center;
+        font-size: 0.95rem;
+        background: conic-gradient(from 225deg, #34a853 0 25%, #4285f4 25% 50%, #fbbc05 50% 75%, #ea4335 75% 100%);
+        color: #fff;
+        font-weight: 900;
+      }
+      .secondary-btn { background: rgba(255,255,255,0.38); color: #1f2937; border-color: rgba(148, 163, 184, 0.2); }
+      .muted-btn {
+        background: rgba(148, 163, 184, 0.22);
+        color: #475569;
+        border-color: rgba(148, 163, 184, 0.22);
+        box-shadow: none;
+      }
+      .danger-btn { background: rgba(248,113,113,0.12); color: #b91c1c; border-color: rgba(248,113,113,0.24); }
+      .auth-status {
+        margin-top: 16px; border-radius: 12px; padding: 12px 14px; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.2); color: #146c43;
+      }
+      .auth-status.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); color: #b91c1c; }
+      .auth-note { color: #51657d; line-height: 1.7; margin-bottom: 12px; }
+      .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0 16px;
+        color: #64748b;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .auth-divider::before,
+      .auth-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: rgba(148, 163, 184, 0.26);
+      }
+      .auth-qr-panel,
+      .scan-confirm-panel {
+        display: grid;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.42);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+      }
+      .auth-qr-head,
+      .scan-confirm-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .auth-qr-head strong,
+      .scan-confirm-head strong {
+        display: block;
+        font-size: 1rem;
+      }
+      .auth-qr-head small,
+      .scan-confirm-head small {
+        color: #64748b;
+      }
+      .auth-qr-shell {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 16px;
+        align-items: center;
+      }
+      .auth-qr-preview {
+        width: 220px;
+        min-height: 220px;
+        padding: 12px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.76);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+      .auth-qr-preview img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 14px;
+      }
+      .auth-qr-placeholder,
+      .auth-qr-link-text {
+        color: #64748b;
+        word-break: break-all;
+      }
+      .auth-qr-copy {
+        display: grid;
+        gap: 12px;
+      }
+      .auth-qr-copy p,
+      .scan-confirm-copy {
+        margin: 0;
+        color: #475569;
+        line-height: 1.75;
+      }
+      .auth-qr-meta,
+      .scan-confirm-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        color: #334155;
+        font-weight: 700;
+      }
+      .auth-qr-links,
+      .scan-confirm-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .qr-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .auth-qr-link-text {
+        font-size: 0.8rem;
+      }
+      .captcha-row { display: flex; gap: 10px; }
+      .captcha-row input { flex: 1; }
+      .header-btn { padding: 8px 14px; }
+      html[data-theme="night"] .brand,
+      html[data-theme="night"] .top-actions,
+      html[data-theme="night"] .auth-card,
+      html[data-theme="night"] .auth-qr-panel,
+      html[data-theme="night"] .scan-confirm-panel,
+      html[data-theme="night"] .auth-remember,
+      html[data-theme="night"] .auth-tab,
+      html[data-theme="night"] .secondary-btn,
+      html[data-theme="night"] .muted-btn,
+      html[data-theme="night"] input {
+        background: rgba(15, 23, 42, 0.72); color: #e2e8f0; border-color: rgba(148, 163, 184, 0.22);
+        box-shadow: 0 22px 50px rgba(2, 6, 23, 0.24);
+      }
+      html[data-theme="night"] .brand small,
+      html[data-theme="night"] .lead,
+      html[data-theme="night"] .field label,
+      html[data-theme="night"] .auth-remember small,
+      html[data-theme="night"] .auth-qr-head small,
+      html[data-theme="night"] .scan-confirm-head small,
+      html[data-theme="night"] .auth-qr-copy p,
+      html[data-theme="night"] .auth-qr-placeholder,
+      html[data-theme="night"] .auth-qr-link-text,
+      html[data-theme="night"] .scan-confirm-copy,
+      html[data-theme="night"] .auth-note,
+      html[data-theme="night"] .auth-status {
+        color: #cbd5e1;
+      }
+      html[data-theme="night"] input { background: rgba(15, 23, 42, 0.68); }
+      html[data-theme="night"] .theme-toggle, html[data-theme="night"] .nav-btn, html[data-theme="night"] .secondary-btn {
+        background: rgba(255,255,255,0.08); color: #e2e8f0;
+      }
+      html[data-theme="night"] .auth-status { color: #b7f0cc; }
+      html[data-theme="night"] .auth-qr-preview {
+        background: rgba(15, 23, 42, 0.76);
+      }
+      @media (max-width: 700px) {
+        .row { grid-template-columns: 1fr; }
+        .topbar { flex-direction: column; align-items: stretch; }
+        .top-actions { justify-content: space-between; }
+        .auth-qr-shell { grid-template-columns: 1fr; }
+        .auth-qr-preview { width: min(100%, 220px); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-badge">S</div>
+          <div>
+            <strong>星际商店</strong>
+            <small>账号中心</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button type="button" class="theme-toggle" data-theme-toggle>🌙 夜间</button>
+          <a href="/store.html" class="nav-btn primary">返回商店</a>
+        </div>
+      </header>
+
+      <section class="auth-card" aria-label="商店账号中心">
+        <div class="card-head">
+          <h1>账号中心</h1>
+          <button type="button" class="secondary-btn header-btn" data-auth-logout hidden>退出登录</button>
+        </div>
+        <div class="card-body">
+          <p class="lead">登录商店账号后，可同步购买记录、查看权限状态，并继续购买商品。账号在商店中与收款设置独立管理。</p>
+
+          <div class="auth-tabs">
+            <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
+            <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
+          </div>
+
+          <label class="auth-remember" for="auth-remember-login">
+            <input id="auth-remember-login" type="checkbox" data-auth-remember-login checked />
+            <span>
+              <strong>保持登录</strong>
+              <small>勾选后登录状态保持 30 天，不勾选保持 3 天。</small>
+            </span>
+          </label>
+
+          <section class="auth-panel active" data-auth-panel="register">
+            <div class="row">
+              <div class="field">
+                <label for="register-username">用户名</label>
+                <input id="register-username" type="text" autocomplete="username" placeholder="3-32 位用户名" data-register-username />
+              </div>
+              <div class="field">
+                <label for="register-email">邮箱</label>
+                <input id="register-email" type="email" autocomplete="email" placeholder="请输入邮箱地址" data-register-email />
+              </div>
+            </div>
+            <div class="field">
+              <label for="register-password">登录密码</label>
+              <input id="register-password" type="password" autocomplete="new-password" placeholder="6-64 位密码" data-register-password />
+            </div>
+            <div class="field">
+              <label>账号类型</label>
+              <div class="auth-remember" style="margin-bottom: 0;">
+                <input id="register-developer-toggle" type="checkbox" data-register-developer-toggle />
+                <span>
+                  <strong>注册为权限账号</strong>
+                  <small>可用于控制面板和高级权限访问。</small>
+                </span>
+              </div>
+              <input id="register-developer-secret" type="text" autocomplete="off" placeholder="权限口令（仅权限填写）" data-register-developer-secret style="margin-top: 12px;" />
+            </div>
+            <div class="auth-note">直接注册账号即可，系统不再使用验证码。</div>
+            <div class="auth-actions">
+              <button class="primary-btn" type="button" data-submit-register>注册并登录</button>
+            </div>
+            <div class="oauth-actions">
+              <button class="secondary-btn google-btn" type="button" data-google-login>
+                <span class="google-mark">G</span>
+                <span>使用 Google 注册 / 登录</span>
+              </button>
+            </div>
+            <div class="auth-status" data-register-status>等待填写注册信息。</div>
+
+            <div class="auth-divider">已有账号可直接扫码</div>
+            <section class="auth-qr-panel" data-qr-login-panel>
+              <div class="auth-qr-head">
+                <div>
+                  <strong>扫码登录</strong>
+                  <small>请用已经登录商店账号的设备扫码确认登录</small>
+                </div>
+                <button class="secondary-btn" type="button" data-qr-refresh>刷新二维码</button>
+              </div>
+              <div class="auth-qr-shell">
+                <div class="auth-qr-preview" data-qr-preview>
+                  <div class="auth-qr-placeholder" data-qr-placeholder>正在生成二维码...</div>
+                </div>
+                <div class="auth-qr-copy">
+                  <p data-qr-status>等待生成二维码。</p>
+                  <div class="auth-qr-meta">
+                    <span data-qr-expire>有效期：--</span>
+                  </div>
+                  <div class="auth-qr-links">
+                    <a class="secondary-btn qr-link-btn" href="/store-account.html" target="_blank" rel="noreferrer" data-qr-open aria-disabled="true">在已登录设备打开确认页</a>
+                    <button class="muted-btn" type="button" data-qr-copy-link disabled>复制确认链接</button>
+                  </div>
+                  <div class="auth-qr-link-text" data-qr-link-text>确认链接：--</div>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="auth-panel" data-auth-panel="login" hidden>
+            <div class="row">
+              <div class="field">
+                <label for="login-username">用户名</label>
+                <input id="login-username" type="text" autocomplete="username" placeholder="输入已有账号" data-login-username />
+              </div>
+              <div class="field">
+                <label for="login-email">邮箱</label>
+                <input id="login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email />
+              </div>
+            </div>
+            <div class="field">
+              <label for="login-password">密码登录</label>
+              <input id="login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password />
+            </div>
+            <div class="auth-note">密码登录为主要方式，已取消验证码登录。</div>
+            <div class="auth-actions">
+              <button class="primary-btn" type="button" data-submit-password-login>密码登录</button>
+            </div>
+            <div class="oauth-actions">
+              <button class="secondary-btn google-btn" type="button" data-google-login>
+                <span class="google-mark">G</span>
+                <span>使用 Google 登录</span>
+              </button>
+            </div>
+            <div class="auth-status" data-login-status>等待登录。</div>
+          </section>
+
+          <section class="scan-confirm-panel" data-scan-panel hidden>
+            <div class="scan-confirm-head">
+              <div>
+                <strong>扫码确认登录</strong>
+                <small>在已登录商店账号的设备上确认，把当前设备直接登录进来</small>
+              </div>
+            </div>
+            <p class="scan-confirm-copy" data-scan-copy>正在检查当前设备的登录状态。</p>
+            <div class="scan-confirm-meta">
+              <span data-scan-status>等待检查</span>
+              <span data-scan-expire>有效期：--</span>
+            </div>
+            <div class="scan-confirm-actions">
+              <button class="primary-btn" type="button" data-scan-approve disabled>确认登录</button>
+              <a href="/store-account.html?auth=login" class="secondary-btn qr-link-btn">返回账号中心</a>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const themeToggle = document.querySelector('[data-theme-toggle]');
+        const authTabs = Array.from(document.querySelectorAll('[data-auth-tab]'));
+        const authPanels = Array.from(document.querySelectorAll('[data-auth-panel]'));
+        const submitRegisterButton = document.querySelector('[data-submit-register]');
+        const submitPasswordLoginButton = document.querySelector('[data-submit-password-login]');
+        const googleLoginButtons = Array.from(document.querySelectorAll('[data-google-login]'));
+        const logoutButton = document.querySelector('[data-auth-logout]');
+        const rememberLoginInput = document.querySelector('[data-auth-remember-login]');
+        const rememberLoginPanel = document.querySelector('.auth-remember');
+        const authTabsRow = document.querySelector('.auth-tabs');
+        const registerUsernameInput = document.querySelector('[data-register-username]');
+        const registerEmailInput = document.querySelector('[data-register-email]');
+        const registerPasswordInput = document.querySelector('[data-register-password]');
+        const registerDeveloperToggleInput = document.querySelector('[data-register-developer-toggle]');
+        const registerDeveloperSecretInput = document.querySelector('[data-register-developer-secret]');
+        const loginUsernameInput = document.querySelector('[data-login-username]');
+        const loginEmailInput = document.querySelector('[data-login-email]');
+        const loginPasswordInput = document.querySelector('[data-login-password]');
+        const registerStatus = document.querySelector('[data-register-status]');
+        const loginStatus = document.querySelector('[data-login-status]');
+        const qrLoginPanel = document.querySelector('[data-qr-login-panel]');
+        const qrRefreshButton = document.querySelector('[data-qr-refresh]');
+        const qrPreview = document.querySelector('[data-qr-preview]');
+        const qrPlaceholder = document.querySelector('[data-qr-placeholder]');
+        const qrStatus = document.querySelector('[data-qr-status]');
+        const qrExpire = document.querySelector('[data-qr-expire]');
+        const qrOpenLink = document.querySelector('[data-qr-open]');
+        const qrCopyLinkButton = document.querySelector('[data-qr-copy-link]');
+        const qrLinkText = document.querySelector('[data-qr-link-text]');
+        const scanPanel = document.querySelector('[data-scan-panel]');
+        const scanCopy = document.querySelector('[data-scan-copy]');
+        const scanStatus = document.querySelector('[data-scan-status]');
+        const scanExpire = document.querySelector('[data-scan-expire]');
+        const scanApproveButton = document.querySelector('[data-scan-approve]');
+        let authMode = 'register';
+        const qrLoginPollIntervalMs = 2000;
+        const qrTicketLifetimeMs = 1000 * 60 * 3;
+        let qrLoginToken = '';
+        let qrLoginPollTimer = 0;
+        let qrLoginExpireTimer = 0;
+        let qrLoginExpiresAt = 0;
+        let qrLoginConfirmUrl = '';
+        let scanExpireTimer = 0;
+
+        function setTheme(theme) {
+          const normalized = theme === 'day' ? 'day' : 'night';
+          document.documentElement.setAttribute('data-theme', normalized);
+          themeToggle.textContent = normalized === 'day' ? '☀️ 白天' : '🌙 夜间';
+          try { localStorage.setItem('mctools-store-theme', normalized); } catch {}
+        }
+
+        function applyBackgroundImageFromApi() {
+          try {
+            const remoteUrl = `/api/store/background-image?ts=${Date.now()}`;
+            document.body.style.background = `
+              radial-gradient(ellipse at 15% 10%, rgba(255,255,255,0.46), transparent 30%),
+              radial-gradient(ellipse at 80% 6%, rgba(96,165,250,0.32), transparent 30%),
+              linear-gradient(180deg, rgba(15,23,42,0.18), rgba(15,23,42,0.08)),
+              url("${remoteUrl}") center/cover fixed no-repeat
+            `;
+          } catch {
+            // keep the storefront gradient background when the remote image is unavailable
+          }
+        }
+
+        function getPreferredTheme() {
+          try { return localStorage.getItem('mctools-store-theme') || 'night'; }
+          catch { return 'night'; }
+        }
+
+        function setAuthTab(nextMode) {
+          authMode = nextMode;
+          authTabs.forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.authTab === nextMode);
+          });
+          authPanels.forEach((panel) => {
+            const isActive = panel.dataset.authPanel === nextMode;
+            panel.hidden = !isActive;
+            panel.classList.toggle('active', isActive);
+          });
+        }
+
+        function setScanMode(active) {
+          if (authTabsRow) authTabsRow.hidden = active;
+          if (rememberLoginPanel) rememberLoginPanel.hidden = active;
+          authPanels.forEach((panel) => {
+            if (active) {
+              panel.hidden = true;
+              panel.classList.remove('active');
+            }
+          });
+          if (scanPanel) {
+            scanPanel.hidden = !active;
+          }
+        }
+
+        function setStatus(kind, text, isError = false) {
+          const target = kind === 'register' ? registerStatus : loginStatus;
+          if (!target) return;
+          target.textContent = text;
+          target.classList.toggle('error', isError);
+        }
+
+        function getCommunityAuthHeaders(extraHeaders = {}) {
+          const token = localStorage.getItem('mctools-auth-token');
+          return token
+            ? { ...extraHeaders, Authorization: `Bearer ${token}` }
+            : { ...extraHeaders };
+        }
+
+        function startGoogleLogin() {
+          const url = new URL('/api/community/google/authorize', window.location.origin);
+          url.searchParams.set('rememberLogin', rememberLoginInput?.checked ? '1' : '0');
+          url.searchParams.set('from', `/store-account.html?auth=${encodeURIComponent(authMode || 'register')}`);
+          window.location.href = url.toString();
+        }
+
+        function consumeGoogleAuthResult() {
+          const googleAuthMode = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
+          if (googleAuthMode === 'google_success') {
+            const token = String(bootUrl.searchParams.get('token') || '').trim();
+            const username = String(bootUrl.searchParams.get('username') || '').trim();
+            if (token) {
+              localStorage.setItem('mctools-auth-token', token);
+            }
+            setStatus('login', username ? `Google 登录成功，欢迎 ${username}。` : 'Google 登录成功。');
+            setStatus('register', username ? `Google 登录成功，欢迎 ${username}。` : 'Google 登录成功。');
+            const cleanUrl = new URL('/store.html', window.location.origin);
+            window.setTimeout(() => {
+              window.location.href = cleanUrl.toString();
+            }, 250);
+            return true;
+          }
+
+          if (googleAuthMode === 'google_error') {
+            const message = String(bootUrl.searchParams.get('message') || 'Google 登录失败').trim();
+            setStatus('login', message, true);
+            setStatus('register', message, true);
+            const fallbackMode = authMode === 'login' ? 'login' : 'register';
+            const cleanUrl = new URL('/store-account.html', window.location.origin);
+            cleanUrl.searchParams.set('auth', fallbackMode);
+            window.history.replaceState({}, '', cleanUrl.toString());
+          }
+
+          return false;
+        }
+
+        function clearQrTimers() {
+          if (qrLoginPollTimer) {
+            window.clearTimeout(qrLoginPollTimer);
+            qrLoginPollTimer = 0;
+          }
+          if (qrLoginExpireTimer) {
+            window.clearInterval(qrLoginExpireTimer);
+            qrLoginExpireTimer = 0;
+          }
+        }
+
+        function setQrStatus(text, isError = false) {
+          if (!qrStatus) return;
+          qrStatus.textContent = text;
+          qrStatus.style.color = isError ? '#b91c1c' : '';
+        }
+
+        function setQrExpireText() {
+          if (!qrExpire) return;
+          if (!qrLoginExpiresAt) {
+            qrExpire.textContent = '有效期：--';
+            return;
+          }
+          const remainSeconds = Math.max(0, Math.ceil((qrLoginExpiresAt - Date.now()) / 1000));
+          qrExpire.textContent = `有效期：${remainSeconds} 秒`;
+        }
+
+        function buildQrUrls(content, size) {
+          const encoded = encodeURIComponent(content);
+          return [
+            'https://api.qrserver.com/v1/create-qr-code/?data=' + encoded + '&size=' + size + 'x' + size + '&margin=12',
+            'https://quickchart.io/qr?text=' + encoded + '&size=' + size + '&margin=2'
+          ];
+        }
+
+        function buildCommunityQrConfirmUrl(token) {
+          const url = new URL('/store-account.html', window.location.origin);
+          url.searchParams.set('auth', 'scan');
+          url.searchParams.set('token', token);
+          if (rememberLoginInput?.checked) {
+            url.searchParams.set('rememberLogin', '1');
+          }
+          return url.toString();
+        }
+
+        function updateQrManualLink(url) {
+          qrLoginConfirmUrl = url || '';
+          if (qrOpenLink) {
+            qrOpenLink.href = qrLoginConfirmUrl || '/store-account.html?auth=login';
+            qrOpenLink.setAttribute('aria-disabled', qrLoginConfirmUrl ? 'false' : 'true');
+          }
+          if (qrCopyLinkButton) {
+            qrCopyLinkButton.disabled = !qrLoginConfirmUrl;
+          }
+          if (qrLinkText) {
+            qrLinkText.textContent = '确认链接：' + (qrLoginConfirmUrl || '--');
+          }
+        }
+
+        function renderQrImage(urls, index = 0) {
+          if (!qrPreview) return;
+          const resolvedUrls = Array.isArray(urls) ? urls.filter(Boolean) : [urls].filter(Boolean);
+          if (!resolvedUrls.length) {
+            setQrStatus('二维码生成失败，请改用确认链接', true);
+            return;
+          }
+          qrPreview.innerHTML = '';
+          const image = document.createElement('img');
+          image.src = resolvedUrls[index];
+          image.alt = '商店账号扫码登录二维码';
+          image.loading = 'lazy';
+          image.addEventListener('load', () => {
+            setQrStatus('请使用已登录商店账号的设备扫码确认');
+          });
+          image.addEventListener('error', () => {
+            if (index < resolvedUrls.length - 1) {
+              renderQrImage(resolvedUrls, index + 1);
+              return;
+            }
+            qrPreview.innerHTML = '';
+            if (qrPlaceholder) {
+              qrPlaceholder.hidden = false;
+              qrPreview.appendChild(qrPlaceholder);
+            }
+            setQrStatus('二维码加载失败，请使用下方确认链接', true);
+          });
+          qrPreview.appendChild(image);
+        }
+
+        async function pollCommunityQrLoginStatus() {
+          if (!qrLoginToken) {
+            return;
+          }
+          const rememberLogin = Boolean(rememberLoginInput?.checked);
+          try {
+            const response = await fetch(`/api/community/qr/status?token=${encodeURIComponent(qrLoginToken)}${rememberLogin ? '&rememberLogin=1' : ''}`);
+            const result = await response.json().catch(() => ({}));
+            if (response.status === 404) {
+              clearQrTimers();
+              setQrStatus(result.message || '二维码已失效，请刷新后重试', true);
+              return;
+            }
+            if (!response.ok) {
+              clearQrTimers();
+              setQrStatus(result.message || '扫码状态查询失败', true);
+              return;
+            }
+            if (typeof result.expiresInMs === 'number') {
+              qrLoginExpiresAt = Date.now() + Math.max(0, result.expiresInMs);
+              setQrExpireText();
+            }
+            if (result.status === 'approved' && result.token) {
+              clearQrTimers();
+              localStorage.setItem('mctools-auth-token', String(result.token));
+              setQrStatus('扫码登录成功，正在进入商店');
+              setStatus('login', '扫码登录成功，已登录。');
+              setStatus('register', '扫码登录成功，已登录。');
+              await loadAccountState();
+              window.location.href = '/store.html';
+              return;
+            }
+            qrLoginPollTimer = window.setTimeout(pollCommunityQrLoginStatus, qrLoginPollIntervalMs);
+          } catch {
+            qrLoginPollTimer = window.setTimeout(pollCommunityQrLoginStatus, qrLoginPollIntervalMs * 2);
+          }
+        }
+
+        async function refreshQrLogin() {
+          if (!qrPreview || !qrRefreshButton) {
+            return;
+          }
+          clearQrTimers();
+          qrRefreshButton.disabled = true;
+          qrLoginToken = '';
+          qrLoginExpiresAt = 0;
+          updateQrManualLink('');
+          if (qrPlaceholder) {
+            qrPlaceholder.hidden = false;
+            qrPreview.innerHTML = '';
+            qrPreview.appendChild(qrPlaceholder);
+          }
+          setQrStatus('正在生成二维码...');
+          setQrExpireText();
+
+          try {
+            const response = await fetch('/api/community/qr');
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result.token) {
+              setQrStatus(result.message || '二维码生成失败，请稍后重试', true);
+              return;
+            }
+            qrLoginToken = String(result.token).trim();
+            qrLoginExpiresAt = Date.now() + Math.max(0, Number(result.expiresInMs) || 0);
+            const confirmUrl = buildCommunityQrConfirmUrl(qrLoginToken);
+            updateQrManualLink(confirmUrl);
+            renderQrImage(buildQrUrls(confirmUrl, 220));
+            setQrExpireText();
+            qrLoginExpireTimer = window.setInterval(setQrExpireText, 1000);
+            qrLoginPollTimer = window.setTimeout(pollCommunityQrLoginStatus, qrLoginPollIntervalMs);
+          } catch {
+            setQrStatus('网络请求失败，请稍后重试', true);
+          } finally {
+            qrRefreshButton.disabled = false;
+          }
+        }
+
+        async function copyQrConfirmLink() {
+          if (!qrLoginConfirmUrl) {
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(qrLoginConfirmUrl);
+            setQrStatus('确认链接已复制，可发到已登录设备打开');
+          } catch {
+            setQrStatus('复制失败，请手动复制下方确认链接', true);
+          }
+        }
+
+        function setScanStatus(text, isError = false, isSuccess = false) {
+          if (!scanStatus) return;
+          scanStatus.textContent = text;
+          scanStatus.style.color = isSuccess ? '#15803d' : isError ? '#b91c1c' : '';
+        }
+
+        function startScanExpireCountdown(expiresAt) {
+          if (scanExpireTimer) {
+            window.clearInterval(scanExpireTimer);
+            scanExpireTimer = 0;
+          }
+          const render = () => {
+            if (!scanExpire) return;
+            const remainSeconds = Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000));
+            scanExpire.textContent = remainSeconds > 0 ? `有效期：${remainSeconds} 秒` : '有效期：已过期';
+            if (remainSeconds <= 0 && scanApproveButton) {
+              scanApproveButton.disabled = true;
+            }
+          };
+          render();
+          scanExpireTimer = window.setInterval(render, 1000);
+        }
+
+        async function checkScanLoginState(scanToken) {
+          if (!scanToken) {
+            if (scanCopy) scanCopy.textContent = '当前扫码参数无效，请返回原设备重新生成二维码。';
+            setScanStatus('缺少扫码票据', true);
+            if (scanExpire) scanExpire.textContent = '有效期：已失效';
+            return;
+          }
+          try {
+            const response = await fetch('/api/community/me', { headers: getCommunityAuthHeaders() });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok || !result?.loggedIn) {
+              if (scanCopy) scanCopy.textContent = '当前设备尚未登录商店账号，请先登录后再回来确认。';
+              setScanStatus('请先登录当前设备的商店账号', true);
+              return;
+            }
+            if (scanCopy) scanCopy.textContent = `当前设备已登录商店账号：${result.username}`;
+            if (scanApproveButton) scanApproveButton.disabled = false;
+            setScanStatus('可以确认登录');
+          } catch {
+            setScanStatus('登录状态检查失败，请稍后重试', true);
+          }
+        }
+
+        async function approveScanLogin(scanToken) {
+          if (!scanToken || !scanApproveButton) {
+            return;
+          }
+          scanApproveButton.disabled = true;
+          setScanStatus('正在确认登录...');
+          try {
+            const response = await fetch('/api/community/qr/approve', {
+              method: 'POST',
+              headers: getCommunityAuthHeaders({ 'Content-Type': 'application/json; charset=utf-8' }),
+              body: JSON.stringify({ token: scanToken })
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              scanApproveButton.disabled = false;
+              setScanStatus(result.message || '确认失败，请稍后重试', true);
+              return;
+            }
+            if (scanCopy) scanCopy.textContent = '原设备会自动完成登录，可返回原设备继续使用。';
+            setScanStatus(result.message || '确认成功', false, true);
+            if (scanExpire) scanExpire.textContent = '有效期：已确认';
+          } catch {
+            scanApproveButton.disabled = false;
+            setScanStatus('网络请求失败，请稍后重试', true);
+          }
+        }
+
+        async function loadAccountState() {
+          try {
+            const token = localStorage.getItem('mctools-auth-token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            const response = await fetch('/api/community/me', { headers });
+            if (!response.ok) {
+              logoutButton.hidden = true;
+              return;
+            }
+            const result = await response.json();
+            if (result?.loggedIn && result?.username) {
+              logoutButton.hidden = false;
+              logoutButton.textContent = `退出登录 · ${result.username}`;
+            } else {
+              logoutButton.hidden = true;
+            }
+          } catch {
+            logoutButton.hidden = true;
+          }
+        }
+
+        async function submitRegisterAccount() {
+          const username = (registerUsernameInput?.value || '').trim();
+          const email = (registerEmailInput?.value || '').trim().toLowerCase();
+          const password = (registerPasswordInput?.value || '').trim();
+          const rememberLogin = Boolean(rememberLoginInput?.checked);
+
+          if (!username) {
+            setStatus('register', '请先填写用户名', true);
+            return;
+          }
+          if (!email) {
+            setStatus('register', '请先填写邮箱地址', true);
+            return;
+          }
+          if (password.length < 6 || password.length > 64) {
+            setStatus('register', '请填写 6-64 位登录密码', true);
+            return;
+          }
+
+          setStatus('register', '正在注册账号...');
+          try {
+            const response = await fetch('/api/community/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({
+                username,
+                email,
+                password,
+                rememberLogin,
+                registerAsDeveloper: Boolean(registerDeveloperToggleInput?.checked),
+                developerSecret: String(registerDeveloperSecretInput?.value || '').trim()
+              })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || '注册失败');
+            const token = String(result?.token || '').trim();
+            if (token) localStorage.setItem('mctools-auth-token', token);
+            setStatus('register', '注册成功，已登录。');
+            await loadAccountState();
+            setTimeout(() => { window.location.href = '/store.html'; }, 250);
+          } catch (error) {
+            setStatus('register', error.message || '注册失败', true);
+          }
+        }
+
+        async function submitPasswordLogin() {
+          const username = (loginUsernameInput?.value || '').trim();
+          const email = (loginEmailInput?.value || '').trim().toLowerCase();
+          const password = (loginPasswordInput?.value || '').trim();
+          const rememberLogin = Boolean(rememberLoginInput?.checked);
+          if (!username && !email) {
+            setStatus('login', '请填写用户名或邮箱', true);
+            return;
+          }
+          if (!password) {
+            setStatus('login', '请输入登录密码', true);
+            return;
+          }
+
+          setStatus('login', '正在校验密码...');
+          try {
+            const response = await fetch('/api/community/password-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json; charset=utf-8' },
+              body: JSON.stringify({ username, email, password, rememberLogin })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || '密码登录失败');
+            const token = String(result?.token || '').trim();
+            if (token) localStorage.setItem('mctools-auth-token', token);
+            setStatus('login', '密码登录成功，已登录。');
+            await loadAccountState();
+            setTimeout(() => { window.location.href = '/store.html'; }, 250);
+          } catch (error) {
+            setStatus('login', error.message || '密码登录失败', true);
+          }
+        }
+
+        async function submitLogout() {
+          if (!window.confirm('确认退出当前账号吗？')) {
+            setStatus('login', '已取消退出登录。');
+            setStatus('register', '已取消退出登录。');
+            return;
+          }
+
+          try { await fetch('/api/community/logout', { method: 'POST' }); } catch {}
+          localStorage.removeItem('mctools-auth-token');
+          logoutButton.hidden = true;
+          setStatus('login', '已退出登录。');
+          setStatus('register', '已退出登录。');
+        }
+
+        authTabs.forEach((tab) => {
+          tab.addEventListener('click', () => setAuthTab(tab.dataset.authTab));
+        });
+
+        submitRegisterButton.addEventListener('click', submitRegisterAccount);
+        submitPasswordLoginButton.addEventListener('click', submitPasswordLogin);
+        googleLoginButtons.forEach((button) => button.addEventListener('click', startGoogleLogin));
+        logoutButton.addEventListener('click', submitLogout);
+        if (qrRefreshButton) qrRefreshButton.addEventListener('click', refreshQrLogin);
+        if (qrCopyLinkButton) qrCopyLinkButton.addEventListener('click', copyQrConfirmLink);
+
+        themeToggle.addEventListener('click', () => {
+          const nextTheme = document.documentElement.getAttribute('data-theme') === 'day' ? 'night' : 'day';
+          setTheme(nextTheme);
+        });
+
+        const bootUrl = new URL(window.location.href);
+        const authModeFromUrl = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
+        const scanToken = String(bootUrl.searchParams.get('token') || '').trim();
+        const isScanMode = authModeFromUrl === 'scan';
+        if (authModeFromUrl === 'login') setAuthTab('login');
+        else if (authModeFromUrl === 'register') setAuthTab('register');
+
+        setTheme(getPreferredTheme());
+        if (!isScanMode) {
+          setAuthTab(authMode);
+        }
+        setScanMode(isScanMode);
+        applyBackgroundImageFromApi();
+        loadAccountState();
+
+        if (consumeGoogleAuthResult()) {
+          return;
+        }
+
+        if (isScanMode) {
+          startScanExpireCountdown(Date.now() + qrTicketLifetimeMs);
+          if (scanApproveButton) {
+            scanApproveButton.addEventListener('click', () => approveScanLogin(scanToken));
+          }
+          checkScanLoginState(scanToken);
+        } else {
+          refreshQrLogin();
+          rememberLoginInput?.addEventListener('change', () => {
+            if (!qrLoginToken) {
+              return;
+            }
+            const confirmUrl = buildCommunityQrConfirmUrl(qrLoginToken);
+            updateQrManualLink(confirmUrl);
+            renderQrImage(buildQrUrls(confirmUrl, 220));
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

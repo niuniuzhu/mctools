@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>开发者控制面板</title>
+    <title>权限控制面板</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; }
       html, body { margin: 0; min-height: 100%; }
@@ -228,6 +228,31 @@
         font-size: 0.9rem;
         line-height: 1.6;
       }
+      .admin-category-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-bottom: 10px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+      }
+      .admin-category-tab {
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(248, 250, 252, 0.9);
+        color: #334155;
+        border-radius: 999px;
+        padding: 8px 16px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .admin-category-tab.active {
+        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        border-color: #1d4ed8;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+      }
+      .admin-category-panel[hidden] { display: none; }
       .admin-table {
         display: grid;
         gap: 10px;
@@ -401,91 +426,128 @@
 
         <div class="gate" data-gate hidden>
           <h2>暂时无法操作</h2>
-          <div>请先使用开发者账号登录，登录成功后刷新本页面。</div>
+          <div>请先使用权限账号登录，登录成功后刷新本页面。</div>
           <div class="gate-actions">
-            <a class="link-btn primary" href="/store.html?auth=login">登录开发者账号</a>
-            <a class="link-btn" href="/developer-entry.html">开发者入口校验</a>
+            <a class="link-btn primary" href="/store.html?auth=login">登录权限账号</a>
+            <a class="link-btn" href="/developer-entry.html">权限入口校验</a>
           </div>
         </div>
 
         <div class="admin-panel" data-admin-panel hidden>
+          <div class="admin-category-tabs" data-admin-category-tabs>
+            <button type="button" class="admin-category-tab active" data-admin-tab="overview">站点设置</button>
+            <button type="button" class="admin-category-tab" data-admin-tab="products">商品管理</button>
+            <button type="button" class="admin-category-tab" data-admin-tab="cards">卡密管理</button>
+            <button type="button" class="admin-category-tab" data-admin-tab="orders">订单管理</button>
+          </div>
+
           <div data-edit-only>
-          <div class="section-title">站点维护</div>
-          <div class="settings-block">
-            <label class="toggle-row">
-              <input type="checkbox" data-site-maintenance-enabled />
-              <span>开启站点维护，普通用户将看到维护页</span>
-            </label>
-            <textarea placeholder="维护提示，例如：站点正在升级，请稍后再来。" data-site-maintenance-message></textarea>
-            <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
-            <input type="text" placeholder="预计恢复时间，例如：2026-07-08 18:00" data-site-maintenance-until />
-            <div class="settings-note">开启后，商店页会自动切换到维护界面；开发者仍可进入后台关闭开关。</div>
-          </div>
+            <div class="admin-category-panel" data-admin-category-panel="overview">
+              <div class="section-title">站点维护</div>
+              <div class="settings-block">
+                <label class="toggle-row">
+                  <input type="checkbox" data-site-maintenance-enabled />
+                  <span>开启站点维护，普通用户将看到维护页</span>
+                </label>
+                <textarea placeholder="维护提示，例如：站点正在升级，请稍后再来。" data-site-maintenance-message></textarea>
+                <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
+                <input type="text" placeholder="预计恢复时间，例如：2026-07-08 18:00" data-site-maintenance-until />
+                <div class="settings-note">开启后，商店页会自动切换到维护界面；权限仍可进入后台关闭开关。</div>
+              </div>
 
-          <div class="section-title">公告和白名单</div>
-          <div class="settings-block">
-            <textarea placeholder="公告内容，例如：购买功能已正常开放" data-store-announcement></textarea>
-            <div class="settings-inline">
-              <input type="text" placeholder="输入要加入白名单的用户名" data-store-whitelist-input />
-              <button type="button" class="primary" data-store-whitelist-add>添加白名单</button>
+              <div class="section-title">公告和白名单</div>
+              <div class="settings-block">
+                <textarea placeholder="公告内容，例如：购买功能已正常开放" data-store-announcement></textarea>
+                <div class="settings-inline">
+                  <input type="text" placeholder="输入要加入白名单的用户名" data-store-whitelist-input />
+                  <button type="button" class="primary" data-store-whitelist-add>添加白名单</button>
+                </div>
+                <textarea placeholder="白名单用户名，每行一个，例如：霜庭幻影" data-store-whitelist hidden></textarea>
+                <div class="whitelist-list" data-store-whitelist-list></div>
+                <div class="settings-note">白名单用户名会被识别为管理账号，同时会显示在商店页的管理白名单和在线账号榜中。</div>
+                <textarea placeholder="订单查看员用户名，每行一个，例如：订单小助手" data-store-order-viewers hidden></textarea>
+                <div class="whitelist-list" data-store-order-viewer-list></div>
+                <div>
+                  <button type="button" class="primary" data-store-settings-save>保存公告和白名单</button>
+                </div>
+              </div>
             </div>
-            <textarea placeholder="白名单用户名，每行一个，例如：霜庭幻影" data-store-whitelist hidden></textarea>
-            <div class="whitelist-list" data-store-whitelist-list></div>
-            <div class="settings-note">白名单用户名会被识别为管理账号，同时会显示在商店页的管理白名单和在线账号榜中。</div>
-            <textarea placeholder="订单查看员用户名，每行一个，例如：订单小助手" data-store-order-viewers hidden></textarea>
-            <div class="whitelist-list" data-store-order-viewer-list></div>
-            <div>
-              <button type="button" class="primary" data-store-settings-save>保存公告和白名单</button>
+
+            <div class="admin-category-panel" data-admin-category-panel="products" hidden>
+              <div class="section-title">新增商品</div>
+              <div class="admin-grid">
+                <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-create-code />
+                <input type="text" placeholder="商品名称" data-create-name />
+                <input type="text" placeholder="分类，如 指令代做" data-create-category />
+                <input type="number" min="1" step="1" placeholder="原价(分)" data-create-original />
+                <input type="number" min="1" step="1" placeholder="优惠价(分)" data-create-sale />
+                <input type="number" min="0" step="1" placeholder="库存(0=无库存)" data-create-stock />
+                <input type="number" step="1" placeholder="排序(小的在前)" data-create-sort />
+              </div>
+              <textarea placeholder="商品描述" data-create-description></textarea>
+              <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-create-tags />
+              <input type="text" placeholder="商品图片地址（可选，支持 /product-images/... 或 http(s)://...）" data-create-image-url />
+              <div>
+                <button type="button" class="primary" data-create-submit>新增商品</button>
+              </div>
+
+              <div class="section-title">商品管理</div>
+              <div class="admin-table" data-admin-table></div>
             </div>
-          </div>
 
-          <div class="section-title">新增商品</div>
-          <div class="admin-grid">
-            <input type="text" placeholder="商品编码，如 NEW-PRODUCT" data-create-code />
-            <input type="text" placeholder="商品名称" data-create-name />
-            <input type="text" placeholder="分类，如 指令代做" data-create-category />
-            <input type="number" min="1" step="1" placeholder="原价(分)" data-create-original />
-            <input type="number" min="1" step="1" placeholder="优惠价(分)" data-create-sale />
-            <input type="number" min="0" step="1" placeholder="库存(0=无库存)" data-create-stock />
-            <input type="number" step="1" placeholder="排序(小的在前)" data-create-sort />
-          </div>
-          <textarea placeholder="商品描述" data-create-description></textarea>
-          <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-create-tags />
-          <input type="text" placeholder="商品图片地址（可选，支持 /product-images/... 或 http(s)://...）" data-create-image-url />
-          <div>
-            <button type="button" class="primary" data-create-submit>新增商品</button>
-          </div>
-
-          <div class="section-title">商品管理</div>
-          <div class="admin-table" data-admin-table></div>
-          </div>
-
-          <div class="section-title">订单管理</div>
-          <div class="settings-block">
-            <div class="settings-note">这里会显示最近订单，订单查看员可以只看订单，开发者可以查看并继续操作商品和维护设置。</div>
-            <div class="order-toolbar">
-              <input type="text" placeholder="搜索订单号、商品、联系方式或备注" data-order-query />
-              <select data-order-status-filter>
-                <option value="ALL">全部状态</option>
-                <option value="PENDING">PENDING</option>
-                <option value="SUCCESS">SUCCESS</option>
-                <option value="TRADE_SUCCESS">TRADE_SUCCESS</option>
-                <option value="PAID">PAID</option>
-                <option value="SHIPPED">SHIPPED</option>
-                <option value="DELIVERED">DELIVERED</option>
-                <option value="CANCELLED">CANCELLED</option>
-                <option value="REFUNDED">REFUNDED</option>
-              </select>
-              <select data-order-payment-filter>
-                <option value="ALL">全部支付方式</option>
-                <option value="wechat">微信</option>
-                <option value="alipay">支付宝</option>
-              </select>
-              <button type="button" class="primary" data-order-refresh>刷新</button>
-              <button type="button" class="warn" data-order-export>导出CSV</button>
-              <div class="settings-note order-summary-line" data-order-summary>暂无订单数据</div>
+            <div class="admin-category-panel" data-admin-category-panel="cards" hidden>
+              <div class="section-title">卡密库存管理</div>
+              <div class="settings-block">
+                <div class="settings-note">这里按商品编码管理卡密库存：可批量生成、追加、删除，不会影响订单记录，但订单发货会优先消耗未使用卡密。</div>
+                <div class="settings-note">当前商品列表：点击任一商品可直接切换到对应卡密库存。</div>
+                <div class="settings-inline" data-card-product-picker></div>
+                <div class="settings-inline">
+                  <input type="text" placeholder="商品编码，如 LOW-AGENT-30" data-card-product-code />
+                  <button type="button" class="primary" data-card-load>加载卡密</button>
+                </div>
+                <div class="settings-inline">
+                  <input type="number" min="1" step="1" placeholder="生成数量" data-card-generate-count />
+                  <input type="text" placeholder="卡密标签（可选）" data-card-label />
+                  <button type="button" class="primary" data-card-generate>生成卡密</button>
+                </div>
+                <textarea placeholder="手动追加卡密，每行一个，或逗号分隔" data-card-secret-text></textarea>
+                <div class="settings-inline">
+                  <button type="button" class="warn" data-card-append>追加卡密</button>
+                </div>
+                <div class="status" data-card-summary>暂无卡密数据</div>
+                <div class="admin-table" data-card-table></div>
+              </div>
             </div>
-            <div class="admin-table" data-order-table></div>
+
+            <div class="admin-category-panel" data-admin-category-panel="orders" hidden>
+              <div class="section-title">订单管理</div>
+              <div class="settings-block">
+                <div class="settings-note">这里会显示最近订单，订单查看员可以只看订单，权限可以查看并继续操作商品和维护设置。</div>
+                <div class="order-toolbar">
+                  <input type="text" placeholder="搜索订单号、商品、联系方式或备注" data-order-query />
+                  <select data-order-status-filter>
+                    <option value="ALL">全部状态</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="SUCCESS">SUCCESS</option>
+                    <option value="TRADE_SUCCESS">TRADE_SUCCESS</option>
+                    <option value="PAID">PAID</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="DELIVERED">DELIVERED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                    <option value="REFUNDED">REFUNDED</option>
+                  </select>
+                  <select data-order-payment-filter>
+                    <option value="ALL">全部支付方式</option>
+                    <option value="wechat">微信</option>
+                    <option value="alipay">支付宝</option>
+                  </select>
+                  <button type="button" class="primary" data-order-refresh>刷新</button>
+                  <button type="button" class="warn" data-order-export>导出CSV</button>
+                  <div class="settings-note order-summary-line" data-order-summary>暂无订单数据</div>
+                </div>
+                <div class="admin-table" data-order-table></div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -496,6 +558,8 @@
         const statusBox = document.querySelector('[data-status]');
         const gate = document.querySelector('[data-gate]');
         const adminPanel = document.querySelector('[data-admin-panel]');
+        const adminTabButtons = Array.from(document.querySelectorAll('[data-admin-tab]'));
+        const adminCategoryPanels = Array.from(document.querySelectorAll('[data-admin-category-panel]'));
         const adminTable = document.querySelector('[data-admin-table]');
         const refreshButton = document.querySelector('[data-refresh]');
         const clearTokenButton = document.querySelector('[data-clear-token]');
@@ -532,6 +596,16 @@
         const createImageUrl = document.querySelector('[data-create-image-url]');
         const createSubmit = document.querySelector('[data-create-submit]');
 
+        const cardProductCodeInput = document.querySelector('[data-card-product-code]');
+        const cardGenerateCountInput = document.querySelector('[data-card-generate-count]');
+        const cardLabelInput = document.querySelector('[data-card-label]');
+        const cardSecretTextInput = document.querySelector('[data-card-secret-text]');
+        const cardLoadButton = document.querySelector('[data-card-load]');
+        const cardGenerateButton = document.querySelector('[data-card-generate]');
+        const cardAppendButton = document.querySelector('[data-card-append]');
+        const cardSummary = document.querySelector('[data-card-summary]');
+        const cardTable = document.querySelector('[data-card-table]');
+
         const accountState = {
           loggedIn: false,
           isDeveloper: false,
@@ -566,6 +640,21 @@
         function setEditOnlyView(canEdit) {
           editOnlySections.forEach((section) => {
             section.hidden = !canEdit;
+          });
+        }
+
+        function setAdminCategory(category) {
+          const selectedCategory = String(category || 'overview');
+
+          adminTabButtons.forEach((button) => {
+            const isActive = button.dataset.adminTab === selectedCategory;
+            button.classList.toggle('active', isActive);
+            button.setAttribute('aria-pressed', String(isActive));
+          });
+
+          adminCategoryPanels.forEach((panel) => {
+            const shouldShow = panel.dataset.adminCategoryPanel === selectedCategory;
+            panel.hidden = !shouldShow;
           });
         }
 
@@ -845,13 +934,13 @@
 
             if (!accountState.canEditStore) {
               setAccessView(false);
-              setStatus('仅开发者账号可进入控制面板。', true);
+              setStatus('仅权限账号可进入控制面板。', true);
               return false;
             }
 
             setAccessView(true);
             setEditOnlyView(accountState.canEditStore);
-            setStatus(accountState.canEditStore ? '开发者权限验证通过，正在加载数据...' : '订单查看权限验证通过，正在加载订单...');
+            setStatus(accountState.canEditStore ? '权限权限验证通过，正在加载数据...' : '订单查看权限验证通过，正在加载订单...');
             return true;
           } catch (error) {
             setAccessView(false);
@@ -904,6 +993,7 @@
                 <div class="admin-row-actions">
                   <button class="mini-btn primary" type="button" data-admin-save>保存</button>
                   <button class="mini-btn warn" type="button" data-admin-toggle>${product.isActive ? '下架' : '上架'}</button>
+                  <button class="mini-btn" type="button" data-admin-delete>删除</button>
                 </div>
               </div>
             `;
@@ -913,6 +1003,163 @@
         function formatMoney(fen) {
           const amount = Number(fen || 0) / 100;
           return new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(amount);
+        }
+
+        function renderCardProductPicker(products = []) {
+          const picker = document.querySelector('[data-card-product-picker]');
+          if (!picker) return;
+
+          const list = Array.isArray(products) ? products : [];
+          if (list.length === 0) {
+            picker.innerHTML = '<div class="settings-note">暂无商品，请先新增商品。</div>';
+            return;
+          }
+
+          picker.innerHTML = list.map((product) => {
+            const code = String(product?.productCode || '').trim();
+            const name = String(product?.name || '').trim() || code || '未命名商品';
+            const active = String(code || '').toUpperCase() === String(cardProductCodeInput?.value || '').trim().toUpperCase();
+            return `
+              <button type="button" class="mini-btn ${active ? 'primary' : ''}" data-card-product-select="${escapeHtml(code)}">
+                ${escapeHtml(code || name)} · ${escapeHtml(name)}
+              </button>
+            `;
+          }).join('');
+        }
+
+        function renderCardSecretsTable(rows) {
+          if (!cardTable) return;
+
+          const secrets = Array.isArray(rows) ? rows : [];
+          renderCardProductPicker(adminProducts);
+          if (secrets.length === 0) {
+            cardTable.innerHTML = '<div class="status">暂无可用卡密，先生成或追加。</div>';
+            return;
+          }
+
+          cardTable.innerHTML = secrets.map((secret) => `
+            <div class="admin-row" data-card-secret-row>
+              <div>
+                <div class="order-row-title">${escapeHtml(secret.secretCode || '')}</div>
+                <div class="order-row-subtitle">${escapeHtml(secret.productCode || '')}</div>
+              </div>
+              <div>
+                <div class="order-row-title">${escapeHtml(secret.label || '未命名')}</div>
+                <div class="order-row-subtitle">${escapeHtml(secret.isUsed ? '已使用' : '未使用')}</div>
+              </div>
+              <div>
+                <div class="order-row-title">${secret.isUsed ? '已绑定' : '未绑定'}</div>
+                <div class="order-row-subtitle">${escapeHtml(secret.usedOrderNo || '--')}</div>
+              </div>
+              <div>
+                <div class="order-row-title">${escapeHtml(secret.createdAt || '--')}</div>
+                <div class="order-row-subtitle">更新：${escapeHtml(secret.updatedAt || '--')}</div>
+              </div>
+              <div class="admin-row-actions">
+                <button type="button" class="mini-btn warn" data-card-delete="${escapeHtml(secret.secretCode || '')}">删除</button>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        async function loadCardSecrets(productCode = '') {
+          const code = String(productCode || cardProductCodeInput?.value || '').trim().toUpperCase();
+          if (!code) {
+            if (cardSummary) cardSummary.textContent = '请输入商品编码后再加载卡密库存';
+            if (cardTable) cardTable.innerHTML = '<div class="status">请输入商品编码。</div>';
+            return;
+          }
+
+          setStatus('正在加载卡密库存...');
+          const response = await fetch(`/api/store/card-secrets?productCode=${encodeURIComponent(code)}`, {
+            headers: getAuthHeaders()
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '加载卡密库存失败');
+          }
+
+          if (cardSummary) {
+            cardSummary.textContent = `商品 ${code}：共 ${result.total || 0} 条，未使用 ${result.available || 0} 条，已使用 ${result.used || 0} 条`;
+          }
+          renderCardSecretsTable(result.secrets || []);
+          if (cardProductCodeInput) cardProductCodeInput.value = code;
+          return result;
+        }
+
+        async function createCardSecrets() {
+          const productCode = String(cardProductCodeInput?.value || '').trim().toUpperCase();
+          const count = Number(cardGenerateCountInput?.value || 0);
+          const label = String(cardLabelInput?.value || '').trim();
+          if (!productCode) {
+            throw new Error('请先填写商品编码');
+          }
+          if (!Number.isInteger(count) || count <= 0) {
+            throw new Error('生成数量必须为大于 0 的整数');
+          }
+
+          const response = await fetch('/api/store/card-secrets/generate', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ productCode, count, label })
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '生成卡密失败');
+          }
+
+          if (cardSummary) {
+            cardSummary.textContent = `${result.message || '已生成卡密'}，商品 ${productCode} 当前未使用 ${result.available || 0} 条`;
+          }
+          renderCardSecretsTable(result.secrets || []);
+          return result;
+        }
+
+        async function appendCardSecrets() {
+          const productCode = String(cardProductCodeInput?.value || '').trim().toUpperCase();
+          const secretText = String(cardSecretTextInput?.value || '').trim();
+          if (!productCode) {
+            throw new Error('请先填写商品编码');
+          }
+          if (!secretText) {
+            throw new Error('请先填写要追加的卡密内容');
+          }
+
+          const response = await fetch('/api/store/card-secrets/generate', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ productCode, secretText, label: String(cardLabelInput?.value || '').trim() })
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '追加卡密失败');
+          }
+
+          if (cardSecretTextInput) cardSecretTextInput.value = '';
+          if (cardSummary) {
+            cardSummary.textContent = `${result.message || '已追加卡密'}，商品 ${productCode} 当前未使用 ${result.available || 0} 条`;
+          }
+          renderCardSecretsTable(result.secrets || []);
+          return result;
+        }
+
+        async function deleteCardSecret(secretCode) {
+          const productCode = String(cardProductCodeInput?.value || '').trim().toUpperCase();
+          const response = await fetch('/api/store/card-secrets/delete', {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ productCode, secretCode })
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.message || '删除卡密失败');
+          }
+
+          if (cardSummary) {
+            cardSummary.textContent = `${result.message || '已删除卡密'}，商品 ${productCode || '全部'} 当前未使用 ${result.available || 0} 条`;
+          }
+          await loadCardSecrets(productCode);
+          return result;
         }
 
         function renderOrderTable() {
@@ -1056,6 +1303,7 @@
 
               adminProducts = Array.isArray(result?.products) ? result.products : [];
               renderAdminTable();
+              renderCardProductPicker(adminProducts);
             }
 
             if (accountState.canViewOrders) {
@@ -1180,6 +1428,84 @@
               setStatus(`已刷新 ${adminOrders.length} 笔订单。`);
             } catch (error) {
               setStatus(error.message || '刷新订单失败', true);
+            }
+          });
+        }
+
+        if (cardLoadButton) {
+          cardLoadButton.addEventListener('click', async () => {
+            try {
+              await loadCardSecrets();
+              setStatus('已加载当前商品的卡密库存。');
+            } catch (error) {
+              setStatus(error.message || '加载卡密失败', true);
+            }
+          });
+        }
+
+        if (cardGenerateButton) {
+          cardGenerateButton.addEventListener('click', async () => {
+            try {
+              if (!confirmCriticalAction('确认批量生成当前商品的卡密库存吗？')) {
+                setStatus('已取消生成卡密。');
+                return;
+              }
+              await createCardSecrets();
+              setStatus('卡密生成成功。');
+            } catch (error) {
+              setStatus(error.message || '生成卡密失败', true);
+            }
+          });
+        }
+
+        if (cardAppendButton) {
+          cardAppendButton.addEventListener('click', async () => {
+            try {
+              if (!confirmCriticalAction('确认追加这些卡密到当前商品库存中吗？')) {
+                setStatus('已取消追加卡密。');
+                return;
+              }
+              await appendCardSecrets();
+              setStatus('卡密追加成功。');
+            } catch (error) {
+              setStatus(error.message || '追加卡密失败', true);
+            }
+          });
+        }
+
+        if (document.querySelector('[data-card-product-picker]')) {
+          document.querySelector('[data-card-product-picker]').addEventListener('click', async (event) => {
+            const button = event.target.closest('[data-card-product-select]');
+            if (!button) return;
+            const nextCode = String(button.dataset.cardProductSelect || '').trim().toUpperCase();
+            if (!nextCode) return;
+            if (cardProductCodeInput) {
+              cardProductCodeInput.value = nextCode;
+            }
+            try {
+              await loadCardSecrets(nextCode);
+              setStatus(`已切换到商品 ${nextCode} 的卡密列表。`);
+            } catch (error) {
+              setStatus(error.message || '切换商品失败', true);
+            }
+          });
+        }
+
+        if (cardTable) {
+          cardTable.addEventListener('click', async (event) => {
+            const deleteButton = event.target.closest('[data-card-delete]');
+            if (!deleteButton) return;
+            const secretCode = String(deleteButton.dataset.cardDelete || '').trim();
+            if (!secretCode) return;
+            if (!confirmCriticalAction(`确认删除卡密 ${secretCode} 吗？`)) {
+              setStatus('已取消删除卡密。');
+              return;
+            }
+            try {
+              await deleteCardSecret(secretCode);
+              setStatus(`已删除卡密 ${secretCode}。`);
+            } catch (error) {
+              setStatus(error.message || '删除卡密失败', true);
             }
           });
         }
@@ -1361,6 +1687,7 @@
           adminTable.addEventListener('click', async (event) => {
             const saveButton = event.target.closest('[data-admin-save]');
             const toggleButton = event.target.closest('[data-admin-toggle]');
+            const deleteButton = event.target.closest('[data-admin-delete]');
             const row = event.target.closest('[data-admin-product-row]');
             if (!row) return;
 
@@ -1490,6 +1817,33 @@
               } catch (error) {
                 setStatus(error.message || '切换失败', true);
               }
+              return;
+            }
+
+            if (deleteButton) {
+              try {
+                if (!confirmCriticalAction(`确认删除商品 ${productCode} 及其卡密库存吗？`)) {
+                  setStatus('已取消删除商品。');
+                  return;
+                }
+
+                setStatus('正在删除商品...');
+                const response = await fetch('/api/store/products/delete', {
+                  method: 'POST',
+                  headers: getAuthHeaders(),
+                  body: JSON.stringify({ productCode })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.message || `删除失败 (${response.status})`);
+                }
+
+                setStatus(result.message || `商品 ${productCode} 已删除`);
+                await loadAdminProducts();
+              } catch (error) {
+                setStatus(error.message || '删除失败', true);
+              }
             }
           });
         }
@@ -1510,6 +1864,13 @@
             renderWhitelistList(nextList);
             setStatus(`已移出白名单：${removeName}`);
           });
+        }
+
+        if (adminTabButtons.length) {
+          adminTabButtons.forEach((button) => {
+            button.addEventListener('click', () => setAdminCategory(button.dataset.adminTab));
+          });
+          setAdminCategory('overview');
         }
 
         if (refreshButton) {

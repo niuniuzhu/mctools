@@ -30,8 +30,8 @@ function makeRequest(options, body) {
 (async () => {
   console.log('=== 测试控制面板上传流程 ===\n');
 
-  // 1. 创建测试开发者账号
-  console.log('1. 创建测试开发者账号...');
+  // 1. 创建测试权限账号
+  console.log('1. 创建测试权限账号...');
   const createDevRes = await makeRequest({
     hostname: '127.0.0.1',
     port: 3004,

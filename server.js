@@ -1,4 +1,4 @@
-﻿const http = require('http');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -186,6 +186,14 @@ const resolvedDatabasePath = resolveWritableDatabasePath();
 console.log(`SQLite database path: ${resolvedDatabasePath}`);
 const db = new DatabaseSync(resolvedDatabasePath);
 
+try {
+  db.exec('PRAGMA journal_mode = WAL');
+  db.exec('PRAGMA synchronous = NORMAL');
+  db.exec('PRAGMA busy_timeout = 5000');
+} catch {
+  // Keep startup resilient if a pragma is unsupported in the current runtime.
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -224,7 +232,7 @@ db.exec(`
     submitter_name TEXT NOT NULL,
     command_text TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
-    category TEXT NOT NULL DEFAULT '通用',
+    category TEXT NOT NULL DEFAULT 'ͨ��',
     status TEXT NOT NULL DEFAULT 'PENDING',
     reviewer_name TEXT NOT NULL DEFAULT '',
     review_note TEXT NOT NULL DEFAULT '',
@@ -255,6 +263,9 @@ try {
   }
   if (!communityColumns.includes('password_hash')) {
     db.exec("ALTER TABLE community_accounts ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''");
+  }
+  if (!communityColumns.includes('google_id')) {
+    db.exec('ALTER TABLE community_accounts ADD COLUMN google_id TEXT');
   }
 } catch {
   // Keep startup resilient if migration fails unexpectedly.
@@ -350,6 +361,9 @@ try {
   if (!storeOrderColumns.includes('buyer_note')) {
     db.exec('ALTER TABLE store_orders ADD COLUMN buyer_note TEXT NOT NULL DEFAULT ""');
   }
+  if (!storeOrderColumns.includes('quantity')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1');
+  }
   if (!storeOrderColumns.includes('card_secret')) {
     db.exec('ALTER TABLE store_orders ADD COLUMN card_secret TEXT NOT NULL DEFAULT \"\"');
   }
@@ -394,6 +408,19 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS store_card_secrets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT NOT NULL DEFAULT '',
+    secret_code TEXT NOT NULL UNIQUE,
+    label TEXT NOT NULL DEFAULT '',
+    is_used INTEGER NOT NULL DEFAULT 0,
+    used_order_no TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS lottery_prizes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -424,6 +451,7 @@ db.exec(`
     server_name TEXT NOT NULL,
     ip_address TEXT NOT NULL,
     avatar_path TEXT,
+    '/ai-shop.html',
     game_edition TEXT NOT NULL DEFAULT 'international',
     description TEXT NOT NULL DEFAULT '',
     server_type TEXT NOT NULL DEFAULT 'survival',
@@ -475,6 +503,7 @@ const sessions = new Map();
 const loginCaptchas = new Map();
 const localDevQuickEntryTokens = new Map();
 const qrLoginTickets = new Map();
+const communityQrLoginTickets = new Map();
 const plazaVerifyCodes = new Map(); // email -> {code, username, expiresAt}
 const plazaSessions = new Map();    // token -> {username, email, expiresAt}
 const communityVerifyCodes = new Map(); // email -> {code, username, expiresAt}
@@ -482,6 +511,7 @@ const communitySessions = new Map(); // token -> {username, email, expiresAt}
 const siteOnlineVisitors = new Map(); // visitorKey -> {lastSeenAt, pathname, userAgent}
 const captchaLifetimeMs = 1000 * 60 * 5;
 const qrLoginTicketLifetimeMs = 1000 * 60 * 3;
+const communityQrLoginTicketLifetimeMs = 1000 * 60 * 3;
 const plazaVerifyCodeLifetimeMs = 1000 * 60 * 10;
 const plazaSessionLifetimeMs = 1000 * 60 * 60 * 24 * 3;
 const communityVerifyCodeLifetimeMs = 1000 * 60 * 10;
@@ -491,52 +521,52 @@ const sessionScopePublic = 'public';
 const sessionScopeCommunity = 'community';
 const siteOnlineVisitorLifetimeMs = 1000 * 75;
 const watchedCommunityEmails = ['naicha638104@163.com', '3805506653@qq.com'];
-const defaultStoreWhitelistUsernames = ['霜庭幻影'];
-const defaultStoreAnnouncement = '购买功能已正常开放';
+const defaultStoreWhitelistUsernames = ['管理员'];
+const defaultStoreAnnouncement = '欢迎来到星际无限资源服商店，购买前请先确认联系方式与支付方式。';
 const defaultStoreMaintenanceMessage = '当前服务维护中，请稍后再试。';
 const authEmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/u;
 
 const defaultStoreProducts = [
   {
     productCode: '65997548',
-    name: '星际无限资源服管理',
-    description: '主商品：资源服管理服务。',
+    name: '星际无限资源服官方管理员',
+    description: '官方认证管理员权限，适合服主及运营管理。',
     originalPriceFen: 1500,
     salePriceFen: 100,
     stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 10,
-    tags: ['资源服', '官方', '热卖']
+    tags: ['资源服', '官方', '管理']
   },
   {
     productCode: 'CMD-20CB-IN',
-    name: '指令代做 · 20cb 以内',
-    description: '适合 20cb 以内基础指令代做。',
+    name: '指令生成 / 20cb 内部',
+    description: '适合 20cb 内部使用的指令生成服务。',
     originalPriceFen: 2000,
     salePriceFen: 100,
     stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 20,
-    tags: ['指令代做', '20cb以内']
+    tags: ['指令生成', '20cb内部']
   },
   {
     productCode: 'CMD-20CB-PLUS',
-    name: '指令代做 · 20cb 以上',
-    description: '适合 20cb 以上复杂指令代做。',
+    name: '指令生成 / 20cb 上层',
+    description: '适合 20cb 上层用户的高级指令生成服务。',
     originalPriceFen: 4000,
     salePriceFen: 100,
     stock: 0,
     currency: 'CNY',
     isActive: 1,
     sortOrder: 30,
-    tags: ['指令代做', '20cb以上']
+    tags: ['指令生成', '20cb上层']
   },
   {
     productCode: 'BUILD-IMPORT-ONCE',
     name: '建筑导入一次',
-    description: '一次性建筑导入服务。',
+    description: '一次性为服务器导入建筑方案。',
     originalPriceFen: 2000,
     salePriceFen: 100,
     stock: 0,
@@ -544,38 +574,62 @@ const defaultStoreProducts = [
     isActive: 1,
     sortOrder: 40,
     tags: ['建筑导入', '一次']
+  },
+  {
+    productCode: 'LOW-AGENT-30',
+    name: '低级代理',
+    description: '购买后永久享受八折优惠。',
+    originalPriceFen: 3000,
+    salePriceFen: 3000,
+    stock: 999,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 50,
+    tags: ['权限', '永久优惠', '八折']
+  },
+  {
+    productCode: 'MID-AGENT-100',
+    name: '中级代理',
+    description: '购买后永久享受七折优惠。',
+    originalPriceFen: 10000,
+    salePriceFen: 10000,
+    stock: 999,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 60,
+    tags: ['权限', '永久优惠', '七折']
   }
 ];
 
 const lotteryDrawPriceFen = 5000;
 const lotteryDailyDrawLimit = 2;
 const lotteryFeatureEnabled = false;
-const lotteryDisabledMessage = '抽奖活动暂时关闭，请等待后续开放通知';
+const lotteryDisabledMessage = '抽奖活动暂时关闭，敬请关注后续通知。';
 const defaultLotteryPrizes = [
   {
-    name: 'NB导入器一天',
-    description: 'NovaBuilder导入器【服务器/山头/本地联机/联网/大厅】 / 库存 1',
+    name: 'NB������һ��',
+    description: 'NovaBuilder��������������/ɽͷ/��������/����/������ / ��� 1',
     stock: 1,
     sortOrder: 10,
     isActive: 1
   },
   {
-    name: 'NF商业版一天',
-    description: 'NexusEgo导入器【山头/本地联机/服务器/联机大厅】 / 库存 61',
+    name: 'NF��ҵ��һ��',
+    description: 'NexusEgo��������ɽͷ/��������/������/���������� / ��� 61',
     stock: 61,
     sortOrder: 20,
     isActive: 1
   },
   {
-    name: 'FN导入器一天',
-    description: 'FlewNixe导入器【山头/本地联机/服务器】【动画群服/插件/开服工具】 / 库存 20',
+    name: 'FN������һ��',
+    description: 'FlewNixe��������ɽͷ/��������/��������������Ⱥ��/���/�������ߡ� / ��� 20',
     stock: 20,
     sortOrder: 30,
     isActive: 1
   },
   {
-    name: '商业面板-日卡',
-    description: 'Ae导入器（下版本不中支持，尽量购买ne弥NB） / 库存 6',
+    name: '��ҵ���-�տ�',
+    description: 'Ae���������°汾����֧�֣���������ne��NB�� / ��� 6',
     stock: 6,
     sortOrder: 40,
     isActive: 1
@@ -614,6 +668,42 @@ function seedStoreProductsIfEmpty() {
 }
 
 seedStoreProductsIfEmpty();
+
+function ensureRequiredStoreProducts() {
+  const existingCodes = new Set(
+    db.prepare('SELECT product_code FROM store_products').all().map((row) => String(row.product_code || '').trim()).filter(Boolean)
+  );
+
+  const missingProducts = defaultStoreProducts.filter((product) => !existingCodes.has(String(product.productCode || '').trim()));
+
+  if (missingProducts.length === 0) {
+    return;
+  }
+
+  const insert = db.prepare(
+    `INSERT INTO store_products (
+      product_code, name, description, image_url, original_price_fen, sale_price_fen, stock, currency, is_active, sort_order, tags_json
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+
+  for (const product of missingProducts) {
+    insert.run(
+      product.productCode,
+      product.name,
+      product.description,
+      '',
+      Number(product.originalPriceFen || 0),
+      Number(product.salePriceFen || 0),
+      Math.max(0, Number(product.stock || 0)),
+      product.currency || 'CNY',
+      Number(product.isActive ? 1 : 0),
+      Number(product.sortOrder || 100),
+      JSON.stringify(product.tags || [])
+    );
+  }
+}
+
+ensureRequiredStoreProducts();
 
 function seedLotteryPrizesIfEmpty() {
   const row = db.prepare('SELECT COUNT(1) AS count FROM lottery_prizes').get();
@@ -715,6 +805,55 @@ function sendFile(filePath, response) {
   });
 }
 
+function handleStoreBackgroundImage(request, response) {
+  const remoteUrl = 'https://api.yppp.net/api.php';
+  const visited = new Set();
+
+  const forwardRequest = (targetUrl, depth = 0) => {
+    if (depth > 6 || visited.has(targetUrl)) {
+      if (!response.headersSent) {
+        sendText(response, 502, 'Bad Gateway');
+      }
+      return;
+    }
+
+    visited.add(targetUrl);
+
+    https.get(targetUrl, (proxyResponse) => {
+      const statusCode = proxyResponse.statusCode || 200;
+      if (statusCode >= 300 && statusCode < 400 && proxyResponse.headers.location) {
+        const nextUrl = new URL(proxyResponse.headers.location, targetUrl).toString();
+        proxyResponse.resume();
+        forwardRequest(nextUrl, depth + 1);
+        return;
+      }
+
+      response.writeHead(statusCode, {
+        'Content-Type': proxyResponse.headers['content-type'] || 'image/jpeg',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      proxyResponse.on('data', (chunk) => response.write(chunk));
+      proxyResponse.on('end', () => response.end());
+      proxyResponse.on('error', () => {
+        if (!response.headersSent) {
+          sendText(response, 502, 'Bad Gateway');
+        } else {
+          response.end();
+        }
+      });
+    }).on('error', () => {
+      if (!response.headersSent) {
+        sendText(response, 502, 'Bad Gateway');
+      }
+    });
+  };
+
+  forwardRequest(remoteUrl);
+}
+
 function loadApiKeysConfig() {
   if (!fs.existsSync(apiKeysConfigPath)) {
     return {};
@@ -776,7 +915,10 @@ function getWechatPayConfig() {
     serialNo: getConfiguredValue('WECHATPAY_MERCHANT_SERIAL_NO', 'wechatPayMerchantSerialNo'),
     apiV3Key: getConfiguredValue('WECHATPAY_API_V3_KEY', 'wechatPayApiV3Key'),
     notifyUrl: getConfiguredValue('WECHATPAY_NOTIFY_URL', 'wechatPayNotifyUrl'),
-    privateKeyPem
+    privateKeyPem,
+    backupUrl: getConfiguredValue('WECHATPAY_BACKUP_URL', 'wechatPayBackupUrl'),
+    backupMerchantId: getConfiguredValue('WECHATPAY_BACKUP_MERCHANT_ID', 'wechatPayBackupMerchantId'),
+    backupApiKey: getConfiguredValue('WECHATPAY_BACKUP_API_KEY', 'wechatPayBackupApiKey')
   };
 }
 
@@ -784,16 +926,45 @@ function getWechatPayReadiness() {
   const config = getWechatPayConfig();
   const missing = [];
 
-  if (!config.appId) missing.push('appId');
-  if (!config.mchId) missing.push('mchId');
-  if (!config.serialNo) missing.push('serialNo');
-  if (!config.apiV3Key) missing.push('apiV3Key');
-  if (!config.notifyUrl) missing.push('notifyUrl');
-  if (!config.privateKeyPem) missing.push('privateKey');
+  const hasPrimaryWechatConfig = Boolean(config.appId && config.mchId && config.serialNo && config.apiV3Key && config.notifyUrl && config.privateKeyPem);
+  const hasBackupWechatConfig = Boolean(config.backupUrl && config.backupMerchantId && config.backupApiKey);
+
+  if (!hasPrimaryWechatConfig && !hasBackupWechatConfig) {
+    if (!config.appId) missing.push('appId');
+    if (!config.mchId) missing.push('mchId');
+    if (!config.serialNo) missing.push('serialNo');
+    if (!config.apiV3Key) missing.push('apiV3Key');
+    if (!config.notifyUrl) missing.push('notifyUrl');
+    if (!config.privateKeyPem) missing.push('privateKey');
+    if (!config.backupUrl) missing.push('backupUrl');
+    if (!config.backupMerchantId) missing.push('backupMerchantId');
+    if (!config.backupApiKey) missing.push('backupApiKey');
+  }
 
   return {
-    ready: missing.length === 0,
-    missing
+    ready: hasPrimaryWechatConfig || hasBackupWechatConfig,
+    missing,
+    hasPrimaryWechatConfig,
+    hasBackupWechatConfig
+  };
+}
+
+function getWechatBackupPayConfig() {
+  const createUrl = getConfiguredValue('WECHATPAY_BACKUP_URL', 'wechatPayBackupUrl');
+  const merchantId = getConfiguredValue('WECHATPAY_BACKUP_MERCHANT_ID', 'wechatPayBackupMerchantId');
+  const apiKey = getConfiguredValue('WECHATPAY_BACKUP_API_KEY', 'wechatPayBackupApiKey');
+
+  return {
+    createUrl: createUrl || '',
+    queryUrl: createUrl || '',
+    apiKey: apiKey || '',
+    merchantId: merchantId || '',
+    payType: 'wxpay',
+    signType: 'MD5',
+    notifyUrl: '',
+    returnUrl: '',
+    createMethod: 'POST',
+    queryMethod: 'POST'
   };
 }
 
@@ -972,7 +1143,7 @@ function sanitizeStoreTags(tagsInput) {
   }
 
   return String(tagsInput || '')
-    .split(/[,，]/)
+    .split(/[,��]/)
     .map((tag) => tag.trim())
     .filter(Boolean)
     .slice(0, 8);
@@ -1018,18 +1189,18 @@ function deleteStoreProductImageFiles(productCode) {
 function saveStoreProductImageFromDataUrl(productCode, imageData) {
   const match = /^data:image\/(png|jpeg|jpg|webp|gif);base64,([a-z0-9+/=\r\n]+)$/iu.exec(String(imageData || '').trim());
   if (!match) {
-    throw new Error('图片格式无效，仅支持 png/jpeg/jpg/webp/gif 的 Data URL');
+    throw new Error('ͼƬ��ʽ��Ч����֧�� png/jpeg/jpg/webp/gif �� Data URL');
   }
 
   const extension = match[1].toLowerCase() === 'jpeg' ? '.jpg' : `.${match[1].toLowerCase()}`;
   const buffer = Buffer.from(match[2], 'base64');
 
   if (buffer.length === 0) {
-    throw new Error('图片内容为空');
+    throw new Error('ͼƬ����Ϊ��');
   }
 
   if (buffer.length > 1024 * 1024 * 4) {
-    throw new Error('商品图片不能超过 4MB');
+    throw new Error('��ƷͼƬ���ܳ��� 4MB');
   }
 
   const normalizedCode = String(productCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '_');
@@ -1046,7 +1217,7 @@ function requireCommunityDeveloper(request, response) {
   const session = getCommunitySessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录社区账号' });
+    sendJson(response, 401, { message: '���ȵ�¼�����˺�' });
     return null;
   }
 
@@ -1054,7 +1225,7 @@ function requireCommunityDeveloper(request, response) {
   const isCommunityDeveloper = Boolean(session.isDeveloper || account?.isDeveloper || isDeveloper(session.username));
 
   if (!isCommunityDeveloper) {
-    sendJson(response, 403, { message: '仅开发者可操作商品配置' });
+    sendJson(response, 403, { message: '��Ȩ�޿ɲ�����Ʒ����' });
     return null;
   }
 
@@ -1088,7 +1259,7 @@ function handleStoreOrdersAdmin(request, response) {
   const session = getCommunitySessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录社区账号' });
+    sendJson(response, 401, { message: '���ȵ�¼�����˺�' });
     return;
   }
 
@@ -1096,7 +1267,7 @@ function handleStoreOrdersAdmin(request, response) {
   const isCommunityDeveloper = Boolean(session.isDeveloper || isDeveloper(session.username));
 
   if (!isCommunityDeveloper && role !== 'order-viewer') {
-    sendJson(response, 403, { message: '仅开发者或订单查看员可查看订单' });
+    sendJson(response, 403, { message: '��Ȩ�޻򶩵��鿴Ա�ɲ鿴����' });
     return;
   }
 
@@ -1150,7 +1321,7 @@ function listStoreOrdersByContact(contact, limit = 20) {
   }
 
   return db.prepare(
-    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, created_at AS createdAt, updated_at AS updatedAt
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, created_at AS createdAt, updated_at AS updatedAt
      FROM store_orders
      WHERE contact = ?
      ORDER BY id DESC
@@ -1164,7 +1335,7 @@ function handleStoreOrdersByContact(request, response) {
   const limit = Number(url.searchParams.get('limit') || 20);
 
   if (!contact || contact.length < 4) {
-    sendJson(response, 400, { message: '联系方式长度至少 4 位' });
+    sendJson(response, 400, { message: '��ϵ��ʽ�������� 4 λ' });
     return;
   }
 
@@ -1194,14 +1365,14 @@ function normalizeStoreOrderStatus(value) {
     return normalized;
   }
 
-  throw new Error('不支持的订单状态');
+  throw new Error('��֧�ֵĶ���״̬');
 }
 
 function handleStoreOrderUpdate(request, response) {
   const session = getCommunitySessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录社区账号' });
+    sendJson(response, 401, { message: '���ȵ�¼�����˺�' });
     return;
   }
 
@@ -1209,12 +1380,12 @@ function handleStoreOrderUpdate(request, response) {
   const isCommunityDeveloper = Boolean(session.isDeveloper || isDeveloper(session.username));
 
   if (!isCommunityDeveloper && role !== 'order-viewer') {
-    sendJson(response, 403, { message: '仅开发者或订单查看员可操作订单' });
+    sendJson(response, 403, { message: '��Ȩ�޻򶩵��鿴Ա�ɲ�������' });
     return;
   }
 
   if (!isCommunityDeveloper) {
-    sendJson(response, 403, { message: '订单查看员仅支持查看，不能修改订单' });
+    sendJson(response, 403, { message: '�����鿴Ա��֧�ֲ鿴�������޸Ķ���' });
     return;
   }
 
@@ -1222,13 +1393,13 @@ function handleStoreOrderUpdate(request, response) {
     .then((body) => {
       const orderNo = String(body.orderNo || '').trim();
       if (!orderNo) {
-        sendJson(response, 400, { message: '缺少订单号' });
+        sendJson(response, 400, { message: 'ȱ�ٶ�����' });
         return;
       }
 
       const current = getStoreOrderByNo(orderNo);
       if (!current) {
-        sendJson(response, 404, { message: '订单不存在' });
+        sendJson(response, 404, { message: '����������' });
         return;
       }
 
@@ -1252,13 +1423,13 @@ function handleStoreOrderUpdate(request, response) {
 
       const next = updateStoreOrder(orderNo, updates);
       sendJson(response, 200, {
-        message: '订单已更新',
+        message: '�����Ѹ���',
         order: next
       });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 400;
-      sendJson(response, statusCode, { message: error.message || '更新失败' });
+      sendJson(response, statusCode, { message: error.message || '����ʧ��' });
     });
 }
 
@@ -1271,16 +1442,16 @@ function handleStoreOrderRefund(request, response) {
   parseRequestBody(request)
     .then((body) => {
       const orderNo = String(body.orderNo || '').trim();
-      const reason = String(body.reason || '后台退款').trim();
+      const reason = String(body.reason || '��̨�˿�').trim();
 
       if (!orderNo) {
-        sendJson(response, 400, { message: '缺少订单号' });
+        sendJson(response, 400, { message: 'ȱ�ٶ�����' });
         return;
       }
 
       const order = getStoreOrderByNo(orderNo);
       if (!order) {
-        sendJson(response, 404, { message: '订单不存在' });
+        sendJson(response, 404, { message: '����������' });
         return;
       }
 
@@ -1302,12 +1473,12 @@ function handleStoreOrderRefund(request, response) {
       });
 
       sendJson(response, 200, {
-        message: '订单已退款',
+        message: '�������˿�',
         order: next
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '退款失败' });
+      sendJson(response, 400, { message: error.message || '�˿�ʧ��' });
     });
 }
 
@@ -1321,22 +1492,22 @@ function handleStoreOrderReissue(request, response) {
     .then((body) => {
       const orderNo = String(body.orderNo || '').trim();
       if (!orderNo) {
-        sendJson(response, 400, { message: '缺少订单号' });
+        sendJson(response, 400, { message: 'ȱ�ٶ�����' });
         return;
       }
 
       const order = getStoreOrderByNo(orderNo);
       if (!order) {
-        sendJson(response, 404, { message: '订单不存在' });
+        sendJson(response, 404, { message: '����������' });
         return;
       }
 
       if (!normalizePaymentSuccess(order.status)) {
-        sendJson(response, 400, { message: '仅已支付订单可以补发卡密' });
+        sendJson(response, 400, { message: '����֧���������Բ�������' });
         return;
       }
 
-      const newCardSecret = createStoreCardSecret(orderNo);
+      const newCardSecret = createStoreCardSecret(orderNo, String(order.productCode || '').trim().toUpperCase());
       const previousResponse = parseMaybeJson(order.responseJson);
       const next = updateStoreOrder(orderNo, {
         cardSecret: newCardSecret,
@@ -1356,13 +1527,170 @@ function handleStoreOrderReissue(request, response) {
       });
 
       sendJson(response, 200, {
-        message: '卡密补发成功',
+        message: '���ܲ����ɹ�',
         order: next,
         cardSecret: newCardSecret
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '补发失败' });
+      sendJson(response, 400, { message: error.message || '����ʧ��' });
+    });
+}
+
+function handleStoreCardSecretsRead(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const productCode = String(url.searchParams.get('productCode') || '').trim().toUpperCase();
+  const secrets = listStoreCardSecrets(productCode);
+
+  sendJson(response, 200, {
+    productCode,
+    total: secrets.length,
+    available: secrets.filter((item) => !item.isUsed).length,
+    used: secrets.filter((item) => item.isUsed).length,
+    secrets
+  });
+}
+
+function parseStoreCardSecretInputs(value) {
+  return Array.from(new Set(String(value || '')
+    .split(/[\r\n,，]+/)
+    .map((item) => String(item || '').trim())
+    .filter(Boolean)));
+}
+
+function appendStoreCardSecrets(productCode, secretCodes, label = '') {
+  const normalizedProductCode = String(productCode || '').trim().toUpperCase();
+  const secretList = parseStoreCardSecretInputs(secretCodes);
+
+  if (!normalizedProductCode) {
+    throw new Error('请填写商品编码');
+  }
+
+  if (secretList.length === 0) {
+    throw new Error('至少填写一条卡密');
+  }
+
+  const insert = db.prepare(
+    `INSERT OR IGNORE INTO store_card_secrets (product_code, secret_code, label, is_used, used_order_no)
+     VALUES (?, ?, ?, 0, '')`
+  );
+
+  let count = 0;
+  for (const secretCode of secretList) {
+    const normalizedSecret = String(secretCode || '').trim();
+    if (!normalizedSecret) {
+      continue;
+    }
+    insert.run(normalizedProductCode, normalizedSecret, label || '');
+    count += 1;
+  }
+
+  return count;
+}
+
+function generateStoreCardSecrets(productCode, count, label = '') {
+  const normalizedProductCode = String(productCode || '').trim().toUpperCase();
+  const safeCount = Math.max(0, Math.min(500, Number(count) || 0));
+
+  if (!normalizedProductCode) {
+    throw new Error('请填写商品编码');
+  }
+
+  if (safeCount <= 0) {
+    throw new Error('生成数量必须大于 0');
+  }
+
+  const insert = db.prepare(
+    `INSERT OR IGNORE INTO store_card_secrets (product_code, secret_code, label, is_used, used_order_no)
+     VALUES (?, ?, ?, 0, '')`
+  );
+
+  const generated = [];
+  const seen = new Set();
+  for (let index = 0; index < safeCount; index += 1) {
+    let secretCode = generateStoreCardSecretCode(normalizedProductCode, 'MC');
+    while (seen.has(secretCode) || db.prepare('SELECT 1 FROM store_card_secrets WHERE secret_code = ?').get(secretCode)) {
+      secretCode = generateStoreCardSecretCode(normalizedProductCode, 'MC');
+    }
+    seen.add(secretCode);
+    generated.push(secretCode);
+    insert.run(normalizedProductCode, secretCode, label || '');
+  }
+
+  return generated;
+}
+
+function handleStoreCardSecretsGenerate(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const count = Number(body.count || 0);
+      const label = String(body.label || '').trim();
+      const bulkSecrets = Array.isArray(body.secrets) ? body.secrets : parseStoreCardSecretInputs(body.secretText || body.secrets || '');
+
+      if (Array.isArray(body.secrets) || body.secretText || body.secrets) {
+        const added = appendStoreCardSecrets(productCode, bulkSecrets, label);
+        sendJson(response, 200, {
+          message: `已追加 ${added} 条卡密`,
+          total: listStoreCardSecrets(productCode).length,
+          available: listStoreCardSecrets(productCode).filter((item) => !item.isUsed).length,
+          secrets: listStoreCardSecrets(productCode)
+        });
+        return;
+      }
+
+      const generated = generateStoreCardSecrets(productCode, count, label);
+      sendJson(response, 200, {
+        message: `已生成 ${generated.length} 条卡密`,
+        total: listStoreCardSecrets(productCode).length,
+        available: listStoreCardSecrets(productCode).filter((item) => !item.isUsed).length,
+        secrets: listStoreCardSecrets(productCode)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '卡密生成失败' });
+    });
+}
+
+function handleStoreCardSecretsDelete(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const secretCode = String(body.secretCode || '').trim();
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+
+      if (!secretCode) {
+        sendJson(response, 400, { message: '缺少卡密' });
+        return;
+      }
+
+      const removed = db.prepare(
+        `DELETE FROM store_card_secrets WHERE secret_code = ? ${productCode ? 'AND product_code = ?' : ''}`
+      ).run(...(productCode ? [secretCode, productCode] : [secretCode]));
+
+      sendJson(response, 200, {
+        message: `已删除卡密 ${secretCode}`,
+        deleted: Number(removed.changes || 0),
+        total: listStoreCardSecrets(productCode).length,
+        available: listStoreCardSecrets(productCode).filter((item) => !item.isUsed).length
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '删除卡密失败' });
     });
 }
 
@@ -1405,18 +1733,18 @@ function countTodayLotteryDraws(username) {
 function drawLotteryPrize(username, email) {
   const todayCount = countTodayLotteryDraws(username);
   if (todayCount >= lotteryDailyDrawLimit) {
-    return { error: '今日抽奖次数已用完' };
+    return { error: '���ճ齱����������' };
   }
 
   const prizes = listLotteryPrizes(true).filter((item) => item.stock > 0);
   if (prizes.length === 0) {
-    return { error: '当前奖池已空，请稍后再试' };
+    return { error: '��ǰ�����ѿգ����Ժ�����' };
   }
 
   const weightedPool = prizes.flatMap((prize) => Array.from({ length: Math.max(1, prize.stock) }, () => prize));
   const selected = weightedPool[Math.floor(Math.random() * weightedPool.length)];
   if (!selected) {
-    return { error: '抽奖失败，请稍后重试' };
+    return { error: '�齱ʧ�ܣ����Ժ�����' };
   }
 
   db.exec('BEGIN IMMEDIATE');
@@ -1425,7 +1753,7 @@ function drawLotteryPrize(username, email) {
     const result = db.prepare('UPDATE lottery_prizes SET stock = stock - 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND stock > 0').run(selected.id);
     if (!result || Number(result.changes || 0) <= 0) {
       db.exec('ROLLBACK');
-      return { error: '奖品库存不足，请重试' };
+      return { error: '��Ʒ��治�㣬������' };
     }
 
     db.prepare('INSERT INTO lottery_draw_records (username, email, prize_id, prize_name, price_fen) VALUES (?, ?, ?, ?, ?)').run(
@@ -1449,7 +1777,7 @@ function drawLotteryPrize(username, email) {
     } catch {
       // ignore rollback errors
     }
-    return { error: error.message || '抽奖失败' };
+    return { error: error.message || '�齱ʧ��' };
   }
 }
 
@@ -1499,7 +1827,7 @@ function handleLotteryDraw(request, response) {
 
   const session = getCommunitySessionFromRequest(request);
   if (!session) {
-    sendJson(response, 401, { message: '请先登录账号后再抽奖' });
+    sendJson(response, 401, { message: '���ȵ�¼�˺ź��ٳ齱' });
     return;
   }
 
@@ -1510,7 +1838,7 @@ function handleLotteryDraw(request, response) {
   }
 
   sendJson(response, 200, {
-    message: '抽奖成功',
+    message: '�齱�ɹ�',
     prize: result.prize,
     todayDrawCount: result.todayDrawCount,
     remainingTodayDraws: result.remainingTodayDraws,
@@ -1550,7 +1878,7 @@ function handleStoreSettingsSave(request, response) {
       });
 
       sendJson(response, 200, {
-        message: '公告、白名单和维护设置已更新',
+        message: '���桢��������ά�������Ѹ���',
         ...getStorePublicSettings(),
         operator: session.username
       });
@@ -1582,32 +1910,32 @@ function handleStoreProductsCreate(request, response) {
       const tags = sanitizeStoreTags(body.tags);
 
       if (!/^[A-Z0-9_-]{3,48}$/.test(productCode)) {
-        sendJson(response, 400, { message: '商品编码仅支持 3-48 位大写字母、数字、下划线或中划线' });
+        sendJson(response, 400, { message: '��Ʒ�����֧�� 3-48 λ��д��ĸ�����֡��»��߻��л���' });
         return;
       }
 
       if (!name || name.length > 60) {
-        sendJson(response, 400, { message: '商品名称不能为空，且不能超过 60 个字符' });
+        sendJson(response, 400, { message: '��Ʒ���Ʋ���Ϊ�գ��Ҳ��ܳ��� 60 ���ַ�' });
         return;
       }
 
       if (!Number.isInteger(originalPriceFen) || originalPriceFen <= 0) {
-        sendJson(response, 400, { message: '原价必须为大于 0 的整数分' });
+        sendJson(response, 400, { message: 'ԭ�۱���Ϊ���� 0 ��������' });
         return;
       }
 
       if (!Number.isInteger(salePriceFen) || salePriceFen <= 0) {
-        sendJson(response, 400, { message: '优惠价必须为大于 0 的整数分' });
+        sendJson(response, 400, { message: '�Żݼ۱���Ϊ���� 0 ��������' });
         return;
       }
 
       if (salePriceFen > originalPriceFen) {
-        sendJson(response, 400, { message: '优惠价不能高于原价' });
+        sendJson(response, 400, { message: '�Żݼ۲��ܸ���ԭ��' });
         return;
       }
 
       if (!Number.isInteger(stock) || stock < 0) {
-        sendJson(response, 400, { message: '库存必须为大于等于 0 的整数' });
+        sendJson(response, 400, { message: '������Ϊ���ڵ��� 0 ������' });
         return;
       }
 
@@ -1630,14 +1958,14 @@ function handleStoreProductsCreate(request, response) {
       );
 
       sendJson(response, 201, {
-        message: '商品创建成功',
+        message: '��Ʒ�����ɹ�',
         product: getStoreProductByCode(productCode, true)
       });
     })
     .catch((error) => {
-      const message = String(error?.message || '创建商品失败');
+      const message = String(error?.message || '������Ʒʧ��');
       if (message.includes('UNIQUE')) {
-        sendJson(response, 409, { message: '商品编码已存在' });
+        sendJson(response, 409, { message: '��Ʒ�����Ѵ���' });
         return;
       }
       sendJson(response, 400, { message });
@@ -1657,7 +1985,7 @@ function handleStoreProductsUpdate(request, response) {
       const existing = getStoreProductByCode(productCode, true);
 
       if (!existing) {
-        sendJson(response, 404, { message: '商品不存在' });
+        sendJson(response, 404, { message: '��Ʒ������' });
         return;
       }
 
@@ -1671,27 +1999,27 @@ function handleStoreProductsUpdate(request, response) {
       const tags = body.tags === undefined ? existing.tags : sanitizeStoreTags(body.tags);
 
       if (!name || name.length > 60) {
-        sendJson(response, 400, { message: '商品名称不能为空，且不能超过 60 个字符' });
+        sendJson(response, 400, { message: '��Ʒ���Ʋ���Ϊ�գ��Ҳ��ܳ��� 60 ���ַ�' });
         return;
       }
 
       if (!Number.isInteger(originalPriceFen) || originalPriceFen <= 0) {
-        sendJson(response, 400, { message: '原价必须为大于 0 的整数分' });
+        sendJson(response, 400, { message: 'ԭ�۱���Ϊ���� 0 ��������' });
         return;
       }
 
       if (!Number.isInteger(salePriceFen) || salePriceFen <= 0) {
-        sendJson(response, 400, { message: '优惠价必须为大于 0 的整数分' });
+        sendJson(response, 400, { message: '�Żݼ۱���Ϊ���� 0 ��������' });
         return;
       }
 
       if (salePriceFen > originalPriceFen) {
-        sendJson(response, 400, { message: '优惠价不能高于原价' });
+        sendJson(response, 400, { message: '�Żݼ۲��ܸ���ԭ��' });
         return;
       }
 
       if (!Number.isInteger(stock) || stock < 0) {
-        sendJson(response, 400, { message: '库存必须为大于等于 0 的整数' });
+        sendJson(response, 400, { message: '������Ϊ���ڵ��� 0 ������' });
         return;
       }
 
@@ -1720,12 +2048,12 @@ function handleStoreProductsUpdate(request, response) {
       );
 
       sendJson(response, 200, {
-        message: '商品更新成功',
+        message: '��Ʒ���³ɹ�',
         product: getStoreProductByCode(productCode, true)
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '更新商品失败' });
+      sendJson(response, 400, { message: error.message || '������Ʒʧ��' });
     });
 }
 
@@ -1743,12 +2071,12 @@ function handleStoreProductImageUpload(request, response) {
       const existing = getStoreProductByCode(productCode, true);
 
       if (!existing) {
-        sendJson(response, 404, { message: '商品不存在' });
+        sendJson(response, 404, { message: '��Ʒ������' });
         return;
       }
 
       if (!imageData) {
-        sendJson(response, 400, { message: '请提供图片数据' });
+        sendJson(response, 400, { message: '���ṩͼƬ����' });
         return;
       }
 
@@ -1756,13 +2084,13 @@ function handleStoreProductImageUpload(request, response) {
       db.prepare('UPDATE store_products SET image_url = ?, updated_at = CURRENT_TIMESTAMP WHERE product_code = ?').run(imageUrl, productCode);
 
       sendJson(response, 200, {
-        message: '商品图片上传成功',
+        message: '��ƷͼƬ�ϴ��ɹ�',
         imageUrl,
         product: getStoreProductByCode(productCode, true)
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '上传商品图片失败' });
+      sendJson(response, 400, { message: error.message || '�ϴ���ƷͼƬʧ��' });
     });
 }
 
@@ -1780,7 +2108,7 @@ function handleStoreProductsToggle(request, response) {
       const existing = getStoreProductByCode(productCode, true);
 
       if (!existing) {
-        sendJson(response, 404, { message: '商品不存在' });
+        sendJson(response, 404, { message: '��Ʒ������' });
         return;
       }
 
@@ -1790,12 +2118,45 @@ function handleStoreProductsToggle(request, response) {
       );
 
       sendJson(response, 200, {
-        message: nextActive ? '商品已上架' : '商品已下架',
+        message: nextActive ? '��Ʒ���ϼ�' : '��Ʒ���¼�',
         product: getStoreProductByCode(productCode, true)
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '切换状态失败' });
+      sendJson(response, 400, { message: error.message || '�л�״̬ʧ��' });
+    });
+}
+
+function handleStoreProductsDelete(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const existing = getStoreProductByCode(productCode, true);
+
+      if (!existing) {
+        sendJson(response, 404, { message: '��Ʒ������' });
+        return;
+      }
+
+      const cardRemoval = db.prepare('DELETE FROM store_card_secrets WHERE product_code = ?').run(productCode);
+      const productRemoval = db.prepare('DELETE FROM store_products WHERE product_code = ?').run(productCode);
+      deleteStoreProductImageFiles(productCode);
+
+      sendJson(response, 200, {
+        message: `��Ʒ ${productCode} �ѱ�ɾ��`,
+        productCode,
+        deleted: Number(productRemoval.changes || 0),
+        cardSecretCount: Number(cardRemoval.changes || 0)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || 'ɾ��ʧ��' });
     });
 }
 
@@ -2041,8 +2402,11 @@ function buildHongxingSubmitPayUrl(params, config) {
 
 function normalizeStorePaymentMethod(method, fallback = 'wechat') {
   const normalized = String(method || fallback || '').trim().toLowerCase();
-  if (normalized === 'alipay' || normalized === 'ali' || normalized === 'zfb') {
+  if (normalized === 'alipay' || normalized === 'ali' || normalized === 'zfb' || normalized === 'alipay_hk' || normalized === 'alipayhk' || normalized === 'hk' || normalized === 'hongkong') {
     return 'alipay';
+  }
+  if (normalized === 'wechat_backup' || normalized === 'wechat-backup' || normalized === 'backupwechat' || normalized === 'backup-wechat') {
+    return 'wechat_backup';
   }
   return 'wechat';
 }
@@ -2187,17 +2551,88 @@ async function trySyncStoreOrderFromHongxing(order) {
 
 function getStoreOrderByNo(orderNo) {
   return db.prepare(
-    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
+    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
   ).get(orderNo) || null;
 }
 
-function createStoreCardSecret(orderNo) {
-  const normalizedOrderNo = String(orderNo || '').trim().toUpperCase();
-  const suffix = normalizedOrderNo.slice(-6) || crypto.randomBytes(3).toString('hex').toUpperCase();
-  return `MC-${suffix}-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+function generateStoreCardSecretCode(productCode = '', fallbackPrefix = 'MC') {
+  const productSegment = String(productCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 4);
+  const prefix = productSegment ? `${fallbackPrefix}-${productSegment}` : fallbackPrefix;
+  const randomPart = crypto.randomBytes(3).toString('hex').toUpperCase();
+  const suffix = crypto.randomBytes(2).toString('hex').toUpperCase();
+  return `${prefix}-${randomPart}-${suffix}`;
 }
 
-function ensureStoreOrderCardSecret(orderNo) {
+function listStoreCardSecrets(productCode = '') {
+  const normalizedProductCode = String(productCode || '').trim().toUpperCase();
+  const rows = normalizedProductCode
+    ? db.prepare(
+        `SELECT id, product_code AS productCode, secret_code AS secretCode, label, is_used AS isUsed, used_order_no AS usedOrderNo,
+          created_at AS createdAt, updated_at AS updatedAt
+         FROM store_card_secrets WHERE product_code = ? ORDER BY id DESC`
+      ).all(normalizedProductCode)
+    : db.prepare(
+        `SELECT id, product_code AS productCode, secret_code AS secretCode, label, is_used AS isUsed, used_order_no AS usedOrderNo,
+          created_at AS createdAt, updated_at AS updatedAt
+         FROM store_card_secrets ORDER BY id DESC`
+      ).all();
+
+  return rows.map((row) => ({
+    id: Number(row.id || 0),
+    productCode: String(row.productCode || ''),
+    secretCode: String(row.secretCode || ''),
+    label: String(row.label || ''),
+    isUsed: Boolean(Number(row.isUsed || 0)),
+    usedOrderNo: String(row.usedOrderNo || ''),
+    createdAt: String(row.createdAt || ''),
+    updatedAt: String(row.updatedAt || '')
+  }));
+}
+
+function getNextAvailableStoreCardSecret(productCode = '') {
+  const normalizedProductCode = String(productCode || '').trim().toUpperCase();
+  const row = normalizedProductCode
+    ? db.prepare(
+        `SELECT secret_code AS secretCode FROM store_card_secrets
+         WHERE product_code = ? AND is_used = 0
+         ORDER BY id ASC LIMIT 1`
+      ).get(normalizedProductCode)
+    : db.prepare(
+        `SELECT secret_code AS secretCode FROM store_card_secrets
+         WHERE is_used = 0
+         ORDER BY id ASC LIMIT 1`
+      ).get();
+
+  return row ? String(row.secretCode || '').trim() : '';
+}
+
+function allocateStoreCardSecret(orderNo, productCode = '') {
+  const normalizedOrderNo = String(orderNo || '').trim().toUpperCase();
+  const normalizedProductCode = String(productCode || '').trim().toUpperCase();
+  const candidate = getNextAvailableStoreCardSecret(normalizedProductCode);
+
+  if (candidate) {
+    const updated = db.prepare(
+      `UPDATE store_card_secrets
+       SET is_used = 1,
+           used_order_no = ?,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE secret_code = ? AND is_used = 0`
+    ).run(normalizedOrderNo, candidate);
+
+    if (updated.changes > 0) {
+      return candidate;
+    }
+  }
+
+  return generateStoreCardSecretCode(normalizedProductCode, 'MC');
+}
+
+function createStoreCardSecret(orderNo, productCode = '') {
+  return allocateStoreCardSecret(orderNo, productCode);
+}
+
+function ensureStoreOrderCardSecret(orderNo, productCode = '') {
   const order = getStoreOrderByNo(orderNo);
 
   if (!order) {
@@ -2208,18 +2643,23 @@ function ensureStoreOrderCardSecret(orderNo) {
     return String(order.cardSecret).trim();
   }
 
-  const cardSecret = createStoreCardSecret(orderNo);
+  const cardSecret = createStoreCardSecret(orderNo, productCode || order.productCode || '');
   db.prepare('UPDATE store_orders SET card_secret = ?, updated_at = CURRENT_TIMESTAMP WHERE order_no = ?').run(cardSecret, orderNo);
   return cardSecret;
 }
 
 function createStoreOrder(record) {
+  const realizedProductCode = String(record.productCode || '').trim().toUpperCase();
+  const cardSecret = normalizePaymentSuccess(record.status) && !String(record.cardSecret || '').trim()
+    ? createStoreCardSecret(record.orderNo, realizedProductCode)
+    : String(record.cardSecret || '').trim();
+
   db.prepare(
     `INSERT INTO store_orders (
-      order_no, product_code, product_name, amount_fen, currency, status, payment_method, contact, buyer_note,
+      order_no, product_code, product_name, amount_fen, currency, status, payment_method, contact, buyer_note, quantity,
       card_secret, mch_id, app_id, code_url, wechat_prepay_id, wechat_transaction_id,
       request_json, response_json, notify_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     record.orderNo,
     record.productCode,
@@ -2230,15 +2670,16 @@ function createStoreOrder(record) {
     record.paymentMethod || '',
     record.contact || '',
     record.buyerNote || '',
-    record.cardSecret,
-    record.mchId,
-    record.appId,
-    record.codeUrl,
-    record.prepayId,
-    record.transactionId,
-    record.requestJson,
-    record.responseJson,
-    record.notifyJson
+    Math.max(1, Math.min(99, Number.parseInt(String(record.quantity || '1'), 10) || 1)),
+    cardSecret,
+    record.mchId || '',
+    record.appId || '',
+    record.codeUrl || '',
+    record.prepayId || '',
+    record.transactionId || '',
+    record.requestJson || '',
+    record.responseJson || '',
+    record.notifyJson || ''
   );
 
   if (normalizePaymentSuccess(record.status)) {
@@ -2262,7 +2703,11 @@ function updateStoreOrder(orderNo, updates) {
   const nextPaymentMethod = nextOrder.paymentMethod || current.paymentMethod || '';
   const nextContact = nextOrder.contact || current.contact || '';
   const nextBuyerNote = nextOrder.buyerNote || current.buyerNote || '';
-  const nextCardSecret = nextOrder.cardSecret || current.cardSecret || '';
+  const nextQuantity = Math.max(1, Math.min(99, Number.parseInt(String(nextOrder.quantity ?? current.quantity ?? '1'), 10) || 1));
+  const nextProductCode = String(nextOrder.productCode || current.productCode || '').trim().toUpperCase();
+  const nextCardSecret = normalizePaymentSuccess(nextStatus) && !String(nextOrder.cardSecret || '').trim()
+    ? ensureStoreOrderCardSecret(orderNo, nextProductCode)
+    : (nextOrder.cardSecret || current.cardSecret || '');
   const nextCodeUrl = nextOrder.codeUrl || current.codeUrl || '';
   const nextPrepayId = nextOrder.prepayId || current.prepayId || '';
   const nextTransactionId = nextOrder.transactionId || current.transactionId || '';
@@ -2275,6 +2720,7 @@ function updateStoreOrder(orderNo, updates) {
       payment_method = ?,
       contact = ?,
       buyer_note = ?,
+      quantity = ?,
       card_secret = ?,
       code_url = ?,
       wechat_prepay_id = ?,
@@ -2288,6 +2734,7 @@ function updateStoreOrder(orderNo, updates) {
     nextPaymentMethod,
     nextContact,
     nextBuyerNote,
+    nextQuantity,
     nextCardSecret,
     nextCodeUrl,
     nextPrepayId,
@@ -2300,7 +2747,7 @@ function updateStoreOrder(orderNo, updates) {
   const reloadedOrder = getStoreOrderByNo(orderNo);
 
   if (reloadedOrder && normalizePaymentSuccess(reloadedOrder.status) && !String(reloadedOrder.cardSecret || '').trim()) {
-    ensureStoreOrderCardSecret(orderNo);
+    ensureStoreOrderCardSecret(orderNo, String(reloadedOrder.productCode || '').trim().toUpperCase());
   }
 
   return getStoreOrderByNo(orderNo);
@@ -2338,6 +2785,19 @@ function decryptWechatPayResource(resource, apiV3Key) {
 async function createWechatPayNativeOrder(request, response) {
   try {
     const body = await parseRequestBody(request);
+    const normalizedPaymentMethod = normalizeStorePaymentMethod(body.paymentMethod, 'wechat');
+
+    if (normalizedPaymentMethod === 'wechat_backup') {
+      const backupConfig = getWechatBackupPayConfig();
+      if (!backupConfig.createUrl || !backupConfig.merchantId || !backupConfig.apiKey) {
+        sendJson(response, 500, { message: '备用微信支付未配置，请先补充备用支付地址、商户 ID 和密钥。' });
+        return;
+      }
+      const backupBody = { ...body, paymentMethod: 'wechat_backup' };
+      await createHongxingNativeOrder(request, backupBody, response);
+      return;
+    }
+
     const hongxingReadiness = getHongxingPayReadiness();
     if (hongxingReadiness.ready) {
       await createHongxingNativeOrder(request, body, response);
@@ -2347,45 +2807,46 @@ async function createWechatPayNativeOrder(request, response) {
     const config = getWechatPayConfig();
     const productCode = String(body.productCode || '').trim().toUpperCase();
     const product = getStoreProductByCode(productCode, false);
+    const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body.quantity || '1'), 10) || 1));
 
     if (!config.appId || !config.mchId || !config.serialNo || !config.apiV3Key || !config.notifyUrl || !config.privateKeyPem) {
       sendJson(response, 500, {
-        message: '微信支付配置不完整，请补全 appId、mchId、serialNo、privateKey、apiV3Key 和 notifyUrl'
+        message: '΢��֧�����ò��������벹ȫ appId��mchId��serialNo��privateKey��apiV3Key �� notifyUrl'
       });
       return;
     }
 
     if (!product) {
-      sendJson(response, 404, { message: '商品不存在或已下架' });
+      sendJson(response, 404, { message: '��Ʒ�����ڻ����¼�' });
       return;
     }
 
-    if (Number(product.stock || 0) <= 0) {
-      sendJson(response, 400, { message: '该商品库存不足，暂时无法购买' });
+    if (Number(product.stock || 0) < quantity) {
+      sendJson(response, 400, { message: '当前库存不足，当前可购买数量为 ' + Number(product.stock || 0) + '。' });
       return;
     }
 
     const orderNo = createStoreOrderNo();
-    const amountFen = Number(product.salePriceFen || 0);
+    const amountFen = Number(product.salePriceFen || 0) * quantity;
     const productName = String(product.name || '').trim();
     const paymentMethod = normalizeStorePaymentMethod(body.paymentMethod, config.payType);
     const contact = String(body.contact || '').trim();
     const buyerNote = String(body.buyerNote || '').trim();
 
     if (!Number.isFinite(amountFen) || amountFen <= 0) {
-      sendJson(response, 400, { message: '订单金额无效' });
+      sendJson(response, 400, { message: '���������Ч' });
       return;
     }
 
     if (paymentMethod === 'alipay') {
-      sendJson(response, 400, { message: '当前微信支付通道不支持支付宝，请切换为微信支付' });
+      sendJson(response, 400, { message: '当前微信支付通道不支持支付宝支付，请选择微信或 QQ 支付。' });
       return;
     }
 
     const orderBody = {
       appid: config.appId,
       mchid: config.mchId,
-      description: `${productName} · 官方商店订单`,
+      description: `${productName} �� �ٷ��̵궩��`,
       out_trade_no: orderNo,
       notify_url: config.notifyUrl,
       amount: {
@@ -2397,7 +2858,8 @@ async function createWechatPayNativeOrder(request, response) {
         productName,
         paymentMethod,
         contact,
-        buyerNote
+        buyerNote,
+        quantity
       })
     };
 
@@ -2417,7 +2879,7 @@ async function createWechatPayNativeOrder(request, response) {
 
     if (wechatResponse.statusCode < 200 || wechatResponse.statusCode >= 300) {
       sendJson(response, 502, {
-        message: '微信支付下单失败',
+        message: '΢��֧���µ�ʧ��',
         statusCode: wechatResponse.statusCode,
         detail: wechatResponse.body || ''
       });
@@ -2435,7 +2897,7 @@ async function createWechatPayNativeOrder(request, response) {
 
     if (!codeUrl) {
       sendJson(response, 502, {
-        message: '微信支付未返回 code_url',
+        message: '΢��֧��δ���� code_url',
         detail: parsedResponse
       });
       return;
@@ -2456,6 +2918,7 @@ async function createWechatPayNativeOrder(request, response) {
       paymentMethod,
       contact,
       buyerNote,
+      quantity,
       status: 'PENDING',
       cardSecret: '',
       mchId: config.mchId,
@@ -2469,7 +2932,7 @@ async function createWechatPayNativeOrder(request, response) {
     });
 
     sendJson(response, 200, {
-      message: '微信支付订单已创建',
+      message: '΢��֧�������Ѵ���',
       orderNo,
       productCode,
       productName,
@@ -2478,13 +2941,14 @@ async function createWechatPayNativeOrder(request, response) {
       paymentMethod,
       contact,
       buyerNote,
+      quantity,
       codeUrl,
       qrDataUrl,
       prepayId: parsedResponse.prepay_id || ''
     });
   } catch (error) {
     sendJson(response, 500, {
-      message: error.message || '创建微信支付订单失败'
+      message: error.message || '����΢��֧������ʧ��'
     });
   }
 }
@@ -2503,42 +2967,60 @@ function buildHongxingReturnPageUrl(request, orderNo) {
 
 async function createHongxingNativeOrder(request, body, response) {
   const config = getHongxingPayConfig();
+  const normalizedPaymentMethod = normalizeStorePaymentMethod(body?.paymentMethod, config.payType);
+
+  if (normalizedPaymentMethod === 'wechat_backup') {
+    const backupConfig = getWechatBackupPayConfig();
+    if (backupConfig.createUrl && backupConfig.merchantId && backupConfig.apiKey) {
+      config.createUrl = backupConfig.createUrl;
+      config.queryUrl = backupConfig.queryUrl || backupConfig.createUrl;
+      config.merchantId = backupConfig.merchantId;
+      config.apiKey = backupConfig.apiKey;
+      config.payType = 'wxpay';
+      config.signType = 'MD5';
+      config.notifyUrl = backupConfig.notifyUrl || config.notifyUrl;
+      config.returnUrl = backupConfig.returnUrl || config.returnUrl;
+      config.createMethod = backupConfig.createMethod;
+      config.queryMethod = backupConfig.queryMethod;
+    }
+  }
 
   if (!config.createUrl) {
     sendJson(response, 500, {
-      message: '洪星支付配置不完整，请补全 createUrl'
+      message: '����֧�����ò��������벹ȫ createUrl'
     });
     return;
   }
 
   const productCode = String(body?.productCode || '').trim().toUpperCase();
   const product = getStoreProductByCode(productCode, false);
+  const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body?.quantity || '1'), 10) || 1));
 
   if (!product) {
-    sendJson(response, 404, { message: '商品不存在或已下架' });
+    sendJson(response, 404, { message: '��Ʒ�����ڻ����¼�' });
     return;
   }
 
-  if (Number(product.stock || 0) <= 0) {
-    sendJson(response, 400, { message: '该商品库存不足，暂时无法购买' });
+  if (Number(product.stock || 0) < quantity) {
+    sendJson(response, 400, { message: '当前库存不足，当前可购买数量为 ' + Number(product.stock || 0) + '。' });
     return;
   }
 
   const orderNo = createStoreOrderNo();
-  const amountFen = Number(product.salePriceFen || 0);
+  const amountFen = Number(product.salePriceFen || 0) * quantity;
   const productName = String(product.name || '').trim();
   const paymentMethod = normalizeStorePaymentMethod(body?.paymentMethod, config.payType);
   const contact = String(body?.contact || '').trim();
   const buyerNote = String(body?.buyerNote || '').trim();
 
   if (!Number.isFinite(amountFen) || amountFen <= 0) {
-    sendJson(response, 400, { message: '订单金额无效' });
+    sendJson(response, 400, { message: '���������Ч' });
     return;
   }
 
   if (isRootPathUrl(config.createUrl)) {
     if (!config.merchantId || !config.apiKey) {
-      sendJson(response, 500, { message: '洪星直连模式缺少 merchantId 或 apiKey' });
+      sendJson(response, 500, { message: '����ֱ��ģʽȱ�� merchantId �� apiKey' });
       return;
     }
 
@@ -2547,11 +3029,11 @@ async function createHongxingNativeOrder(request, body, response) {
     const notifyUrl = String(config.notifyUrl || `${baseUrl.protocol}//${baseUrl.host}/Payment/UserRechargeNotify?out_trade_no=${encodeURIComponent(orderNo)}`).trim();
     const payUrl = buildHongxingSubmitPayUrl({
       pid: String(config.merchantId),
-      type: paymentMethod === 'alipay' ? 'alipay' : 'wxpay',
+      type: paymentMethod === 'alipay' ? 'alipay' : paymentMethod === 'qq' ? 'qq' : paymentMethod === 'alipay_hk' ? 'alipay_hk' : 'wxpay',
       outTradeNo: orderNo,
       notifyUrl,
       returnUrl,
-      name: productName || '商店订单',
+      name: productName || '�̵궩��',
       money: (amountFen / 100).toFixed(2),
       sitename: ''
     }, config);
@@ -2570,6 +3052,8 @@ async function createHongxingNativeOrder(request, body, response) {
       currency: product.currency || 'CNY',
       paymentMethod,
       contact,
+      buyerNote,
+      quantity,
       status: 'PENDING',
       cardSecret: '',
       mchId: String(config.merchantId),
@@ -2590,7 +3074,7 @@ async function createHongxingNativeOrder(request, body, response) {
     });
 
     sendJson(response, 200, {
-      message: '洪星支付订单已创建',
+      message: '����֧�������Ѵ���',
       provider: 'hongxing',
       orderNo,
       productCode,
@@ -2623,8 +3107,9 @@ async function createHongxingNativeOrder(request, body, response) {
       productCode,
       productName,
       paymentMethod: normalizeStorePaymentMethod(body.paymentMethod, config.payType),
-        contact: String(body.contact || '').trim(),
-        buyerNote
+      contact: String(body.contact || '').trim(),
+      buyerNote,
+      quantity
     }
   };
 
@@ -2667,7 +3152,7 @@ async function createHongxingNativeOrder(request, body, response) {
 
   if (hongxingResponse.statusCode < 200 || hongxingResponse.statusCode >= 300) {
     sendJson(response, 502, {
-      message: '洪星支付下单失败',
+      message: '����֧���µ�ʧ��',
       statusCode: hongxingResponse.statusCode,
       detail: hongxingResponse.body || ''
     });
@@ -2705,7 +3190,7 @@ async function createHongxingNativeOrder(request, body, response) {
 
   if (!qrText) {
     sendJson(response, 502, {
-      message: '洪星支付未返回二维码地址',
+      message: '����֧��δ���ض�ά���ַ',
       detail: parsedResponse
     });
     return;
@@ -2726,6 +3211,7 @@ async function createHongxingNativeOrder(request, body, response) {
     paymentMethod: normalizeStorePaymentMethod(payload.paymentMethod, config.payType),
     contact: String(payload.contact || '').trim(),
     buyerNote: String(payload.buyerNote || '').trim(),
+    quantity,
     status: normalizePaymentSuccess(initialPaidFlag) ? 'SUCCESS' : 'PENDING',
     cardSecret: '',
     mchId: config.merchantId || 'hongxing',
@@ -2739,7 +3225,7 @@ async function createHongxingNativeOrder(request, body, response) {
   });
 
   sendJson(response, 200, {
-    message: '洪星支付订单已创建',
+    message: '����֧�������Ѵ���',
     provider: 'hongxing',
     orderNo,
     productCode,
@@ -2757,14 +3243,14 @@ async function handleStoreOrderStatus(request, response) {
   const orderNo = String(url.searchParams.get('orderNo') || '').trim();
 
   if (!orderNo) {
-    sendJson(response, 400, { message: '缺少订单号' });
+    sendJson(response, 400, { message: 'ȱ�ٶ�����' });
     return;
   }
 
   let order = getStoreOrderByNo(orderNo);
 
   if (!order) {
-    sendJson(response, 404, { message: '订单不存在' });
+    sendJson(response, 404, { message: '����������' });
     return;
   }
 
@@ -2816,7 +3302,7 @@ function listStoreOrdersAdmin(filters = {}) {
   params.push(safeLimit);
 
   return db.prepare(
-    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
      FROM store_orders
      ${whereClause}
      ORDER BY id DESC
@@ -2841,10 +3327,10 @@ async function handleStoreWechatNotify(request, response) {
     }
 
     response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    response.end(JSON.stringify({ code: 'SUCCESS', message: '成功' }));
+    response.end(JSON.stringify({ code: 'SUCCESS', message: '�ɹ�' }));
   } catch (error) {
     response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-    response.end(JSON.stringify({ code: 'SUCCESS', message: error.message || '成功' }));
+    response.end(JSON.stringify({ code: 'SUCCESS', message: error.message || '�ɹ�' }));
   }
 }
 
@@ -3180,19 +3666,19 @@ function getSiteOnlinePageLabel(pathname) {
   const normalizedPath = String(pathname || '/').trim() || '/';
 
   if (normalizedPath === '/' || normalizedPath === '/index.html') {
-    return '首页';
+    return '��ҳ';
   }
 
   if (normalizedPath === '/store.html') {
-    return '商店页';
+    return '�̵�ҳ';
   }
 
   if (normalizedPath === '/store-admin.html') {
-    return '开发者后台';
+    return 'Ȩ�޺�̨';
   }
 
   if (normalizedPath === '/server-hub.html') {
-    return '服务器大厅';
+    return '����������';
   }
 
   const baseName = path.basename(normalizedPath, path.extname(normalizedPath));
@@ -3275,6 +3761,16 @@ function cleanupExpiredQrLoginTickets() {
   }
 }
 
+function cleanupExpiredCommunityQrLoginTickets() {
+  const now = Date.now();
+
+  for (const [ticketToken, ticket] of communityQrLoginTickets.entries()) {
+    if (ticket.expiresAt <= now) {
+      communityQrLoginTickets.delete(ticketToken);
+    }
+  }
+}
+
 function generateCaptchaCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
@@ -3311,6 +3807,20 @@ function issueQrLoginTicket() {
   return ticketToken;
 }
 
+function issueCommunityQrLoginTicket() {
+  cleanupExpiredCommunityQrLoginTickets();
+  const ticketToken = crypto.randomBytes(24).toString('hex');
+  communityQrLoginTickets.set(ticketToken, {
+    status: 'pending',
+    username: '',
+    email: '',
+    isDeveloper: false,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + communityQrLoginTicketLifetimeMs
+  });
+  return ticketToken;
+}
+
 function getQrLoginTicket(ticketToken) {
   cleanupExpiredQrLoginTickets();
   const normalizedToken = String(ticketToken || '').trim();
@@ -3333,8 +3843,34 @@ function getQrLoginTicket(ticketToken) {
   return { token: normalizedToken, ...ticket };
 }
 
+function getCommunityQrLoginTicket(ticketToken) {
+  cleanupExpiredCommunityQrLoginTickets();
+  const normalizedToken = String(ticketToken || '').trim();
+
+  if (!normalizedToken) {
+    return null;
+  }
+
+  const ticket = communityQrLoginTickets.get(normalizedToken);
+
+  if (!ticket) {
+    return null;
+  }
+
+  if (ticket.expiresAt <= Date.now()) {
+    communityQrLoginTickets.delete(normalizedToken);
+    return null;
+  }
+
+  return { token: normalizedToken, ...ticket };
+}
+
 function updateQrLoginTicket(ticketToken, nextTicket) {
   qrLoginTickets.set(ticketToken, nextTicket);
+}
+
+function updateCommunityQrLoginTicket(ticketToken, nextTicket) {
+  communityQrLoginTickets.set(ticketToken, nextTicket);
 }
 
 function createCaptchaSvg(code) {
@@ -3347,7 +3883,7 @@ function createCaptchaSvg(code) {
   }).join('');
 
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 44" width="140" height="44" role="img" aria-label="登录验证码">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 44" width="140" height="44" role="img" aria-label="��¼��֤��">
       <rect width="140" height="44" rx="12" fill="#0f172a"/>
       <path d="M8 32 C 26 10, 44 40, 62 18 S 98 34, 132 12" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="2" fill="none"/>
       <path d="M10 12 C 30 30, 46 4, 72 24 S 110 10, 132 28" stroke="#94a3b8" stroke-opacity="0.22" stroke-width="2" fill="none"/>
@@ -3376,17 +3912,17 @@ function verifyLoginCaptcha(captchaId, captchaCode) {
   loginCaptchas.delete(captchaId);
 
   if (!captcha || captcha.expiresAt <= Date.now()) {
-    return { ok: false, message: '验证码已过期，请刷新后重试' };
+    return { ok: false, message: '��֤���ѹ��ڣ���ˢ�º�����' };
   }
 
   const normalizedCode = String(captchaCode || '').trim().toUpperCase();
 
   if (!normalizedCode) {
-    return { ok: false, message: '请输入验证码' };
+    return { ok: false, message: '��������֤��' };
   }
 
   if (normalizedCode !== captcha.answer) {
-    return { ok: false, message: '验证码错误，请重新输入' };
+    return { ok: false, message: '��֤���������������' };
   }
 
   return { ok: true };
@@ -3449,7 +3985,7 @@ function handleServerListingsGet(request, response) {
   sendJson(response, 200, { servers: rows });
 }
 
-// ── Plaza 邮箱验证 ──────────────────────────────────────────────────────────
+// ���� Plaza ������֤ ��������������������������������������������������������������������������������������������������������������������
 
 function getPlazaSessionFromRequest(request) {
   const cookieHeader = request.headers['cookie'] || '';
@@ -3549,7 +4085,7 @@ function getCommunitySessionFromRequest(request) {
     return session;
   }
 
-  // 方法1：从Authorization header中获取 token
+  // ����1����Authorization header�л�ȡ token
   const authHeader = request.headers['authorization'] || '';
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
@@ -3559,7 +4095,7 @@ function getCommunitySessionFromRequest(request) {
     }
   }
   
-  // 方法2：从Cookie header中获取 token
+  // ����2����Cookie header�л�ȡ token
   const cookieHeader = request.headers['cookie'] || '';
   const match = cookieHeader.match(/(?:^|;)\s*mctools_community=([^;]+)/);
   if (match) {
@@ -3637,7 +4173,7 @@ function issueCommunitySession(response, username, email, isCommunityDeveloper, 
 
 function handleCommunityRegister(request, response) {
   parseRequestBody(request)
-    .then((body) => {
+    .then(async (body) => {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
       const password = String(body.password || '');
@@ -3649,27 +4185,27 @@ function handleCommunityRegister(request, response) {
       const developerSecret = String(body.developerSecret || '').trim();
 
       if (!isValidAuthUsername(username)) {
-        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        sendJson(response, 400, { message: '�û�������Ϊ�գ��Ҳ����� 32 ���ַ�' });
         return;
       }
 
       if (!isValidAuthEmail(email)) {
-        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        sendJson(response, 400, { message: '����д��Ч�������ַ' });
         return;
       }
 
       if (password.length < 6 || password.length > 64) {
-        sendJson(response, 400, { message: '密码长度需在 6-64 位之间' });
+        sendJson(response, 400, { message: '���볤������ 6-64 λ֮��' });
         return;
       }
 
       if (getCommunityAccountByUsername(username)) {
-        sendJson(response, 409, { message: '该用户名已被社区占用，请换一个昵称' });
+        sendJson(response, 409, { message: '���û����ѱ�����ռ�ã��뻻һ���ǳ�' });
         return;
       }
 
       if (getCommunityAccountByEmail(email)) {
-        sendJson(response, 409, { message: '该邮箱已注册社区账号，请直接登录' });
+        sendJson(response, 409, { message: '��������ע�������˺ţ���ֱ�ӵ�¼' });
         return;
       }
 
@@ -3677,7 +4213,7 @@ function handleCommunityRegister(request, response) {
 
       if (registerAsDeveloper) {
         if (developerSecret !== developerRegistrationSecret) {
-          sendJson(response, 403, { message: '开发者口令错误，无法创建开发者账号' });
+          sendJson(response, 403, { message: 'Ȩ�޿�������޷�����Ȩ���˺�' });
           return;
         }
 
@@ -3685,23 +4221,23 @@ function handleCommunityRegister(request, response) {
       }
 
       const account = createCommunityAccount(username, email, isCommunityDeveloper, hashPassword(password));
-      sendJson(response, 201, { message: '社区账号注册成功，请继续发送验证码登录', account });
+      sendJson(response, 201, { message: '�����˺�ע��ɹ��������������֤���¼', account });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
 function handleCommunityPasswordLogin(request, response) {
   parseRequestBody(request)
-    .then((body) => {
+    .then(async (body) => {
       const username = String(body.username || '').trim();
       const email = String(body.email || '').trim().toLowerCase();
       const password = String(body.password || '');
       const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
 
       if (!password) {
-        sendJson(response, 400, { message: '请输入密码' });
+        sendJson(response, 400, { message: '����������' });
         return;
       }
 
@@ -3713,12 +4249,12 @@ function handleCommunityPasswordLogin(request, response) {
       }
 
       if (!accountAuth) {
-        sendJson(response, 401, { message: '账号或密码错误' });
+        sendJson(response, 401, { message: '�˺Ż��������' });
         return;
       }
 
       if (!accountAuth.passwordHash || !verifyPassword(password, accountAuth.passwordHash)) {
-        sendJson(response, 401, { message: '账号或密码错误' });
+        sendJson(response, 401, { message: '�˺Ż��������' });
         return;
       }
 
@@ -3733,7 +4269,7 @@ function handleCommunityPasswordLogin(request, response) {
       );
 
       sendJson(response, 200, {
-        message: '密码登录成功',
+        message: '�����¼�ɹ�',
         username: accountAuth.username,
         email: accountAuth.email,
         isDeveloper: isCommunityDeveloper,
@@ -3741,7 +4277,7 @@ function handleCommunityPasswordLogin(request, response) {
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -3752,29 +4288,29 @@ function handleCommunitySendCode(request, response) {
       const email = String(body.email || '').trim().toLowerCase();
 
       if (!isValidAuthUsername(username)) {
-        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        sendJson(response, 400, { message: '�û�������Ϊ�գ��Ҳ����� 32 ���ַ�' });
         return;
       }
 
       if (!isValidAuthEmail(email)) {
-        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        sendJson(response, 400, { message: '����д��Ч�������ַ' });
         return;
       }
 
       const account = getCommunityAccountByEmail(email);
       if (!account) {
-        sendJson(response, 403, { message: '请先注册账户后再登录', code: 'REGISTRATION_REQUIRED' });
+        sendJson(response, 403, { message: '����ע���˻����ٵ�¼', code: 'REGISTRATION_REQUIRED' });
         return;
       }
 
       if (account.username !== username) {
-        sendJson(response, 400, { message: '用户名与注册账户不一致' });
+        sendJson(response, 400, { message: '�û�����ע���˻���һ��' });
         return;
       }
 
       const existing = communityVerifyCodes.get(email);
       if (existing && existing.expiresAt - communityVerifyCodeLifetimeMs + 60000 > Date.now()) {
-        sendJson(response, 429, { message: '发送太频繁，请 60 秒后重试' });
+        sendJson(response, 429, { message: '����̫Ƶ������ 60 �������' });
         return;
       }
 
@@ -3785,7 +4321,7 @@ function handleCommunitySendCode(request, response) {
       sendJson(response, 200, result);
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -3798,12 +4334,12 @@ function handleCommunityVerify(request, response) {
 
       const entry = communityVerifyCodes.get(email);
       if (!entry || entry.expiresAt <= Date.now()) {
-        sendJson(response, 400, { message: '验证码不存在或已过期，请重新获取' });
+        sendJson(response, 400, { message: '��֤�벻���ڻ��ѹ��ڣ������»�ȡ' });
         return;
       }
 
       if (entry.code !== code) {
-        sendJson(response, 400, { message: '验证码错误' });
+        sendJson(response, 400, { message: '��֤�����' });
         return;
       }
 
@@ -3820,14 +4356,14 @@ function handleCommunityVerify(request, response) {
         rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
       );
       sendJson(response, 200, {
-        message: '社区登录成功',
+        message: '������¼�ɹ�',
         username: entry.username,
         isDeveloper: isCommunityDeveloper,
         token
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -3868,7 +4404,331 @@ function handleCommunityLogout(request, response) {
   }
       clearScopedAuthCookie(response, 'mctools_community', '/api/community/');
       clearScopedAuthCookie(response, 'mctools_community_admin', '/');
-  sendJson(response, 200, { message: '已退出社区账号' });
+  sendJson(response, 200, { message: '���˳������˺�' });
+}
+
+const DEFAULT_GOOGLE_CLIENT_ID = '366119935405-4nb8n3e89tr48lea7db90ct6sgd66h43.apps.googleusercontent.com';
+const DEFAULT_GOOGLE_CLIENT_SECRET = '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';
+
+function getGoogleClientId() {
+  return getConfiguredValue('GOOGLE_CLIENT_ID', 'googleClientId', DEFAULT_GOOGLE_CLIENT_ID);
+}
+
+function getGoogleClientSecret() {
+  return getConfiguredValue('GOOGLE_CLIENT_SECRET', 'googleClientSecret', DEFAULT_GOOGLE_CLIENT_SECRET);
+}
+
+function getCommunityAccountByGoogleId(googleId) {
+  if (!googleId) return null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, google_id AS googleId, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE google_id = ?').get(String(googleId)) || null;
+}
+
+function updateCommunityAccountGoogleId(email, googleId) {
+  if (!email || !googleId) return;
+  db.prepare('UPDATE community_accounts SET google_id = ? WHERE email = ?').run(String(googleId), email);
+}
+
+function findOrCreateGoogleCommunityAccount({ email, name, sub }) {
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanSub = String(sub || '').trim();
+  if (!cleanEmail) {
+    throw new Error('Google 账号缺少有效邮箱地址');
+  }
+
+  // 1. 先通过 google_id 查找
+  let account = getCommunityAccountByGoogleId(cleanSub);
+  if (account) {
+    markCommunityAccountLogin(account.email);
+    return account;
+  }
+
+  // 2. 查找是否有相同邮箱的账号
+  account = getCommunityAccountByEmail(cleanEmail);
+  if (account) {
+    if (cleanSub) {
+      updateCommunityAccountGoogleId(cleanEmail, cleanSub);
+      account.googleId = cleanSub;
+    }
+    markCommunityAccountLogin(cleanEmail);
+    return account;
+  }
+
+  // 3. 自动创建新账号
+  let baseUsername = String(name || '').trim().replace(/[^\w\u4e00-\u9fa5_-]/g, '');
+  if (!baseUsername) {
+    baseUsername = cleanEmail.split('@')[0].replace(/[^\w\u4e00-\u9fa5_-]/g, '') || 'google_user';
+  }
+  if (baseUsername.length > 20) {
+    baseUsername = baseUsername.slice(0, 20);
+  }
+
+  let username = baseUsername;
+  let counter = 1;
+  while (getCommunityAccountByUsername(username)) {
+    username = `${baseUsername}_${counter}`;
+    if (username.length > 32) {
+      username = `${baseUsername.slice(0, 26)}_${counter}`;
+    }
+    counter++;
+  }
+
+  const randomPassword = crypto.randomBytes(16).toString('hex');
+  const passwordHash = hashPassword(randomPassword);
+  const isCommunityDev = Boolean(isDeveloper(username));
+
+  db.prepare('INSERT INTO community_accounts (username, email, password_hash, is_developer, google_id, last_login_at) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)').run(
+    username,
+    cleanEmail,
+    passwordHash,
+    isCommunityDev ? 1 : 0,
+    cleanSub || null
+  );
+
+  return getCommunityAccountByUsername(username);
+}
+
+function parseJwtPayload(token) {
+  try {
+    const parts = String(token).split('.');
+    if (parts.length < 2) return null;
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = Buffer.from(base64, 'base64').toString('utf8');
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+async function verifyGoogleIdToken(idToken) {
+  const clientId = getGoogleClientId();
+  const payload = parseJwtPayload(idToken);
+  if (!payload) {
+    throw new Error('无效的 Google 凭证数据');
+  }
+
+  let remoteVerified = null;
+  try {
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, {
+      signal: AbortSignal.timeout(6000)
+    });
+    if (res.ok) {
+      remoteVerified = await res.json();
+    }
+  } catch (err) {
+    console.warn('[Google Auth] tokeninfo check skipped/failed:', err.message);
+  }
+
+  const target = remoteVerified || payload;
+  if (target.aud !== clientId && target.azp !== clientId) {
+    throw new Error('Google 凭证 Client ID 不匹配');
+  }
+
+  const expMs = Number(target.exp) * 1000;
+  if (expMs && expMs < Date.now() - 30000) {
+    throw new Error('Google 登录凭证已过期');
+  }
+
+  if (!target.email) {
+    throw new Error('未能从 Google 账号获取邮箱');
+  }
+
+  return target;
+}
+
+async function exchangeGoogleCodeForUserInfo(code, redirectUri) {
+  const clientId = getGoogleClientId();
+  const clientSecret = getGoogleClientSecret();
+
+  const bodyParams = new URLSearchParams({
+    code,
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code'
+  });
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: bodyParams.toString(),
+    signal: AbortSignal.timeout(8000)
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Google 授权码换取令牌失败: ${errText}`);
+  }
+
+  const tokenData = await res.json();
+  if (tokenData.id_token) {
+    const payload = parseJwtPayload(tokenData.id_token);
+    if (payload && payload.email) {
+      return payload;
+    }
+  }
+
+  if (tokenData.access_token) {
+    const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (userRes.ok) {
+      return await userRes.json();
+    }
+  }
+
+  throw new Error('未能从 Google 获取账号信息');
+}
+
+function handleCommunityGoogleClientId(request, response) {
+  sendJson(response, 200, {
+    clientId: getGoogleClientId()
+  });
+}
+
+function getRequestOrigin(request) {
+  const host = request.headers['x-forwarded-host'] || request.headers['host'] || 'localhost:3004';
+  const proto = request.headers['x-forwarded-proto'] || (request.socket && request.socket.encrypted ? 'https' : 'http');
+  return `${proto}://${host}`;
+}
+
+function handleCommunityGoogleAuthorize(request, response) {
+  const origin = getRequestOrigin(request);
+  const urlObj = new URL(request.url, origin);
+  const rememberLogin = urlObj.searchParams.get('rememberLogin') === '1' || urlObj.searchParams.get('rememberLogin') === 'true';
+  const from = urlObj.searchParams.get('from') || '/store-account.html';
+  const redirectUri = `${origin}/api/community/google/callback`;
+
+  const statePayload = Buffer.from(JSON.stringify({
+    rememberLogin,
+    from,
+    ts: Date.now()
+  })).toString('base64url');
+
+  const clientId = getGoogleClientId();
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', clientId);
+  authUrl.searchParams.set('redirect_uri', redirectUri);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', 'openid email profile');
+  authUrl.searchParams.set('access_type', 'offline');
+  authUrl.searchParams.set('prompt', 'select_account');
+  authUrl.searchParams.set('state', statePayload);
+
+  response.statusCode = 302;
+  response.setHeader('Location', authUrl.toString());
+  response.end();
+}
+
+async function handleCommunityGoogleCallback(request, response) {
+  const origin = getRequestOrigin(request);
+  const urlObj = new URL(request.url, origin);
+  const code = urlObj.searchParams.get('code');
+  const error = urlObj.searchParams.get('error');
+  const stateStr = urlObj.searchParams.get('state');
+
+  let state = {};
+  try {
+    if (stateStr) {
+      state = JSON.parse(Buffer.from(stateStr, 'base64url').toString('utf8'));
+    }
+  } catch {}
+
+  const rememberLogin = Boolean(state.rememberLogin);
+  const returnBase = state.from || '/store-account.html';
+
+  if (error || !code) {
+    const errorMsg = error || '用户取消了 Google 登录授权';
+    const redirectUrl = new URL(returnBase, origin);
+    redirectUrl.searchParams.set('auth', 'google_error');
+    redirectUrl.searchParams.set('message', errorMsg);
+    response.statusCode = 302;
+    response.setHeader('Location', redirectUrl.toString());
+    response.end();
+    return;
+  }
+
+  try {
+    const redirectUri = `${origin}/api/community/google/callback`;
+    const googleUser = await exchangeGoogleCodeForUserInfo(code, redirectUri);
+    const account = findOrCreateGoogleCommunityAccount({
+      email: googleUser.email,
+      name: googleUser.name,
+      sub: googleUser.sub
+    });
+
+    const isCommunityDev = Boolean(account.isDeveloper || isDeveloper(account.username));
+    const token = issueCommunitySession(
+      response,
+      account.username,
+      account.email,
+      isCommunityDev,
+      rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
+    );
+
+    const redirectUrl = new URL(returnBase, origin);
+    redirectUrl.searchParams.set('auth', 'google_success');
+    redirectUrl.searchParams.set('token', token);
+    redirectUrl.searchParams.set('username', account.username);
+    response.statusCode = 302;
+    response.setHeader('Location', redirectUrl.toString());
+    response.end();
+  } catch (err) {
+    console.error('[Google Callback Error]', err);
+    const redirectUrl = new URL(returnBase, origin);
+    redirectUrl.searchParams.set('auth', 'google_error');
+    redirectUrl.searchParams.set('message', err.message || 'Google 登录处理失败');
+    response.statusCode = 302;
+    response.setHeader('Location', redirectUrl.toString());
+    response.end();
+  }
+}
+
+async function handleCommunityGoogleLogin(request, response) {
+  try {
+    const body = await parseRequestBody(request);
+    const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
+
+    let googleUser = null;
+    if (body.credential) {
+      // GSI ID Token
+      googleUser = await verifyGoogleIdToken(body.credential);
+    } else if (body.code) {
+      // Authorization Code
+      const origin = getRequestOrigin(request);
+      const redirectUri = body.redirectUri || `${origin}/api/community/google/callback`;
+      googleUser = await exchangeGoogleCodeForUserInfo(body.code, redirectUri);
+    } else {
+      sendJson(response, 400, { message: '缺少 Google 登录凭据' });
+      return;
+    }
+
+    const account = findOrCreateGoogleCommunityAccount({
+      email: googleUser.email,
+      name: googleUser.name,
+      sub: googleUser.sub
+    });
+
+    const isCommunityDev = Boolean(account.isDeveloper || isDeveloper(account.username));
+    const token = issueCommunitySession(
+      response,
+      account.username,
+      account.email,
+      isCommunityDev,
+      rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
+    );
+
+    sendJson(response, 200, {
+      message: 'Google 账号登录成功',
+      username: account.username,
+      email: account.email,
+      isDeveloper: isCommunityDev,
+      token
+    });
+  } catch (error) {
+    console.error('[Google Login Error]', error);
+    sendJson(response, 400, { message: error.message || 'Google 登录失败' });
+  }
 }
 
 function getPlazaAccountByEmail(email) {
@@ -3917,7 +4777,7 @@ function saveServerListingAvatar(listingId, imageData) {
   const buffer = Buffer.from(match[3], 'base64');
 
   if (buffer.length > 1024 * 1024 * 2) {
-    throw new Error('头像图片不能超过 2MB');
+    throw new Error('ͷ��ͼƬ���ܳ��� 2MB');
   }
 
   const fileName = `server-${listingId}${extension}`;
@@ -3934,7 +4794,7 @@ async function trySmtpSend(toEmail, code, username) {
   const smtpConfig = apiKeys.smtp;
 
   if (!smtpConfig?.host || !smtpConfig?.user || !smtpConfig?.pass) {
-    return { ok: false, reason: 'SMTP 未配置 host/user/pass' };
+    return { ok: false, reason: 'SMTP δ���� host/user/pass' };
   }
 
   const transporter = nodemailer.createTransport({
@@ -3954,34 +4814,34 @@ async function trySmtpSend(toEmail, code, username) {
     const info = await transporter.sendMail({
       from: smtpConfig.from || smtpConfig.user,
       to: toEmail,
-      subject: `验证码 ${code}`,
-      text: `你好 ${username}，\n\n你的“星际_小卖部”账号验证码是：${code}\n\n验证码 10 分钟内有效，请勿泄露。\n\n-- 星际-小卖部`
+      subject: `��֤�� ${code}`,
+      text: `��� ${username}��\n\n��ġ��Ǽ�_С�������˺���֤���ǣ�${code}\n\n��֤�� 10 ��������Ч������й¶��\n\n-- �Ǽ�-С����`
     });
 
     return { ok: true, reason: info?.response || '' };
   } catch (error) {
-    return { ok: false, reason: error?.response || error?.message || 'SMTP 发送失败' };
+    return { ok: false, reason: error?.response || error?.message || 'SMTP ����ʧ��' };
   }
 }
 
 async function sendAuthCodeEmail(scopeLabel, toEmail, code, username, exposeDevCode = false) {
-  const smtpResult = await trySmtpSend(toEmail, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP 发送失败' }));
+  const smtpResult = await trySmtpSend(toEmail, code, username).catch((error) => ({ ok: false, reason: error.message || 'SMTP ����ʧ��' }));
 
   if (smtpResult.ok) {
     return {
       sent: true,
-      message: `验证码已发送至 ${toEmail}，10 分钟内有效`,
+      message: `��֤���ѷ����� ${toEmail}��10 ��������Ч`,
       ...(exposeDevCode ? { devCode: code } : {})
     };
   }
 
-  console.warn(`[${scopeLabel}] SMTP 发送失败 -> ${toEmail} (${username}): ${smtpResult.reason || 'unknown'}`);
-  const fallbackCodeMessage = exposeDevCode ? `（备用验证码：${code}）` : '';
+  console.warn(`[${scopeLabel}] SMTP ����ʧ�� -> ${toEmail} (${username}): ${smtpResult.reason || 'unknown'}`);
+  const fallbackCodeMessage = exposeDevCode ? `��������֤�룺${code}��` : '';
   return {
     sent: false,
     message: smtpResult.reason
-      ? `邮件发送失败：${smtpResult.reason}${fallbackCodeMessage}`
-      : `邮件发送失败，已切换到调试验证码${fallbackCodeMessage}`,
+      ? `�ʼ�����ʧ�ܣ�${smtpResult.reason}${fallbackCodeMessage}`
+      : `�ʼ�����ʧ�ܣ����л���������֤��${fallbackCodeMessage}`,
     devCode: code,
     smtpError: smtpResult.reason || ''
   };
@@ -3994,30 +4854,30 @@ function handlePlazaSendCode(request, response) {
       const email = String(body.email || '').trim().toLowerCase();
 
       if (!isValidAuthUsername(username)) {
-        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        sendJson(response, 400, { message: '�û�������Ϊ�գ��Ҳ����� 32 ���ַ�' });
         return;
       }
 
       if (!isValidAuthEmail(email)) {
-        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        sendJson(response, 400, { message: '����д��Ч�������ַ' });
         return;
       }
 
       const account = getPlazaAccountByEmail(email);
       if (!account) {
-        sendJson(response, 403, { message: '请先注册账户后再登录', code: 'REGISTRATION_REQUIRED' });
+        sendJson(response, 403, { message: '����ע���˻����ٵ�¼', code: 'REGISTRATION_REQUIRED' });
         return;
       }
 
       if (account.username !== username) {
-        sendJson(response, 400, { message: '用户名与注册账户不一致' });
+        sendJson(response, 400, { message: '�û�����ע���˻���һ��' });
         return;
       }
 
-      // 防频刷：60 秒内不能重发
+      // ��Ƶˢ��60 ���ڲ����ط�
       const existing = plazaVerifyCodes.get(email);
       if (existing && existing.expiresAt - plazaVerifyCodeLifetimeMs + 60000 > Date.now()) {
-        sendJson(response, 429, { message: '发送太频繁，请 60 秒后重试' });
+        sendJson(response, 429, { message: '����̫Ƶ������ 60 �������' });
         return;
       }
 
@@ -4034,7 +4894,7 @@ function handlePlazaSendCode(request, response) {
         sendJson(response, 200, result);
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -4045,12 +4905,12 @@ function handlePlazaDirectLogin(request, response) {
       const email = String(body.email || '').trim().toLowerCase();
 
       if (!isValidAuthUsername(username)) {
-        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        sendJson(response, 400, { message: '�û�������Ϊ�գ��Ҳ����� 32 ���ַ�' });
         return;
       }
 
       if (!isValidAuthEmail(email)) {
-        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        sendJson(response, 400, { message: '����д��Ч�������ַ' });
         return;
       }
 
@@ -4062,10 +4922,10 @@ function handlePlazaDirectLogin(request, response) {
       });
 
       setScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/', token, plazaSessionLifetimeMs);
-      sendJson(response, 200, { message: '登录成功', username, email });
+      sendJson(response, 200, { message: '��¼�ɹ�', username, email });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -4076,33 +4936,33 @@ function handlePlazaRegister(request, response) {
       const email = String(body.email || '').trim().toLowerCase();
 
       if (!isValidAuthUsername(username)) {
-        sendJson(response, 400, { message: '用户名不能为空，且不超过 32 个字符' });
+        sendJson(response, 400, { message: '�û�������Ϊ�գ��Ҳ����� 32 ���ַ�' });
         return;
       }
 
       if (!isValidAuthEmail(email)) {
-        sendJson(response, 400, { message: '请填写有效的邮箱地址' });
+        sendJson(response, 400, { message: '����д��Ч�������ַ' });
         return;
       }
 
       if (getPlazaAccountByUsername(username)) {
-        sendJson(response, 409, { message: '该用户名已被注册，请换一个昵称' });
+        sendJson(response, 409, { message: '���û����ѱ�ע�ᣬ�뻻һ���ǳ�' });
         return;
       }
 
       if (getPlazaAccountByEmail(email)) {
-        sendJson(response, 409, { message: '该邮箱已注册，请直接登录' });
+        sendJson(response, 409, { message: '��������ע�ᣬ��ֱ�ӵ�¼' });
         return;
       }
 
       const account = createPlazaAccount(username, email);
       sendJson(response, 201, {
-        message: '注册成功，请继续发送验证码登录',
+        message: 'ע��ɹ��������������֤���¼',
         account
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -4115,12 +4975,12 @@ function handlePlazaVerify(request, response) {
       const entry = plazaVerifyCodes.get(email);
 
       if (!entry || entry.expiresAt <= Date.now()) {
-        sendJson(response, 400, { message: '验证码不存在或已过期，请重新获取' });
+        sendJson(response, 400, { message: '��֤�벻���ڻ��ѹ��ڣ������»�ȡ' });
         return;
       }
 
       if (entry.code !== code) {
-        sendJson(response, 400, { message: '验证码错误' });
+        sendJson(response, 400, { message: '��֤�����' });
         return;
       }
 
@@ -4135,10 +4995,10 @@ function handlePlazaVerify(request, response) {
       });
 
         setScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/', token, plazaSessionLifetimeMs);
-      sendJson(response, 200, { message: '登录成功', username: entry.username });
+      sendJson(response, 200, { message: '��¼�ɹ�', username: entry.username });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '请求无效' });
+      sendJson(response, 400, { message: error.message || '������Ч' });
     });
 }
 
@@ -4165,20 +5025,20 @@ function handlePlazaLogout(request, response) {
     plazaSessions.delete(token);
   }
       clearScopedAuthCookie(response, 'mctools_plaza', '/api/plaza/');
-  sendJson(response, 200, { message: '已退出登录' });
+  sendJson(response, 200, { message: '���˳���¼' });
 }
 
 function handlePlazaVipPurchase(request, response) {
   const session = getPlazaSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录后再购买 VIP' });
+    sendJson(response, 401, { message: '���ȵ�¼���ٹ��� VIP' });
     return;
   }
 
   if (vipSystemPaused) {
     sendJson(response, 503, {
-      message: 'VIP 功能暂时关闭',
+      message: 'VIP ������ʱ�ر�',
       vipPaused: true,
       username: session.username,
       version: appVersion,
@@ -4191,7 +5051,7 @@ function handlePlazaVipPurchase(request, response) {
 
   if (existingPurchase) {
     sendJson(response, 200, {
-      message: 'VIP 已开通',
+      message: 'VIP �ѿ�ͨ',
       username: session.username,
       version: appVersion,
       price: 10,
@@ -4203,7 +5063,7 @@ function handlePlazaVipPurchase(request, response) {
   db.prepare('INSERT INTO vip_purchases (username, amount) VALUES (?, ?)').run(session.username, 10);
 
   sendJson(response, 201, {
-    message: 'VIP 开通成功',
+    message: 'VIP ��ͨ�ɹ�',
     username: session.username,
     version: appVersion,
     price: 10,
@@ -4215,13 +5075,13 @@ function handlePlazaSvipPurchase(request, response) {
   const session = getPlazaSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录后再购买 SVIP' });
+    sendJson(response, 401, { message: '���ȵ�¼���ٹ��� SVIP' });
     return;
   }
 
   if (vipSystemPaused) {
     sendJson(response, 503, {
-      message: 'VIP 功能暂时关闭',
+      message: 'VIP ������ʱ�ر�',
       vipPaused: true,
       username: session.username,
       version: appVersion,
@@ -4235,7 +5095,7 @@ function handlePlazaSvipPurchase(request, response) {
 
   if (existingPurchase) {
     sendJson(response, 200, {
-      message: 'SVIP 已开通',
+      message: 'SVIP �ѿ�ͨ',
       username: session.username,
       version: appVersion,
       price: vipInfo.svipAmount || (vipInfo.vipPurchased ? 10 : 25),
@@ -4248,7 +5108,7 @@ function handlePlazaSvipPurchase(request, response) {
   db.prepare('INSERT INTO svip_purchases (username, amount) VALUES (?, ?)').run(session.username, upgradePrice);
 
   sendJson(response, 201, {
-    message: 'SVIP 开通成功',
+    message: 'SVIP ��ͨ�ɹ�',
     username: session.username,
     version: appVersion,
     price: upgradePrice,
@@ -4260,7 +5120,7 @@ function handleServerListingCreate(request, response) {
   const plazaSession = getPlazaSessionFromRequest(request);
 
   if (!plazaSession) {
-    sendJson(response, 401, { message: '请先登录后再投稿', code: 'LOGIN_REQUIRED' });
+    sendJson(response, 401, { message: '���ȵ�¼����Ͷ��', code: 'LOGIN_REQUIRED' });
     return;
   }
   const vipInfo = getVipInfo(plazaSession.username);
@@ -4289,7 +5149,7 @@ function handleServerListingCreate(request, response) {
 
       if (!canBypassLimit && listingCount >= 2) {
         sendJson(response, 403, {
-          message: '普通用户最多只能上传 2 个服务器，开通 VIP 后可继续投稿',
+          message: '��ͨ�û����ֻ���ϴ� 2 ������������ͨ VIP ��ɼ���Ͷ��',
           code: 'SERVER_LIMIT_REACHED',
           limit: 2,
           current: listingCount,
@@ -4299,17 +5159,17 @@ function handleServerListingCreate(request, response) {
       }
 
       if (!serverName || serverName.length > 64) {
-        sendJson(response, 400, { message: '服务器名称不能为空，且不超过 64 个字符' });
+        sendJson(response, 400, { message: '���������Ʋ���Ϊ�գ��Ҳ����� 64 ���ַ�' });
         return;
       }
 
       if (!ipAddress || ipAddress.length > 128) {
-        sendJson(response, 400, { message: 'IP 地址不能为空，且不超过 128 个字符' });
+        sendJson(response, 400, { message: 'IP ��ַ����Ϊ�գ��Ҳ����� 128 ���ַ�' });
         return;
       }
 
       if (!description) {
-        sendJson(response, 400, { message: '请填写服务器简介' });
+        sendJson(response, 400, { message: '����д���������' });
         return;
       }
 
@@ -4325,16 +5185,16 @@ function handleServerListingCreate(request, response) {
           }
         } catch (error) {
           db.prepare('DELETE FROM server_listings WHERE id = ?').run(result.lastInsertRowid);
-          sendJson(response, 400, { message: error.message || '头像上传失败' });
+          sendJson(response, 400, { message: error.message || 'ͷ���ϴ�ʧ��' });
           return;
         }
       }
 
-      sendJson(response, 200, { message: '投稿已收到，等待开发者审核后会显示在列表中' });
+      sendJson(response, 200, { message: 'Ͷ�����յ����ȴ�Ȩ����˺����ʾ���б���' });
     })
     .catch((error) => {
       const isJsonError = error.message === 'Invalid JSON';
-      sendJson(response, isJsonError ? 400 : 500, { message: error.message || '提交失败' });
+      sendJson(response, isJsonError ? 400 : 500, { message: error.message || '�ύʧ��' });
     });
 }
 
@@ -4362,22 +5222,22 @@ function handleDeveloperServerListingStatus(request, response) {
       const status = body.status;
 
       if (!id || !['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
-        sendJson(response, 400, { message: '参数错误' });
+        sendJson(response, 400, { message: '��������' });
         return;
       }
 
       const existing = db.prepare('SELECT id FROM server_listings WHERE id = ?').get(id);
 
       if (!existing) {
-        sendJson(response, 404, { message: '未找到该投稿' });
+        sendJson(response, 404, { message: 'δ�ҵ���Ͷ��' });
         return;
       }
 
       db.prepare('UPDATE server_listings SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(status, id);
-      sendJson(response, 200, { message: '状态已更新' });
+      sendJson(response, 200, { message: '״̬�Ѹ���' });
     })
     .catch((error) => {
-      sendJson(response, 500, { message: error.message || '操作失败' });
+      sendJson(response, 500, { message: error.message || '����ʧ��' });
     });
 }
 
@@ -4391,23 +5251,23 @@ function handleDeveloperServerListingDelete(request, response) {
       const id = Number.parseInt(body.id, 10);
 
       if (!id) {
-        sendJson(response, 400, { message: '参数错误' });
+        sendJson(response, 400, { message: '��������' });
         return;
       }
 
       const existing = db.prepare('SELECT id FROM server_listings WHERE id = ?').get(id);
 
       if (!existing) {
-        sendJson(response, 404, { message: '未找到该投稿' });
+        sendJson(response, 404, { message: 'δ�ҵ���Ͷ��' });
         return;
       }
 
       deleteServerListingAvatarFiles(id);
       db.prepare('DELETE FROM server_listings WHERE id = ?').run(id);
-      sendJson(response, 200, { message: '已删除' });
+      sendJson(response, 200, { message: '��ɾ��' });
     })
     .catch((error) => {
-      sendJson(response, 500, { message: error.message || '删除失败' });
+      sendJson(response, 500, { message: error.message || 'ɾ��ʧ��' });
     });
 }
 
@@ -4420,7 +5280,7 @@ function sendPortClosedNotice(response, request) {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>服务器宣传页</title>
+    <title>����������ҳ</title>
     <style>
       :root {
         color-scheme: dark;
@@ -4571,31 +5431,31 @@ function sendPortClosedNotice(response, request) {
         <section class="promo-copy">
           <span class="promo-badge">MC TOOLS SERVER PREVIEW</span>
           <div>
-            <h1>服务器宣传页</h1>
-            <p>3000 端口当前只保留服务器宣传展示，用于预告玩法方向、房间氛围和后续开放计划，暂不开放实际访问与功能操作。</p>
+            <h1>����������ҳ</h1>
+            <p>3000 �˿ڵ�ǰֻ��������������չʾ������Ԥ���淨���򡢷����Χ�ͺ������żƻ����ݲ�����ʵ�ʷ����빦�ܲ�����</p>
           </div>
           <div class="promo-points">
             <article class="promo-point">
-              <strong>多人联机主题</strong>
-              <p>主打轻量生存、活动夜、多人分工和房间开场节奏，适合朋友局快速集合。</p>
+              <strong>������������</strong>
+              <p>�����������桢�ҹ�����˷ֹ��ͷ��俪�����࣬�ʺ����Ѿֿ��ټ��ϡ�</p>
             </article>
             <article class="promo-point">
-              <strong>工具箱联动</strong>
-              <p>后续会和开服中心、设备检测、Bug 门户联动，但当前宣传端口不提供登录、注册和扫码操作。</p>
+              <strong>����������</strong>
+              <p>������Ϳ������ġ��豸��⡢Bug �Ż�����������ǰ�����˿ڲ��ṩ��¼��ע���ɨ�������</p>
             </article>
             <article class="promo-point">
-              <strong>开放状态</strong>
-              <p>目前仍在准备阶段。需要继续使用现有服务时，请直接前往 3001 端口。</p>
+              <strong>����״̬</strong>
+              <p>Ŀǰ����׼���׶Ρ���Ҫ����ʹ�����з���ʱ����ֱ��ǰ�� 3001 �˿ڡ�</p>
             </article>
           </div>
         </section>
         <aside class="promo-side">
-          <p class="promo-side-title">当前状态</p>
-          <span class="promo-status">暂不开放</span>
-          <p>3000 端口现在不会提供正式登录、账号操作、扫码登录或工具页交互。</p>
+          <p class="promo-side-title">��ǰ״̬</p>
+          <span class="promo-status">�ݲ�����</span>
+          <p>3000 �˿����ڲ����ṩ��ʽ��¼���˺Ų�����ɨ���¼�򹤾�ҳ������</p>
           <div class="promo-actions">
-            <a class="port-closed-link" href="${targetUrl}">前往 3001 正式入口</a>
-            <a class="port-closed-link secondary" href="${targetUrl}server-hub.html">查看联机模块</a>
+            <a class="port-closed-link" href="${targetUrl}">ǰ�� 3001 ��ʽ���</a>
+            <a class="port-closed-link secondary" href="${targetUrl}server-hub.html">�鿴����ģ��</a>
           </div>
         </aside>
       </div>
@@ -4840,11 +5700,11 @@ function sanitizeAppVersion(value) {
   const nextVersion = String(value || '').trim();
 
   if (!nextVersion) {
-    throw new Error('版本号不能为空');
+    throw new Error('�汾�Ų���Ϊ��');
   }
 
   if (nextVersion.length > 32) {
-    throw new Error('版本号长度不能超过 32 个字符');
+    throw new Error('�汾�ų��Ȳ��ܳ��� 32 ���ַ�');
   }
 
   return nextVersion;
@@ -4947,21 +5807,21 @@ function getSafeDeveloperFilePath(relativeFilePath) {
   const normalizedRelativePath = String(relativeFilePath || '').replace(/\\/g, '/').replace(/^\/+/, '');
 
   if (!normalizedRelativePath) {
-    throw new Error('缺少文件路径');
+    throw new Error('ȱ���ļ�·��');
   }
 
   if (normalizedRelativePath.startsWith('data/') || normalizedRelativePath === 'data') {
-    throw new Error('该路径不可访问');
+    throw new Error('��·�����ɷ���');
   }
 
   const absolutePath = path.resolve(__dirname, normalizedRelativePath);
 
   if (!absolutePath.startsWith(__dirname)) {
-    throw new Error('非法文件路径');
+    throw new Error('�Ƿ��ļ�·��');
   }
 
   if (!isTextLikeFile(absolutePath)) {
-    throw new Error('当前仅支持查看和修改文本代码文件');
+    throw new Error('��ǰ��֧�ֲ鿴���޸��ı������ļ�');
   }
 
   return {
@@ -5060,13 +5920,125 @@ function ensureStoreSettings() {
 
 ensureStoreSettings();
 
+function repairLegacyStoreData() {
+  const fixedAnnouncement = '欢迎来到星际无限资源服商店，购买前请先确认联系方式与支付方式。';
+  const fixedMaintenanceMessage = '当前服务维护中，请稍后再试。';
+  const fixedProducts = [
+    {
+      productCode: '65997548',
+      name: '星际无限资源服官方管理员',
+      description: '官方认证管理员权限，适合服主及运营管理。',
+      originalPriceFen: 1500,
+      salePriceFen: 100,
+      stock: 0,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 10,
+      tags: ['资源服', '官方', '管理']
+    },
+    {
+      productCode: 'CMD-20CB-IN',
+      name: '指令生成 / 20cb 内部',
+      description: '适合 20cb 内部使用的指令生成服务。',
+      originalPriceFen: 2000,
+      salePriceFen: 100,
+      stock: 0,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 20,
+      tags: ['指令生成', '20cb内部']
+    },
+    {
+      productCode: 'CMD-20CB-PLUS',
+      name: '指令生成 / 20cb 上层',
+      description: '适合 20cb 上层用户的高级指令生成服务。',
+      originalPriceFen: 4000,
+      salePriceFen: 100,
+      stock: 0,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 30,
+      tags: ['指令生成', '20cb上层']
+    },
+    {
+      productCode: 'BUILD-IMPORT-ONCE',
+      name: '建筑导入一次',
+      description: '一次性为服务器导入建筑方案。',
+      originalPriceFen: 2000,
+      salePriceFen: 100,
+      stock: 0,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 40,
+      tags: ['建筑导入', '一次']
+    },
+    {
+      productCode: 'LOW-AGENT-30',
+      name: '低级代理',
+      description: '购买后永久享受八折优惠。',
+      originalPriceFen: 3000,
+      salePriceFen: 3000,
+      stock: 999,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 50,
+      tags: ['权限', '永久优惠', '八折']
+    },
+    {
+      productCode: 'MID-AGENT-100',
+      name: '中级代理',
+      description: '购买后永久享受七折优惠。',
+      originalPriceFen: 10000,
+      salePriceFen: 10000,
+      stock: 999,
+      currency: 'CNY',
+      isActive: 1,
+      sortOrder: 60,
+      tags: ['权限', '永久优惠', '七折']
+    }
+  ];
+
+  setSettingValue('store_announcement', fixedAnnouncement);
+  setSettingValue('site_maintenance_message', fixedMaintenanceMessage);
+  setSettingValue('site_maintenance_enabled', '0');
+
+  for (const product of fixedProducts) {
+    db.prepare(
+      `UPDATE store_products SET
+        name = ?,
+        description = ?,
+        image_url = '',
+        original_price_fen = ?,
+        sale_price_fen = ?,
+        stock = ?,
+        currency = ?,
+        is_active = ?,
+        sort_order = ?,
+        tags_json = ?,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE product_code = ?`
+    ).run(
+      product.name,
+      product.description,
+      Number(product.originalPriceFen || 0),
+      Number(product.salePriceFen || 0),
+      Math.max(0, Number(product.stock || 0)),
+      product.currency || 'CNY',
+      Number(product.isActive ? 1 : 0),
+      Number(product.sortOrder || 100),
+      JSON.stringify(product.tags || []),
+      product.productCode
+    );
+  }
+}
+
+repairLegacyStoreData();
+
 function handleRegister(request, response) {
   parseRequestBody(request)
-    .then((body) => {
+    .then(async (body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
-      const captchaId = String(body.captchaId || '').trim();
-      const captchaCode = String(body.captchaCode || '').trim();
       const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
       const registerAsDeveloper =
         body.registerAsDeveloper === true ||
@@ -5076,19 +6048,12 @@ function handleRegister(request, response) {
       const developerSecret = String(body.developerSecret || '').trim();
 
       if (username.length < 3 || username.length > 32) {
-        sendJson(response, 400, { message: '用户名长度需为 3-32 个字符' });
+        sendJson(response, 400, { message: '�û���������Ϊ 3-32 ���ַ�' });
         return;
       }
 
       if (password.length < 6) {
-        sendJson(response, 400, { message: '密码长度至少 6 位' });
-        return;
-      }
-
-      const captchaCheck = verifyLoginCaptcha(captchaId, captchaCode);
-
-      if (!captchaCheck.ok) {
-        sendJson(response, 400, { message: captchaCheck.message });
+        sendJson(response, 400, { message: '���볤������ 6 λ' });
         return;
       }
 
@@ -5102,7 +6067,7 @@ function handleRegister(request, response) {
         }
 
         if (!secretMatched && !usedLocalDevQuickEntry) {
-          sendJson(response, 403, { message: '开发者授权码错误或已过期' });
+          sendJson(response, 403, { message: 'Ȩ����Ȩ�������ѹ���' });
           return;
         }
       }
@@ -5110,7 +6075,7 @@ function handleRegister(request, response) {
       const existingUser = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
 
       if (existingUser) {
-        sendJson(response, 409, { message: '用户名已存在' });
+        sendJson(response, 409, { message: '�û����Ѵ���' });
         return;
       }
 
@@ -5126,8 +6091,8 @@ function handleRegister(request, response) {
       setSessionCookie(response, sessionToken, sessionLifetime);
       sendJson(response, 201, {
         message: registerAsDeveloper
-          ? '开发者账号注册成功'
-          : '注册成功',
+          ? 'Ȩ���˺�ע��ɹ�'
+          : 'ע��ɹ�',
         username,
         version: appVersion
       });
@@ -5140,7 +6105,7 @@ function handleRegister(request, response) {
 
 function handleDeveloperQuickEntryToken(request, response) {
   if (!canUseLocalDevQuickEntry(request)) {
-    sendJson(response, 403, { message: '官方线上环境禁用快捷入口，请使用开发者授权码' });
+    sendJson(response, 403, { message: '�ٷ����ϻ������ÿ����ڣ���ʹ��Ȩ����Ȩ��' });
     return;
   }
 
@@ -5154,33 +6119,33 @@ function handleDeveloperQuickEntryToken(request, response) {
 
 function handleLogin(request, response) {
   parseRequestBody(request)
-    .then((body) => {
+    .then(async (body) => {
       const username = String(body.username || '').trim();
       const password = String(body.password || '');
       const rememberLogin = body.rememberLogin === true || body.rememberLogin === 'true' || body.rememberLogin === 1 || body.rememberLogin === '1';
       const bypassDeveloperRestriction = canUseGeneralUserLogin(request);
 
       if (!username || !password) {
-        sendJson(response, 400, { message: '请输入用户名和密码' });
+        sendJson(response, 400, { message: '�������û���������' });
         return;
       }
 
       const user = db.prepare('SELECT username, password_hash, is_developer FROM users WHERE username = ?').get(username);
 
       if (!user || !verifyPassword(password, user.password_hash)) {
-        sendJson(response, 401, { message: '用户名或密码错误' });
+        sendJson(response, 401, { message: '�û������������' });
         return;
       }
 
       if (!bypassDeveloperRestriction && !Number(user.is_developer)) {
-        sendJson(response, 403, { message: '当前仅允许开发者账号登录' });
+        sendJson(response, 403, { message: '��ǰ������Ȩ���˺ŵ�¼' });
         return;
       }
 
       const sessionLifetime = rememberLogin ? rememberedSessionLifetimeMs : sessionLifetimeMs;
       const sessionToken = createSession(user.username, sessionLifetime);
       setSessionCookie(response, sessionToken, sessionLifetime);
-      sendJson(response, 200, { message: '登录成功', username: user.username, version: appVersion });
+      sendJson(response, 200, { message: '��¼�ɹ�', username: user.username, version: appVersion });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -5212,7 +6177,7 @@ function handleQrLoginStatus(request, response) {
   const rememberLogin = ['1', 'true', 'yes', 'on'].includes(String(url.searchParams.get('rememberLogin') || '').trim().toLowerCase());
 
   if (!ticket) {
-    sendJson(response, 404, { message: '扫码登录二维码已失效，请刷新后重试' });
+    sendJson(response, 404, { message: 'ɨ���¼��ά����ʧЧ����ˢ�º�����' });
     return;
   }
 
@@ -5239,7 +6204,7 @@ function handleQrLoginApprove(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先在扫码设备登录账号' });
+    sendJson(response, 401, { message: '������ɨ���豸��¼�˺�' });
     return;
   }
 
@@ -5248,7 +6213,7 @@ function handleQrLoginApprove(request, response) {
       const ticket = getQrLoginTicket(body.token || '');
 
       if (!ticket) {
-        sendJson(response, 404, { message: '扫码登录二维码已失效，请返回原页面刷新' });
+        sendJson(response, 404, { message: 'ɨ���¼��ά����ʧЧ���뷵��ԭҳ��ˢ��' });
         return;
       }
 
@@ -5260,8 +6225,93 @@ function handleQrLoginApprove(request, response) {
       });
 
       sendJson(response, 200, {
+        message: `��ȷ��ʹ���˺� ${session.username} ��¼`,
+        username: session.username,
+        expiresInMs: Math.max(0, ticket.expiresAt - Date.now())
+      });
+    })
+    .catch((error) => {
+      const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
+      sendJson(response, statusCode, { message: error.message });
+    });
+}
+
+function handleCommunityQrLoginTicketIssue(request, response) {
+  const ticketToken = issueCommunityQrLoginTicket();
+  sendJson(response, 200, {
+    token: ticketToken,
+    expiresInMs: communityQrLoginTicketLifetimeMs,
+    version: appVersion
+  });
+}
+
+function handleCommunityQrLoginStatus(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const ticket = getCommunityQrLoginTicket(url.searchParams.get('token'));
+  const rememberLogin = ['1', 'true', 'yes', 'on'].includes(String(url.searchParams.get('rememberLogin') || '').trim().toLowerCase());
+
+  if (!ticket) {
+    sendJson(response, 404, { message: '扫码登录二维码已失效，请刷新后重试' });
+    return;
+  }
+
+  if (ticket.status !== 'approved' || !ticket.username || !ticket.email) {
+    sendJson(response, 200, {
+      status: ticket.status,
+      expiresInMs: Math.max(0, ticket.expiresAt - Date.now())
+    });
+    return;
+  }
+
+  const token = issueCommunitySession(
+    response,
+    ticket.username,
+    ticket.email,
+    Boolean(ticket.isDeveloper),
+    rememberLogin ? rememberedCommunitySessionLifetimeMs : communitySessionLifetimeMs
+  );
+  communityQrLoginTickets.delete(ticket.token);
+  sendJson(response, 200, {
+    status: 'approved',
+    username: ticket.username,
+    email: ticket.email,
+    isDeveloper: Boolean(ticket.isDeveloper),
+    token,
+    version: appVersion
+  });
+}
+
+function handleCommunityQrLoginApprove(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+
+  if (!session) {
+    sendJson(response, 401, { message: '请先在扫码设备登录商店账号' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const ticket = getCommunityQrLoginTicket(body.token || '');
+
+      if (!ticket) {
+        sendJson(response, 404, { message: '扫码登录二维码已失效，请返回原设备刷新' });
+        return;
+      }
+
+      markCommunityAccountLogin(session.email);
+      updateCommunityQrLoginTicket(ticket.token, {
+        status: 'approved',
+        username: session.username,
+        email: session.email,
+        isDeveloper: Boolean(session.isDeveloper),
+        createdAt: ticket.createdAt,
+        expiresAt: ticket.expiresAt
+      });
+
+      sendJson(response, 200, {
         message: `已确认使用账号 ${session.username} 登录`,
         username: session.username,
+        email: session.email,
         expiresInMs: Math.max(0, ticket.expiresAt - Date.now())
       });
     })
@@ -5280,14 +6330,14 @@ function handleLogout(request, response) {
   }
 
   clearSessionCookie(response);
-  sendJson(response, 200, { message: '已退出登录' });
+  sendJson(response, 200, { message: '���˳���¼' });
 }
 
 function handlePasswordChange(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -5298,36 +6348,36 @@ function handlePasswordChange(request, response) {
       const confirmPassword = String(body.confirmPassword || '');
 
       if (!currentPassword || !nextPassword || !confirmPassword) {
-        sendJson(response, 400, { message: '请完整填写当前密码、新密码和确认密码' });
+        sendJson(response, 400, { message: '��������д��ǰ���롢�������ȷ������' });
         return;
       }
 
       if (nextPassword.length < 6) {
-        sendJson(response, 400, { message: '新密码长度至少 6 位' });
+        sendJson(response, 400, { message: '�����볤������ 6 λ' });
         return;
       }
 
       if (nextPassword !== confirmPassword) {
-        sendJson(response, 400, { message: '两次输入的新密码不一致' });
+        sendJson(response, 400, { message: '��������������벻һ��' });
         return;
       }
 
       const user = db.prepare('SELECT password_hash FROM users WHERE username = ?').get(session.username);
 
       if (!user || !verifyPassword(currentPassword, user.password_hash)) {
-        sendJson(response, 401, { message: '当前密码错误' });
+        sendJson(response, 401, { message: '��ǰ�������' });
         return;
       }
 
       if (verifyPassword(nextPassword, user.password_hash)) {
-        sendJson(response, 400, { message: '新密码不能与当前密码相同' });
+        sendJson(response, 400, { message: '�����벻���뵱ǰ������ͬ' });
         return;
       }
 
       db.prepare('UPDATE users SET password_hash = ? WHERE username = ?').run(hashPassword(nextPassword), session.username);
 
       sendJson(response, 200, {
-        message: '密码修改成功',
+        message: '�����޸ĳɹ�',
         username: session.username,
         version: appVersion
       });
@@ -5378,7 +6428,7 @@ function hasSvipFeatureAccess(vipInfo) {
 }
 
 function getAiMaintenanceMessage() {
-  return 'AI 助手已恢复可用';
+  return 'AI �����ѻָ�����';
 }
 
 function isAiUnderMaintenance() {
@@ -5409,12 +6459,12 @@ function requireDeveloperSession(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return null;
   }
 
   if (!isDeveloper(session.username)) {
-    sendJson(response, 403, { message: '仅开发者账号可访问' });
+    sendJson(response, 403, { message: '��Ȩ���˺ſɷ���' });
     return null;
   }
 
@@ -5425,29 +6475,29 @@ function handleBugReportCreate(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '请先登录后再提交 bug 反馈' });
+    sendJson(response, 401, { message: '���ȵ�¼�����ύ bug ����' });
     return;
   }
 
   parseRequestBody(request)
     .then((body) => {
       const title = String(body.title || '').trim();
-      const category = String(body.category || '其他').trim() || '其他';
+      const category = String(body.category || '����').trim() || '����';
       const description = String(body.description || '').trim();
       const contact = String(body.contact || '').trim();
 
       if (title.length < 4 || title.length > 80) {
-        sendJson(response, 400, { message: '标题长度需为 4-80 个字符' });
+        sendJson(response, 400, { message: '���ⳤ����Ϊ 4-80 ���ַ�' });
         return;
       }
 
       if (description.length < 10 || description.length > 5000) {
-        sendJson(response, 400, { message: '问题描述长度需为 10-5000 个字符' });
+        sendJson(response, 400, { message: '��������������Ϊ 10-5000 ���ַ�' });
         return;
       }
 
       if (contact.length > 120) {
-        sendJson(response, 400, { message: '联系方式长度不能超过 120 个字符' });
+        sendJson(response, 400, { message: '��ϵ��ʽ���Ȳ��ܳ��� 120 ���ַ�' });
         return;
       }
 
@@ -5457,7 +6507,7 @@ function handleBugReportCreate(request, response) {
       ).run(session.username, title, category, description, contact);
 
       sendJson(response, 201, {
-        message: 'Bug 反馈已提交，开发者稍后会查看。',
+        message: 'Bug �������ύ��Ȩ���Ժ��鿴��',
         username: session.username,
         version: appVersion
       });
@@ -5472,7 +6522,7 @@ function handleMyBugReports(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -5538,12 +6588,12 @@ function handleDeveloperBugReportStatus(request, response) {
       const allowedStatus = new Set(['OPEN', 'TRIAGED', 'FIXED', 'CLOSED']);
 
       if (!Number.isInteger(id) || id <= 0) {
-        sendJson(response, 400, { message: '缺少有效的反馈编号' });
+        sendJson(response, 400, { message: 'ȱ����Ч�ķ������' });
         return;
       }
 
       if (!allowedStatus.has(status)) {
-        sendJson(response, 400, { message: '状态无效' });
+        sendJson(response, 400, { message: '״̬��Ч' });
         return;
       }
 
@@ -5554,12 +6604,12 @@ function handleDeveloperBugReportStatus(request, response) {
       ).run(status, id);
 
       if (!result.changes) {
-        sendJson(response, 404, { message: '未找到对应的 bug 反馈' });
+        sendJson(response, 404, { message: 'δ�ҵ���Ӧ�� bug ����' });
         return;
       }
 
       sendJson(response, 200, {
-        message: '反馈状态已更新',
+        message: '����״̬�Ѹ���',
         status,
         id,
         operator: session.username
@@ -5598,14 +6648,14 @@ function handleDeveloperFileRead(request, response) {
     const { relativePath, absolutePath } = getSafeDeveloperFilePath(url.searchParams.get('path') || '');
 
     if (!fs.existsSync(absolutePath)) {
-      sendJson(response, 404, { message: '文件不存在' });
+      sendJson(response, 404, { message: '�ļ�������' });
       return;
     }
 
     const stat = fs.statSync(absolutePath);
 
     if (stat.size > 1024 * 512) {
-      sendJson(response, 400, { message: '文件过大，暂不支持在线编辑' });
+      sendJson(response, 400, { message: '�ļ������ݲ�֧�����߱༭' });
       return;
     }
 
@@ -5617,7 +6667,7 @@ function handleDeveloperFileRead(request, response) {
       version: appVersion
     });
   } catch (error) {
-    sendJson(response, 400, { message: error.message || '读取文件失败' });
+    sendJson(response, 400, { message: error.message || '��ȡ�ļ�ʧ��' });
   }
 }
 
@@ -5634,18 +6684,18 @@ function handleDeveloperFileSave(request, response) {
       const content = String(body.content || '');
 
       if (!fs.existsSync(absolutePath)) {
-        sendJson(response, 404, { message: '文件不存在' });
+        sendJson(response, 404, { message: '�ļ�������' });
         return;
       }
 
       if (Buffer.byteLength(content, 'utf8') > 1024 * 512) {
-        sendJson(response, 400, { message: '文件内容过大，保存失败' });
+        sendJson(response, 400, { message: '�ļ����ݹ��󣬱���ʧ��' });
         return;
       }
 
       fs.writeFileSync(absolutePath, content, 'utf8');
       sendJson(response, 200, {
-        message: '文件已保存',
+        message: '�ļ��ѱ���',
         path: relativePath,
         version: appVersion,
         username: session.username
@@ -5690,7 +6740,7 @@ function handleDeveloperVersionSave(request, response) {
       setSettingValue('app_version', nextVersion);
 
       sendJson(response, 200, {
-        message: '版本号已更新',
+        message: '�汾���Ѹ���',
         version: appVersion,
         username: session.username
       });
@@ -5712,112 +6762,112 @@ function generateAiCommand(prompt) {
     return null;
   }
 
-  if (normalizedPrompt.includes('传送') || normalizedPrompt.includes('tp')) {
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('tp')) {
     const coordinateMatch = normalizedPrompt.match(/(-?\d+)\s+(-?\d+)\s+(-?\d+)/);
     const destination = coordinateMatch ? coordinateMatch.slice(1).join(' ') : '@s';
     return {
       commandName: 'ai-tp',
       commandText: `tp @p ${destination}`,
       confidence: 0.88,
-      label: 'AI 传送建议'
+      label: 'AI ���ͽ���'
     };
   }
 
-  if (normalizedPrompt.includes('给') || normalizedPrompt.includes('物品') || normalizedPrompt.includes('give')) {
-    const countMatch = normalizedPrompt.match(/(\d+)\s*(个|份|个物品)?/);
+  if (normalizedPrompt.includes('��') || normalizedPrompt.includes('��Ʒ') || normalizedPrompt.includes('give')) {
+    const countMatch = normalizedPrompt.match(/(\d+)\s*(��|��|����Ʒ)?/);
     const count = countMatch ? Math.max(1, Number.parseInt(countMatch[1], 10)) : 1;
-    const item = normalizedPrompt.includes('钻石') ? 'minecraft:diamond' : 'minecraft:stone';
+    const item = normalizedPrompt.includes('��ʯ') ? 'minecraft:diamond' : 'minecraft:stone';
     return {
       commandName: 'ai-give',
       commandText: `give @p ${item} ${count}`,
       confidence: 0.86,
-      label: 'AI 给予建议'
+      label: 'AI ���轨��'
     };
   }
 
-  if (normalizedPrompt.includes('召唤') || normalizedPrompt.includes('summon')) {
-    const entity = normalizedPrompt.includes('僵尸') ? 'minecraft:zombie' : 'minecraft:pig';
+  if (normalizedPrompt.includes('�ٻ�') || normalizedPrompt.includes('summon')) {
+    const entity = normalizedPrompt.includes('��ʬ') ? 'minecraft:zombie' : 'minecraft:pig';
     return {
       commandName: 'ai-summon',
       commandText: `summon ${entity} ~ ~ ~`,
       confidence: 0.84,
-      label: 'AI 召唤建议'
+      label: 'AI �ٻ�����'
     };
   }
 
-  if (normalizedPrompt.includes('效果') || normalizedPrompt.includes('速度') || normalizedPrompt.includes('effect')) {
+  if (normalizedPrompt.includes('Ч��') || normalizedPrompt.includes('�ٶ�') || normalizedPrompt.includes('effect')) {
     return {
       commandName: 'ai-effect',
       commandText: 'effect give @p minecraft:speed 30 1 true',
       confidence: 0.82,
-      label: 'AI 效果建议'
+      label: 'AI Ч������'
     };
   }
 
-  if (normalizedPrompt.includes('时间') || normalizedPrompt.includes('白天') || normalizedPrompt.includes('夜晚') || normalizedPrompt.includes('time')) {
-    const value = normalizedPrompt.includes('夜') ? '13000' : '1000';
+  if (normalizedPrompt.includes('ʱ��') || normalizedPrompt.includes('����') || normalizedPrompt.includes('ҹ��') || normalizedPrompt.includes('time')) {
+    const value = normalizedPrompt.includes('ҹ') ? '13000' : '1000';
     return {
       commandName: 'ai-time',
       commandText: `time set ${value}`,
       confidence: 0.8,
-      label: 'AI 时间建议'
+      label: 'AI ʱ�佨��'
     };
   }
 
-  if (normalizedPrompt.includes('清空') || normalizedPrompt.includes('背包') || normalizedPrompt.includes('clear')) {
+  if (normalizedPrompt.includes('���') || normalizedPrompt.includes('����') || normalizedPrompt.includes('clear')) {
     return {
       commandName: 'ai-clear',
       commandText: 'clear @p',
       confidence: 0.81,
-      label: 'AI 清空建议'
+      label: 'AI ��ս���'
     };
   }
 
-  if (normalizedPrompt.includes('难度') || normalizedPrompt.includes('困难') || normalizedPrompt.includes('和平') || normalizedPrompt.includes('difficulty')) {
-    const level = normalizedPrompt.includes('和平') ? 'peaceful' : normalizedPrompt.includes('困难') ? 'hard' : 'normal';
+  if (normalizedPrompt.includes('�Ѷ�') || normalizedPrompt.includes('����') || normalizedPrompt.includes('��ƽ') || normalizedPrompt.includes('difficulty')) {
+    const level = normalizedPrompt.includes('��ƽ') ? 'peaceful' : normalizedPrompt.includes('����') ? 'hard' : 'normal';
     return {
       commandName: 'ai-difficulty',
       commandText: `difficulty ${level}`,
       confidence: 0.79,
-      label: 'AI 难度建议'
+      label: 'AI �ѶȽ���'
     };
   }
 
-  if (normalizedPrompt.includes('规则') || normalizedPrompt.includes('死亡不掉落') || normalizedPrompt.includes('gamerule')) {
-    const rule = normalizedPrompt.includes('死亡不掉落') ? 'keepInventory' : 'doDaylightCycle';
-    const value = normalizedPrompt.includes('关') || normalizedPrompt.includes('false') ? 'false' : 'true';
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('����������') || normalizedPrompt.includes('gamerule')) {
+    const rule = normalizedPrompt.includes('����������') ? 'keepInventory' : 'doDaylightCycle';
+    const value = normalizedPrompt.includes('��') || normalizedPrompt.includes('false') ? 'false' : 'true';
     return {
       commandName: 'ai-gamerule',
       commandText: `gamerule ${rule} ${value}`,
       confidence: 0.78,
-      label: 'AI 规则建议'
+      label: 'AI ������'
     };
   }
 
-  if (normalizedPrompt.includes('定位') || normalizedPrompt.includes('村庄') || normalizedPrompt.includes('locate')) {
-    const target = normalizedPrompt.includes('村庄') ? 'minecraft:village' : 'minecraft:trial_chambers';
+  if (normalizedPrompt.includes('��λ') || normalizedPrompt.includes('��ׯ') || normalizedPrompt.includes('locate')) {
+    const target = normalizedPrompt.includes('��ׯ') ? 'minecraft:village' : 'minecraft:trial_chambers';
     return {
       commandName: 'ai-locate',
       commandText: `locate structure ${target}`,
       confidence: 0.77,
-      label: 'AI 定位建议'
+      label: 'AI ��λ����'
     };
   }
 
-  if (normalizedPrompt.includes('标题') || normalizedPrompt.includes('公告') || normalizedPrompt.includes('title')) {
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('����') || normalizedPrompt.includes('title')) {
     return {
       commandName: 'ai-title',
-      commandText: 'title @a title {"text":"欢迎来到服务器"}',
+      commandText: 'title @a title {"text":"��ӭ����������"}',
       confidence: 0.76,
-      label: 'AI 标题建议'
+      label: 'AI ���⽨��'
     };
   }
 
   return {
     commandName: 'ai-general',
-    commandText: '请描述更具体一些，例如“给我 3 个钻石”或“传送到 0 64 0”',
+    commandText: '������������һЩ�����硰���� 3 ����ʯ���򡰴��͵� 0 64 0��',
     confidence: 0.4,
-    label: 'AI 提示'
+    label: 'AI ��ʾ'
   };
 }
 
@@ -5828,68 +6878,68 @@ function generateSvipAiCommand(prompt) {
     return null;
   }
 
-  if (normalizedPrompt.includes('钻石') || normalizedPrompt.includes('diamond')) {
+  if (normalizedPrompt.includes('��ʯ') || normalizedPrompt.includes('diamond')) {
     const countMatch = normalizedPrompt.match(/(\d+)/);
     const count = countMatch ? Math.max(1, Number.parseInt(countMatch[1], 10)) : 3;
     return {
       commandName: 'svip-ai-give',
       commandText: `give @p minecraft:diamond ${count}`,
       confidence: 0.96,
-      label: 'SVIP AI 高阶物品建议',
-      reasoning: '检测到钻石需求，优先使用更精确的物品 ID 与数量。'
+      label: 'SVIP AI �߽���Ʒ����',
+      reasoning: '��⵽��ʯ��������ʹ�ø���ȷ����Ʒ ID ��������'
     };
   }
 
-  if (normalizedPrompt.includes('传送') || normalizedPrompt.includes('tp')) {
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('tp')) {
     const coordinateMatch = normalizedPrompt.match(/(-?\d+)\s+(-?\d+)\s+(-?\d+)/);
     const destination = coordinateMatch ? coordinateMatch.slice(1).join(' ') : '0 64 0';
     return {
       commandName: 'svip-ai-tp',
       commandText: `tp @p ${destination}`,
       confidence: 0.95,
-      label: 'SVIP AI 高阶传送建议',
-      reasoning: '优先抽取三维坐标，并在缺失时补默认安全坐标。'
+      label: 'SVIP AI �߽״��ͽ���',
+      reasoning: '���ȳ�ȡ��ά���꣬����ȱʧʱ��Ĭ�ϰ�ȫ���ꡣ'
     };
   }
 
-  if (normalizedPrompt.includes('僵尸') || normalizedPrompt.includes('zombie') || normalizedPrompt.includes('召唤')) {
+  if (normalizedPrompt.includes('��ʬ') || normalizedPrompt.includes('zombie') || normalizedPrompt.includes('�ٻ�')) {
     return {
       commandName: 'svip-ai-summon',
       commandText: 'summon minecraft:zombie ~ ~ ~ {CustomName:"\"Boss\"",Health:40f,PersistenceRequired:1b}',
       confidence: 0.93,
-      label: 'SVIP AI 高阶召唤建议',
-      reasoning: '根据召唤意图补充了更复杂的实体 NBT 示例。'
+      label: 'SVIP AI �߽��ٻ�����',
+      reasoning: '�����ٻ���ͼ�����˸����ӵ�ʵ�� NBT ʾ����'
     };
   }
 
-  if (normalizedPrompt.includes('夜视') || normalizedPrompt.includes('速度') || normalizedPrompt.includes('效果')) {
-    const effectId = normalizedPrompt.includes('夜视') ? 'minecraft:night_vision' : 'minecraft:speed';
+  if (normalizedPrompt.includes('ҹ��') || normalizedPrompt.includes('�ٶ�') || normalizedPrompt.includes('Ч��')) {
+    const effectId = normalizedPrompt.includes('ҹ��') ? 'minecraft:night_vision' : 'minecraft:speed';
     return {
       commandName: 'svip-ai-effect',
       commandText: `effect give @p ${effectId} 120 1 true`,
       confidence: 0.92,
-      label: 'SVIP AI 高阶效果建议',
-      reasoning: '识别到状态效果需求，自动拉长持续时间并隐藏粒子。'
+      label: 'SVIP AI �߽�Ч������',
+      reasoning: 'ʶ��״̬Ч�������Զ���������ʱ�䲢�������ӡ�'
     };
   }
 
-  if (normalizedPrompt.includes('粒子') || normalizedPrompt.includes('particle')) {
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('particle')) {
     return {
       commandName: 'svip-ai-particle',
       commandText: 'particle minecraft:flame ~ ~1 ~ 0.5 0.5 0.5 0 20 force @a',
       confidence: 0.91,
-      label: 'SVIP AI 高阶粒子建议',
-      reasoning: '识别到视觉效果需求，自动补全粒子范围、数量和可见目标。'
+      label: 'SVIP AI �߽����ӽ���',
+      reasoning: 'ʶ���Ӿ�Ч�������Զ���ȫ���ӷ�Χ�������Ϳɼ�Ŀ�ꡣ'
     };
   }
 
-  if (normalizedPrompt.includes('声音') || normalizedPrompt.includes('音效') || normalizedPrompt.includes('playsound')) {
+  if (normalizedPrompt.includes('����') || normalizedPrompt.includes('��Ч') || normalizedPrompt.includes('playsound')) {
     return {
       commandName: 'svip-ai-playsound',
       commandText: 'playsound minecraft:entity.player.levelup master @a ~ ~ ~ 1 1 0',
       confidence: 0.9,
-      label: 'SVIP AI 高阶音效建议',
-      reasoning: '识别到音效播放意图，自动补齐声音源、坐标和音量参数。'
+      label: 'SVIP AI �߽���Ч����',
+      reasoning: 'ʶ����Ч������ͼ���Զ���������Դ�����������������'
     };
   }
 
@@ -5900,8 +6950,8 @@ function generateSvipAiCommand(prompt) {
         ...fallback,
         commandName: `svip-${fallback.commandName}`,
         confidence: Math.min(0.99, fallback.confidence + 0.08),
-        label: `SVIP 增强 · ${fallback.label}`,
-        reasoning: '使用了 SVIP 增强提示策略，对基础建议进行了补强。'
+        label: `SVIP ��ǿ �� ${fallback.label}`,
+        reasoning: 'ʹ���� SVIP ��ǿ��ʾ���ԣ��Ի�����������˲�ǿ��'
       }
     : null;
 }
@@ -5910,13 +6960,13 @@ function handleVipPurchase(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
   if (vipSystemPaused) {
     sendJson(response, 503, {
-      message: 'VIP 功能暂时关闭',
+      message: 'VIP ������ʱ�ر�',
       vipPaused: true,
       username: session.username,
       version: appVersion,
@@ -5929,7 +6979,7 @@ function handleVipPurchase(request, response) {
 
   if (existingPurchase) {
     sendJson(response, 200, {
-      message: 'VIP 已开通',
+      message: 'VIP �ѿ�ͨ',
       username: session.username,
       version: appVersion,
       price: 10,
@@ -5941,7 +6991,7 @@ function handleVipPurchase(request, response) {
   db.prepare('INSERT INTO vip_purchases (username, amount) VALUES (?, ?)').run(session.username, 10);
 
   sendJson(response, 201, {
-    message: 'VIP 开通成功',
+    message: 'VIP ��ͨ�ɹ�',
     username: session.username,
     version: appVersion,
     price: 10,
@@ -5953,13 +7003,13 @@ function handleSvipPurchase(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
   if (vipSystemPaused) {
     sendJson(response, 503, {
-      message: 'VIP 功能暂时关闭',
+      message: 'VIP ������ʱ�ر�',
       vipPaused: true,
       username: session.username,
       version: appVersion,
@@ -5973,7 +7023,7 @@ function handleSvipPurchase(request, response) {
 
   if (existingPurchase) {
     sendJson(response, 200, {
-      message: 'SVIP 已开通',
+      message: 'SVIP �ѿ�ͨ',
       username: session.username,
       version: appVersion,
       price: vipInfo.svipAmount || (vipInfo.vipPurchased ? 10 : 25),
@@ -5986,7 +7036,7 @@ function handleSvipPurchase(request, response) {
   db.prepare('INSERT INTO svip_purchases (username, amount) VALUES (?, ?)').run(session.username, upgradePrice);
 
   sendJson(response, 201, {
-    message: 'SVIP 开通成功',
+    message: 'SVIP ��ͨ�ɹ�',
     username: session.username,
     version: appVersion,
     price: upgradePrice,
@@ -5998,7 +7048,7 @@ function handleAvatarUpload(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6008,7 +7058,7 @@ function handleAvatarUpload(request, response) {
       const match = imageData.match(/^data:(image\/(png|jpeg|jpg|webp));base64,(.+)$/);
 
       if (!match) {
-        sendJson(response, 400, { message: '仅支持 PNG、JPG、WEBP 图片' });
+        sendJson(response, 400, { message: '��֧�� PNG��JPG��WEBP ͼƬ' });
         return;
       }
 
@@ -6018,7 +7068,7 @@ function handleAvatarUpload(request, response) {
       const buffer = Buffer.from(match[3], 'base64');
 
       if (buffer.length > 1024 * 1024 * 2) {
-        sendJson(response, 400, { message: '头像图片不能超过 2MB' });
+        sendJson(response, 400, { message: 'ͷ��ͼƬ���ܳ��� 2MB' });
         return;
       }
 
@@ -6035,7 +7085,7 @@ function handleAvatarUpload(request, response) {
       db.prepare('UPDATE users SET avatar_path = ? WHERE username = ?').run(avatarUrl, session.username);
 
       sendJson(response, 200, {
-        message: '头像上传成功',
+        message: 'ͷ���ϴ��ɹ�',
         ...getUserPayload(session.username)
       });
     })
@@ -6049,7 +7099,7 @@ function handleAvatarDelete(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6066,7 +7116,7 @@ function handleAvatarDelete(request, response) {
 
   db.prepare('UPDATE users SET avatar_path = NULL WHERE username = ?').run(session.username);
   sendJson(response, 200, {
-    message: '头像已删除',
+    message: 'ͷ����ɾ��',
     ...getUserPayload(session.username)
   });
 }
@@ -6075,7 +7125,7 @@ function handleAiGenerate(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6090,7 +7140,7 @@ function handleAiGenerate(request, response) {
   const vipInfo = getVipInfo(session.username);
 
   if (!hasVipFeatureAccess(vipInfo)) {
-    sendJson(response, 403, { message: 'AI 功能仅限 VIP 使用' });
+    sendJson(response, 403, { message: 'AI ���ܽ��� VIP ʹ��' });
     return;
   }
 
@@ -6100,11 +7150,11 @@ function handleAiGenerate(request, response) {
       const result = vipInfo.svipPurchased ? generateSvipAiCommand(prompt) : generateAiCommand(prompt);
 
       if (!result) {
-        sendJson(response, 400, { message: '请输入要生成的内容' });
+        sendJson(response, 400, { message: '������Ҫ���ɵ�����' });
         return;
       }
 
-      if (result.commandText && !result.commandText.startsWith('请描述更具体一些')) {
+      if (result.commandText && !result.commandText.startsWith('������������һЩ')) {
         db.prepare(
           'INSERT INTO command_history (username, command_name, command_text, input_json) VALUES (?, ?, ?, ?)'
         ).run(
@@ -6133,7 +7183,7 @@ async function callDeepSeekAnswer(question) {
   const apiKey = getConfiguredValue('DEEPSEEK_API_KEY', 'deepseekApiKey');
 
   if (!apiKey) {
-    throw new Error('服务器未配置 DeepSeek API Key，请先填写 config/api-keys.json');
+    throw new Error('������δ���� DeepSeek API Key��������д config/api-keys.json');
   }
 
   const requestedModel = getConfiguredValue('DEEPSEEK_MODEL', 'deepseekModel');
@@ -6159,10 +7209,10 @@ async function callDeepSeekAnswer(question) {
               {
                 role: 'system',
                 content: [
-                  '你是"我的世界工具箱"的 SVIP AI 助手。',
-                  '请始终使用简体中文回答。',
-                  '优先回答 Minecraft 指令、玩法、红石、配方、坐标、服务器管理相关问题。',
-                  '如果问题适合给步骤，请给简洁步骤；如果适合给命令，请给可直接复制的命令。'
+                  '����"�ҵ����繤����"�� SVIP AI ���֡�',
+                  '��ʼ��ʹ�ü������Ļش�',
+                  '���Ȼش� Minecraft ָ��淨����ʯ���䷽�����ꡢ����������������⡣',
+                  '��������ʺϸ����裬�����ಽ�裻����ʺϸ���������ֱ�Ӹ��Ƶ����'
                 ].join('\n')
               },
               {
@@ -6180,7 +7230,7 @@ async function callDeepSeekAnswer(question) {
       if (!response.ok) {
         const errorMessage = result && result.error && result.error.message
           ? result.error.message
-          : `DeepSeek 请求失败（${response.status}）`;
+          : `DeepSeek ����ʧ�ܣ�${response.status}��`;
         lastError = new Error(`${modelName}: ${errorMessage}`);
         continue;
       }
@@ -6188,7 +7238,7 @@ async function callDeepSeekAnswer(question) {
       const answer = ((result.choices || [])[0] || {}).message?.content?.trim() || '';
 
       if (!answer) {
-        lastError = new Error(`${modelName}: 模型未返回文本内容`);
+        lastError = new Error(`${modelName}: ģ��δ�����ı�����`);
         continue;
       }
 
@@ -6201,14 +7251,14 @@ async function callDeepSeekAnswer(question) {
     }
   }
 
-  throw lastError || new Error('DeepSeek 调用失败');
+  throw lastError || new Error('DeepSeek ����ʧ��');
 }
 
 function handleAiChat(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6223,7 +7273,7 @@ function handleAiChat(request, response) {
   const vipInfo = getVipInfo(session.username);
 
   if (!hasSvipFeatureAccess(vipInfo)) {
-    sendJson(response, 403, { message: 'AI 问答仅限 SVIP 使用' });
+    sendJson(response, 403, { message: 'AI �ʴ���� SVIP ʹ��' });
     return;
   }
 
@@ -6232,13 +7282,13 @@ function handleAiChat(request, response) {
       const question = String(body.question || '').trim();
 
       if (!question) {
-        sendJson(response, 400, { message: '请输入要提问的问题' });
+        sendJson(response, 400, { message: '������Ҫ���ʵ�����' });
         return;
       }
 
       const result = await callDeepSeekAnswer(question);
       sendJson(response, 200, {
-        message: 'AI 回复成功',
+        message: 'AI �ظ��ɹ�',
         answer: result.answer,
         model: result.model,
         username: session.username,
@@ -6249,7 +7299,7 @@ function handleAiChat(request, response) {
     .catch((error) => {
       const isJsonError = error.message === 'Invalid JSON';
       const statusCode = isJsonError ? 400 : 500;
-      sendJson(response, statusCode, { message: error.message || 'AI 问答失败' });
+      sendJson(response, statusCode, { message: error.message || 'AI �ʴ�ʧ��' });
     });
 }
 
@@ -6257,7 +7307,7 @@ function handleExecutorRun(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6272,7 +7322,7 @@ function handleExecutorRun(request, response) {
   const vipInfo = getVipInfo(session.username);
 
   if (!hasSvipFeatureAccess(vipInfo)) {
-    sendJson(response, 403, { message: '指令执行器仅限 SVIP 使用' });
+    sendJson(response, 403, { message: 'ָ��ִ�������� SVIP ʹ��' });
     return;
   }
 
@@ -6281,21 +7331,21 @@ function handleExecutorRun(request, response) {
       const commandText = String(body.commandText || '').trim();
 
       if (!commandText) {
-        sendJson(response, 400, { message: '请输入要执行的指令' });
+        sendJson(response, 400, { message: '������Ҫִ�е�ָ��' });
         return;
       }
 
       const normalized = commandText.replace(/^\//, '');
-      let summary = '指令已进入模拟执行流程';
+      let summary = 'ָ���ѽ���ģ��ִ������';
 
       if (normalized.startsWith('give ')) {
-        summary = '模拟执行完成：已识别为给予类指令';
+        summary = 'ģ��ִ����ɣ���ʶ��Ϊ������ָ��';
       } else if (normalized.startsWith('tp ')) {
-        summary = '模拟执行完成：已识别为传送类指令';
+        summary = 'ģ��ִ����ɣ���ʶ��Ϊ������ָ��';
       } else if (normalized.startsWith('summon ')) {
-        summary = '模拟执行完成：已识别为召唤类指令';
+        summary = 'ģ��ִ����ɣ���ʶ��Ϊ�ٻ���ָ��';
       } else if (normalized.startsWith('effect ')) {
-        summary = '模拟执行完成：已识别为状态效果类指令';
+        summary = 'ģ��ִ����ɣ���ʶ��Ϊ״̬Ч����ָ��';
       }
 
       db.prepare(
@@ -6303,7 +7353,7 @@ function handleExecutorRun(request, response) {
       ).run(session.username, 'executor', commandText, JSON.stringify({ source: 'executor' }));
 
       sendJson(response, 200, {
-        message: '执行完成',
+        message: 'ִ�����',
         summary,
         commandText,
         executorTier: vipSystemPaused ? 'OPEN' : 'SVIP',
@@ -6320,7 +7370,7 @@ function handleSaveCommand(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6332,12 +7382,12 @@ function handleSaveCommand(request, response) {
       const vipInfo = getVipInfo(session.username);
 
       if (!commandName || !commandText) {
-        sendJson(response, 400, { message: '指令内容不能为空' });
+        sendJson(response, 400, { message: 'ָ�����ݲ���Ϊ��' });
         return;
       }
 
       if (vipOnlyCommandNames.has(commandName) && !hasVipFeatureAccess(vipInfo)) {
-        sendJson(response, 403, { message: '这条复杂指令仅限 VIP 使用' });
+        sendJson(response, 403, { message: '��������ָ����� VIP ʹ��' });
         return;
       }
 
@@ -6345,7 +7395,7 @@ function handleSaveCommand(request, response) {
         'INSERT INTO command_history (username, command_name, command_text, input_json) VALUES (?, ?, ?, ?)'
       ).run(session.username, commandName, commandText, inputJson);
 
-      sendJson(response, 201, { message: '指令已保存' });
+      sendJson(response, 201, { message: 'ָ���ѱ���' });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -6357,7 +7407,7 @@ function handleDeleteCommand(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6366,19 +7416,19 @@ function handleDeleteCommand(request, response) {
       const id = Number.parseInt(body.id, 10);
 
       if (!id) {
-        sendJson(response, 400, { message: '缺少历史记录 ID' });
+        sendJson(response, 400, { message: 'ȱ����ʷ��¼ ID' });
         return;
       }
 
       const command = db.prepare('SELECT id FROM command_history WHERE id = ? AND username = ?').get(id, session.username);
 
       if (!command) {
-        sendJson(response, 404, { message: '历史记录不存在' });
+        sendJson(response, 404, { message: '��ʷ��¼������' });
         return;
       }
 
       db.prepare('DELETE FROM command_history WHERE id = ? AND username = ?').run(id, session.username);
-      sendJson(response, 200, { message: '历史记录已删除' });
+      sendJson(response, 200, { message: '��ʷ��¼��ɾ��' });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -6390,19 +7440,19 @@ function handleClearCommands(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
   db.prepare('DELETE FROM command_history WHERE username = ?').run(session.username);
-  sendJson(response, 200, { message: '历史记录已全部清空' });
+  sendJson(response, 200, { message: '��ʷ��¼��ȫ�����' });
 }
 
 function handleListCommands(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
@@ -6437,10 +7487,10 @@ function handleCommandCommunitySubmit(request, response) {
       const submitterName = String(body.submitterName || '').trim();
       const commandText = String(body.commandText || '').trim();
       const description = String(body.description || '').trim();
-      const category = String(body.category || '通用').trim() || '通用';
+      const category = String(body.category || 'ͨ��').trim() || 'ͨ��';
 
       if (!submitterName || !commandText) {
-        sendJson(response, 400, { message: '投稿昵称和指令内容不能为空' });
+        sendJson(response, 400, { message: 'Ͷ���ǳƺ�ָ�����ݲ���Ϊ��' });
         return;
       }
 
@@ -6448,7 +7498,7 @@ function handleCommandCommunitySubmit(request, response) {
         'INSERT INTO command_submissions (submitter_name, command_text, description, category) VALUES (?, ?, ?, ?)'
       ).run(submitterName, commandText, description, category);
 
-      sendJson(response, 201, { message: '投稿已提交，等待后台审核', id: result.lastInsertRowid });
+      sendJson(response, 201, { message: 'Ͷ�����ύ���ȴ���̨���', id: result.lastInsertRowid });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -6484,12 +7534,12 @@ function handleCommandCommunityModerate(request, response) {
   const session = getSessionFromRequest(request);
 
   if (!session) {
-    sendJson(response, 401, { message: '未登录' });
+    sendJson(response, 401, { message: 'δ��¼' });
     return;
   }
 
   if (!isDeveloper(session.username)) {
-    sendJson(response, 403, { message: '仅开发者可审核' });
+    sendJson(response, 403, { message: '��Ȩ�޿����' });
     return;
   }
 
@@ -6500,14 +7550,14 @@ function handleCommandCommunityModerate(request, response) {
       const reviewNote = String(body.reviewNote || '').trim();
 
       if (!id || !['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
-        sendJson(response, 400, { message: '参数无效' });
+        sendJson(response, 400, { message: '������Ч' });
         return;
       }
 
       const item = db.prepare('SELECT id FROM command_submissions WHERE id = ?').get(id);
 
       if (!item) {
-        sendJson(response, 404, { message: '投稿不存在' });
+        sendJson(response, 404, { message: 'Ͷ�岻����' });
         return;
       }
 
@@ -6515,7 +7565,7 @@ function handleCommandCommunityModerate(request, response) {
         'UPDATE command_submissions SET status = ?, reviewer_name = ?, review_note = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
       ).run(status, session.username, reviewNote, id);
 
-      sendJson(response, 200, { message: '审核状态已更新' });
+      sendJson(response, 200, { message: '���״̬�Ѹ���' });
     })
     .catch((error) => {
       const statusCode = error.message === 'Invalid JSON' ? 400 : 413;
@@ -6635,10 +7685,10 @@ function buildPreviewPageHtml(staticPath) {
 
   let html = fs.readFileSync(filePath, 'utf8');
   const pageName = path.basename(staticPath, '.html');
-  const displayName = pageName === 'index' ? '首页' : pageName;
+  const displayName = pageName === 'index' ? '��ҳ' : pageName;
 
   html = html.replace(/<script\b(?=[^>]*\bsrc=)[^>]*>\s*<\/script>/giu, '');
-  html = html.replace(/<title>(.*?)<\/title>/iu, '<title>我的世界工具箱 - 公开预览</title>');
+  html = html.replace(/<title>(.*?)<\/title>/iu, '<title>�ҵ����繤���� - ����Ԥ��</title>');
 
   if (!html.includes('/login.css')) {
     html = html.replace('</head>', '    <link rel="stylesheet" href="/login.css" />\n  </head>');
@@ -6654,9 +7704,9 @@ function buildPreviewPageHtml(staticPath) {
 
   const previewBanner = `
       <section class="preview-lock-banner">
-        <p class="panel-label">公开镜像</p>
-        <h2>当前页是 ${displayName} 的公开预览复制页</h2>
-        <p>页面结构和导航已开放浏览，但按钮、提交、下载与写入类操作都会提示先登录。你可以继续逛其他预览页，真正执行功能时再回登录页。</p>
+        <p class="panel-label">��������</p>
+        <h2>��ǰҳ�� ${displayName} �Ĺ���Ԥ������ҳ</h2>
+        <p>ҳ��ṹ�͵����ѿ������������ť���ύ��������д�������������ʾ�ȵ�¼������Լ���������Ԥ��ҳ������ִ�й���ʱ�ٻص�¼ҳ��</p>
       </section>
 `;
 
@@ -6665,22 +7715,22 @@ function buildPreviewPageHtml(staticPath) {
   }
 
   const previewOverlay = `
-      <aside class="preview-fixed-tip" aria-label="登录提示">
-        <strong>这是公开镜像页</strong>
-        <p>你可以浏览页面结构和说明，但所有功能操作、提交、写入和下载都需要登录后使用。</p>
+      <aside class="preview-fixed-tip" aria-label="��¼��ʾ">
+        <strong>���ǹ�������ҳ</strong>
+        <p>��������ҳ��ṹ��˵���������й��ܲ������ύ��д������ض���Ҫ��¼��ʹ�á�</p>
         <div class="preview-fixed-actions">
-          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">立即登录</a>
-          <a class="preview-fixed-link" href="/preview.html">回到总览</a>
+          <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html">������¼</a>
+          <a class="preview-fixed-link" href="/preview.html">�ص�����</a>
         </div>
       </aside>
       <div class="preview-login-modal" hidden data-preview-modal>
         <div class="preview-login-dialog">
-          <p class="panel-label">需要登录</p>
-          <h2>预览页不开放真实功能操作</h2>
-          <p>当前公开镜像只复制页面结构。点击按钮、提交表单、下载资源或执行模块功能时，需要先登录正式界面。</p>
+          <p class="panel-label">��Ҫ��¼</p>
+          <h2>Ԥ��ҳ��������ʵ���ܲ���</h2>
+          <p>��ǰ��������ֻ����ҳ��ṹ�������ť���ύ������������Դ��ִ��ģ�鹦��ʱ����Ҫ�ȵ�¼��ʽ���档</p>
           <div class="preview-fixed-actions">
-            <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html" data-preview-allow="true">前往登录</a>
-            <button type="button" class="preview-fixed-link" data-preview-modal-close data-preview-allow="true">继续浏览</button>
+            <a class="preview-fixed-link preview-fixed-link-primary" href="/login.html" data-preview-allow="true">ǰ����¼</a>
+            <button type="button" class="preview-fixed-link" data-preview-modal-close data-preview-allow="true">�������</button>
           </div>
         </div>
       </div>
@@ -6772,7 +7822,7 @@ const server = http.createServer((request, response) => {
   const maintenanceBypass = siteMaintenanceEnabled && hasMaintenanceBypass(request);
   const isMaintenanceActive = siteMaintenanceEnabled && !maintenanceBypass;
 
-  // 允许服务器广场 (3000) 跨域访问 3001 的 API（携带 Cookie）
+  // �����������㳡 (3000) ������� 3001 �� API��Я�� Cookie��
   const origin = request.headers['origin'] || '';
   if (Number(port) === 3001 && origin) {
     try {
@@ -6795,7 +7845,7 @@ const server = http.createServer((request, response) => {
   }
 
   if (Number(port) === 3000) {
-    // 服务器广场公开 API
+    // �������㳡���� API
     if (request.method === 'GET' && pathname === '/api/servers') {
       handleServerListingsGet(request, response);
       return;
@@ -6806,7 +7856,7 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    // Plaza 认证
+    // Plaza ��֤
     if (request.method === 'POST' && pathname === '/api/plaza/login') {
       handlePlazaSendCode(request, response);
       return;
@@ -6862,19 +7912,19 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    // 静态资源：样式和宣传页脚本
+    // ��̬��Դ����ʽ������ҳ�ű�
     if (request.method === 'GET' && (pathname === '/styles.css' || pathname === '/server-plaza.js' || pathname.startsWith('/assets/'))) {
       serveStatic(pathname, response);
       return;
     }
 
-    // 根路径及宣传页本体
+    // ��·��������ҳ����
     if (request.method === 'GET' || request.method === 'HEAD') {
-      const plazaPath = pathname === '/' ? '/server-plaza.html' : pathname;
-      const staticFilePath = resolvePublicFilePath(plazaPath);
+      const mainPath = pathname === '/' ? '/index.html' : pathname;
+      const staticFilePath = resolvePublicFilePath(mainPath);
 
       if (staticFilePath) {
-        serveStatic(plazaPath, response);
+        serveStatic(mainPath, response);
       } else {
         sendPortClosedNotice(response, request);
       }
@@ -6882,7 +7932,7 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    sendJson(response, 405, { message: '方法不允许' });
+    sendJson(response, 405, { message: '����������' });
     return;
   }
 
@@ -6955,13 +8005,45 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    sendJson(response, 405, { message: '方法不允许' });
+    sendJson(response, 405, { message: '����������' });
+    return;
+  }
+
+  if (Number(port) === 3005) {
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const transferPath = pathname === '/' ? '/transfer.html' : pathname;
+      const staticFilePath = resolvePublicFilePath(transferPath);
+
+      if (staticFilePath) {
+        serveStatic(transferPath, response);
+      } else {
+        sendPortClosedNotice(response, request);
+      }
+      return;
+    }
+
+    sendJson(response, 405, { message: '����������' });
     return;
   }
 
   if (Number(port) === 3004) {
     if (request.method === 'POST' && pathname === '/api/community/register') {
       handleCommunityRegister(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/qr') {
+      handleCommunityQrLoginTicketIssue(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/qr/status') {
+      handleCommunityQrLoginStatus(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/qr/approve') {
+      handleCommunityQrLoginApprove(request, response);
       return;
     }
 
@@ -6987,6 +8069,26 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'POST' && pathname === '/api/community/logout') {
       handleCommunityLogout(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/google/client-id') {
+      handleCommunityGoogleClientId(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/google/authorize') {
+      handleCommunityGoogleAuthorize(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/community/google/callback') {
+      handleCommunityGoogleCallback(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/community/google-login') {
+      handleCommunityGoogleLogin(request, response);
       return;
     }
 
@@ -7026,6 +8128,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'GET' && pathname === '/api/store/background-image') {
+      handleStoreBackgroundImage(request, response);
+      return;
+    }
+
     if (request.method === 'GET' && pathname === '/api/store/products') {
       handleStoreProducts(request, response);
       return;
@@ -7048,6 +8155,21 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'GET' && pathname === '/api/store/orders/admin') {
       handleStoreOrdersAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/card-secrets') {
+      handleStoreCardSecretsRead(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/card-secrets/generate') {
+      handleStoreCardSecretsGenerate(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/card-secrets/delete') {
+      handleStoreCardSecretsDelete(request, response);
       return;
     }
 
@@ -7111,6 +8233,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/api/store/products/delete') {
+      handleStoreProductsDelete(request, response);
+      return;
+    }
+
     if (request.method === 'POST' && pathname === '/api/store/products/upload-image') {
       handleStoreProductImageUpload(request, response);
       return;
@@ -7136,7 +8263,7 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    // 快速创建测试开发者账号（仅用于测试）
+    // ���ٴ�������Ȩ���˺ţ������ڲ��ԣ�
     if (request.method === 'POST' && pathname === '/api/dev-test/create-dev-account') {
       const username = 'devtest' + Date.now().toString().slice(-6);
       const email = 'devtest' + Date.now().toString().slice(-6) + '@test.local';
@@ -7154,7 +8281,7 @@ const server = http.createServer((request, response) => {
       communitySessions.set(token, session);
       persistAuthSession(token, sessionScopeCommunity, session);
       
-      // 直接处理响应，确保Set-Cookie在其他响应头之前
+      // ֱ�Ӵ�����Ӧ��ȷ��Set-Cookie��������Ӧͷ֮ǰ
       response.writeHead(200, {
         'Content-Type': 'application/json; charset=utf-8',
         'Set-Cookie': [
@@ -7163,7 +8290,7 @@ const server = http.createServer((request, response) => {
         ]
       });
       response.end(JSON.stringify({
-        message: '测试账号创建成功',
+        message: '�����˺Ŵ����ɹ�',
         username,
         email,
         token,
@@ -7227,7 +8354,7 @@ const server = http.createServer((request, response) => {
       return;
     }
 
-    sendJson(response, 405, { message: '方法不允许' });
+    sendJson(response, 405, { message: '����������' });
     return;
   }
 

@@ -7,10 +7,12 @@
     <script>
       (function () {
         try {
-          document.documentElement.dataset.theme = 'day';
-          localStorage.setItem('mctools-store-theme', 'day');
+          const savedTheme = localStorage.getItem('mctools-store-theme');
+          const theme = savedTheme === 'day' ? 'day' : 'night';
+          document.documentElement.dataset.theme = theme;
+          localStorage.setItem('mctools-store-theme', theme);
         } catch {
-          document.documentElement.dataset.theme = 'day';
+          document.documentElement.dataset.theme = 'night';
         }
       })();
     </script>
@@ -20,12 +22,13 @@
       body {
         font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         background:
-          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.92), transparent 48%),
-          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.8), transparent 44%),
-          linear-gradient(180deg, #f7fbff 0%, #e8eef7 45%, #d9edf4 100%);
-        color: #1f2937;
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 28%),
+          radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 30%),
+          linear-gradient(180deg, #08111f 0%, #0f172a 48%, #111827 100%);
+        color: #e5edf9;
         min-height: 100vh;
         overflow-x: hidden;
+        background-attachment: fixed;
       }
       body::before {
         content: '';
@@ -33,39 +36,183 @@
         inset: 0;
         pointer-events: none;
         background:
-          radial-gradient(circle at 20% 22%, rgba(255,255,255,0.5), transparent 18%),
-          radial-gradient(circle at 78% 12%, rgba(255,255,255,0.38), transparent 16%),
-          radial-gradient(circle at 50% 88%, rgba(255,255,255,0.22), transparent 20%);
-        opacity: 0.95;
+          linear-gradient(180deg, rgba(8,17,31,0.34), rgba(8,17,31,0.08)),
+          repeating-linear-gradient(
+            135deg,
+            rgba(148, 163, 184, 0.025),
+            rgba(148, 163, 184, 0.025) 2px,
+            transparent 2px,
+            transparent 8px
+          );
+        opacity: 1;
       }
       body::after {
         content: '';
         position: fixed;
         inset: 0;
         pointer-events: none;
-        background:
-          radial-gradient(circle at 18% 16%, rgba(255, 188, 214, 0.34), transparent 28%),
-          radial-gradient(circle at 78% 20%, rgba(196, 181, 253, 0.26), transparent 26%),
-          radial-gradient(circle at 64% 72%, rgba(186, 230, 253, 0.24), transparent 30%),
-          linear-gradient(125deg, rgba(255, 240, 250, 0.58), rgba(226, 244, 255, 0.4) 40%, rgba(240, 246, 255, 0.58));
-        opacity: 0.54;
-        filter: saturate(1.1);
+        background: radial-gradient(circle at 20% 18%, rgba(14, 165, 233, 0.1), transparent 28%);
+        opacity: 0.9;
       }
       html[data-theme="night"] body {
         background:
-          radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.18), transparent 48%),
-          radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.12), transparent 44%),
-          linear-gradient(180deg, #0f172a 0%, #111827 55%, #0f172a 100%);
-        color: #e2e8f0;
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+          radial-gradient(circle at top right, rgba(168, 85, 247, 0.16), transparent 30%),
+          linear-gradient(180deg, #08111f 0%, #0f172a 48%, #111827 100%);
+        color: #e5edf9;
       }
       html[data-theme="night"] body::after {
-        opacity: 0.3;
-        background:
-          radial-gradient(circle at 18% 16%, rgba(236, 72, 153, 0.14), transparent 28%),
-          radial-gradient(circle at 78% 20%, rgba(129, 140, 248, 0.18), transparent 26%),
-          radial-gradient(circle at 64% 72%, rgba(56, 189, 248, 0.12), transparent 30%),
-          linear-gradient(125deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.32) 40%, rgba(15, 23, 42, 0.65));
+        opacity: 0.75;
       }
+        html[data-theme="day"] body {
+          background:
+            radial-gradient(ellipse at top left, rgba(96, 165, 250, 0.12), transparent 28%),
+            radial-gradient(ellipse at top right, rgba(99, 102, 241, 0.1), transparent 32%),
+            linear-gradient(180deg, #eaf3ff 0%, #dbeafe 42%, #e2e8f0 100%);
+          color: #0f172a;
+        }
+        html[data-theme="day"] body::before {
+          opacity: 0.58;
+          background:
+            linear-gradient(180deg, rgba(226,232,240,0.3), rgba(241,245,249,0.08)),
+            repeating-linear-gradient(
+              135deg,
+              rgba(148, 163, 184, 0.025),
+              rgba(148, 163, 184, 0.025) 2px,
+              transparent 2px,
+              transparent 8px
+            );
+        }
+        html[data-theme="day"] body::after {
+          opacity: 0.24;
+        }
+        html[data-theme="day"] .brand,
+        html[data-theme="day"] .top-actions,
+        html[data-theme="day"] .hero,
+        html[data-theme="day"] .summary-card,
+        html[data-theme="day"] .chip-row,
+        html[data-theme="day"] .feature-hub,
+        html[data-theme="day"] .category-panel,
+        html[data-theme="day"] .catalog-main,
+        html[data-theme="day"] .online-board {
+          background: linear-gradient(160deg, rgba(248,250,252,0.7), rgba(241,245,249,0.62));
+          border-color: rgba(148, 163, 184, 0.18);
+          box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
+        }
+        html[data-theme="day"] .product-card,
+        html[data-theme="day"] .feed-card,
+        html[data-theme="day"] .notice-card {
+          background: linear-gradient(160deg, rgba(248,250,252,0.62), rgba(241,245,249,0.5));
+          border-color: rgba(148, 163, 184, 0.18);
+          color: #1e293b;
+        }
+        html[data-theme="day"] .card-name,
+        html[data-theme="day"] .hero-title,
+        html[data-theme="day"] .section-title,
+        html[data-theme="day"] .summary-card h3,
+        html[data-theme="day"] .online-board h3,
+        html[data-theme="day"] .online-rank-main strong,
+        html[data-theme="day"] .watch-row strong {
+          color: #0f172a;
+        }
+        html[data-theme="day"] .hero-desc,
+        html[data-theme="day"] .summary-text,
+        html[data-theme="day"] .feed-meta,
+        html[data-theme="day"] .section-band p,
+        html[data-theme="day"] .card-desc,
+        html[data-theme="day"] .category-count,
+        html[data-theme="day"] .online-rank-path,
+        html[data-theme="day"] .stat-title,
+        html[data-theme="day"] .side-stat span,
+        html[data-theme="day"] .watch-role {
+          color: #475569;
+        }
+        html[data-theme="day"] .stat-box,
+        html[data-theme="day"] .side-stat,
+        html[data-theme="day"] .watch-row,
+        html[data-theme="day"] .online-rank-item {
+          background: linear-gradient(160deg, rgba(248,250,252,0.68), rgba(226,232,240,0.56));
+          border-color: rgba(148, 163, 184, 0.18);
+        }
+        html[data-theme="day"] .chip,
+        html[data-theme="day"] .action-chip,
+        html[data-theme="day"] .ghost-btn,
+        html[data-theme="day"] .payment-method-btn,
+        html[data-theme="day"] .order-query-contact-item button {
+          background: rgba(255,255,255,0.82);
+          color: #334155;
+          border-color: rgba(148, 163, 184, 0.2);
+        }
+          html[data-theme="day"] .feature-btn {
+            background: linear-gradient(180deg, rgba(219, 234, 254, 0.96), rgba(239, 246, 255, 0.94));
+            color: #1e3a8a;
+            border-color: rgba(96, 165, 250, 0.28);
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.12);
+          }
+          html[data-theme="day"] .feature-btn span {
+            color: #475569;
+          }
+          html[data-theme="day"] .feature-btn.primary {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.94), rgba(37, 99, 235, 0.94));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 14px 28px rgba(37, 99, 235, 0.22);
+          }
+          html[data-theme="day"] .feature-btn.primary span {
+            color: rgba(255,255,255,0.92);
+          }
+          html[data-theme="day"] .feature-btn.warn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.94), rgba(234, 88, 12, 0.94));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 14px 28px rgba(234, 88, 12, 0.2);
+          }
+          html[data-theme="day"] .feature-btn.warn span {
+            color: rgba(255,255,255,0.92);
+          }
+          html[data-theme="day"] .category-btn {
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.94));
+            color: #334155;
+            border-color: rgba(148, 163, 184, 0.24);
+          }
+          html[data-theme="day"] .category-btn:hover {
+            background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.96));
+            color: #1d4ed8;
+            border-color: rgba(96, 165, 250, 0.28);
+          }
+          html[data-theme="day"] .category-btn.active {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 10px 18px rgba(249, 115, 22, 0.24);
+          }
+        html[data-theme="day"] .payment-method-label,
+        html[data-theme="day"] .payment-contact-label,
+        html[data-theme="day"] .payment-meta,
+        html[data-theme="day"] .payment-status,
+        html[data-theme="day"] .payment-order-row,
+        html[data-theme="day"] .order-query-title p,
+        html[data-theme="day"] .order-query-note,
+        html[data-theme="day"] .order-query-result-item span,
+        html[data-theme="day"] .order-query-contact-item span,
+        html[data-theme="day"] .announcement-title,
+        html[data-theme="day"] .announcement-sub,
+        html[data-theme="day"] .announcement-list-item,
+        html[data-theme="day"] .announcement-foot,
+        html[data-theme="day"] .feature-btn span,
+        html[data-theme="day"] .category-title {
+          color: #475569;
+        }
+        html[data-theme="day"] .payment-status,
+        html[data-theme="day"] .payment-order-row,
+        html[data-theme="day"] .payment-confirm-panel,
+        html[data-theme="day"] .order-query-result,
+        html[data-theme="day"] .order-query-contact-item,
+        html[data-theme="day"] .announcement-panel,
+        html[data-theme="day"] .announcement-list-item {
+          background: linear-gradient(160deg, rgba(248,250,252,0.78), rgba(241,245,249,0.68));
+          border-color: rgba(148, 163, 184, 0.18);
+        }
       .shell {
         width: min(1180px, calc(100% - 28px));
         margin: 0 auto;
@@ -88,23 +235,23 @@
         100% { background-position: 0% 50%; }
       }
       @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 20px 40px rgba(37, 99, 235, 0.24); }
-        50% { box-shadow: 0 20px 46px rgba(249, 115, 22, 0.34); }
+        0%, 100% { box-shadow: 0 18px 36px rgba(37, 99, 235, 0.26); }
+        50% { box-shadow: 0 20px 42px rgba(139, 92, 246, 0.3); }
       }
       @keyframes button-breathe {
         0% {
           transform: translateY(0) scale(1);
-          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.16);
           filter: brightness(1);
         }
         50% {
           transform: translateY(-3px) scale(1.02);
-          box-shadow: 0 16px 30px rgba(236, 72, 153, 0.22);
+          box-shadow: 0 16px 30px rgba(139, 92, 246, 0.24);
           filter: brightness(1.06);
         }
         100% {
           transform: translateY(0) scale(1);
-          box-shadow: 0 8px 18px rgba(37, 99, 235, 0.14);
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.16);
           filter: brightness(1);
         }
       }
@@ -125,11 +272,11 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 10px 12px;
+        padding: 12px 16px;
         border-radius: 18px;
-        background: rgba(255,255,255,0.58);
-        backdrop-filter: blur(14px);
-        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.08);
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 14px 28px rgba(2, 6, 23, 0.28);
       }
       html[data-theme="night"] .brand,
       html[data-theme="night"] .top-actions,
@@ -139,10 +286,21 @@
       html[data-theme="night"] .notice-card,
       html[data-theme="night"] .chip-row,
       html[data-theme="night"] .product-card,
-      html[data-theme="night"] .sidebar-card {
-        background: rgba(15, 23, 42, 0.72);
+      html[data-theme="night"] .sidebar-card,
+      html[data-theme="night"] .online-board,
+      html[data-theme="night"] .feature-hub,
+      html[data-theme="night"] .category-panel,
+      html[data-theme="night"] .catalog-main,
+      html[data-theme="night"] .payment-card,
+      html[data-theme="night"] .auth-card,
+      html[data-theme="night"] .order-query-card,
+      html[data-theme="night"] .card-secret-card,
+      html[data-theme="night"] .announcement-card,
+      html[data-theme="night"] .admin-card {
+        background: rgba(10, 15, 25, 0.78);
+        border-color: rgba(148, 163, 184, 0.2);
         color: #e2e8f0;
-        box-shadow: 0 22px 50px rgba(2, 6, 23, 0.24);
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.42);
       }
       .brand-badge {
         width: 40px;
@@ -150,7 +308,7 @@
         border-radius: 14px;
         display: grid;
         place-items: center;
-        background: linear-gradient(135deg, #ff86b8, #9b8cff);
+        background: linear-gradient(135deg, #38bdf8, #8b5cf6);
         color: #fff;
         font-weight: 900;
       }
@@ -168,19 +326,51 @@
       html[data-theme="night"] .notice-card,
       html[data-theme="night"] .feed-meta,
       html[data-theme="night"] .side-stat span,
-      html[data-theme="night"] .section-caption {
+      html[data-theme="night"] .section-caption,
+      html[data-theme="night"] .payment-login-state span,
+      html[data-theme="night"] .payment-contact-hint,
+      html[data-theme="night"] .payment-method-label,
+      html[data-theme="night"] .payment-contact-label,
+      html[data-theme="night"] .payment-meta,
+      html[data-theme="night"] .payment-status,
+      html[data-theme="night"] .payment-order-row,
+      html[data-theme="night"] .order-query-title p,
+      html[data-theme="night"] .order-query-note,
+      html[data-theme="night"] .order-query-result-item span,
+      html[data-theme="night"] .order-query-contact-item span,
+      html[data-theme="night"] .announcement-title,
+      html[data-theme="night"] .announcement-sub,
+      html[data-theme="night"] .announcement-list-item,
+      html[data-theme="night"] .announcement-foot,
+      html[data-theme="night"] .feature-btn span {
         color: #cbd5e1;
+      }
+      html[data-theme="night"] .payment-method-btn,
+      html[data-theme="night"] .order-query-contact-item button,
+      html[data-theme="night"] .ghost-btn {
+        background: rgba(15, 23, 42, 0.82);
+        color: #e2e8f0;
+        border-color: rgba(148, 163, 184, 0.2);
+      }
+      html[data-theme="night"] .payment-status,
+      html[data-theme="night"] .payment-order-row,
+      html[data-theme="night"] .payment-confirm-panel,
+      html[data-theme="night"] .order-query-result,
+      html[data-theme="night"] .order-query-contact-item,
+      html[data-theme="night"] .announcement-panel,
+      html[data-theme="night"] .announcement-list-item {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(148, 163, 184, 0.18);
       }
       .top-actions {
         display: flex;
         gap: 10px;
         align-items: center;
-        padding: 10px;
-        border-radius: 22px;
-        background: rgba(255,255,255,0.72);
-        backdrop-filter: blur(16px);
+        padding: 10px 12px;
+        border-radius: 18px;
+        background: rgba(10, 15, 25, 0.78);
         border: 1px solid rgba(148, 163, 184, 0.18);
-        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.1);
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
       }
       button,
       .btn,
@@ -222,22 +412,23 @@
       .theme-toggle,
       .top-actions .btn,
       .payment-head .btn,
-      .payment-actions .btn,
-      .buy-btn {
+      .payment-actions .btn {
         min-width: 112px;
         padding: 10px 18px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,245,249,0.9));
+        background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
         border: 1px solid rgba(148, 163, 184, 0.24);
         font-weight: 800;
-        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+        color: #e2e8f0;
+        box-shadow: 0 12px 22px rgba(2, 6, 23, 0.25);
       }
       html[data-theme="night"] .theme-toggle,
       html[data-theme="night"] .top-actions .btn,
       html[data-theme="night"] .payment-head .btn,
-      html[data-theme="night"] .payment-actions .btn,
-      html[data-theme="night"] .buy-btn {
-        background: rgba(255,255,255,0.08);
+      html[data-theme="night"] .payment-actions .btn {
+        background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
+        border-color: rgba(148, 163, 184, 0.18);
         color: #e2e8f0;
+        box-shadow: 0 12px 22px rgba(2, 6, 23, 0.25);
       }
       html[data-theme="night"] .top-actions,
       html[data-theme="night"] .chip-row,
@@ -267,8 +458,8 @@
       html[data-theme="night"] .admin-row,
       html[data-theme="night"] .order-query-result,
       html[data-theme="night"] .payment-confirm-panel {
-        background: rgba(30, 41, 59, 0.62);
-        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.18);
       }
       html[data-theme="night"] .stat-title,
       html[data-theme="night"] .online-rank-path,
@@ -309,9 +500,9 @@
       html[data-theme="night"] .payment-actions .btn:hover,
       html[data-theme="night"] .auth-verify-btn:hover,
       html[data-theme="night"] .auth-send-btn:hover {
-        background: rgba(99, 102, 241, 0.34);
-        border-color: rgba(129, 140, 248, 0.6);
-        box-shadow: 0 18px 34px rgba(30, 64, 175, 0.38);
+        background: linear-gradient(180deg, rgba(59, 130, 246, 0.28), rgba(15, 23, 42, 0.96));
+        border-color: rgba(96, 165, 250, 0.5);
+        box-shadow: 0 18px 34px rgba(30, 64, 175, 0.34);
       }
       html[data-theme="night"] .theme-toggle:focus-visible,
       html[data-theme="night"] .top-actions .btn:focus-visible,
@@ -327,26 +518,39 @@
         grid-template-columns: minmax(0, 1fr) 232px;
         gap: 14px;
         align-items: stretch;
+        justify-items: center;
         animation: fade-up 640ms ease both;
+      }
+      .hero-side {
+        display: grid;
+        gap: 14px;
+        width: 100%;
+        max-width: 232px;
+        align-content: start;
       }
       .hero,
       .summary-card {
-        border-radius: 28px;
+        border-radius: 24px;
         padding: 24px;
-        backdrop-filter: blur(18px);
-        background: rgba(255,255,255,0.7);
-        box-shadow: 0 22px 50px rgba(15, 23, 42, 0.1);
-        border: 1px solid rgba(255,255,255,0.36);
+        background: rgba(10, 15, 25, 0.78);
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
+        border: 1px solid rgba(148, 163, 184, 0.18);
       }
       .hero {
         display: grid;
         grid-template-columns: 1fr;
         gap: 16px;
         max-width: 760px;
+        width: min(100%, 760px);
+        margin: 0 auto;
       }
       .hero-copy {
         display: grid;
-        gap: 16px;
+        gap: 12px;
+        justify-items: center;
+        text-align: center;
+        max-width: 620px;
+        margin: 0 auto;
       }
       .kicker {
         display: inline-flex;
@@ -368,29 +572,93 @@
       }
       .hero-title {
         margin: 0;
-        font-size: clamp(2.2rem, 5vw, 4.8rem);
-        line-height: 0.98;
+        max-width: 9ch;
+        font-size: clamp(2rem, 4.1vw, 3.35rem);
+        line-height: 1.04;
         letter-spacing: -0.015em;
+        font-weight: 900;
+        color: #f8fafc;
       }
       .hero-title .accent {
-        color: #ff4f93;
+        color: #fbbf24;
+      }
+      .hero-subline {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: -2px;
+        color: #bfdbfe;
+        font-size: 0.84rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+      .hero-subline span {
+        display: inline-flex;
+        align-items: center;
+      }
+      .hero-subline span + span::before {
+        content: '•';
+        color: rgba(191, 219, 254, 0.56);
+        margin: 0 8px 0 0;
       }
       .hero-desc {
         margin: 0;
-        max-width: 64ch;
-        line-height: 1.7;
-        color: #1f2937;
+        max-width: 58ch;
+        line-height: 1.65;
+        color: #cbd5e1;
+      }
+      .hero-highlights {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        max-width: 560px;
+      }
+      .hero-highlight {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.54);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        color: #dbe7ff;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+      .hero-highlight b {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 24px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 900;
+      }
+      html[data-theme="day"] .hero-highlight {
+        background: rgba(255,255,255,0.78);
+        border-color: rgba(148, 163, 184, 0.18);
+        color: #334155;
       }
       .hero-stats {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(140px, 180px));
         gap: 10px;
+        justify-content: center;
       }
       .stat-box {
         padding: 14px;
         border-radius: 18px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(248,250,252,0.8));
-        border: 1px solid rgba(255,255,255,0.4);
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.16);
         animation: float-soft 5.8s ease-in-out infinite;
       }
       .stat-box:nth-child(2) { animation-delay: .6s; }
@@ -476,8 +744,146 @@
       .summary-card {
         display: grid;
         gap: 14px;
-        align-content: start;
+        align-content: center;
+        justify-self: center;
+        width: 100%;
         animation: fade-up 680ms ease both;
+      }
+      .hero-decor-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 24px;
+        padding: 18px;
+        min-height: 220px;
+        background:
+          radial-gradient(circle at top right, rgba(251, 191, 36, 0.22), transparent 28%),
+          radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.24), transparent 30%),
+          linear-gradient(160deg, rgba(10, 15, 25, 0.92), rgba(30, 41, 59, 0.94));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
+        display: grid;
+        align-content: space-between;
+        gap: 14px;
+      }
+      .hero-decor-card::before {
+        content: '';
+        position: absolute;
+        inset: auto -28px -48px auto;
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), rgba(59,130,246,0.16), transparent 70%);
+        filter: blur(2px);
+      }
+      .hero-decor-card::after {
+        content: '';
+        position: absolute;
+        inset: 18px 18px auto auto;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(56,189,248,0.92), rgba(139,92,246,0.86));
+        box-shadow: 0 14px 24px rgba(59, 130, 246, 0.2);
+        transform: rotate(14deg);
+      }
+      .hero-decor-top,
+      .hero-decor-bottom {
+        position: relative;
+        z-index: 1;
+      }
+      .hero-decor-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        color: #bfdbfe;
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .hero-decor-title {
+        margin: 12px 0 6px;
+        color: #f8fafc;
+        font-size: 1.26rem;
+        line-height: 1.2;
+        font-weight: 900;
+      }
+      .hero-decor-copy {
+        margin: 0;
+        color: #cbd5e1;
+        font-size: 0.88rem;
+        line-height: 1.7;
+      }
+      .hero-decor-orbit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .hero-decor-ring {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 1px solid rgba(191, 219, 254, 0.24);
+        background:
+          radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0 16%, transparent 17% 100%),
+          conic-gradient(from 180deg, rgba(56,189,248,0.9), rgba(168,85,247,0.9), rgba(251,191,36,0.9), rgba(56,189,248,0.9));
+        box-shadow: inset 0 0 0 8px rgba(15, 23, 42, 0.9);
+        flex-shrink: 0;
+      }
+      .hero-decor-meta {
+        display: grid;
+        gap: 4px;
+      }
+      .hero-decor-meta strong {
+        color: #f8fafc;
+        font-size: 0.96rem;
+      }
+      .hero-decor-meta span {
+        color: #94a3b8;
+        font-size: 0.8rem;
+      }
+      .hero-decor-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .hero-decor-pills span {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.07);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        color: #e2e8f0;
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+      html[data-theme="day"] .hero-decor-card {
+        background:
+          radial-gradient(circle at top right, rgba(251, 191, 36, 0.18), transparent 28%),
+          radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.18), transparent 30%),
+          linear-gradient(160deg, rgba(255,255,255,0.86), rgba(241,245,249,0.94));
+        border-color: rgba(148, 163, 184, 0.18);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
+      }
+      html[data-theme="day"] .hero-decor-label,
+      html[data-theme="day"] .hero-decor-pills span {
+        background: rgba(255,255,255,0.64);
+        color: #334155;
+        border-color: rgba(148, 163, 184, 0.16);
+      }
+      html[data-theme="day"] .hero-decor-title,
+      html[data-theme="day"] .hero-decor-meta strong {
+        color: #0f172a;
+      }
+      html[data-theme="day"] .hero-decor-copy,
+      html[data-theme="day"] .hero-decor-meta span {
+        color: #475569;
       }
       .summary-label {
         margin: 0;
@@ -505,7 +911,7 @@
       }
       .side-stat strong {
         display: block;
-        color: #ff5f98;
+        color: #bfdbfe;
         font-size: 1.4rem;
         line-height: 1.1;
       }
@@ -602,9 +1008,9 @@
         gap: 8px;
         font-size: 0.78rem;
         font-weight: 800;
-        color: #0f766e;
-        background: rgba(14, 116, 144, 0.14);
-        border: 1px solid rgba(14, 116, 144, 0.2);
+        color: #bfdbfe;
+        background: rgba(59, 130, 246, 0.14);
+        border: 1px solid rgba(96, 165, 250, 0.2);
         border-radius: 999px;
         padding: 6px 10px;
       }
@@ -619,8 +1025,8 @@
         align-items: center;
         padding: 12px 14px;
         border-radius: 18px;
-        background: rgba(255,255,255,0.62);
-        border: 1px solid rgba(255,255,255,0.4);
+        background: rgba(15, 23, 42, 0.82);
+        border: 1px solid rgba(148, 163, 184, 0.18);
       }
       .online-rank-no {
         width: 38px;
@@ -682,11 +1088,10 @@
       .chip-row,
       .feature-hub {
         margin-top: 14px;
-        border-radius: 24px;
-        background: rgba(255,255,255,0.7);
-        border: 1px solid rgba(255,255,255,0.36);
-        backdrop-filter: blur(18px);
-        box-shadow: 0 22px 50px rgba(15, 23, 42, 0.08);
+        border-radius: 20px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 16px 32px rgba(2, 6, 23, 0.22);
         animation: fade-up 760ms ease both;
       }
       .chip-row {
@@ -714,8 +1119,8 @@
         gap: 8px;
         padding: 10px 14px;
         white-space: nowrap;
-        background: rgba(255,255,255,0.74);
-        color: #334155;
+        background: rgba(15, 23, 42, 0.82);
+        color: #e2e8f0;
         border: 1px solid rgba(148, 163, 184, 0.2);
         font-weight: 700;
       }
@@ -733,7 +1138,8 @@
       }
       .action-chip {
         margin-left: auto;
-        background: rgba(241, 245, 249, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e2e8f0;
       }
       .feature-hub {
         padding: 14px;
@@ -763,7 +1169,7 @@
       }
       .feature-btn {
         border: 1px solid rgba(148, 163, 184, 0.2);
-        background: rgba(255,255,255,0.8);
+        background: rgba(15, 23, 42, 0.86);
         border-radius: 16px;
         padding: 14px 16px;
         min-height: 84px;
@@ -771,6 +1177,7 @@
         display: grid;
         gap: 4px;
         cursor: pointer;
+        color: #e2e8f0;
       }
       .feature-btn strong {
         font-size: 0.95rem;
@@ -780,7 +1187,7 @@
         color: #64748b;
       }
       .feature-btn.primary {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(37, 99, 235, 0.92));
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.92), rgba(37, 99, 235, 0.92), rgba(139, 92, 246, 0.9));
         color: #fff;
         border: none;
       }
@@ -800,25 +1207,32 @@
         grid-template-columns: 220px minmax(0, 1fr);
         gap: 12px;
         padding: 12px;
+        width: min(100%, 1180px);
+        margin: 0 auto;
       }
       .category-panel {
-        border-radius: 18px;
-        padding: 12px;
-        background: rgba(255,255,255,0.7);
-        border: 1px solid rgba(255,255,255,0.45);
+        border-radius: 20px;
+        padding: 14px 12px;
+        background: rgba(15, 23, 42, 0.72);
+        border: 1px solid rgba(148, 163, 184, 0.18);
         display: grid;
         gap: 10px;
         align-content: start;
+        justify-items: stretch;
+        text-align: left;
       }
       .category-title {
         margin: 0;
-        font-size: 0.92rem;
-        color: #475569;
+        font-size: 0.8rem;
+        color: #bfdbfe;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 800;
       }
       .category-count {
         margin: 0;
-        color: #64748b;
-        font-size: 0.82rem;
+        color: #94a3b8;
+        font-size: 0.8rem;
       }
       .category-list {
         display: grid;
@@ -826,27 +1240,29 @@
       }
       .category-btn {
         text-align: left;
-        border: 1px solid rgba(148, 163, 184, 0.26);
-        background: rgba(255,255,255,0.85);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: rgba(15, 23, 42, 0.85);
         border-radius: 12px;
         padding: 10px 12px;
-        color: #334155;
+        color: #e2e8f0;
         font-weight: 700;
         cursor: pointer;
       }
       .category-btn.active {
-        background: linear-gradient(135deg, #fb7185, #f43f5e);
+        background: linear-gradient(135deg, #f59e0b, #f97316);
         border-color: transparent;
         color: #fff;
-        box-shadow: 0 12px 22px rgba(244, 63, 94, 0.24);
+        box-shadow: 0 10px 18px rgba(249, 115, 22, 0.28);
       }
       .category-btn:hover {
         transform: translateY(-1px);
       }
       .catalog-main {
-        border-radius: 18px;
-        background: rgba(255,255,255,0.46);
-        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 20px;
+        background: rgba(15, 23, 42, 0.76);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        width: 100%;
+        margin: 0 auto;
       }
       .section-band {
         display: flex;
@@ -855,6 +1271,7 @@
         gap: 12px;
         padding: 18px 20px 0;
         flex-wrap: wrap;
+        text-align: center;
       }
       .section-band h2,
       .section-band p {
@@ -877,12 +1294,12 @@
       }
       .product-card {
         grid-column: span 4;
-        border-radius: 30px;
+        border-radius: 22px;
         padding: 18px;
-        background: rgba(255,255,255,0.96);
-        color: #1e293b;
-        border: 1px solid rgba(148, 163, 184, 0.28);
-        box-shadow: 0 34px 90px rgba(15, 23, 42, 0.24);
+        background: rgba(9, 13, 22, 0.82);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 18px 36px rgba(2, 6, 23, 0.22);
         grid-template-rows: 1fr auto;
         gap: 12px;
         transition: transform 180ms ease, box-shadow 180ms ease;
@@ -917,12 +1334,12 @@
       }
       .card-name {
         margin: 0;
-        color: #1f2937;
+        color: #f8fafc;
         font-size: 1.1rem;
         line-height: 1.35;
       }
       .card-price {
-        color: #ef5da8;
+        color: #fbbf24;
         font-size: 1.9rem;
         font-weight: 900;
         margin: 10px 0 0;
@@ -947,7 +1364,7 @@
         font-size: 0.72rem;
         font-weight: 900;
         color: #fff;
-        background: linear-gradient(135deg, #f97316, #ef4444);
+        background: linear-gradient(135deg, #2563eb, #8b5cf6);
       }
       .card-body {
         padding: 0 18px 18px;
@@ -984,8 +1401,8 @@
         align-items: center;
         padding: 6px 10px;
         border-radius: 999px;
-        background: rgba(255, 236, 245, 0.95);
-        color: #8b5cf6;
+        background: rgba(91, 33, 182, 0.18);
+        color: #d8b4fe;
         font-size: 0.76rem;
         font-weight: 800;
       }
@@ -996,21 +1413,47 @@
       }
       .buy-btn {
         padding: 12px 18px;
-        background: linear-gradient(135deg, #ff6ea8, #8b5cf6 52%, #0ea5e9);
+        background: linear-gradient(135deg, #0ea5e9, #2563eb 52%, #8b5cf6);
         background-size: 220% 220%;
         animation: shimmer 7s ease infinite, pulse-glow 4s ease-in-out infinite;
         color: #fff;
         font-weight: 900;
         letter-spacing: 0.02em;
         border-radius: 18px;
-        box-shadow: 0 18px 38px rgba(124, 92, 255, 0.3);
+        box-shadow: 0 18px 38px rgba(37, 99, 235, 0.28);
+      }
+      .buy-btn.maintenance {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        color: #475569;
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+        animation: none;
       }
       .buy-btn[disabled] {
         cursor: not-allowed;
-        opacity: 0.58;
+        opacity: 0.72;
         filter: grayscale(0.2);
         box-shadow: none;
         animation: none;
+      }
+      .maintenance-banner {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.18);
+        color: #b91c1c;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .notice-card.maintenance {
+        background: rgba(254, 242, 242, 0.9);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #991b1b;
+        font-weight: 700;
       }
       .ghost-btn {
         padding: 10px 14px;
@@ -1025,8 +1468,12 @@
       .notice-card {
         margin-top: 14px;
         padding: 18px 20px;
-        color: #475569;
+        color: #dfe7f5;
         line-height: 1.8;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(148, 163, 184, 0.18);
       }
       .payment-head .btn,
       .payment-actions .btn {
@@ -1037,6 +1484,7 @@
         justify-content: center;
         padding: 10px 16px;
         border-radius: 18px;
+        animation: float-soft 3s ease-in-out infinite;
       }
       html[data-theme="night"] .payment-head .btn,
       html[data-theme="night"] .payment-actions .btn {
@@ -1044,14 +1492,15 @@
         color: #e2e8f0;
       }
       .payment-actions .btn-primary {
-        background: linear-gradient(135deg, #ff4d9d, #7c3aed, #06b6d4);
+        background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
         color: #fff;
         font-weight: 900;
-        box-shadow: 0 16px 34px rgba(124, 58, 237, 0.26);
+        box-shadow: 0 16px 34px rgba(37, 99, 235, 0.24);
       }
       .payment-actions .btn-primary:hover,
       .payment-actions .btn-primary:focus-visible {
-        box-shadow: 0 18px 38px rgba(124, 58, 237, 0.34);
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 18px 38px rgba(37, 99, 235, 0.3);
       }
       .btn:hover,
       .payment-head .btn:hover,
@@ -1073,6 +1522,53 @@
       .buy-btn:active,
       .floating-button:active {
         transform: translateY(0) scale(0.99);
+      }
+      .ai-shop-entry {
+        position: fixed;
+        right: 22px;
+        bottom: 22px;
+        z-index: 35;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px 12px 12px;
+        min-height: 58px;
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.96), rgba(124, 58, 237, 0.96));
+        color: #fff;
+        border: 1px solid rgba(191, 219, 254, 0.26);
+        box-shadow: 0 20px 40px rgba(30, 64, 175, 0.26);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .ai-shop-entry-badge {
+        width: 36px;
+        height: 36px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.18);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.24);
+        font-size: 0.92rem;
+        font-weight: 900;
+        flex-shrink: 0;
+      }
+      .ai-shop-entry-copy {
+        display: grid;
+        gap: 3px;
+        line-height: 1.1;
+      }
+      .ai-shop-entry-copy strong {
+        font-size: 0.92rem;
+        font-weight: 900;
+      }
+      .ai-shop-entry-copy span {
+        font-size: 0.76rem;
+        color: rgba(255,255,255,0.86);
+      }
+      html[data-theme="day"] .ai-shop-entry {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(147, 51, 234, 0.94));
+        box-shadow: 0 18px 34px rgba(59, 130, 246, 0.22);
       }
       .payment-modal {
         position: fixed;
@@ -1210,6 +1706,25 @@
         display: grid;
         gap: 8px;
       }
+      .order-query-contact input {
+        width: 100%;
+        min-height: 52px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        padding: 12px 14px;
+        font: inherit;
+        background: rgba(255,255,255,0.96);
+        color: #111827;
+      }
+      .order-query-contact input:focus {
+        outline: none;
+        border-color: rgba(37, 99, 235, 0.5);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      }
+      .order-query-contact .btn {
+        width: 100%;
+        min-height: 46px;
+      }
       .order-query-contact-list {
         display: grid;
         gap: 8px;
@@ -1241,22 +1756,6 @@
         background: rgba(255,255,255,0.95);
         font-weight: 800;
         cursor: pointer;
-      }
-      .floating-button.lottery-entry {
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 90;
-        min-height: 50px;
-        padding: 0 18px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border-radius: 999px;
-        color: #fff;
-        font-weight: 900;
-        background: linear-gradient(135deg, #1d4ed8, #2563eb, #3b82f6);
-        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.34);
       }
       .announcement-modal {
         position: fixed;
@@ -1473,6 +1972,10 @@
         gap: 10px;
       }
       .payment-method-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
         flex: 1 1 150px;
         min-width: 130px;
         min-height: 46px;
@@ -1481,6 +1984,22 @@
         background: rgba(255,255,255,0.92);
         font-weight: 800;
         color: #334155;
+      }
+      .payment-method-icon {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
+        flex-shrink: 0;
+      }
+      .payment-method-icon svg {
+        width: 12px;
+        height: 12px;
+        display: block;
       }
       .payment-method-btn.active {
         color: #fff;
@@ -1587,18 +2106,37 @@
         background: inherit;
       }
       .auth-trigger {
-        background: linear-gradient(135deg, #22c55e, #14b8a6);
+        background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
         color: #fff;
         font-weight: 900;
-        box-shadow: 0 16px 30px rgba(20, 184, 166, 0.28);
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
       }
       .auth-trigger:hover,
       .auth-trigger:focus-visible {
         transform: translateY(-1px);
-        box-shadow: 0 18px 36px rgba(20, 184, 166, 0.36);
+        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.3);
       }
       .auth-trigger.auth-logged-in {
-        background: linear-gradient(135deg, #38bdf8, #818cf8);
+        background: linear-gradient(135deg, #38bdf8, #2563eb, #8b5cf6);
+      }
+      .theme-toggle.auth-trigger,
+      .theme-toggle.auth-trigger.auth-logged-in {
+        background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+      }
+      html[data-theme="night"] .theme-toggle.auth-trigger,
+      html[data-theme="day"] .theme-toggle.auth-trigger {
+        background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+      }
+      .theme-toggle.auth-trigger.auth-logged-in {
+        background: linear-gradient(135deg, #38bdf8, #2563eb, #8b5cf6);
+      }
+      html[data-theme="night"] .theme-toggle.auth-trigger.auth-logged-in,
+      html[data-theme="day"] .theme-toggle.auth-trigger.auth-logged-in {
+        background: linear-gradient(135deg, #38bdf8, #2563eb, #8b5cf6);
       }
       .purchase-disabled {
         opacity: 0.62;
@@ -1761,11 +2299,11 @@
         min-width: 132px;
         padding: 10px 14px;
         border-radius: 16px;
-        border: 1px solid rgba(99, 102, 241, 0.25);
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.96), rgba(34, 197, 94, 0.94));
-        color: #fff;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: linear-gradient(135deg, rgba(148, 163, 184, 0.9), rgba(100, 116, 139, 0.9));
+        color: #f8fafc;
         font-weight: 900;
-        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.25);
+        box-shadow: 0 12px 24px rgba(71, 85, 105, 0.18);
       }
       .auth-send-btn:hover,
       .auth-send-btn:focus-visible,
@@ -1776,11 +2314,11 @@
       .auth-verify-btn {
         padding: 10px 14px;
         border-radius: 16px;
-        border: 1px solid rgba(16, 185, 129, 0.25);
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.96), rgba(56, 189, 248, 0.92));
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.96), rgba(99, 102, 241, 0.92));
         color: #fff;
         font-weight: 900;
-        box-shadow: 0 16px 30px rgba(16, 185, 129, 0.22);
+        box-shadow: 0 16px 30px rgba(59, 130, 246, 0.24);
       }
       .auth-note {
         color: #cbd5e1;
@@ -2072,6 +2610,13 @@
         .auth-send-btn,
         .auth-verify-btn,
         .admin-submit { width: 100%; justify-content: center; }
+        .ai-shop-entry {
+          right: 12px;
+          bottom: 12px;
+          left: 12px;
+          justify-content: center;
+          padding-right: 12px;
+        }
         .auth-captcha-row { flex-direction: column; }
         .admin-grid { grid-template-columns: 1fr; }
       }
@@ -2088,6 +2633,7 @@
           </div>
         </div>
         <div class="top-actions">
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换白天/黑夜模式">黑夜模式</button>
           <button class="theme-toggle" type="button" data-control-panel hidden>控制面板</button>
           <button class="theme-toggle auth-trigger" type="button" data-auth-trigger>登录 / 注册</button>
         </div>
@@ -2098,49 +2644,75 @@
           <div class="hero-copy">
             <span class="kicker">CARD SHOP FEED</span>
             <h1 class="hero-title"><span class="accent">星际</span>小卖部</h1>
-            <p class="hero-desc">欢迎大家进入星际的小卖部！目前正在测试中，商品不要购买哦！</p>
+            <div class="hero-subline">
+              <span>热卖精选</span>
+              <span>订单可追踪</span>
+              <span>卡密自动领取</span>
+            </div>
+            <p class="hero-desc">精选商品与便捷支付，支持一键购买、订单查询与卡密领取。</p>
+            <div class="hero-highlights">
+              <span class="hero-highlight"><b>24H</b> 订单可追踪</span>
+              <span class="hero-highlight"><b>折扣</b> 代理权限永久生效</span>
+              <span class="hero-highlight"><b>库存</b> 商品状态实时刷新</span>
+            </div>
             <div class="hero-stats">
               <div class="stat-box">
                 <span class="stat-title">可售商品</span>
-                <div class="stat-value" data-stat-products>0</div>
+                <div class="stat-value" data-stat-products>--</div>
               </div>
               <div class="stat-box">
                 <span class="stat-title">商品分类</span>
-                <div class="stat-value" data-stat-categories>0</div>
-              </div>
-              <div class="stat-box">
-                <span class="stat-title">当前价格</span>
-                <div class="stat-value" data-stat-lowest-price>--</div>
+                <div class="stat-value" data-stat-categories>--</div>
               </div>
             </div>
           </div>
         </section>
 
-        <aside class="summary-card">
-          <p class="summary-label">今日商品</p>
-          <div class="summary-line">
-            <div class="side-stat">
-              <span>在线商品</span>
-              <strong data-summary-online>0</strong>
+        <div class="hero-side">
+          <aside class="summary-card">
+            <p class="summary-label">今日商品</p>
+            <div class="summary-line">
+              <div class="side-stat">
+                <span>在线商品</span>
+                <strong data-summary-online>--</strong>
+              </div>
+              <div class="side-stat">
+                <span>商品分类</span>
+                <strong data-summary-categories>--</strong>
+              </div>
+              <div class="side-stat">
+                <span>在线人数</span>
+                <strong data-site-online>--</strong>
+              </div>
+              <div class="side-stat">
+                <span>今日访问</span>
+                <strong data-site-today-visits>--</strong>
+              </div>
             </div>
-            <div class="side-stat">
-              <span>商品分类</span>
-              <strong data-summary-categories>0</strong>
-            </div>
-            <div class="side-stat">
-              <span>在线人数</span>
-              <strong data-site-online>--</strong>
-            </div>
-            <div class="side-stat">
-              <span>今日访问</span>
-              <strong data-site-today-visits>--</strong>
-            </div>
-          </div>
-        </aside>
-      </section>
+          </aside>
 
-      <section class="notice-card announcement-card">
-        <strong>公告：</strong><span data-store-announcement>购买功能已正常开放</span>
+          <aside class="hero-decor-card" aria-hidden="true">
+            <div class="hero-decor-top">
+              <span class="hero-decor-label">stellar feed</span>
+              <h3 class="hero-decor-title">今日主推正在轮换</h3>
+              <p class="hero-decor-copy">把热卖商品、折扣权限和库存状态压进同一块视觉区，让右侧不再发空。</p>
+            </div>
+            <div class="hero-decor-bottom">
+              <div class="hero-decor-orbit">
+                <div class="hero-decor-ring"></div>
+                <div class="hero-decor-meta">
+                  <strong>精选货架</strong>
+                  <span>推荐区 · 实时更新</span>
+                </div>
+              </div>
+              <div class="hero-decor-pills">
+                <span>热卖</span>
+                <span>限时</span>
+                <span>补货中</span>
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
 
       <section class="chip-row">
@@ -2178,20 +2750,14 @@
             <strong>查单中心</strong>
             <span>输入订单号查询状态和卡密</span>
           </button>
-          <a class="feature-btn warn" href="/store-admin.html">
-            <strong>开发者后台</strong>
-            <span>新增、调价、上下架商品</span>
-          </a>
         </div>
       </section>
-
-      <a class="floating-button lottery-entry" href="/lottery.html" title="抽奖活动入口">抽奖活动</a>
 
       <section class="feed-card">
         <div class="shop-catalog">
           <aside class="category-panel">
             <h3 class="category-title">物品分类</h3>
-            <p class="category-count" data-category-count>共 0 类</p>
+            <p class="category-count" data-category-count>正在读取分类...</p>
             <div class="category-list" data-category-list></div>
           </aside>
 
@@ -2199,33 +2765,41 @@
             <div class="section-band">
               <div>
                 <h2>推荐商品</h2>
-                <p data-feed-description>商品由控制面板动态管理，可自行上架、下架和调价。</p>
+                <p data-feed-description>正在读取商品列表...</p>
               </div>
-              <div class="feed-meta" data-feed-meta>0 个商品在线</div>
+              <div class="feed-meta" data-feed-meta>正在加载商品</div>
             </div>
 
             <div class="product-grid" data-product-grid></div>
 
-            <div class="notice-card">
-              购买按钮已接入支付流程，可直接使用。商品运营改为动态配置，你可以在控制面板上自行上架、下架和调价。
+            <div class="notice-card maintenance">
+              购买功能已正常开放，商品与订单查询均可直接使用。
             </div>
           </div>
         </div>
       </section>
     </main>
 
+    <a class="floating-button ai-shop-entry" href="/ai-shop.html" aria-label="打开 AI 选购商品">
+      <span class="ai-shop-entry-badge">AI</span>
+      <span class="ai-shop-entry-copy">
+        <strong>AI选购商品</strong>
+        <span>不会选就让 AI 帮你挑</span>
+      </span>
+    </a>
+
     <div class="announcement-modal" data-announcement-modal aria-hidden="true">
       <div class="announcement-card" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
         <div class="announcement-top">
           <div class="announcement-title" id="announcement-title">SW SERVICE NOTICE</div>
           <div class="announcement-body" data-announcement-body>购买功能已正常开放</div>
-          <div class="announcement-sub">本页公告每次进入都会弹出，开发者可以在控制面板修改内容。</div>
+          <div class="announcement-sub">本页公告每次进入都会弹出，权限可以在控制面板修改内容。</div>
         </div>
         <div class="announcement-panel">
           <div class="announcement-tag">NOTICE</div>
           <div class="announcement-list">
             <div class="announcement-list-item">购买功能已正常开放</div>
-            <div class="announcement-list-item">如需添加或移除管理白名单，请进入开发者控制面板</div>
+            <div class="announcement-list-item">如需添加或移除管理白名单，请进入权限控制面板</div>
           </div>
           <div class="announcement-foot">感谢大家一直以来的支持，后续会持续优化体验。</div>
         </div>
@@ -2252,7 +2826,28 @@
           <div class="payment-method-group">
             <div class="payment-method-label">选择支付方式</div>
             <div class="payment-method-row">
-              <button class="payment-method-btn active" type="button" data-payment-method="wechat">微信支付</button>
+              <button class="payment-method-btn active" type="button" data-payment-method="wechat">
+                <span class="payment-method-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 13.5C7.5 10.9 9.51 8.75 12 8.75C14.49 8.75 16.5 10.9 16.5 13.5C16.5 16.1 14.49 18.25 12 18.25C10.8 18.25 9.7 17.8 8.85 17.05L7.2 18.3L7.45 16.5C6.7 15.7 6.2 14.65 6.2 13.5H7.5Z" fill="white"/>
+                    <circle cx="9.3" cy="13.3" r="1.1" fill="#22c55e"/>
+                    <circle cx="14.7" cy="13.3" r="1.1" fill="#22c55e"/>
+                    <path d="M17.5 5.5C19.9 5.5 21.8 7.4 21.8 9.8C21.8 11.7 20.7 13.35 19.1 14.2L18.5 16.8L16.9 15.4C16.2 15.8 15.3 16.1 14.4 16.1H13.8C13.4 17.3 12.4 18.1 11.2 18.1H9.7C8 18.1 6.6 16.7 6.6 15.1V14.8C5.2 14.2 4.2 12.7 4.2 10.9C4.2 8.3 6.1 6.3 8.6 6.3H17.5Z" fill="white" opacity="0.12"/>
+                  </svg>
+                </span>
+                <span>微信支付</span>
+              </button>
+              <button class="payment-method-btn" type="button" data-payment-method="wechat_backup">
+                <span class="payment-method-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.5 13.5C7.5 10.9 9.51 8.75 12 8.75C14.49 8.75 16.5 10.9 16.5 13.5C16.5 16.1 14.49 18.25 12 18.25C10.8 18.25 9.7 17.8 8.85 17.05L7.2 18.3L7.45 16.5C6.7 15.7 6.2 14.65 6.2 13.5H7.5Z" fill="white"/>
+                    <circle cx="9.3" cy="13.3" r="1.1" fill="#22c55e"/>
+                    <circle cx="14.7" cy="13.3" r="1.1" fill="#22c55e"/>
+                    <path d="M17.5 5.5C19.9 5.5 21.8 7.4 21.8 9.8C21.8 11.7 20.7 13.35 19.1 14.2L18.5 16.8L16.9 15.4C16.2 15.8 15.3 16.1 14.4 16.1H13.8C13.4 17.3 12.4 18.1 11.2 18.1H9.7C8 18.1 6.6 16.7 6.6 15.1V14.8C5.2 14.2 4.2 12.7 4.2 10.9C4.2 8.3 6.1 6.3 8.6 6.3H17.5Z" fill="white" opacity="0.12"/>
+                  </svg>
+                </span>
+                <span>微信支付（备用）</span>
+              </button>
               <button class="payment-method-btn" type="button" data-payment-method="alipay">支付宝</button>
             </div>
           </div>
@@ -2339,7 +2934,7 @@
             <button class="btn" type="button" data-close-auth>关闭</button>
           </div>
         </div>
-          <div class="auth-message" data-auth-message>账号功能可用于同步购买记录与开发者操作。</div>
+          <div class="auth-message" data-auth-message>账号功能可用于同步购买记录与权限操作。</div>
         <div class="auth-tabs">
           <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
           <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
@@ -2370,25 +2965,15 @@
             <label>账号类型</label>
             <div class="auth-developer-row">
               <input id="register-developer-toggle" type="checkbox" data-register-developer-toggle />
-              <label for="register-developer-toggle">注册为开发者账号</label>
+              <label for="register-developer-toggle">注册为权限账号</label>
             </div>
-            <input id="register-developer-secret" type="text" autocomplete="off" placeholder="开发者口令（仅开发者填写）" data-register-developer-secret />
+            <input id="register-developer-secret" type="text" autocomplete="off" placeholder="权限口令（仅权限填写）" data-register-developer-secret />
           </div>
-            <div class="auth-note">注册后系统会把邮箱验证码发给你，验证后可同步账号信息。</div>
+            <div class="auth-note">请先完成人机验证，再提交注册或登录。</div>
             <div class="auth-actions">
-              <button class="auth-send-btn" type="button" data-send-code>注册并发送验证码</button>
-            </div>
-            <div class="field auth-code-field">
-              <label for="register-code">邮箱验证码</label>
-              <div class="auth-captcha-row">
-                <input id="register-code" class="auth-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位验证码" data-register-code />
-                <button class="auth-captcha-refresh" type="button" data-resend-code>重新发送</button>
-              </div>
+              <button class="auth-verify-btn" type="button" data-submit-register>注册并登录</button>
             </div>
           <div class="auth-status" data-register-status>等待填写注册信息。</div>
-          <div class="auth-actions">
-              <button class="auth-verify-btn" type="button" data-submit-register>验证并登录</button>
-          </div>
         </section>
 
         <section class="auth-panel" data-auth-panel="login" hidden>
@@ -2404,22 +2989,11 @@
             <label for="login-password">密码登录</label>
             <input id="login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password />
           </div>
-            <div class="auth-note">系统会向邮箱发送验证码，输入后即可登录。</div>
+            <div class="auth-note">密码登录为主要方式，已取消验证码登录。</div>
             <div class="auth-actions">
-              <button class="auth-send-btn" type="button" data-send-code>发送验证码</button>
               <button class="auth-verify-btn" type="button" data-submit-password-login>密码登录</button>
             </div>
-            <div class="field auth-code-field">
-              <label for="login-code">邮箱验证码</label>
-              <div class="auth-captcha-row">
-                <input id="login-code" class="auth-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="输入 6 位验证码" data-login-code />
-                <button class="auth-captcha-refresh" type="button" data-resend-code>重新发送</button>
-              </div>
-            </div>
           <div class="auth-status" data-login-status>等待登录。</div>
-          <div class="auth-actions">
-              <button class="auth-verify-btn" type="button" data-submit-login>验证并登录</button>
-          </div>
         </section>
       </div>
     </div>
@@ -2436,20 +3010,15 @@
         const authTabs = Array.from(document.querySelectorAll('[data-auth-tab]'));
         const authPanels = Array.from(document.querySelectorAll('[data-auth-panel]'));
         const closeAuthButtons = Array.from(document.querySelectorAll('[data-close-auth]'));
-        const sendCodeButtons = Array.from(document.querySelectorAll('[data-send-code]'));
-        const resendCodeButtons = Array.from(document.querySelectorAll('[data-resend-code]'));
-        const verifyButtons = Array.from(document.querySelectorAll('[data-submit-register], [data-submit-login]'));
         const registerUsernameInput = document.querySelector('[data-register-username]');
         const registerEmailInput = document.querySelector('[data-register-email]');
         const registerDeveloperToggleInput = document.querySelector('[data-register-developer-toggle]');
         const registerDeveloperSecretInput = document.querySelector('[data-register-developer-secret]');
         const registerPasswordInput = document.querySelector('[data-register-password]');
-        const registerCodeInput = document.querySelector('[data-register-code]');
         const registerStatus = document.querySelector('[data-register-status]');
         const loginUsernameInput = document.querySelector('[data-login-username]');
         const loginEmailInput = document.querySelector('[data-login-email]');
         const loginPasswordInput = document.querySelector('[data-login-password]');
-        const loginCodeInput = document.querySelector('[data-login-code]');
         const loginStatus = document.querySelector('[data-login-status]');
         const passwordLoginButton = document.querySelector('[data-submit-password-login]');
         const authRememberLoginInput = document.querySelector('[data-auth-remember-login]');
@@ -2561,7 +3130,10 @@
         let onlineAccountsSnapshot = [];
 
         function getPaymentMethodLabel(method) {
-          return String(method || '').toLowerCase() === 'alipay' ? '支付宝支付' : '微信支付';
+          const normalized = String(method || '').toLowerCase();
+          if (normalized === 'alipay') return '支付宝支付';
+          if (normalized === 'wechat_backup' || normalized === 'wechat-backup') return '微信支付（备用）';
+          return '微信支付';
         }
 
         function buildCheckoutUrl(product) {
@@ -2574,12 +3146,13 @@
         }
 
         function updatePaymentCheckoutView() {
-          const method = String(paymentCheckoutState.method || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
-          paymentCheckoutState.method = method;
+          const method = String(paymentCheckoutState.method || 'wechat').toLowerCase();
+          const normalizedMethod = method === 'alipay' ? 'alipay' : method === 'wechat_backup' || method === 'wechat-backup' ? 'wechat_backup' : 'wechat';
+          paymentCheckoutState.method = normalizedMethod;
 
           paymentMethodButtons.forEach((button) => {
             const buttonMethod = String(button.dataset.paymentMethod || '').toLowerCase();
-            button.classList.toggle('active', buttonMethod === method);
+            button.classList.toggle('active', buttonMethod === normalizedMethod);
           });
 
           if (paymentMethodLabel) {
@@ -2702,17 +3275,63 @@
           }).join('');
         }
 
+        function resolveRemoteBackgroundUrl(payload) {
+          if (!payload || typeof payload !== 'object') {
+            return '';
+          }
+
+          const candidates = [
+            payload?.backgroundUrl,
+            payload?.background,
+            payload?.imageUrl,
+            payload?.image,
+            payload?.url,
+            payload?.data?.url,
+            payload?.data?.image,
+            payload?.data?.background,
+            payload?.result?.url,
+            payload?.result?.image,
+            payload?.result?.background
+          ];
+
+          for (const candidate of candidates) {
+            if (typeof candidate !== 'string') continue;
+            const cleaned = candidate.trim();
+            if (!cleaned || cleaned.startsWith('<')) continue;
+            const matches = cleaned.match(/https?:\/\/[^\s"'<>]+/i);
+            if (matches && matches[0]) {
+              return matches[0];
+            }
+          }
+
+          return '';
+        }
+
+        async function applyBackgroundImageFromApi() {
+          try {
+            const remoteUrl = `/api/store/background-image?ts=${Date.now()}`;
+            const isDayTheme = document.documentElement.dataset.theme === 'day';
+            const dayOverlay = `
+              radial-gradient(ellipse at 15% 10%, rgba(241,245,249,0.22), transparent 28%),
+              radial-gradient(ellipse at 80% 6%, rgba(96,165,250,0.2), transparent 28%),
+              linear-gradient(180deg, rgba(226,232,240,0.16), rgba(248,250,252,0.06))
+            `;
+            const nightOverlay = `
+              radial-gradient(ellipse at 15% 10%, rgba(255,255,255,0.18), transparent 30%),
+              radial-gradient(ellipse at 80% 6%, rgba(96,165,250,0.24), transparent 30%),
+              linear-gradient(180deg, rgba(15,23,42,0.18), rgba(15,23,42,0.08))
+            `;
+            document.body.style.background = `
+              ${isDayTheme ? dayOverlay : nightOverlay},
+              url("${remoteUrl}") center/cover fixed no-repeat
+            `;
+          } catch {
+            // Keep the default storefront background when the remote image source is unavailable.
+          }
+        }
+
         function openAnnouncementModal() {
-          if (!announcementModal) {
-            return;
-          }
-
-          if (announcementBody) {
-            announcementBody.textContent = storeAnnouncementText || '购买功能已正常开放';
-          }
-
-          announcementModal.classList.add('open');
-          announcementModal.setAttribute('aria-hidden', 'false');
+          return;
         }
 
         function closeAnnouncementModal() {
@@ -2869,15 +3488,78 @@
           return (Number(fen || 0) / 100).toFixed(2);
         }
 
+        function isStorePaymentsTemporarilyClosed() {
+          return false;
+        }
+
+        function getPermanentAgentDiscountTier() {
+          try {
+            const storedTier = String(localStorage.getItem('mctools-permanent-agent-tier') || '').trim().toLowerCase();
+            if (storedTier === 'low' || storedTier === 'mid') {
+              return storedTier;
+            }
+            return String(localStorage.getItem('mctools-permanent-agent-discount') || '').trim() === 'active' ? 'low' : '';
+          } catch {
+            return '';
+          }
+        }
+
+        function isPermanentAgentDiscountActive() {
+          try {
+            if (isStorePaymentsTemporarilyClosed()) {
+              localStorage.removeItem('mctools-permanent-agent-discount');
+              localStorage.removeItem('mctools-permanent-agent-tier');
+              return false;
+            }
+            return getPermanentAgentDiscountTier() !== '';
+          } catch {
+            return false;
+          }
+        }
+
+        function getPermanentAgentDiscountRate() {
+          const tier = getPermanentAgentDiscountTier();
+          if (tier === 'mid') {
+            return 0.7;
+          }
+          if (tier === 'low') {
+            return 0.8;
+          }
+          return 1;
+        }
+
+        function getPermanentAgentDiscountLabel() {
+          return getPermanentAgentDiscountTier() === 'mid' ? '永久七折' : '永久八折';
+        }
+
+        function getEffectiveSalePriceFen(product) {
+          const baseSalePriceFen = Number(product?.salePriceFen || 0);
+          const rate = getPermanentAgentDiscountRate();
+
+          if (rate >= 1) {
+            return baseSalePriceFen;
+          }
+
+          return Math.max(1, Math.round(baseSalePriceFen * rate));
+        }
+
         function normalizeProduct(product) {
-          const salePriceFen = Number(product?.salePriceFen || Math.round(Number(product?.salePrice || 0) * 100) || 100);
-          const originalPriceFen = Number(product?.originalPriceFen || salePriceFen);
+          const rawSalePriceFen = Number(product?.salePriceFen || Math.round(Number(product?.salePrice || 0) * 100) || 100);
+          const rawOriginalPriceFen = Number(product?.originalPriceFen || rawSalePriceFen);
+          const salePriceFen = getEffectiveSalePriceFen({
+            ...product,
+            salePriceFen: rawSalePriceFen,
+            originalPriceFen: rawOriginalPriceFen,
+            productCode: String(product?.productCode || '').trim(),
+            name: String(product?.name || '').trim()
+          });
+          const originalPriceFen = Math.max(rawOriginalPriceFen, salePriceFen);
           return {
             productCode: String(product?.productCode || '').trim(),
             name: String(product?.name || '').trim(),
             description: String(product?.description || '').trim(),
             imageUrl: String(product?.imageUrl || '').trim(),
-            salePriceFen,
+            salePriceFen: salePriceFen,
             originalPriceFen,
             stock: Math.max(0, Number(product?.stock || 0)),
             isActive: Boolean(product?.isActive),
@@ -2946,13 +3628,10 @@
             }
           });
 
-          const minPriceFen = normalized.length > 0 ? Math.min(...normalized.map((item) => item.salePriceFen)) : 0;
-
           if (statProducts) statProducts.textContent = String(normalized.length);
           if (summaryOnline) summaryOnline.textContent = String(normalized.length);
           if (statCategories) statCategories.textContent = String(categorySet.size);
           if (summaryCategories) summaryCategories.textContent = String(categorySet.size);
-          if (statLowestPrice) statLowestPrice.textContent = normalized.length > 0 ? `¥${formatFenToYuan(minPriceFen)}` : '--';
           if (feedMeta) feedMeta.textContent = `${normalized.length} 个商品在线 · ${categorySet.size} 个分类`;
           if (feedDescription) {
             feedDescription.textContent = normalized.length > 0
@@ -2982,7 +3661,7 @@
                   <div class="card-price">--</div>
                 </div>
                 <div class="card-body">
-                  <p class="card-desc">请使用开发者控制面板新增商品并上架。</p>
+                  <p class="card-desc">请使用权限控制面板新增商品并上架。</p>
                 </div>
               </article>
             `;
@@ -2996,6 +3675,8 @@
             const tags = product.tags.length > 0 ? product.tags : ['动态商品'];
             const stock = Math.max(0, Number(product.stock || 0));
             const hasStock = stock > 0;
+            const discountLabel = isPermanentAgentDiscountActive() ? getPermanentAgentDiscountLabel() : '立省';
+            const paymentsClosed = isStorePaymentsTemporarilyClosed();
 
             return `
               <article class="product-card ${index === 0 ? 'featured' : ''}">
@@ -3006,7 +3687,7 @@
                   <div class="price-row">
                     <div class="card-price">¥${sale}</div>
                     ${product.discountFen > 0 ? `<div class="price-original">原价 ¥${original}</div>` : ''}
-                    ${product.discountFen > 0 ? `<span class="price-discount">立省 ¥${saved}</span>` : ''}
+                    ${product.discountFen > 0 ? `<span class="price-discount">${discountLabel} ¥${saved}</span>` : ''}
                   </div>
                 </div>
                 <div class="card-body">
@@ -3017,15 +3698,16 @@
                   </div>
                   <div class="card-actions">
                     <button
-                      class="buy-btn"
+                      class="buy-btn ${paymentsClosed ? 'maintenance' : ''}"
                       type="button"
                       data-open-payment
-                      ${hasStock ? '' : 'disabled'}
+                      data-payment-closed="${paymentsClosed ? 'true' : 'false'}"
                       data-product-name="${escapeHtml(product.name)}"
                       data-product-price="${(product.salePriceFen / 100).toFixed(2)}"
                       data-product-code="${escapeHtml(product.productCode)}"
                       data-product-description="${escapeHtml(product.description)}"
-                    >${hasStock ? '购买' : '已售罄'}</button>
+                      ${paymentsClosed ? 'disabled' : ''}
+                    >立即购买</button>
                   </div>
                 </div>
               </article>
@@ -3094,7 +3776,7 @@
             if (!accountState.loggedIn) {
               setAdminStatus('请先登录社区账号', true);
             } else {
-              setAdminStatus('当前账号不是开发者，请切换开发者账号', true);
+              setAdminStatus('当前账号不是权限，请切换权限账号', true);
             }
           }
 
@@ -3178,15 +3860,69 @@
         }
 
         function applyTheme(theme) {
-          document.documentElement.dataset.theme = 'day';
+          const nextTheme = theme === 'day' ? 'day' : 'night';
+          document.documentElement.dataset.theme = nextTheme;
           try {
-            localStorage.setItem('mctools-store-theme', 'day');
+            localStorage.setItem('mctools-store-theme', nextTheme);
           } catch {
             // ignore storage failures
           }
+
+          const toggleButton = document.querySelector('[data-theme-toggle]');
+          if (toggleButton) {
+            toggleButton.textContent = nextTheme === 'night' ? '白天模式' : '黑夜模式';
+            toggleButton.setAttribute('aria-label', nextTheme === 'night' ? '切换到白天模式' : '切换到黑夜模式');
+          }
         }
 
-        applyTheme('day');
+        const savedTheme = (() => {
+          try {
+            const cached = localStorage.getItem('mctools-store-theme');
+            return cached === 'day' ? 'day' : 'night';
+          } catch {
+            return 'night';
+          }
+        })();
+        applyTheme(savedTheme);
+
+        function parseJsonFromText(text) {
+          const cleaned = String(text || '').trim();
+          if (!cleaned) {
+            return {};
+          }
+
+          if (cleaned.startsWith('<')) {
+            throw new Error('接口返回了 HTML 页面，不是 JSON 数据。');
+          }
+
+          try {
+            return JSON.parse(cleaned);
+          } catch {
+            throw new Error(`接口返回内容不是有效 JSON：${cleaned.slice(0, 120)}`);
+          }
+        }
+
+        async function fetchJsonSafely(url, options = {}, fallbackMessage = '请求失败') {
+          const response = await fetch(url, options);
+          const rawText = await response.text();
+          let payload = {};
+
+          try {
+            payload = parseJsonFromText(rawText);
+          } catch (error) {
+            if (!response.ok) {
+              throw new Error(error.message || fallbackMessage);
+            }
+            throw new Error(error.message || fallbackMessage);
+          }
+
+          if (!response.ok) {
+            const detail = payload && typeof payload === 'object' ? payload.message || payload.error || fallbackMessage : fallbackMessage;
+            throw new Error(detail || fallbackMessage);
+          }
+
+          return payload;
+        }
 
         function setPaymentStatus(text, isError = false) {
           if (!paymentStatus) {
@@ -3274,7 +4010,7 @@
           });
           setAuthMessage(nextMode === 'register'
             ? '注册账号后可同步记录与账号状态。'
-            : '请输入已注册的用户名和邮箱，可使用验证码或密码登录。');
+            : '请输入已注册的用户名和邮箱，可直接登录。');
         }
 
         function updateAuthTrigger() {
@@ -3404,110 +4140,52 @@
           };
         }
 
-        async function submitSendCode() {
-          const { usernameInput, emailInput, statusKind } = getAuthInputs();
-          if (!usernameInput || !emailInput) {
-            return;
-          }
-
-          const username = usernameInput.value.trim();
-          const email = emailInput.value.trim().toLowerCase();
+        async function registerDirectly() {
+          const username = String(registerUsernameInput?.value || '').trim();
+          const email = String(registerEmailInput?.value || '').trim().toLowerCase();
+          const password = String(registerPasswordInput?.value || '').trim();
+          const rememberLogin = Boolean(authRememberLoginInput?.checked);
 
           if (!username) {
-            setAuthStatus(statusKind, '请先填写用户名', true);
+            setAuthStatus('register', '请先填写用户名', true);
             return;
           }
 
           if (!email) {
-            setAuthStatus(statusKind, '请先填写邮箱地址', true);
+            setAuthStatus('register', '请先填写邮箱地址', true);
             return;
           }
 
-          setAuthStatus(statusKind, authMode === 'register' ? '正在注册并发送验证码...' : '正在发送验证码...');
+          if (password.length < 6 || password.length > 64) {
+            setAuthStatus('register', '请填写 6-64 位登录密码', true);
+            return;
+          }
+
+          setAuthStatus('register', '正在注册账号...');
 
           try {
-            if (authMode === 'register') {
-              const password = String(registerPasswordInput?.value || '').trim();
-              if (password.length < 6 || password.length > 64) {
-                throw new Error('请填写 6-64 位登录密码');
-              }
-
-              const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
-              const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
-              const registerResponse = await fetch('/api/community/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify({ username, email, password, registerAsDeveloper, developerSecret })
-              });
-
-              const registerResult = await registerResponse.json();
-              if (!registerResponse.ok) {
-                throw new Error(registerResult.message || '注册失败');
-              }
-            }
-
-            const response = await fetch('/api/community/send-code', {
+            const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
+            const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
+            const response = await fetch('/api/community/register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ username, email })
+              body: JSON.stringify({ username, email, password, rememberLogin, registerAsDeveloper, developerSecret })
             });
 
             const result = await response.json();
             if (!response.ok) {
-              throw new Error(result.message || '验证码发送失败');
+              throw new Error(result.message || '注册失败');
             }
 
-            const devCode = String(result?.devCode || '').trim();
-            const messageWithCode = devCode
-              ? `${result.message || '验证码已发送到邮箱，请继续验证。'}（备用验证码：${devCode}）`
-              : (result.message || '验证码已发送到邮箱，请继续验证。');
-
-            setAuthStatus(statusKind, messageWithCode);
-            setAuthMessage(authMode === 'register'
-              ? (devCode ? '邮件异常时可直接使用备用验证码登录。' : '验证码已发送到邮箱，输入后即可完成注册并登录。')
-              : (devCode ? '邮件异常时可直接使用备用验证码登录。' : '验证码已发送到邮箱，输入后即可完成登录。'));
-          } catch (error) {
-            setAuthStatus(statusKind, error.message || '请求失败', true);
-          }
-        }
-
-        async function submitVerifyCode() {
-          const { usernameInput, emailInput, codeInput, statusKind } = getAuthInputs();
-          if (!usernameInput || !emailInput || !codeInput) {
-            return;
-          }
-
-          const username = usernameInput.value.trim();
-          const email = emailInput.value.trim().toLowerCase();
-          const code = codeInput.value.trim();
-          const rememberLogin = Boolean(authRememberLoginInput?.checked);
-
-          if (!code) {
-            setAuthStatus(statusKind, '请输入邮箱验证码', true);
-            return;
-          }
-
-          setAuthStatus(statusKind, '正在验证验证码...');
-
-          try {
-            const response = await fetch('/api/community/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ email, code, rememberLogin })
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '验证失败');
+            const token = String(result?.token || '').trim();
+            if (token) {
+              localStorage.setItem('mctools-auth-token', token);
             }
 
             accountState.loggedIn = true;
-            accountState.username = result.username || username;
+            accountState.username = String(result?.username || username);
             accountState.isDeveloper = Boolean(result?.isDeveloper);
-            accountState.token = String(result?.token || '').trim() || null;
-            if (accountState.token) {
-              localStorage.setItem('mctools-auth-token', accountState.token);
-            }
+            accountState.token = token || null;
             updateAuthTrigger();
             closeAuthModal();
             await loadAccountState();
@@ -3519,7 +4197,7 @@
               openPaymentModal();
             }
           } catch (error) {
-            setAuthStatus(statusKind, error.message || '验证失败', true);
+            setAuthStatus('register', error.message || '注册失败', true);
           }
         }
 
@@ -3601,6 +4279,10 @@
         }
 
         function openCardSecretModal(cardSecret) {
+          if (isStorePaymentsTemporarilyClosed()) {
+            return;
+          }
+
           if (!cardSecretModal || !cardSecretValue) {
             return;
           }
@@ -3625,6 +4307,30 @@
 
           cardSecretModal.classList.remove('open');
           cardSecretModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function maybeOpenCardSecretFromOrderResult(result) {
+          if (!result || isStorePaymentsTemporarilyClosed()) {
+            return false;
+          }
+
+          const orderNo = String(result?.orderNo || '').trim();
+          const cardSecret = String(result?.cardSecret || '').trim();
+          const status = String(result?.status || '').trim().toUpperCase();
+          const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
+
+          if (!paid || !cardSecret) {
+            return false;
+          }
+
+          if (shownCardSecretOrderNo === orderNo) {
+            return true;
+          }
+
+          shownCardSecretOrderNo = orderNo;
+          openCardSecretModal(cardSecret);
+          setPaymentStatus('支付成功，卡密已发放。');
+          return true;
         }
 
         function renderOrderQueryResult(result, kind = '') {
@@ -3717,23 +4423,11 @@
             throw new Error('请输入订单号');
           }
 
-          const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`);
-          const result = await response.json();
-
-          if (!response.ok) {
-            const error = new Error(result.message || '查询订单失败');
-            error.orderNo = normalizedOrderNo;
-            throw error;
-          }
-
+          const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
           lastOrderQueryResult = result;
           renderOrderQueryResult(result);
 
-          if (result.paid && String(result.cardSecret || '').trim()) {
-            shownCardSecretOrderNo = String(result.orderNo || '');
-            openCardSecretModal(result.cardSecret);
-          }
-
+          maybeOpenCardSecretFromOrderResult(result);
           return result;
         }
 
@@ -3771,12 +4465,7 @@
             throw new Error('联系方式长度至少 4 位');
           }
 
-          const response = await fetch(`/api/store/orders/by-contact?contact=${encodeURIComponent(normalizedContact)}&limit=20`);
-          const result = await response.json();
-          if (!response.ok) {
-            throw new Error(result.message || '联系方式查单失败');
-          }
-
+          const result = await fetchJsonSafely(`/api/store/orders/by-contact?contact=${encodeURIComponent(normalizedContact)}&limit=20`, undefined, '联系方式查单失败');
           renderContactQueryOrders(normalizedContact, result.orders || []);
           return result.orders || [];
         }
@@ -3798,11 +4487,23 @@
             throw new Error('当前订单还未创建，请先生成付款码');
           }
 
-          const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`);
-          const result = await response.json();
+          const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
 
-          if (!response.ok) {
-            throw new Error(result.message || '查询订单失败');
+          if (isStorePaymentsTemporarilyClosed()) {
+            return;
+          }
+
+          const productName = String(result?.productName || '').trim();
+          const productCode = String(result?.productCode || '').trim().toUpperCase();
+          const isLowAgentOrder = productName === '低级代理' || productCode === 'LOW-AGENT-30';
+          const isMidAgentOrder = productName === '中级代理' || productCode === 'MID-AGENT-100';
+          if (result?.paid && (isLowAgentOrder || isMidAgentOrder)) {
+            try {
+              localStorage.setItem('mctools-permanent-agent-discount', 'active');
+              localStorage.setItem('mctools-permanent-agent-tier', isMidAgentOrder ? 'mid' : 'low');
+            } catch {
+              // ignore storage failures
+            }
           }
 
           if (!result.paid) {
@@ -3817,8 +4518,10 @@
             return;
           }
 
-          shownCardSecretOrderNo = String(result.orderNo || '');
-          openCardSecretModal(result.cardSecret);
+          if (maybeOpenCardSecretFromOrderResult(result)) {
+            return;
+          }
+
           setPaymentStatus('支付成功，卡密已发放。');
         }
 
@@ -3906,15 +4609,19 @@
               if (!response.ok) return;
 
               const result = await response.json();
-              if (result?.paid && result?.cardSecret) {
+              if (isStorePaymentsTemporarilyClosed()) {
                 stopOrderStatusPolling();
-                setPaymentStatus('微信支付已确认，卡密已自动发放。');
+                setPaymentStatus('支付状态正在处理，请稍后再试。', true);
+                return;
+              }
 
-                if (shownCardSecretOrderNo !== result.orderNo) {
-                  shownCardSecretOrderNo = String(result.orderNo || '');
-                  openCardSecretModal(result.cardSecret);
+              const hasPaidStatus = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(String(result?.status || '').trim().toUpperCase());
+
+              if (hasPaidStatus) {
+                if (maybeOpenCardSecretFromOrderResult(result)) {
+                  stopOrderStatusPolling();
+                  return;
                 }
-              } else if (result?.paid && !result?.cardSecret) {
                 setPaymentStatus('微信支付已确认，卡密正在生成，请稍候...');
               }
             } catch {
@@ -4000,7 +4707,9 @@
           }
 
           const contactValue = String(paymentContactInput?.value || paymentCheckoutState.contact || '').trim();
-          const selectedMethod = String(paymentCheckoutState.method || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
+          const selectedMethod = String(paymentCheckoutState.method || 'wechat').toLowerCase();
+          const normalizedMethod = selectedMethod === 'alipay' ? 'alipay' : selectedMethod === 'wechat_backup' || selectedMethod === 'wechat-backup' ? 'wechat_backup' : 'wechat';
+          paymentCheckoutState.method = normalizedMethod;
 
           if (!contactValue) {
             setPaymentStatus('请填写联系方式后再生成支付码。', true);
@@ -4017,7 +4726,7 @@
             setPaymentStatus(`正在创建${providerLabel}支付订单...`);
             showPaymentPlaceholder(`正在创建${providerLabel}支付订单`, '请稍候，订单创建成功后会自动显示付款信息');
 
-            const response = await fetch('/api/store/wechat/native-order', {
+            const result = await fetchJsonSafely('/api/store/wechat/native-order', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json; charset=utf-8'
@@ -4026,19 +4735,15 @@
                 productCode: activePaymentProduct.code,
                 productName: activePaymentProduct.name,
                 description: activePaymentProduct.description,
-                paymentMethod: selectedMethod,
+                paymentMethod: normalizedMethod,
                 contact: contactValue
               })
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '支付下单失败');
-            }
+            }, '支付下单失败');
 
             renderPaymentOrder(result);
             if (paymentMethodLabel) {
-              paymentMethodLabel.textContent = String(result?.paymentMethod || selectedMethod || methodLabel).toLowerCase() === 'alipay' ? '支付宝支付' : '微信支付';
+              const responseMethod = String(result?.paymentMethod || normalizedMethod || methodLabel).toLowerCase();
+              paymentMethodLabel.textContent = responseMethod === 'alipay' ? '支付宝支付' : responseMethod === 'wechat_backup' || responseMethod === 'wechat-backup' ? '微信支付（备用）' : '微信支付';
             }
 
             if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.orderNo || '').trim()) {
@@ -4047,11 +4752,6 @@
               } catch {
                 // ignore storage errors
               }
-            }
-
-            if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.codeUrl || '').trim()) {
-              setPaymentStatus('订单已创建，正在跳转洪星支付页面...');
-              window.location.href = String(result.codeUrl).trim();
             }
 
             return result;
@@ -4065,7 +4765,21 @@
         }
 
         async function openPaymentModal() {
-          window.location.href = buildCheckoutUrl(activePaymentProduct);
+          if (!paymentModal) {
+            return;
+          }
+
+          paymentModal.classList.add('open');
+          paymentModal.setAttribute('aria-hidden', 'false');
+
+          if (paymentStatus) {
+            paymentStatus.textContent = '请选择支付方式并填写联系方式后生成订单。';
+            paymentStatus.style.color = '';
+          }
+
+          if (paymentContactInput && !paymentContactInput.value) {
+            paymentContactInput.focus();
+          }
         }
 
         function closePaymentModal() {
@@ -4079,17 +4793,18 @@
 
         if (toggleButton) {
           toggleButton.addEventListener('click', () => {
-            const nextTheme = document.documentElement.dataset.theme === 'day' ? 'night' : 'day';
+            const currentTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
+            const nextTheme = currentTheme === 'night' ? 'day' : 'night';
             applyTheme(nextTheme);
           });
         }
 
         if (authTriggerButton) {
           authTriggerButton.addEventListener('click', () => {
-            openAuthModal(
-              accountState.loggedIn ? 'login' : 'register',
-              accountState.loggedIn ? `当前已登录为 ${accountState.username}` : '可登录账号以同步记录与管理控制面板。'
-            );
+            const nextMode = accountState.loggedIn ? 'login' : 'register';
+            const target = new URL('/store-account.html', window.location.origin);
+            target.searchParams.set('auth', nextMode);
+            window.location.href = target.toString();
           });
         }
 
@@ -4104,9 +4819,9 @@
             const action = button.dataset.featureAction;
 
             if (action === 'auth') {
-              openAuthModal(accountState.loggedIn ? 'login' : 'register', accountState.loggedIn
-                ? `当前已登录为 ${accountState.username}`
-                : '可登录账号以同步记录与管理控制面板。');
+              const target = new URL('/store-account.html', window.location.origin);
+              target.searchParams.set('auth', accountState.loggedIn ? 'login' : 'register');
+              window.location.href = target.toString();
               return;
             }
 
@@ -4329,17 +5044,10 @@
           button.addEventListener('click', closeAuthModal);
         });
 
-        sendCodeButtons.forEach((button) => {
-          button.addEventListener('click', submitSendCode);
-        });
-
-        resendCodeButtons.forEach((button) => {
-          button.addEventListener('click', submitSendCode);
-        });
-
-        verifyButtons.forEach((button) => {
-          button.addEventListener('click', submitVerifyCode);
-        });
+        const registerButton = document.querySelector('[data-submit-register]');
+        if (registerButton) {
+          registerButton.addEventListener('click', registerDirectly);
+        }
 
         if (passwordLoginButton) {
           passwordLoginButton.addEventListener('click', submitPasswordLogin);
@@ -4352,13 +5060,18 @@
               return;
             }
 
-            setPaymentProduct({
+            if (button.dataset.paymentClosed === 'true' || isStorePaymentsTemporarilyClosed()) {
+              setPaymentStatus('支付状态正在处理，请稍后再试。', true);
+              return;
+            }
+
+            const checkoutUrl = buildCheckoutUrl({
+              code: button.dataset.productCode,
               name: button.dataset.productName,
               price: button.dataset.productPrice,
-              code: button.dataset.productCode,
               description: button.dataset.productDescription
             });
-            openPaymentModal();
+            window.location.href = checkoutUrl;
           });
         }
 
@@ -4368,8 +5081,8 @@
 
         paymentMethodButtons.forEach((button) => {
           button.addEventListener('click', () => {
-            paymentCheckoutState.method = String(button.dataset.paymentMethod || 'wechat').toLowerCase() === 'alipay' ? 'alipay' : 'wechat';
-            updatePaymentCheckoutView();
+            const currentMethod = String(button.dataset.paymentMethod || 'wechat').toLowerCase();
+            paymentCheckoutState.method = currentMethod === 'alipay' ? 'alipay' : currentMethod === 'qq' ? 'qq' : 'wechat';
           });
         });
 
@@ -4551,9 +5264,9 @@
           const bootUrl = new URL(window.location.href);
           const authModeFromUrl = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
           if (authModeFromUrl === 'login') {
-            openAuthModal('login', '请使用正常登录流程登录开发者账号。');
+            openAuthModal('login', '请使用正常登录流程登录权限账号。');
           } else if (authModeFromUrl === 'register') {
-            openAuthModal('register', '请先注册账号后再进行开发者操作。');
+            openAuthModal('register', '请先注册账号后再进行权限操作。');
           }
         } catch {
           // ignore URL parsing errors
@@ -4562,8 +5275,8 @@
         loadAccountState().then(async () => {
           updateAuthTrigger();
           await refreshStoreSettings();
-          openAnnouncementModal();
           await loadStoreProducts();
+          await applyBackgroundImageFromApi();
           startOnlineHeartbeat();
           await resumeHongxingPaymentFromQuery();
         });

@@ -191,8 +191,8 @@ async function fetchMe() {
     applyAppVersion(me.version);
   }
   if (!me.isDeveloper) {
-    setSummary('当前账号没有开发者权限', true);
-    setNote('请使用开发者账号登录后再进入审核中心。', true);
+    setSummary('当前账号没有权限权限', true);
+    setNote('请使用权限账号登录后再进入审核中心。', true);
     if (refreshAllButton) {
       refreshAllButton.disabled = true;
     }
@@ -268,7 +268,7 @@ async function loadAll() {
     setNote(showOnlyPending ? '当前显示待审核内容。' : '当前显示全部记录。');
   } catch (error) {
     setSummary(error.message || '刷新失败', true);
-    setNote('请确认当前账号具备开发者权限。', true);
+    setNote('请确认当前账号具备权限权限。', true);
   }
 }
 

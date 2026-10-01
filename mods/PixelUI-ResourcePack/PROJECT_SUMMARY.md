@@ -68,7 +68,7 @@ PixelUI-ResourcePack/
 | 文档 | 用途 | 适合人群 |
 |------|------|--------|
 | **README.md** | 项目概述和基本说明 | 所有人 |
-| **DEVELOPMENT_GUIDE.md** | JSON UI 开发详细教程 | 开发者 |
+| **DEVELOPMENT_GUIDE.md** | JSON UI 开发详细教程 | 权限 |
 | **TEXTURE_DESIGN_GUIDE.md** | 像素纹理制作指南 | 美术师 |
 | **QUICK_REFERENCE.md** | 常用速查表 | 快速查阅 |
 

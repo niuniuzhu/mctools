@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI选购商品 · 星际商店</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem('mctools-store-theme');
+          const theme = savedTheme === 'day' ? 'day' : 'night';
+          document.documentElement.dataset.theme = theme;
+        } catch {
+          document.documentElement.dataset.theme = 'night';
+        }
+      })();
+    </script>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; min-height: 100%; }
+      body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 28%),
+          radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 30%),
+          linear-gradient(180deg, #08111f 0%, #0f172a 48%, #111827 100%);
+        color: #e2e8f0;
+        background-attachment: fixed;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(180deg, rgba(8,17,31,0.34), rgba(8,17,31,0.08)),
+          repeating-linear-gradient(135deg, rgba(148,163,184,0.025), rgba(148,163,184,0.025) 2px, transparent 2px, transparent 8px);
+      }
+      html[data-theme="day"] body {
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 26%),
+          radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 28%),
+          linear-gradient(180deg, #eaf3ff 0%, #dbeafe 46%, #e2e8f0 100%);
+        color: #0f172a;
+      }
+      html[data-theme="day"] body::before {
+        background:
+          linear-gradient(180deg, rgba(226,232,240,0.32), rgba(241,245,249,0.08)),
+          repeating-linear-gradient(135deg, rgba(148,163,184,0.025), rgba(148,163,184,0.025) 2px, transparent 2px, transparent 8px);
+      }
+      @keyframes button-breathe {
+        0% {
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.16);
+          filter: brightness(1);
+        }
+        50% {
+          box-shadow: 0 16px 30px rgba(139, 92, 246, 0.24);
+          filter: brightness(1.06);
+        }
+        100% {
+          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.16);
+          filter: brightness(1);
+        }
+      }
+      @keyframes button-click-pop {
+        0% { transform: scale(1); }
+        50% { transform: scale(0.97); }
+        100% { transform: scale(1); }
+      }
+      .shell {
+        width: min(1180px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 22px 0 80px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .brand,
+      .hero,
+      .panel,
+      .result-card,
+      .empty-card {
+        background: rgba(10, 15, 25, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
+        border-radius: 24px;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+      }
+      html[data-theme="day"] .brand,
+      html[data-theme="day"] .hero,
+      html[data-theme="day"] .panel,
+      html[data-theme="day"] .result-card,
+      html[data-theme="day"] .empty-card {
+        background: linear-gradient(160deg, rgba(248,250,252,0.72), rgba(241,245,249,0.64));
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.2);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.1);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+      }
+      .brand-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+        color: #fff;
+        font-weight: 900;
+      }
+      .brand strong,
+      .brand span,
+      .brand small {
+        display: block;
+      }
+      .brand small {
+        color: #94a3b8;
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        color: #e2e8f0;
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .theme-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: linear-gradient(180deg, rgba(30,41,59,0.96), rgba(15,23,42,0.96));
+        color: #e2e8f0;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .back-link,
+      .theme-toggle,
+      .action-btn,
+      .ghost-btn,
+      .result-actions a {
+        transition:
+          transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
+          box-shadow 260ms ease,
+          background 260ms ease,
+          color 220ms ease,
+          opacity 220ms ease,
+          filter 220ms ease,
+          border-color 220ms ease;
+        animation: button-breathe 2.2s ease-in-out infinite;
+      }
+      .back-link:active,
+      .theme-toggle:active,
+      .action-btn:active,
+      .ghost-btn:active,
+      .result-actions a:active {
+        animation: button-click-pop 220ms ease-out;
+      }
+      .back-link:hover,
+      .back-link:focus-visible,
+      .theme-toggle:hover,
+      .theme-toggle:focus-visible,
+      .action-btn:hover,
+      .action-btn:focus-visible,
+      .ghost-btn:hover,
+      .ghost-btn:focus-visible,
+      .result-actions a:hover,
+      .result-actions a:focus-visible {
+        transform: translateY(-2px) scale(1.01);
+      }
+      html[data-theme="day"] .back-link,
+      html[data-theme="day"] .theme-toggle {
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241,245,249,0.94));
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.22);
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(280px, 360px);
+        gap: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      .hero-copy {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+      .eyebrow {
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.14);
+        border: 1px solid rgba(96, 165, 250, 0.18);
+        color: #dbeafe;
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      html[data-theme="day"] .eyebrow {
+        background: rgba(219, 234, 254, 0.72);
+        border-color: rgba(96, 165, 250, 0.2);
+        color: #1d4ed8;
+      }
+      h1 {
+        margin: 0;
+        max-width: 10ch;
+        font-size: clamp(2.1rem, 4.4vw, 3.5rem);
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+      }
+      .hero-copy p {
+        margin: 0;
+        max-width: 58ch;
+        color: #cbd5e1;
+        line-height: 1.75;
+      }
+      html[data-theme="day"] .brand small,
+      html[data-theme="day"] .hero-copy p,
+      html[data-theme="day"] .panel p,
+      html[data-theme="day"] .results-head p,
+      html[data-theme="day"] .result-desc,
+      html[data-theme="day"] .empty-card p,
+      html[data-theme="day"] .side-box span,
+      html[data-theme="day"] .result-price span {
+        color: #475569;
+      }
+      .hero-points {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .hero-points span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        color: #dbe7ff;
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+      html[data-theme="day"] .hero-points span,
+      html[data-theme="day"] .tag-list span,
+      html[data-theme="day"] .ghost-btn {
+        background: rgba(255,255,255,0.82);
+        color: #334155;
+        border-color: rgba(148, 163, 184, 0.18);
+      }
+      .hero-points b {
+        color: #fbbf24;
+      }
+      .hero-side {
+        display: grid;
+        gap: 12px;
+        align-content: start;
+      }
+      .side-box {
+        padding: 16px;
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(15, 23, 42, 0.84), rgba(30, 41, 59, 0.9));
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+      }
+      html[data-theme="day"] .side-box {
+        background: linear-gradient(160deg, rgba(248,250,252,0.72), rgba(226,232,240,0.62));
+        border-color: rgba(148, 163, 184, 0.2);
+      }
+      .side-box strong,
+      .side-box span {
+        display: block;
+      }
+      .side-box span {
+        color: #94a3b8;
+        font-size: 0.82rem;
+      }
+      .side-box strong {
+        margin-top: 6px;
+        font-size: 1.5rem;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 16px;
+      }
+      .panel {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+      .panel h2,
+      .results-head h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+      .panel p,
+      .results-head p,
+      .result-desc,
+      .empty-card p {
+        margin: 0;
+        color: #94a3b8;
+        line-height: 1.7;
+      }
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+      .field label {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #dbe7ff;
+      }
+      html[data-theme="day"] .field label,
+      html[data-theme="day"] h1,
+      html[data-theme="day"] .panel h2,
+      html[data-theme="day"] .results-head h2,
+      html[data-theme="day"] .result-title h3,
+      html[data-theme="day"] .side-box strong {
+        color: #0f172a;
+      }
+      .field input,
+      .field select,
+      .field textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(15, 23, 42, 0.86);
+        color: #f8fafc;
+        font: inherit;
+      }
+      html[data-theme="day"] .field input,
+      html[data-theme="day"] .field select,
+      html[data-theme="day"] .field textarea {
+        background: rgba(255,255,255,0.96);
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.26);
+      }
+      .field textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .button-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .action-btn,
+      .ghost-btn {
+        min-height: 48px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+      .action-btn {
+        background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+      }
+      .ghost-btn {
+        background: rgba(15, 23, 42, 0.82);
+        color: #e2e8f0;
+      }
+      .results {
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+      .results-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .result-list {
+        display: grid;
+        gap: 14px;
+      }
+      .result-card {
+        padding: 18px;
+        display: grid;
+        gap: 12px;
+      }
+      .result-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .result-title {
+        display: grid;
+        gap: 6px;
+      }
+      .result-title h3 {
+        margin: 0;
+        font-size: 1.16rem;
+      }
+      .result-badges,
+      .reason-list,
+      .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .result-badges span,
+      .tag-list span,
+      .reason-list span {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+      .result-badges span {
+        background: rgba(56, 189, 248, 0.16);
+        color: #bfdbfe;
+        border: 1px solid rgba(96, 165, 250, 0.18);
+      }
+      html[data-theme="day"] .result-badges span {
+        background: rgba(219, 234, 254, 0.9);
+        color: #1d4ed8;
+      }
+      .tag-list span {
+        background: rgba(30, 41, 59, 0.9);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+      .reason-list span {
+        background: rgba(245, 158, 11, 0.14);
+        color: #fde68a;
+        border: 1px solid rgba(245, 158, 11, 0.16);
+      }
+      .result-price {
+        text-align: right;
+      }
+      .result-price strong {
+        display: block;
+        font-size: 1.55rem;
+        color: #fbbf24;
+      }
+      .result-price span {
+        color: #94a3b8;
+        font-size: 0.84rem;
+      }
+      .result-desc {
+        font-size: 0.94rem;
+      }
+      .result-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .result-actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 800;
+      }
+      .result-actions .buy-link {
+        background: linear-gradient(135deg, #0ea5e9, #2563eb 52%, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+      }
+      .result-actions .back-store {
+        background: rgba(15, 23, 42, 0.84);
+        color: #e2e8f0;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      html[data-theme="day"] .result-actions .back-store {
+        background: rgba(255,255,255,0.82);
+        color: #334155;
+        border-color: rgba(148, 163, 184, 0.18);
+      }
+      .empty-card {
+        padding: 24px;
+        display: grid;
+        gap: 10px;
+      }
+      .empty-card strong {
+        font-size: 1.1rem;
+      }
+      @media (max-width: 980px) {
+        .hero,
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .hero-side,
+        .topbar {
+          align-items: stretch;
+        }
+      }
+      @media (max-width: 640px) {
+        .shell { width: min(100% - 14px, 1180px); }
+        .topbar { flex-direction: column; align-items: stretch; }
+        .top-actions { display: grid; }
+        .hero,
+        .panel,
+        .result-card,
+        .empty-card,
+        .brand { border-radius: 18px; }
+        .hero { padding: 18px; }
+        h1 { font-size: clamp(1.8rem, 9vw, 2.5rem); }
+        .field-grid { grid-template-columns: 1fr; }
+        .result-top { flex-direction: column; }
+        .result-price { text-align: left; }
+        .button-row,
+        .result-actions { display: grid; }
+        .action-btn,
+        .ghost-btn,
+        .result-actions a,
+        .back-link { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-badge">AI</div>
+          <div>
+            <strong>AI选购商品</strong>
+            <small>星际商店 · 智能推荐</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换白天/黑夜模式">黑夜模式</button>
+          <a class="back-link" href="/store.html">返回商店</a>
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <span class="eyebrow">AI 智能选购</span>
+          <h1>告诉 AI 你的需求，我来帮你挑商品</h1>
+          <p>按用途、预算、商品类型和你补充的要求，从当前商店商品里给出更贴近的推荐，不再跳去旧的问答页面。</p>
+          <div class="hero-points">
+            <span><b>预算</b> 自动筛价</span>
+            <span><b>用途</b> 优先匹配分类</span>
+            <span><b>建议</b> 直接给出购买理由</span>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="side-box">
+            <span>当前可分析商品</span>
+            <strong data-product-count>0</strong>
+          </div>
+          <div class="side-box">
+            <span>推荐逻辑</span>
+            <strong>预算 + 分类 + 关键词</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="layout">
+        <aside class="panel">
+          <div>
+            <h2>筛选条件</h2>
+            <p>填得越具体，推荐越准。</p>
+          </div>
+          <div class="field">
+            <label for="purpose">你想买来做什么</label>
+            <select id="purpose" data-purpose>
+              <option value="">不限</option>
+              <option value="宣传">宣传推广</option>
+              <option value="资源服">资源服管理</option>
+              <option value="指令生成">指令生成</option>
+              <option value="建筑导入">建筑导入</option>
+              <option value="权限">购买权限 / 折扣</option>
+              <option value="商品介绍">先看说明</option>
+            </select>
+          </div>
+          <div class="field-grid">
+            <div class="field">
+              <label for="budget">预算上限</label>
+              <input id="budget" type="number" min="0" step="1" placeholder="例如 30" data-budget />
+            </div>
+            <div class="field">
+              <label for="sort">推荐侧重</label>
+              <select id="sort" data-sort>
+                <option value="balanced">综合推荐</option>
+                <option value="cheap">优先便宜</option>
+                <option value="value">优先性价比</option>
+                <option value="stock">优先有库存</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="keywords">补充需求</label>
+            <textarea id="keywords" placeholder="例如：我想找便宜的权限商品，最好是永久折扣；或者想先看看宣传类商品。" data-keywords></textarea>
+          </div>
+          <div class="button-row">
+            <button class="action-btn" type="button" data-run-picker>开始推荐</button>
+            <button class="ghost-btn" type="button" data-reset-picker>清空条件</button>
+          </div>
+        </aside>
+
+        <section class="results">
+          <div class="results-head">
+            <div>
+              <h2>AI推荐结果</h2>
+              <p data-result-summary>先选择条件，再让 AI 帮你挑商品。</p>
+            </div>
+          </div>
+          <div class="result-list" data-result-list>
+            <article class="empty-card">
+              <strong>还没开始推荐</strong>
+              <p>左侧填写你的预算、用途或补充要求后，页面会基于当前商店商品给出推荐结果。</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const productCount = document.querySelector('[data-product-count]');
+        const purposeInput = document.querySelector('[data-purpose]');
+        const budgetInput = document.querySelector('[data-budget]');
+        const sortInput = document.querySelector('[data-sort]');
+        const keywordsInput = document.querySelector('[data-keywords]');
+        const resultSummary = document.querySelector('[data-result-summary]');
+        const resultList = document.querySelector('[data-result-list]');
+        const runButton = document.querySelector('[data-run-picker]');
+        const resetButton = document.querySelector('[data-reset-picker]');
+        const themeToggle = document.querySelector('[data-theme-toggle]');
+
+        let storeProducts = [];
+
+        function applyTheme(theme) {
+          const nextTheme = theme === 'day' ? 'day' : 'night';
+          document.documentElement.dataset.theme = nextTheme;
+          try {
+            localStorage.setItem('mctools-store-theme', nextTheme);
+          } catch {
+            // ignore storage failures
+          }
+          if (themeToggle) {
+            themeToggle.textContent = nextTheme === 'night' ? '白天模式' : '黑夜模式';
+            themeToggle.setAttribute('aria-label', nextTheme === 'night' ? '切换到白天模式' : '切换到黑夜模式');
+          }
+        }
+
+        async function applyBackgroundImageFromApi() {
+          try {
+            const remoteUrl = `/api/store/background-image?ts=${Date.now()}`;
+            const overlay = document.documentElement.dataset.theme === 'day'
+              ? 'linear-gradient(180deg, rgba(226,232,240,0.2), rgba(248,250,252,0.06))'
+              : 'linear-gradient(180deg, rgba(8,17,31,0.28), rgba(8,17,31,0.12))';
+            document.body.style.background = `
+              radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 28%),
+              radial-gradient(circle at top right, rgba(168, 85, 247, 0.14), transparent 30%),
+              ${overlay},
+              url("${remoteUrl}") center/cover fixed no-repeat
+            `;
+          } catch {
+            // Keep fallback background when the remote image is unavailable.
+          }
+        }
+
+        function escapeHtml(value) {
+          return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }
+
+        function normalizeProduct(product) {
+          const name = String(product?.name || product?.productName || '').trim();
+          const productCode = String(product?.productCode || product?.code || '').trim();
+          const description = String(product?.description || '').trim();
+          const category = String(product?.category || '未分类').trim() || '未分类';
+          const tags = Array.isArray(product?.tags)
+            ? product.tags.map((tag) => String(tag || '').trim()).filter(Boolean)
+            : [];
+          const stock = Number(product?.stock || 0);
+          const salePriceFen = Number(product?.salePriceFen || product?.sale_price_fen || 0);
+          const originalPriceFen = Number(product?.originalPriceFen || product?.original_price_fen || 0);
+          return { name, productCode, description, category, tags, stock, salePriceFen, originalPriceFen };
+        }
+
+        function formatPrice(fen) {
+          return `¥${(Number(fen || 0) / 100).toFixed(2)}`;
+        }
+
+        function tokenize(text) {
+          return String(text || '')
+            .toLowerCase()
+            .split(/[\s,，。；;、|/]+/u)
+            .map((part) => part.trim())
+            .filter(Boolean);
+        }
+
+        function resolveProductKeywords(product) {
+          const pool = [product.name, product.description, product.category, ...product.tags]
+            .join(' ')
+            .toLowerCase();
+          return new Set(tokenize(pool));
+        }
+
+        function scoreProduct(product, filters) {
+          let score = 0;
+          const reasons = [];
+          const text = `${product.name} ${product.description} ${product.category} ${product.tags.join(' ')}`.toLowerCase();
+          const keywordSet = resolveProductKeywords(product);
+          const priceYuan = product.salePriceFen / 100;
+
+          if (filters.purpose && (product.category.includes(filters.purpose) || text.includes(filters.purpose.toLowerCase()))) {
+            score += 40;
+            reasons.push('匹配用途');
+          }
+
+          if (filters.purpose && product.tags.some((tag) => String(tag || '').includes(filters.purpose))) {
+            score += 12;
+          }
+
+          if (Number.isFinite(filters.budget) && filters.budget > 0) {
+            if (priceYuan <= filters.budget) {
+              score += 34;
+              reasons.push('在预算内');
+              score += Math.max(0, 12 - Math.round(filters.budget - priceYuan));
+            } else {
+              score -= Math.min(32, Math.round((priceYuan - filters.budget) * 1.2));
+              reasons.push('超出预算');
+            }
+          }
+
+          filters.keywords.forEach((keyword) => {
+            if (keywordSet.has(keyword) || text.includes(keyword)) {
+              score += 16;
+              reasons.push(`命中“${keyword}”`);
+            }
+          });
+
+          if (filters.sort === 'cheap') {
+            score += Math.max(0, 28 - Math.round(product.salePriceFen / 180));
+            reasons.push('低价优先');
+          }
+
+          if (filters.sort === 'value') {
+            const discount = Math.max(0, product.originalPriceFen - product.salePriceFen);
+            score += Math.round(discount / 80);
+            if (discount > 0) {
+              reasons.push('有优惠差价');
+            }
+          }
+
+          if (filters.sort === 'stock') {
+            score += product.stock > 0 ? 24 : -12;
+            if (product.stock > 0) {
+              reasons.push('当前有库存');
+            }
+          } else if (product.stock > 0) {
+            score += 10;
+            reasons.push('可直接下单');
+          }
+
+          if (/永久|长期|优惠|代理/u.test(text)) {
+            score += 8;
+            reasons.push('适合长期使用');
+          }
+
+          if (/官方|管理/u.test(text) && filters.purpose === '资源服') {
+            score += 10;
+          }
+
+          if (/宣传/u.test(text) && filters.purpose === '宣传') {
+            score += 10;
+          }
+
+          if (/指令/u.test(text) && filters.purpose === '指令生成') {
+            score += 10;
+          }
+
+          if (/建筑/u.test(text) && filters.purpose === '建筑导入') {
+            score += 10;
+          }
+
+          return {
+            ...product,
+            score,
+            reasons: Array.from(new Set(reasons)).slice(0, 5)
+          };
+        }
+
+        function renderEmpty(title, description) {
+          resultList.innerHTML = `
+            <article class="empty-card">
+              <strong>${escapeHtml(title)}</strong>
+              <p>${escapeHtml(description)}</p>
+            </article>
+          `;
+        }
+
+        function renderResults(items, filters) {
+          if (!items.length) {
+            const summaryText = filters.purpose || filters.keywords.length || filters.budget
+              ? '当前条件下没有找到合适商品，可以放宽预算或减少关键词限制。'
+              : '还没有可推荐的商品。';
+            resultSummary.textContent = summaryText;
+            renderEmpty('没有匹配结果', summaryText);
+            return;
+          }
+
+          resultSummary.textContent = `已根据 ${filters.purpose || '全部用途'}、${filters.budget ? `预算 ${filters.budget} 元` : '不限预算'} 和 ${filters.sort === 'cheap' ? '低价优先' : filters.sort === 'value' ? '性价比优先' : filters.sort === 'stock' ? '库存优先' : '综合推荐'} 给出 ${items.length} 条建议。`;
+          resultList.innerHTML = items.map((item, index) => {
+            const reasonMarkup = item.reasons.length
+              ? `<div class="reason-list">${item.reasons.map((reason) => `<span>${escapeHtml(reason)}</span>`).join('')}</div>`
+              : '';
+            const tagMarkup = item.tags.length
+              ? `<div class="tag-list">${item.tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join('')}</div>`
+              : '';
+            const stockText = item.stock > 0 ? `库存 ${item.stock}` : '库存不足';
+            return `
+              <article class="result-card">
+                <div class="result-top">
+                  <div class="result-title">
+                    <div class="result-badges">
+                      <span>推荐 #${index + 1}</span>
+                      <span>${escapeHtml(item.category)}</span>
+                      <span>${escapeHtml(stockText)}</span>
+                    </div>
+                    <h3>${escapeHtml(item.name)}</h3>
+                  </div>
+                  <div class="result-price">
+                    <strong>${escapeHtml(formatPrice(item.salePriceFen))}</strong>
+                    <span>${escapeHtml(item.productCode || '未配置编码')}</span>
+                  </div>
+                </div>
+                <p class="result-desc">${escapeHtml(item.description || '这个商品暂时没有额外描述。')}</p>
+                ${reasonMarkup}
+                ${tagMarkup}
+                <div class="result-actions">
+                  <a class="buy-link" href="/store.html?product=${encodeURIComponent(item.productCode)}">去商店购买</a>
+                  <a class="back-store" href="/store.html">浏览全部商品</a>
+                </div>
+              </article>
+            `;
+          }).join('');
+        }
+
+        function runPicker() {
+          const filters = {
+            purpose: String(purposeInput?.value || '').trim(),
+            budget: Number.parseFloat(String(budgetInput?.value || '').trim()),
+            sort: String(sortInput?.value || 'balanced').trim(),
+            keywords: tokenize(keywordsInput?.value || '')
+          };
+
+          const ranked = storeProducts
+            .map((product) => scoreProduct(product, filters))
+            .sort((left, right) => right.score - left.score || left.salePriceFen - right.salePriceFen)
+            .slice(0, 5);
+
+          renderResults(ranked, filters);
+        }
+
+        async function loadProducts() {
+          try {
+            const response = await fetch('/api/store/products');
+            const result = await response.json();
+            storeProducts = Array.isArray(result?.products)
+              ? result.products.map((product) => normalizeProduct(product)).filter((product) => product.name)
+              : [];
+            if (productCount) {
+              productCount.textContent = String(storeProducts.length);
+            }
+            renderEmpty('还没开始推荐', '左侧填写你的预算、用途或补充要求后，页面会基于当前商店商品给出推荐结果。');
+            applyBackgroundImageFromApi();
+          } catch (error) {
+            if (productCount) {
+              productCount.textContent = '0';
+            }
+            resultSummary.textContent = '商品加载失败，暂时无法进行 AI 推荐。';
+            renderEmpty('商品加载失败', error?.message || '请稍后刷新重试。');
+          }
+        }
+
+        if (runButton) {
+          runButton.addEventListener('click', runPicker);
+        }
+
+        if (resetButton) {
+          resetButton.addEventListener('click', () => {
+            if (purposeInput) purposeInput.value = '';
+            if (budgetInput) budgetInput.value = '';
+            if (sortInput) sortInput.value = 'balanced';
+            if (keywordsInput) keywordsInput.value = '';
+            renderEmpty('还没开始推荐', '左侧填写你的预算、用途或补充要求后，页面会基于当前商店商品给出推荐结果。');
+            resultSummary.textContent = '先选择条件，再让 AI 帮你挑商品。';
+          });
+        }
+
+        if (themeToggle) {
+          themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
+            const nextTheme = currentTheme === 'night' ? 'day' : 'night';
+            applyTheme(nextTheme);
+            applyBackgroundImageFromApi();
+          });
+        }
+
+        applyTheme(document.documentElement.dataset.theme === 'day' ? 'day' : 'night');
+        loadProducts();
+      })();
+    </script>
+  </body>
+</html>

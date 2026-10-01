@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>开发者入口校验</title>
+    <title>权限入口校验</title>
     <style>
       :root {
         --bg: #f5f7fb;
@@ -101,8 +101,8 @@
   </head>
   <body>
     <main class="card">
-      <h1>开发者入口校验</h1>
-      <p id="entry-tip">请先输入账号和授权码，再进入登录页继续开发者注册流程。</p>
+      <h1>权限入口校验</h1>
+      <p id="entry-tip">请先输入账号和授权码，再进入登录页继续权限注册流程。</p>
 
       <form id="entry-form" class="row">
         <label for="entry-username">账号</label>
@@ -165,7 +165,7 @@
             if (!response.ok || !result.code) {
               form.classList.add('hidden');
               tip.textContent = '当前环境不可使用快捷入口。';
-              setStatus(result.message || '请改用开发者授权码注册模式。', true);
+              setStatus(result.message || '请改用权限授权码注册模式。', true);
               return;
             }
 

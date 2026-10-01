@@ -1,3 +1,36 @@
+const SITE_BACKGROUND_ENDPOINT = '/api/store/background-image';
+
+function applyGlobalBackgroundImage() {
+  try {
+    const style = document.body ? document.body.style : null;
+    const imageUrl = `${SITE_BACKGROUND_ENDPOINT}?ts=${Date.now()}`;
+
+    if (style) {
+      style.backgroundImage = `linear-gradient(180deg, rgba(15,23,42,0.18), rgba(15,23,42,0.08)), url("${imageUrl}")`;
+      style.backgroundPosition = 'center center';
+      style.backgroundSize = 'cover';
+      style.backgroundRepeat = 'no-repeat';
+      style.backgroundAttachment = 'fixed';
+    }
+
+    const backgroundProbe = new Image();
+    backgroundProbe.onload = () => {
+      if (style) {
+        style.backgroundImage = `linear-gradient(180deg, rgba(15,23,42,0.18), rgba(15,23,42,0.08)), url("${imageUrl}")`;
+      }
+    };
+    backgroundProbe.src = imageUrl;
+  } catch {
+    // Ignore background setup failures and keep the page's original theme.
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', applyGlobalBackgroundImage, { once: true });
+} else {
+  applyGlobalBackgroundImage();
+}
+
 const COMMANDS = {
   tp: ({ target, destination }) => {
     const safeTarget = target.trim() || '@p';
@@ -3041,9 +3074,9 @@ function renderDeveloperPanel(me) {
     panel.className = 'developer-panel';
     panel.setAttribute('data-developer-panel', '');
     panel.innerHTML = `
-      <p class="panel-label">开发者控制台</p>
-      <p class="tool-card-note">开发者账号可查看项目文本代码文件，并在网页内直接保存修改。</p>
-      <a class="ghost-link-button" href="/developer.html">进入开发者控制台</a>
+      <p class="panel-label">权限控制台</p>
+      <p class="tool-card-note">权限账号可查看项目文本代码文件，并在网页内直接保存修改。</p>
+      <a class="ghost-link-button" href="/developer.html">进入权限控制台</a>
     `;
     heroCard.appendChild(panel);
   }
@@ -3103,7 +3136,7 @@ function updateVipState(me) {
     const roleTags = [];
 
     if (me.isDeveloper) {
-      roleTags.push('开发者');
+      roleTags.push('权限');
     }
 
     accountPill.textContent = roleTags.length
@@ -3294,6 +3327,11 @@ async function loadCommandHistory(keyword = '') {
 }
 
 async function handleLogout() {
+  const shouldLogout = window.confirm('确认退出当前账号吗？');
+  if (!shouldLogout) {
+    return;
+  }
+
   await fetch('/api/logout', { method: 'POST' });
   window.location.href = '/login.html';
 }

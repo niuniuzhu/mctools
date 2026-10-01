@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的世界工具箱 - 分类选择</title>
+    <title>�ҵ����繤���� - ����ѡ��</title>
     <script>
       try {
         const nextUi = 'end';
@@ -150,6 +150,26 @@
         color: #1d4ed8;
         background: rgba(96, 165, 250, 0.1);
         box-shadow: inset 0 -2px 0 #3b82f6;
+      }
+
+      .topbar-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 92px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(96, 165, 250, 0.2));
+        color: #163d8f;
+        font-weight: 800;
+        box-shadow: 0 8px 18px rgba(59, 130, 246, 0.1);
+      }
+
+      .topbar-action-btn.primary {
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        color: #fff;
+        border-color: transparent;
       }
 
       .hero-copy,
@@ -331,6 +351,38 @@
         color: #5f728b;
       }
 
+      .quick-access-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .quick-access-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(59, 130, 246, 0.18);
+        background: rgba(255, 255, 255, 0.7);
+        color: #224d9b;
+        text-decoration: none;
+        font-weight: 700;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .quick-access-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(59, 130, 246, 0.12);
+      }
+
+      .quick-access-btn.primary {
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        color: #fff;
+        border-color: transparent;
+      }
+
       .hero-media-card,
       .tool-enter-button,
       .version-pill {
@@ -355,176 +407,184 @@
   <body class="mc-toolbox-home">
     <main class="shell">
       <div class="mc-home-topbar">
-        <a href="/niuniu-toolbox.html">返回工具箱</a>
+        <a href="/niuniu-toolbox.html">���ع�����</a>
         <div class="topbar-center">
-          <button class="menu-toggle" type="button" aria-label="打开导航菜单">☰</button>
+          <button class="menu-toggle" type="button" aria-label="�򿪵����˵�">?</button>
         </div>
-        <div class="topbar-links" aria-label="主页导航">
-          <a class="is-active" href="/index.html">主页</a>
-          <a href="/tutorial.html">教程</a>
-          <a href="/login.html">登录</a>
-          <a href="/settings.html">注册</a>
+        <div class="topbar-links" aria-label="��ҳ����">
+          <a class="is-active" href="/index.html">��ҳ</a>
+          <a href="/tutorial.html">�̳�</a>
+          <a class="topbar-action-btn primary" href="/login.html">��¼</a>
+          <a class="topbar-action-btn" href="/settings.html">����</a>
+          <a class="topbar-action-btn" href="http://127.0.0.1:3005/" target="_blank" rel="noopener noreferrer">ת��</a>
         </div>
       </div>
       <div class="starfield-switcher-head">
-        <h2>选择入口</h2>
-        <span>先选你要进入的星际模块</span>
+        <h2>ѡ�����</h2>
+        <span>��ѡ��Ҫ������Ǽ�ģ��</span>
       </div>
-      <section class="starfield-switcher" aria-label="星际入口选择栏">
+      <section class="starfield-switcher" aria-label="�Ǽ����ѡ����">
         <a class="starfield-switcher-card" href="/server-plaza.html">
-          <span class="starfield-switcher-kicker">星际_服务器广场</span>
-          <div class="starfield-switcher-title">去服务器广场看看</div>
-          <div class="starfield-switcher-desc">浏览投稿服务器、查看公告和开发者审核内容，适合想找服或发服的玩家。</div>
+          <span class="starfield-switcher-kicker">�Ǽ�_�������㳡</span>
+          <div class="starfield-switcher-title">ȥ�������㳡����</div>
+          <div class="starfield-switcher-desc">���Ͷ����������鿴�����Ȩ��������ݣ��ʺ����ҷ��򷢷�����ҡ�</div>
           <div class="starfield-switcher-meta">
-            <span class="starfield-switcher-pill">🏰 服务器列表</span>
-            <span class="starfield-switcher-pill">📨 投稿入口</span>
+            <span class="starfield-switcher-pill">?? �������б�</span>
+            <span class="starfield-switcher-pill">?? Ͷ�����</span>
           </div>
         </a>
         <a class="starfield-switcher-card" href="/command-community.html">
-          <span class="starfield-switcher-kicker">星际_指令社区</span>
-          <div class="starfield-switcher-title">去指令社区交流</div>
-          <div class="starfield-switcher-desc">提交和审核 Minecraft 指令，适合分享玩法、红石技巧和实用命令。</div>
+          <span class="starfield-switcher-kicker">�Ǽ�_ָ������</span>
+          <div class="starfield-switcher-title">ȥָ����������</div>
+          <div class="starfield-switcher-desc">�ύ����� Minecraft ָ��ʺϷ����淨����ʯ���ɺ�ʵ�����</div>
           <div class="starfield-switcher-meta">
-            <span class="starfield-switcher-pill">⚙️ 指令投稿</span>
-            <span class="starfield-switcher-pill">🧭 社区交流</span>
+            <span class="starfield-switcher-pill">?? ָ��Ͷ��</span>
+            <span class="starfield-switcher-pill">?? ��������</span>
           </div>
         </a>
       </section>
       <section class="hero hero-home-centered">
         <div class="hero-copy">
           <p class="badge">Minecraft Toolbox</p>
-          <h1>我的世界工具箱</h1>
+          <h1>�ҵ����繤����</h1>
           <p class="lead">
-            选择下方分类快速进入对应功能模块。
+            ѡ���·�������ٽ����Ӧ����ģ�顣
           </p>
           <div class="meta-row">
-            <div class="version-pill" data-app-version>当前版本 beta1.15.0</div>
-            <div class="version-pill">当前阶段：分类选择</div>
+            <div class="version-pill" data-app-version>��ǰ�汾 beta1.15.0</div>
+            <div class="version-pill">��ǰ�׶Σ�����ѡ��</div>
           </div>
-          <div class="hero-media-ribbon" aria-label="工具箱模块预览">
+
+          <div class="quick-access-row" aria-label="������">
+            <a class="quick-access-btn primary" href="/login.html">��¼</a>
+            <a class="quick-access-btn" href="/settings.html">����</a>
+            <a class="quick-access-btn" href="http://127.0.0.1:3005/" target="_blank" rel="noopener noreferrer">ת�����</a>
+          </div>
+
+          <div class="hero-media-ribbon" aria-label="������ģ��Ԥ��">
             <a class="hero-media-card" href="/commands.html">
-              <img src="/assets/commands-hero.svg" alt="指令工作台预览" />
-              <span>指令工作台</span>
+              <img src="/assets/commands-hero.svg" alt="ָ���̨Ԥ��" />
+              <span>ָ���̨</span>
             </a>
             <a class="hero-media-card" href="/tutorial.html">
-              <img src="/assets/tutorial-hero.svg" alt="通关教程预览" />
-              <span>通关教程</span>
+              <img src="/assets/tutorial-hero.svg" alt="ͨ�ؽ̳�Ԥ��" />
+              <span>ͨ�ؽ̳�</span>
             </a>
             <a class="hero-media-card" href="/coordinates.html">
-              <img src="/assets/coordinates-hero.svg" alt="坐标工具预览" />
-              <span>坐标工具</span>
+              <img src="/assets/coordinates-hero.svg" alt="���깤��Ԥ��" />
+              <span>���깤��</span>
             </a>
             <a class="hero-media-card" href="/shader-download.html">
-              <img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="光影下载中心预览" />
-              <span>下载中心</span>
+              <img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="��Ӱ��������Ԥ��" />
+              <span>��������</span>
             </a>
           </div>
-          <section class="home-preview-rail" aria-label="首页横向预览">
+          <section class="home-preview-rail" aria-label="��ҳ����Ԥ��">
             <a class="home-preview-card" href="/commands.html">
-              <img src="/assets/commands-hero.svg" alt="指令工作台卡片预览" />
-              <strong>常用指令</strong>
-              <span>execute、计分板、NBT 一页直达</span>
+              <img src="/assets/commands-hero.svg" alt="ָ���̨��ƬԤ��" />
+              <strong>����ָ��</strong>
+              <span>execute���Ʒְ塢NBT һҳֱ��</span>
             </a>
             <a class="home-preview-card" href="/tutorial.html">
-              <img src="/assets/tutorial-hero.svg" alt="通关教程卡片预览" />
-              <strong>阶段推进</strong>
-              <span>从开荒到末地的路线拆分</span>
+              <img src="/assets/tutorial-hero.svg" alt="ͨ�ؽ̳̿�ƬԤ��" />
+              <strong>�׶��ƽ�</strong>
+              <span>�ӿ��ĵ�ĩ�ص�·�߲��</span>
             </a>
             <a class="home-preview-card" href="/coordinates.html">
-              <img src="/assets/coordinates-hero.svg" alt="坐标工具卡片预览" />
-              <strong>坐标换算</strong>
-              <span>主世界与下界快速定位</span>
+              <img src="/assets/coordinates-hero.svg" alt="���깤�߿�ƬԤ��" />
+              <strong>���껻��</strong>
+              <span>���������½���ٶ�λ</span>
             </a>
             <a class="home-preview-card" href="/automation-guide.html">
-              <img src="/assets/recipes-hero.svg" alt="自动化教程卡片预览" />
-              <strong>自动化搭建</strong>
-              <span>刷铁机、农场、交易所思路</span>
+              <img src="/assets/recipes-hero.svg" alt="�Զ����̳̿�ƬԤ��" />
+              <strong>�Զ����</strong>
+              <span>ˢ������ũ����������˼·</span>
             </a>
             <a class="home-preview-card" href="/shader-download.html">
-              <img src="/assets/shader-previews/midlight-java-preview.png" alt="下载中心卡片预览" />
-              <strong>光影下载</strong>
-              <span>双端双档与预览图一起看</span>
+              <img src="/assets/shader-previews/midlight-java-preview.png" alt="�������Ŀ�ƬԤ��" />
+              <strong>��Ӱ����</strong>
+              <span>˫��˫����Ԥ��ͼһ��</span>
             </a>
             <a class="home-preview-card" href="/settings.html">
-              <img src="/assets/index-hero.svg" alt="设置卡片预览" />
-              <strong>账号与资格</strong>
-              <span>会员、兑换码、模式切换统一管理</span>
+              <img src="/assets/index-hero.svg" alt="���ÿ�ƬԤ��" />
+              <strong>�˺����ʸ�</strong>
+              <span>��Ա���һ��롢ģʽ�л�ͳһ����</span>
             </a>
           </section>
         </div>
       </section>
 
       <section class="tool-overview">
-        <article class="tool-card tool-card-active" data-home-module-card data-home-module-key="commands" data-home-module-label="指令工作台">
-          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="指令工作台缩略图" /></div>
-          <p class="panel-label">分类 1</p>
-          <h2>指令工作台</h2>
-          <p>生成常用指令、execute 链、计分板、NBT、调度与生物群系类指令。</p>
+        <article class="tool-card tool-card-active" data-home-module-card data-home-module-key="commands" data-home-module-label="ָ���̨">
+          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="ָ���̨����ͼ" /></div>
+          <p class="panel-label">���� 1</p>
+          <h2>ָ���̨</h2>
+          <p>���ɳ���ָ�execute �����Ʒְ塢NBT������������Ⱥϵ��ָ�</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/commands.html">进入</a>
+          <a class="tool-enter-button" href="/commands.html">����</a>
         </article>
-        <article class="tool-card tool-card-locked" data-home-module-card data-home-module-key="tutorial" data-home-module-label="通关教程">
-          <div class="tool-card-thumb"><img src="/assets/tutorial-hero.svg" alt="通关教程缩略图" /></div>
-          <p class="panel-label">分类 2</p>
-          <h2>通关教程</h2>
-          <p>从开荒到击败末影龙的阶段化教程。</p>
+        <article class="tool-card tool-card-locked" data-home-module-card data-home-module-key="tutorial" data-home-module-label="ͨ�ؽ̳�">
+          <div class="tool-card-thumb"><img src="/assets/tutorial-hero.svg" alt="ͨ�ؽ̳�����ͼ" /></div>
+          <p class="panel-label">���� 2</p>
+          <h2>ͨ�ؽ̳�</h2>
+          <p>�ӿ��ĵ�����ĩӰ���Ľ׶λ��̡̳�</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/tutorial.html">进入</a>
+          <a class="tool-enter-button" href="/tutorial.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="fun" data-home-module-label="趣味实验室">
-          <div class="tool-card-thumb"><img src="/assets/login-hero.svg" alt="趣味实验室缩略图" /></div>
-          <p class="panel-label">分类 3</p>
-          <h2>趣味实验室</h2>
-          <p>生存挑战、建筑灵感抽签与整活路线。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="fun" data-home-module-label="Ȥζʵ����">
+          <div class="tool-card-thumb"><img src="/assets/login-hero.svg" alt="Ȥζʵ��������ͼ" /></div>
+          <p class="panel-label">���� 3</p>
+          <h2>Ȥζʵ����</h2>
+          <p>������ս��������г�ǩ������·�ߡ�</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/fun.html">进入</a>
+          <a class="tool-enter-button" href="/fun.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="cloud" data-home-module-label="云玩中心">
-          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="云玩中心缩略图" /></div>
-          <p class="panel-label">分类 4</p>
-          <h2>云玩中心</h2>
-          <p>云玩方案、延迟评级与预算估算。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="cloud" data-home-module-label="��������">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="������������ͼ" /></div>
+          <p class="panel-label">���� 4</p>
+          <h2>��������</h2>
+          <p>���淽�����ӳ�������Ԥ����㡣</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/cloud-play.html">进入</a>
+          <a class="tool-enter-button" href="/cloud-play.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="officialDownloads" data-home-module-label="官方下载入口">
-          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="官方下载入口缩略图" /></div>
-          <p class="panel-label">分类 5</p>
-          <h2>官方下载入口</h2>
-          <p>网易版与国际版官网快速进入。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="officialDownloads" data-home-module-label="�ٷ��������">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="�ٷ������������ͼ" /></div>
+          <p class="panel-label">���� 5</p>
+          <h2>�ٷ��������</h2>
+          <p>���װ�����ʰ�������ٽ��롣</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/official-downloads.html">进入</a>
+          <a class="tool-enter-button" href="/official-downloads.html">����</a>
         </article>
         <article class="tool-card">
-          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="光影下载中心缩略图" /></div>
-          <p class="panel-label">分类 6</p>
-          <h2>光影下载中心</h2>
-          <p>Java 与基岩双端、中配与高配双档下载。</p>
-          <a class="tool-enter-button" href="/shader-download.html">进入</a>
+          <div class="tool-card-thumb"><img src="/assets/shader-previews/midlight-ultra-java-preview.png" alt="��Ӱ������������ͼ" /></div>
+          <p class="panel-label">���� 6</p>
+          <h2>��Ӱ��������</h2>
+          <p>Java �����˫�ˡ����������˫�����ء�</p>
+          <a class="tool-enter-button" href="/shader-download.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="launchGame" data-home-module-label="启动游戏中心">
-          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="启动游戏中心缩略图" /></div>
-          <p class="panel-label">分类 7</p>
-          <h2>启动游戏中心</h2>
-          <p>快速打开 Minecraft Launcher 与基岩版。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="launchGame" data-home-module-label="������Ϸ����">
+          <div class="tool-card-thumb"><img src="/assets/commands-hero.svg" alt="������Ϸ��������ͼ" /></div>
+          <p class="panel-label">���� 7</p>
+          <h2>������Ϸ����</h2>
+          <p>���ٴ� Minecraft Launcher ����Ұ档</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/launch-game.html">进入</a>
+          <a class="tool-enter-button" href="/launch-game.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="extensionTools" data-home-module-label="自研与扩展工具">
-          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="自研与扩展工具缩略图" /></div>
-          <p class="panel-label">分类 8</p>
-          <h2>自研与扩展工具</h2>
-          <p>自研沙盒、1.20.1 整合包与 Web 启动。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="extensionTools" data-home-module-label="��������չ����">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="��������չ��������ͼ" /></div>
+          <p class="panel-label">���� 8</p>
+          <h2>��������չ����</h2>
+          <p>����ɳ�С�1.20.1 ���ϰ��� Web ������</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/extension-hub.html">进入</a>
+          <a class="tool-enter-button" href="/extension-hub.html">����</a>
         </article>
-        <article class="tool-card" data-home-module-card data-home-module-key="closedCategories" data-home-module-label="查看已关闭的分类">
-          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="查看已关闭的分类缩略图" /></div>
-          <p class="panel-label">更多</p>
-          <h2>更多功能</h2>
-          <p>AI、配方、种子、建筑、红石等更多分类。</p>
+        <article class="tool-card" data-home-module-card data-home-module-key="closedCategories" data-home-module-label="�鿴�ѹرյķ���">
+          <div class="tool-card-thumb"><img src="/assets/index-hero.svg" alt="�鿴�ѹرյķ�������ͼ" /></div>
+          <p class="panel-label">����</p>
+          <h2>���๦��</h2>
+          <p>AI���䷽�����ӡ���������ʯ�ȸ�����ࡣ</p>
           <div class="tool-card-quick-actions" data-home-module-actions></div>
-          <a class="tool-enter-button" href="/closed-categories.html">查看</a>
+          <a class="tool-enter-button" href="/closed-categories.html">�鿴</a>
         </article>
       </section>
     </main>

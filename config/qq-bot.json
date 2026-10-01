@@ -1,0 +1,7 @@
+{
+  "apiBaseUrl": "http://127.0.0.1:5700",
+  "wsUrl": "ws://127.0.0.1:6700",
+  "commandPrefix": "/",
+  "adminId": 0,
+  "autoReplyEnabled": true
+}

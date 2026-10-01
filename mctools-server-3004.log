@@ -314,3 +314,218 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:38732) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3004  (stop form 1.16.1)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:13968) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (stop form 1.16.1)
+[Community] SMTP 发送失败 -> naicha638104@163.com (星际Stellar（开发者）): 535 Login fail. Account is abnormal, service is not open, password is incorrect, login frequency limited, or system is busy. More information at https://help.mail.qq.com/detail/108/1023
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:25084) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (stop form 1.16.1)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:23076) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (stop form 1.16.1)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:20840) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (stop form 1.16.1)
+[Community] SMTP 发送失败 -> naicha638104@163.com (星际Stellar（开发者）): 535 Login fail. Account is abnormal, service is not open, password is incorrect, login frequency limited, or system is busy. More information at https://help.mail.qq.com/detail/108/1023
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:18644) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:19440) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:4696) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26312) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29488) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:19988) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:23480) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:2536
+  return db.prepare(
+            ^
+
+Error: no such column: quantity
+    at getStoreOrderByNo (D:\Projects\mctools\server.js:2536:13)
+    at handleStoreOrderStatus (D:\Projects\mctools\server.js:3233:15)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7741:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:20892) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:2536
+  return db.prepare(
+            ^
+
+Error: no such column: quantity
+    at getStoreOrderByNo (D:\Projects\mctools\server.js:2536:13)
+    at handleStoreOrderStatus (D:\Projects\mctools\server.js:3233:15)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7741:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:10608) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:2536
+  return db.prepare(
+            ^
+
+Error: no such column: quantity
+    at getStoreOrderByNo (D:\Projects\mctools\server.js:2536:13)
+    at handleStoreOrderStatus (D:\Projects\mctools\server.js:3233:15)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7741:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26768) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:3476
+  db.prepare('DELETE FROM auth_sessions WHERE expires_at <= ?').run(Date.now());
+                                                                ^
+
+Error: database is locked
+    at cleanupExpiredAuthSessions (D:\Projects\mctools\server.js:3476:65)
+    at cleanupExpiredSessions (D:\Projects\mctools\server.js:3482:3)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7335:3)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:4216) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:3569
+  ).run(getLocalDateKey(), normalizedKey);
+    ^
+
+Error: database is locked
+    at recordSiteDailyVisit (D:\Projects\mctools\server.js:3569:5)
+    at touchSiteOnlineVisitor (D:\Projects\mctools\server.js:3548:3)
+    at handleSiteOnlinePing (D:\Projects\mctools\server.js:3705:3)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:11440) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:2536
+  return db.prepare(
+            ^
+
+Error: no such column: quantity
+    at getStoreOrderByNo (D:\Projects\mctools\server.js:2536:13)
+    at handleStoreOrderStatus (D:\Projects\mctools\server.js:3233:15)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7741:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:29208) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+D:\Projects\mctools\server.js:2536
+  return db.prepare(
+            ^
+
+Error: no such column: quantity
+    at getStoreOrderByNo (D:\Projects\mctools\server.js:2536:13)
+    at handleStoreOrderStatus (D:\Projects\mctools\server.js:3233:15)
+    at Server.<anonymous> (D:\Projects\mctools\server.js:7741:7)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17) {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1,
+  errstr: 'SQL logic error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26100) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:9200) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:35180) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:19492) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:6632) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:11112) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:33220) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004  (正式版1.4)

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MCTools 转账</title>
+    <style>
+      :root {
+        --bg: #071a25;
+        --bg-2: #0d2742;
+        --panel: rgba(10, 20, 28, 0.82);
+        --panel-border: rgba(148, 163, 184, 0.18);
+        --text: #edf9ff;
+        --muted: #aac4d8;
+        --accent: #7fe7ff;
+        --accent-strong: #38bdf8;
+        --success: #4ade80;
+        --warning: #fbbf24;
+        --shadow: 0 28px 84px rgba(2, 6, 12, 0.45);
+      }
+      html[data-theme='day'] {
+        --bg: #ecf8ff;
+        --bg-2: #ddeeff;
+        --panel: rgba(255,255,255,0.88);
+        --panel-border: rgba(15, 23, 42, 0.08);
+        --text: #122334;
+        --muted: #53677c;
+        --accent: #0ea5e9;
+        --accent-strong: #0284c7;
+        --success: #0f766e;
+        --warning: #b45309;
+        --shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+        color: var(--text);
+        background: radial-gradient(circle at 10% 10%, rgba(127, 231, 255, 0.18), transparent 24%), radial-gradient(circle at 90% 18%, rgba(56, 189, 248, 0.18), transparent 22%), linear-gradient(135deg, var(--bg), var(--bg-2));
+      }
+      a { color: inherit; text-decoration: none; }
+      button, input, select, textarea { font: inherit; }
+      .shell {
+        width: min(980px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 72px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 18px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+        margin-bottom: 22px;
+      }
+      .brand { display: flex; align-items: center; gap: 12px; font-weight: 900; letter-spacing: .08em; }
+      .brand-mark {
+        width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #02151d;
+      }
+      .nav { display: flex; gap: 10px; flex-wrap: wrap; }
+      .nav a, .nav button {
+        padding: 9px 16px; border-radius: 999px; border: 1px solid transparent; font-weight: 700; background: rgba(255,255,255,0.04); color: var(--text); cursor: pointer;
+      }
+      .nav a.active { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #02151d; }
+      .panel {
+        background: var(--panel); border: 1px solid var(--panel-border); border-radius: 24px; box-shadow: var(--shadow);
+      }
+      .content { padding: 24px; }
+      .title { margin: 0 0 12px; font-size: clamp(2rem, 4vw, 3rem); }
+      .lead { margin: 0 0 18px; color: var(--muted); line-height: 1.8; }
+      .grid { display: grid; gap: 18px; }
+      .field { display: grid; gap: 8px; }
+      .field label { color: var(--muted); font-size: .82rem; }
+      input, select, textarea {
+        width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--panel-border); background: rgba(255,255,255,0.03); color: var(--text); outline: none;
+      }
+      input:focus, select:focus, textarea:focus { border-color: rgba(127,231,255,0.46); box-shadow: 0 0 0 4px rgba(127,231,255,0.08); }
+      textarea { min-height: 90px; resize: vertical; }
+      .amount-wrap { display: flex; align-items: center; gap: 10px; }
+      .amount-sign {
+        width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: rgba(127,231,255,0.1); border: 1px solid rgba(127,231,255,0.2); color: var(--accent); font-weight: 900;
+      }
+      .amount-wrap input { flex: 1; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 12px; }
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; padding: 12px 18px; border-radius: 14px; border: 1px solid transparent; font-weight: 800; cursor: pointer;
+      }
+      .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-strong)); color: #02151d; }
+      .btn.secondary { background: rgba(255,255,255,0.03); color: var(--text); border-color: var(--panel-border); }
+      .status-box {
+        margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.18); color: var(--success);
+      }
+      .status-box.warning { background: rgba(251, 191, 36, 0.08); border-color: rgba(251, 191, 36, 0.2); color: var(--warning); }
+      .receiver-review {
+        display: none;
+        margin-top: 12px;
+        padding: 18px;
+        border-radius: 18px;
+        border: 1px solid var(--panel-border);
+        background: rgba(255,255,255,0.03);
+      }
+      .receiver-review.visible { display: block; }
+      .review-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .review-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+      .review-grid {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 18px;
+        align-items: center;
+      }
+      .review-code {
+        width: 160px;
+        height: 160px;
+        object-fit: contain;
+        display: none;
+        border-radius: 16px;
+        border: 1px solid var(--panel-border);
+        background: rgba(255,255,255,0.02);
+      }
+      .review-code.visible { display: block; }
+      .review-info {
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+      }
+      .review-info strong { color: var(--text); font-size: 1.02rem; }
+      .review-info .code-placeholder {
+        color: var(--warning);
+      }
+      .confirm-row {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">M</div>
+          <div>MCTools</div>
+        </div>
+        <nav class="nav" aria-label="主导航">
+          <a href="/transfer.html">首页</a>
+          <a href="/account-management.html">账户管理</a>
+          <a href="/payment-settings.html">收款设置</a>
+          <a href="/transfer-entry.html" class="active">转账</a>
+          <button id="themeToggle" type="button">🌙 夜间</button>
+        </nav>
+      </header>
+
+      <section class="panel content">
+        <h1 class="title">快速转账</h1>
+        <p class="lead">发起转账前需登录，并确保收款方账号与暗号匹配。付款码图片和收款暗号会在转账时校验。</p>
+
+        <form class="grid" id="transferForm">
+          <div class="field">
+            <label for="receiver">收款方账号名</label>
+            <input id="receiver" type="text" placeholder="请输入收款人账号" />
+          </div>
+          <div class="field">
+            <label for="receiverSecret">收款方暗号</label>
+            <input id="receiverSecret" type="password" placeholder="请输入收款方暗号" />
+          </div>
+          <div class="field">
+            <label for="amount">转账金额</label>
+            <div class="amount-wrap">
+              <div class="amount-sign">¥</div>
+              <input id="amount" type="number" step="0.01" min="0.01" placeholder="0.00" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="remark">备注</label>
+            <textarea id="remark" placeholder="填写备注说明（可选）"></textarea>
+          </div>
+          <div class="cta-row">
+            <button class="btn primary" type="submit">核对收款信息</button>
+            <button class="btn secondary" type="reset">清空</button>
+          </div>
+          <div class="receiver-review" id="receiverReview" aria-live="polite">
+            <div class="review-header">
+              <h3>付款码核对</h3>
+            </div>
+            <div class="review-grid">
+              <img id="receiverPaymentCode" class="review-code" alt="收款方付款码" />
+              <div class="review-info">
+                <strong id="reviewAccountName">-</strong>
+                <span id="reviewPaymentMethod">收款方式：-</span>
+                <span id="reviewAmount">转账金额：¥0.00</span>
+                <span id="reviewRemark">备注：无</span>
+                <span id="reviewHint" class="code-placeholder">未找到付款码，无法继续发起转账。</span>
+              </div>
+            </div>
+            <div class="confirm-row">
+              <button class="btn primary" id="confirmTransferBtn" type="button">确认并转账</button>
+            </div>
+          </div>
+          <div class="status-box" id="statusBox">请先登录账号后再发起转账。</div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const themeToggle = document.getElementById('themeToggle');
+      const statusBox = document.getElementById('statusBox');
+      const receiverReview = document.getElementById('receiverReview');
+      const receiverPaymentCode = document.getElementById('receiverPaymentCode');
+      const reviewAccountName = document.getElementById('reviewAccountName');
+      const reviewPaymentMethod = document.getElementById('reviewPaymentMethod');
+      const reviewAmount = document.getElementById('reviewAmount');
+      const reviewRemark = document.getElementById('reviewRemark');
+      const reviewHint = document.getElementById('reviewHint');
+      const confirmTransferBtn = document.getElementById('confirmTransferBtn');
+      const accountsStorageKey = 'mctools-main-accounts';
+      const currentAccountStorageKey = 'mctools-main-current-account';
+      const themeStorageKey = 'mctools-main-theme';
+      const transfersStorageKey = 'mctools-main-transfers';
+      let pendingTransfer = null;
+
+      function normalizeUserName(value) {
+        return String(value || '').trim().toLowerCase();
+      }
+
+      function getAccounts() {
+        try { return JSON.parse(localStorage.getItem(accountsStorageKey) || '{}') || {}; }
+        catch { return {}; }
+      }
+
+      function getCurrentAccount() {
+        try { return localStorage.getItem(currentAccountStorageKey) || ''; }
+        catch { return ''; }
+      }
+
+      function setTheme(theme) {
+        const normalized = theme === 'day' ? 'day' : 'night';
+        document.documentElement.setAttribute('data-theme', normalized);
+        themeToggle.textContent = normalized === 'day' ? '☀️ 白天' : '🌙 夜间';
+        try { localStorage.setItem(themeStorageKey, normalized); } catch {}
+      }
+
+      function getPreferredTheme() {
+        try { return localStorage.getItem(themeStorageKey) || 'night'; }
+        catch { return 'night'; }
+      }
+
+      function showStatus(message, isWarning = false) {
+        statusBox.textContent = message;
+        statusBox.className = isWarning ? 'status-box warning' : 'status-box';
+      }
+
+      function saveTransferRecord(record) {
+        try {
+          const records = JSON.parse(localStorage.getItem(transfersStorageKey) || '[]') || [];
+          records.unshift(record);
+          localStorage.setItem(transfersStorageKey, JSON.stringify(records.slice(0, 10)));
+        } catch {}
+      }
+
+      function paymentMethodLabel(value) {
+        const map = {
+          wx: '微信',
+          alipay: '支付宝',
+          bank: '银行卡'
+        };
+        return map[value] || '未选择';
+      }
+
+      function hideReceiverReview() {
+        receiverReview.classList.remove('visible');
+        receiverPaymentCode.classList.remove('visible');
+        receiverPaymentCode.removeAttribute('src');
+        reviewAccountName.textContent = '-';
+        reviewPaymentMethod.textContent = '收款方式：-';
+        reviewAmount.textContent = '转账金额：¥0.00';
+        reviewRemark.textContent = '备注：无';
+        reviewHint.textContent = '未找到付款码，无法继续发起转账。';
+        reviewHint.classList.remove('code-placeholder');
+      }
+
+      function showReceiverReview(target, receiver, amount, remarkText) {
+        const accountName = target.accountName || receiver;
+        const paymentCode = target.paymentCode || '';
+        const paymentMethod = paymentMethodLabel(target.paymentMethod || '');
+
+        reviewAccountName.textContent = accountName;
+        reviewPaymentMethod.textContent = `收款方式：${paymentMethod}`;
+        reviewAmount.textContent = `转账金额：¥${Number(amount || 0).toFixed(2)}`;
+        reviewRemark.textContent = `备注：${remarkText || '无'}`;
+
+        if (paymentCode) {
+          receiverPaymentCode.src = paymentCode;
+          receiverPaymentCode.classList.add('visible');
+          reviewHint.textContent = '请核对收款码和信息后，再点击“确认并转账”。';
+          reviewHint.classList.add('code-placeholder');
+        } else {
+          receiverPaymentCode.classList.remove('visible');
+          receiverPaymentCode.removeAttribute('src');
+          reviewHint.textContent = '该收款人未上传付款码，无法继续转账。';
+          reviewHint.classList.add('code-placeholder');
+        }
+
+        receiverReview.classList.add('visible');
+      }
+
+      document.getElementById('transferForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const current = getCurrentAccount();
+        if (!current) {
+          showStatus('请先登录账号后再发起转账。', true);
+          return;
+        }
+        const receiver = document.getElementById('receiver').value.trim();
+        const receiverSecret = document.getElementById('receiverSecret').value.trim();
+        const amount = Number(document.getElementById('amount').value);
+        if (!receiver || !receiverSecret) {
+          showStatus('请填写收款方账号和暗号。', true);
+          return;
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+          showStatus('金额必须大于 0。', true);
+          return;
+        }
+        const target = getAccounts()[normalizeUserName(receiver)] || {};
+        if (!target.paymentSecret || target.paymentSecret !== receiverSecret) {
+          showStatus('收款方暗号校验失败，转账已拒绝。', true);
+          hideReceiverReview();
+          return;
+        }
+        const remarkText = document.getElementById('remark').value.trim();
+        pendingTransfer = {
+          receiver,
+          amount,
+          remark: remarkText,
+          sender: current,
+          target
+        };
+        showReceiverReview(target, receiver, amount, remarkText);
+        showStatus(`已核对收款方 ${receiver}，请确认付款码后再完成转账。`);
+      });
+
+      confirmTransferBtn.addEventListener('click', () => {
+        if (!pendingTransfer) {
+          showStatus('请先完成收款方核对。', true);
+          return;
+        }
+        const { receiver, amount, remark, sender } = pendingTransfer;
+        if (!receiver || !sender) {
+          showStatus('转账信息不完整。', true);
+          return;
+        }
+        if (!pendingTransfer.target.paymentCode) {
+          showStatus('收款方未上传付款码，无法继续转账。', true);
+          return;
+        }
+        saveTransferRecord({
+          receiver,
+          amount: amount.toFixed(2),
+          remark,
+          time: new Date().toISOString(),
+          sender
+        });
+        showStatus(`转账已提交：${receiver}，金额 ¥${amount.toFixed(2)}${remark ? '，备注：' + remark : ''}`);
+        hideReceiverReview();
+        pendingTransfer = null;
+      });
+
+      document.querySelector('#transferForm button[type="reset"]').addEventListener('click', () => {
+        pendingTransfer = null;
+        hideReceiverReview();
+      });
+
+      themeToggle.addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'day' ? 'night' : 'day';
+        setTheme(next);
+      });
+
+      setTheme(getPreferredTheme());
+    </script>
+  </body>
+</html>

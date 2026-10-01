@@ -293,11 +293,11 @@
         <article class="bug-panel">
           <p class="bug-kicker">Bug Portal</p>
           <h1>Bug 反馈中心</h1>
-          <p>这里用于收集用户提交的问题、异常表现和复现信息。3002 端口会默认进入这里，普通用户登录后可直接提交，开发者账号可查看全部反馈并更新状态。</p>
+          <p>这里用于收集用户提交的问题、异常表现和复现信息。3002 端口会默认进入这里，普通用户登录后可直接提交，权限账号可查看全部反馈并更新状态。</p>
           <div class="bug-meta-row">
             <span class="bug-meta-pill">端口：3002</span>
             <span class="bug-meta-pill">普通用户可提交</span>
-            <span class="bug-meta-pill">开发者可查看全部</span>
+            <span class="bug-meta-pill">权限可查看全部</span>
           </div>
         </article>
         <article class="bug-panel">
@@ -409,7 +409,7 @@
         <div class="bug-section-head">
           <div>
             <p class="bug-kicker">Developer</p>
-            <h2>开发者反馈台</h2>
+            <h2>权限反馈台</h2>
           </div>
           <div class="bug-actions">
             <button type="button" class="bug-btn" data-filter-status="">全部</button>
@@ -420,7 +420,7 @@
           </div>
         </div>
         <div class="bug-list" data-dev-list>
-          <div class="bug-empty">开发者反馈列表加载中。</div>
+          <div class="bug-empty">权限反馈列表加载中。</div>
         </div>
       </section>
     </main>
@@ -545,7 +545,7 @@
             const result = await fetchJson('/api/developer/bugs' + query);
             renderBugItems(devList, result.items || [], true);
           } catch (error) {
-            devList.innerHTML = `<div class="bug-empty">${escapeHtml(error.message || '开发者反馈读取失败')}</div>`;
+            devList.innerHTML = `<div class="bug-empty">${escapeHtml(error.message || '权限反馈读取失败')}</div>`;
           }
         }
 
@@ -564,7 +564,7 @@
           }
 
           profileName.textContent = profile.username;
-          profileMeta.textContent = profile.isDeveloper ? '当前账号：开发者，可查看全部反馈。' : '当前账号：普通用户，可提交并查看自己的反馈。';
+          profileMeta.textContent = profile.isDeveloper ? '当前账号：权限，可查看全部反馈。' : '当前账号：普通用户，可提交并查看自己的反馈。';
           loadMyReports();
           if (profile.isDeveloper) {
             loadDeveloperReports();

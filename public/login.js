@@ -220,7 +220,7 @@ function setSpecialRegisterMode(mode) {
 
   if (mode !== 'normal') {
     switchTab('register');
-    setMessage('已进入开发者账号注册模式');
+    setMessage('已进入权限账号注册模式');
   }
 }
 
@@ -459,7 +459,7 @@ function updateTabStatus(tabName) {
   tabStatusTag.textContent = isRegister ? '创建账号' : '当前模式';
   tabStatusTitle.textContent = isRegister ? '注册并建立新存档入口' : '登录工具箱';
   tabStatusNote.textContent = isRegister
-    ? '创建账号后会直接进入工具箱；开发者注册需先通过 developer-entry 页面验证。'
+    ? '创建账号后会直接进入工具箱；权限注册需先通过 developer-entry 页面验证。'
     : '输入账号和密码后直接进入首页。';
 }
 
@@ -505,7 +505,7 @@ async function submitForm(event) {
     const result = await response.json();
 
     if (!response.ok) {
-      if (tabName === 'register' && specialRegisterMode === 'developer' && (result.message || '').includes('开发者授权码错误')) {
+      if (tabName === 'register' && specialRegisterMode === 'developer' && (result.message || '').includes('权限授权码错误')) {
         clearRememberedDeveloperSecret();
       }
 
@@ -560,11 +560,11 @@ function applyDeveloperEntryFromQuery() {
   if (isDeveloperEntryVerified()) {
     clearDeveloperEntryVerified();
     setSpecialRegisterMode('developer');
-    setMessage('开发者入口已通过校验，请继续填写并注册。');
+    setMessage('权限入口已通过校验，请继续填写并注册。');
     return;
   }
 
-  setMessage('未检测到入口凭据，请从提示页进入开发者入口。', true);
+  setMessage('未检测到入口凭据，请从提示页进入权限入口。', true);
 }
 
 tabButtons.forEach((button) => {
@@ -574,7 +574,7 @@ tabButtons.forEach((button) => {
 if (developerExitButton) {
   developerExitButton.addEventListener('click', () => {
     setSpecialRegisterMode('normal');
-    setMessage('已退出开发者账号注册模式');
+    setMessage('已退出权限账号注册模式');
   });
 }
 
