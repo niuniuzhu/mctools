@@ -668,6 +668,8 @@
         const runButton = document.querySelector('[data-run-picker]');
         const resetButton = document.querySelector('[data-reset-picker]');
         const themeToggle = document.querySelector('[data-theme-toggle]');
+        const aiThinkingTimeStorageKey = 'mctools-ai-shop-thinking-ms';
+        const defaultAiThinkingTimeMs = 3000;
 
         let storeProducts = [];
 
@@ -686,6 +688,13 @@
         }
 
         async function applyBackgroundImageFromApi() {
+          try {
+            if (window.MCToolsGlobalPreferences && !window.MCToolsGlobalPreferences.getBackgroundImageEnabled()) {
+              document.body.style.background = '';
+              return;
+            }
+          } catch {}
+
           try {
             const remoteUrl = `/api/store/background-image?ts=${Date.now()}`;
             const overlay = document.documentElement.dataset.theme === 'day'
@@ -735,6 +744,29 @@
             .split(/[\s,，。；;、|/]+/u)
             .map((part) => part.trim())
             .filter(Boolean);
+        }
+
+        function getAiThinkingTimeMs() {
+          try {
+            const stored = Number.parseInt(String(localStorage.getItem(aiThinkingTimeStorageKey) || ''), 10);
+            return stored === 1000 || stored === 5000 ? stored : defaultAiThinkingTimeMs;
+          } catch {
+            return defaultAiThinkingTimeMs;
+          }
+        }
+
+        function getThinkingDurationLabel(thinkingTimeMs) {
+          if (thinkingTimeMs === 1000) {
+            return '1 秒';
+          }
+          if (thinkingTimeMs === 5000) {
+            return '5 秒';
+          }
+          return '3 秒';
+        }
+
+        function wait(ms) {
+          return new Promise((resolve) => window.setTimeout(resolve, ms));
         }
 
         function resolveProductKeywords(product) {
@@ -885,7 +917,7 @@
           }).join('');
         }
 
-        function runPicker() {
+        async function runPicker() {
           const filters = {
             purpose: String(purposeInput?.value || '').trim(),
             budget: Number.parseFloat(String(budgetInput?.value || '').trim()),
@@ -893,12 +925,27 @@
             keywords: tokenize(keywordsInput?.value || '')
           };
 
-          const ranked = storeProducts
-            .map((product) => scoreProduct(product, filters))
-            .sort((left, right) => right.score - left.score || left.salePriceFen - right.salePriceFen)
-            .slice(0, 5);
+          const thinkingTimeMs = getAiThinkingTimeMs();
+          if (runButton) {
+            runButton.disabled = true;
+          }
 
-          renderResults(ranked, filters);
+          try {
+            resultSummary.textContent = `AI 正在思考中，预计 ${getThinkingDurationLabel(thinkingTimeMs)} 后给出建议。`;
+            renderEmpty('AI 正在思考', '正在结合你的预算、用途和关键词整理推荐结果，请稍候。');
+            await wait(thinkingTimeMs);
+
+            const ranked = storeProducts
+              .map((product) => scoreProduct(product, filters))
+              .sort((left, right) => right.score - left.score || left.salePriceFen - right.salePriceFen)
+              .slice(0, 5);
+
+            renderResults(ranked, filters);
+          } finally {
+            if (runButton) {
+              runButton.disabled = false;
+            }
+          }
         }
 
         async function loadProducts() {

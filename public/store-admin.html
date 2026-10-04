@@ -142,8 +142,11 @@
       }
       .admin-grid {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 10px;
+      }
+      .admin-form-wide {
+        grid-column: 1 / -1;
       }
       .admin-grid input,
       .admin-grid textarea,
@@ -159,6 +162,12 @@
       .admin-table textarea {
         resize: vertical;
         min-height: 42px;
+      }
+      .admin-grid .admin-form-wide textarea,
+      .admin-grid .admin-form-wide input,
+      .admin-table .admin-form-wide textarea,
+      .admin-table .admin-form-wide input {
+        min-height: 52px;
       }
       .settings-block {
         display: grid;
@@ -253,6 +262,19 @@
         box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
       }
       .admin-category-panel[hidden] { display: none; }
+      .coupon-row {
+        display: grid;
+        grid-template-columns: 1.1fr 1.2fr 1.4fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        background: rgba(248, 250, 252, 0.85);
+      }
+      .coupon-row-meta { display: grid; gap: 5px; min-width: 0; }
+      .coupon-row-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+      .coupon-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
       .admin-table {
         display: grid;
         gap: 10px;
@@ -367,6 +389,25 @@
         display: grid;
         gap: 8px;
       }
+      .image-editor input[type="text"] {
+        min-width: 0;
+      }
+      .card-secret-value {
+        display: inline-flex;
+        align-items: center;
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.05);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        word-break: break-all;
+        font-weight: 800;
+        color: #0f172a;
+      }
+      .card-secret-copy-btn {
+        max-width: 120px;
+      }
       .image-preview {
         width: 100%;
         max-width: 220px;
@@ -403,6 +444,8 @@
         .actions > * { width: 100%; text-align: center; }
         .card { padding: 14px; border-radius: 14px; }
         .admin-grid { grid-template-columns: 1fr; }
+        .coupon-form-grid { grid-template-columns: 1fr; }
+        .coupon-row { grid-template-columns: 1fr 1fr; }
       }
     </style>
   </head>
@@ -422,7 +465,7 @@
       </header>
 
       <section class="card">
-        <div class="status" data-status>正在检查登录状态...</div>
+        <div class="status" data-status>加载中...</div>
 
         <div class="gate" data-gate hidden>
           <h2>暂时无法操作</h2>
@@ -435,41 +478,52 @@
 
         <div class="admin-panel" data-admin-panel hidden>
           <div class="admin-category-tabs" data-admin-category-tabs>
-            <button type="button" class="admin-category-tab active" data-admin-tab="overview">站点设置</button>
+            <button type="button" class="admin-category-tab active" data-admin-tab="store">商店基本管理</button>
             <button type="button" class="admin-category-tab" data-admin-tab="products">商品管理</button>
+            <button type="button" class="admin-category-tab" data-admin-tab="coupons">折扣券管理</button>
             <button type="button" class="admin-category-tab" data-admin-tab="cards">卡密管理</button>
             <button type="button" class="admin-category-tab" data-admin-tab="orders">订单管理</button>
           </div>
 
           <div data-edit-only>
-            <div class="admin-category-panel" data-admin-category-panel="overview">
-              <div class="section-title">站点维护</div>
+            <div class="admin-category-panel" data-admin-category-panel="store">
+              <div class="section-title">商店功能设置</div>
               <div class="settings-block">
-                <label class="toggle-row">
-                  <input type="checkbox" data-site-maintenance-enabled />
-                  <span>开启站点维护，普通用户将看到维护页</span>
-                </label>
-                <textarea placeholder="维护提示，例如：站点正在升级，请稍后再来。" data-site-maintenance-message></textarea>
-                <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
-                <input type="text" placeholder="预计恢复时间，例如：2026-07-08 18:00" data-site-maintenance-until />
-                <div class="settings-note">开启后，商店页会自动切换到维护界面；权限仍可进入后台关闭开关。</div>
+                <div class="settings-inline">
+                  <label class="toggle-row">
+                    <input type="checkbox" data-store-payments-enabled />
+                    <span>开启支付通道，允许用户创建订单并完成支付</span>
+                  </label>
+                  <button type="button" class="primary" data-store-payments-save>保存</button>
+                </div>
+                <div class="settings-note">关闭后，商店页所有购买入口与确认支付页都会直接停用，方便临时关停收款。</div>
               </div>
 
-              <div class="section-title">公告和白名单</div>
+              <div class="section-title">抽奖中心</div>
               <div class="settings-block">
-                <textarea placeholder="公告内容，例如：购买功能已正常开放" data-store-announcement></textarea>
                 <div class="settings-inline">
-                  <input type="text" placeholder="输入要加入白名单的用户名" data-store-whitelist-input />
-                  <button type="button" class="primary" data-store-whitelist-add>添加白名单</button>
+                  <label class="toggle-row">
+                    <input type="checkbox" data-lottery-enabled />
+                    <span>开启抽奖中心，允许用户开始抽奖</span>
+                  </label>
+                  <button type="button" class="primary" data-lottery-save>保存抽奖设置</button>
                 </div>
-                <textarea placeholder="白名单用户名，每行一个，例如：霜庭幻影" data-store-whitelist hidden></textarea>
-                <div class="whitelist-list" data-store-whitelist-list></div>
-                <div class="settings-note">白名单用户名会被识别为管理账号，同时会显示在商店页的管理白名单和在线账号榜中。</div>
-                <textarea placeholder="订单查看员用户名，每行一个，例如：订单小助手" data-store-order-viewers hidden></textarea>
-                <div class="whitelist-list" data-store-order-viewer-list></div>
-                <div>
-                  <button type="button" class="primary" data-store-settings-save>保存公告和白名单</button>
+                <div class="settings-note">关闭后，抽奖页面会显示“抽奖活动暂时关闭，敬请关注后续通知”，并禁用开始按钮。</div>
+              </div>
+
+              <div class="section-title">站点维护</div>
+              <div class="settings-block">
+                <div class="settings-inline">
+                  <label class="toggle-row">
+                    <input type="checkbox" data-site-maintenance-enabled />
+                    <span>开启站点维护，普通用户将看到维护页</span>
+                  </label>
+                  <button type="button" class="primary" data-site-maintenance-save>保存维护设置</button>
                 </div>
+                <textarea placeholder="维护提示，例如：站点正在升级，请稍后再来。" data-site-maintenance-message></textarea>
+                <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
+                <input type="text" placeholder="预计恢复时间，例如：2026-10-04 18:00" data-site-maintenance-until />
+                <div class="settings-note">开启后普通用户会看到维护页面；维护提示、原因和恢复时间会同步显示。</div>
               </div>
             </div>
 
@@ -484,15 +538,36 @@
                 <input type="number" min="0" step="1" placeholder="库存(0=无库存)" data-create-stock />
                 <input type="number" step="1" placeholder="排序(小的在前)" data-create-sort />
               </div>
-              <textarea placeholder="商品描述" data-create-description></textarea>
-              <input type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-create-tags />
-              <input type="text" placeholder="商品图片地址（可选，支持 /product-images/... 或 http(s)://...）" data-create-image-url />
+              <textarea class="admin-form-wide" placeholder="商品描述" data-create-description></textarea>
+              <input class="admin-form-wide" type="text" placeholder="标签，逗号分隔（如 指令代做,一次）" data-create-tags />
+              <input class="admin-form-wide" type="text" placeholder="商品图片地址（可选，支持 /product-images/... 或 http(s)://...）" data-create-image-url />
               <div>
                 <button type="button" class="primary" data-create-submit>新增商品</button>
               </div>
 
               <div class="section-title">商品管理</div>
               <div class="admin-table" data-admin-table></div>
+            </div>
+
+            <div class="admin-category-panel" data-admin-category-panel="coupons" hidden>
+              <div class="section-title">新增折扣券</div>
+              <div class="coupon-form-grid">
+                <input type="text" maxlength="32" placeholder="券码，如 SAVE20" data-coupon-create-code />
+                <select data-coupon-create-type aria-label="折扣券类型">
+                  <option value="percent">按比例减免</option>
+                  <option value="fixed">固定金额减免</option>
+                </select>
+                <input type="number" min="1" step="0.01" placeholder="比例填百分比；固定券填元数" data-coupon-create-value />
+                <input type="number" min="0" step="0.01" placeholder="最低消费（元，可选）" data-coupon-create-minimum />
+                <input type="datetime-local" aria-label="生效时间（可选）" data-coupon-create-start />
+                <input type="datetime-local" aria-label="过期时间（可选）" data-coupon-create-expiry />
+              </div>
+              <div class="settings-note">比例券的数值表示减免百分比（1-99）；固定券输入减免元数。有效期留空表示不限制。</div>
+              <div class="settings-inline">
+                <button type="button" class="primary" data-coupon-create-submit>创建折扣券</button>
+              </div>
+              <div class="section-title">折扣券列表</div>
+              <div class="admin-table" data-coupon-table></div>
             </div>
 
             <div class="admin-category-panel" data-admin-category-panel="cards" hidden>
@@ -563,18 +638,15 @@
         const adminTable = document.querySelector('[data-admin-table]');
         const refreshButton = document.querySelector('[data-refresh]');
         const clearTokenButton = document.querySelector('[data-clear-token]');
-        const storeAnnouncementInput = document.querySelector('[data-store-announcement]');
+        const storePaymentsEnabledInput = document.querySelector('[data-store-payments-enabled]');
+        const lotteryEnabledInput = document.querySelector('[data-lottery-enabled]');
         const siteMaintenanceEnabledInput = document.querySelector('[data-site-maintenance-enabled]');
         const siteMaintenanceMessageInput = document.querySelector('[data-site-maintenance-message]');
         const siteMaintenanceReasonInput = document.querySelector('[data-site-maintenance-reason]');
         const siteMaintenanceUntilInput = document.querySelector('[data-site-maintenance-until]');
-        const storeWhitelistInput = document.querySelector('[data-store-whitelist]');
-        const storeWhitelistInputBox = document.querySelector('[data-store-whitelist-input]');
-        const storeWhitelistAddButton = document.querySelector('[data-store-whitelist-add]');
-        const storeWhitelistList = document.querySelector('[data-store-whitelist-list]');
-        const storeOrderViewersInput = document.querySelector('[data-store-order-viewers]');
-        const storeOrderViewerList = document.querySelector('[data-store-order-viewer-list]');
-        const storeSettingsSaveButton = document.querySelector('[data-store-settings-save]');
+        const storePaymentsSaveButton = document.querySelector('[data-store-payments-save]');
+        const lotterySaveButton = document.querySelector('[data-lottery-save]');
+        const siteMaintenanceSaveButton = document.querySelector('[data-site-maintenance-save]');
         const editOnlySections = Array.from(document.querySelectorAll('[data-edit-only]'));
         const orderQueryInput = document.querySelector('[data-order-query]');
         const orderStatusFilter = document.querySelector('[data-order-status-filter]');
@@ -583,6 +655,14 @@
         const exportOrdersButton = document.querySelector('[data-order-export]');
         const orderSummary = document.querySelector('[data-order-summary]');
         const orderTable = document.querySelector('[data-order-table]');
+        const couponTable = document.querySelector('[data-coupon-table]');
+        const couponCreateCode = document.querySelector('[data-coupon-create-code]');
+        const couponCreateType = document.querySelector('[data-coupon-create-type]');
+        const couponCreateValue = document.querySelector('[data-coupon-create-value]');
+        const couponCreateMinimum = document.querySelector('[data-coupon-create-minimum]');
+        const couponCreateStart = document.querySelector('[data-coupon-create-start]');
+        const couponCreateExpiry = document.querySelector('[data-coupon-create-expiry]');
+        const couponCreateSubmit = document.querySelector('[data-coupon-create-submit]');
 
         const createCode = document.querySelector('[data-create-code]');
         const createName = document.querySelector('[data-create-name]');
@@ -615,6 +695,7 @@
           token: localStorage.getItem('mctools-auth-token') || null
         };
         let adminProducts = [];
+        let adminCoupons = [];
         let adminOrders = [];
         let orderFilters = {
           query: '',
@@ -683,6 +764,36 @@
             sortOrder: Number(product?.sortOrder || 100),
             tags: Array.isArray(product?.tags) ? product.tags : []
           };
+        }
+
+        function formatCouponMoney(fen) {
+          return `¥${(Math.max(0, Number(fen || 0)) / 100).toFixed(2)}`;
+        }
+
+        function renderCouponTable() {
+          if (!couponTable) return;
+          if (adminCoupons.length === 0) {
+            couponTable.innerHTML = '<div class="status">暂无折扣券，请先创建。</div>';
+            return;
+          }
+          couponTable.innerHTML = adminCoupons.map((coupon) => {
+            const code = String(coupon?.code || '').trim();
+            const discount = coupon?.discountType === 'percent'
+              ? `减免 ${Number(coupon.discountValue || 0)}%`
+              : `减免 ${formatCouponMoney(coupon.discountValue)}`;
+            const validity = [coupon?.startsAt ? `开始 ${coupon.startsAt}` : '', coupon?.expiresAt ? `截止 ${coupon.expiresAt}` : '长期有效'].filter(Boolean).join(' · ');
+            return `
+              <div class="coupon-row" data-coupon-code="${escapeHtml(code)}" data-coupon-active="${coupon?.isActive ? '1' : '0'}">
+                <div class="coupon-row-meta"><strong>${escapeHtml(code)}</strong><span class="order-row-subtitle">${coupon?.isActive ? '已启用' : '已停用'}</span></div>
+                <div class="coupon-row-meta"><strong>${escapeHtml(discount)}</strong><span class="order-row-subtitle">最低消费 ${escapeHtml(formatCouponMoney(coupon?.minimumAmountFen))}</span></div>
+                <div class="coupon-row-meta"><span>${escapeHtml(validity)}</span></div>
+                <div class="coupon-row-actions">
+                  <button type="button" class="mini-btn" data-coupon-toggle>${coupon?.isActive ? '停用' : '启用'}</button>
+                  <button type="button" class="mini-btn warn" data-coupon-delete>删除</button>
+                </div>
+              </div>
+            `;
+          }).join('');
         }
 
         function getProductCategory(product) {
@@ -763,77 +874,19 @@
             .filter(Boolean)));
         }
 
-        function renderOrderViewerList(list) {
-          const usernames = Array.isArray(list) ? list : [];
-
-          if (!storeOrderViewerList) {
-            return;
-          }
-
-          if (usernames.length === 0) {
-            storeOrderViewerList.innerHTML = '<div class="settings-note">暂无订单查看员。</div>';
-            if (storeOrderViewersInput) {
-              storeOrderViewersInput.value = '';
-            }
-            return;
-          }
-
-          storeOrderViewerList.innerHTML = usernames.map((username) => `
-            <span class="whitelist-pill">
-              <strong>${escapeHtml(username)}</strong>
-            </span>
-          `).join('');
-
-          if (storeOrderViewersInput) {
-            storeOrderViewersInput.value = usernames.join('\n');
-          }
-        }
-
-        function syncWhitelistTextarea(list) {
-          if (!storeWhitelistInput) {
-            return;
-          }
-
-          storeWhitelistInput.value = Array.isArray(list) ? list.join('\n') : '';
-        }
-
-        function renderWhitelistList(list) {
-          const usernames = Array.isArray(list) ? list : [];
-
-          if (!storeWhitelistList) {
-            return;
-          }
-
-          if (usernames.length === 0) {
-            storeWhitelistList.innerHTML = '<div class="settings-note">暂无白名单成员，添加后会显示在这里。</div>';
-            syncWhitelistTextarea([]);
-            return;
-          }
-
-          storeWhitelistList.innerHTML = usernames.map((username) => `
-            <span class="whitelist-pill" data-whitelist-user="${escapeHtml(username)}">
-              <strong>${escapeHtml(username)}</strong>
-              <button type="button" data-whitelist-remove="${escapeHtml(username)}">删除</button>
-            </span>
-          `).join('');
-
-          syncWhitelistTextarea(usernames);
-        }
-
-        function getWhitelistFromUI() {
-          return normalizeWhitelistText(storeWhitelistInput?.value || '');
-        }
-
         async function loadStoreSettings() {
           try {
             const response = await fetch('/api/store/settings');
             const result = await response.json();
             if (!response.ok) {
-              throw new Error(result.message || '加载公告失败');
+              throw new Error(result.message || '加载商店设置失败');
             }
 
-            if (storeAnnouncementInput) {
-              storeAnnouncementInput.value = String(result?.announcement || '');
+            if (storePaymentsEnabledInput) {
+              storePaymentsEnabledInput.checked = result?.paymentsEnabled !== false;
+            }
+            if (lotteryEnabledInput) {
+              lotteryEnabledInput.checked = Boolean(result?.lotteryEnabled);
             }
             if (siteMaintenanceEnabledInput) {
               siteMaintenanceEnabledInput.checked = Boolean(result?.maintenanceEnabled);
@@ -847,52 +900,44 @@
             if (siteMaintenanceUntilInput) {
               siteMaintenanceUntilInput.value = String(result?.maintenanceUntil || '');
             }
-            renderWhitelistList(Array.isArray(result?.whitelistUsernames) ? result.whitelistUsernames : []);
-            renderOrderViewerList(Array.isArray(result?.orderViewerUsernames) ? result.orderViewerUsernames : []);
           } catch (error) {
-            if (storeAnnouncementInput) {
-              storeAnnouncementInput.value = '购买功能已正常开放';
+            if (storePaymentsEnabledInput) {
+              storePaymentsEnabledInput.checked = true;
+            }
+            if (lotteryEnabledInput) {
+              lotteryEnabledInput.checked = false;
             }
             if (siteMaintenanceEnabledInput) {
               siteMaintenanceEnabledInput.checked = false;
             }
-            if (siteMaintenanceMessageInput) {
-              siteMaintenanceMessageInput.value = '当前服务维护中，请稍后再试。';
-            }
-            if (siteMaintenanceReasonInput) {
-              siteMaintenanceReasonInput.value = '';
-            }
-            if (siteMaintenanceUntilInput) {
-              siteMaintenanceUntilInput.value = '';
-            }
-            renderWhitelistList(['霜庭幻影']);
-            renderOrderViewerList([]);
-            setStatus(error.message || '加载公告配置失败', true);
+            setStatus(error.message || '加载商店设置失败', true);
           }
         }
 
-        async function saveStoreSettings() {
-          const announcement = String(storeAnnouncementInput?.value || '').trim();
-          const whitelistUsernames = getWhitelistFromUI();
+        async function saveStoreSettings(options = {}) {
+          const { successText, includeLotteryEnabled = false } = options;
+          const paymentsEnabled = Boolean(storePaymentsEnabledInput?.checked);
           const maintenanceEnabled = Boolean(siteMaintenanceEnabledInput?.checked);
           const maintenanceMessage = String(siteMaintenanceMessageInput?.value || '').trim();
           const maintenanceReason = String(siteMaintenanceReasonInput?.value || '').trim();
           const maintenanceUntil = String(siteMaintenanceUntilInput?.value || '').trim();
-          const orderViewerUsernames = normalizeWhitelistText(storeOrderViewersInput?.value || '');
 
-          setStatus('正在保存公告、白名单和维护设置...');
+          setStatus('正在保存设置...');
+          const nextSettings = {
+            paymentsEnabled,
+            maintenanceEnabled,
+            maintenanceMessage,
+            maintenanceReason,
+            maintenanceUntil
+          };
+          if (includeLotteryEnabled) {
+            nextSettings.lotteryEnabled = Boolean(lotteryEnabledInput?.checked);
+          }
+
           const response = await fetch('/api/store/settings', {
             method: 'POST',
             headers: getAuthHeaders(),
-            body: JSON.stringify({
-              announcement,
-              whitelistUsernames,
-              maintenanceEnabled,
-              maintenanceMessage,
-              maintenanceReason,
-              maintenanceUntil,
-              orderViewerUsernames
-            })
+            body: JSON.stringify(nextSettings)
           });
 
           const result = await response.json();
@@ -900,8 +945,11 @@
             throw new Error(result.message || `保存失败 (${response.status})`);
           }
 
-          setStatus(result.message || '公告、白名单和维护设置已更新');
+          const finalSuccessText = successText || result.message || '商店设置已更新';
+          setStatus(finalSuccessText);
+          window.alert(finalSuccessText);
           await loadStoreSettings();
+          return result;
         }
 
         async function loadAccountState() {
@@ -913,7 +961,7 @@
               accountState.loggedIn = false;
               accountState.isDeveloper = false;
               setAccessView(false);
-              setStatus('登录态校验失败，正在尝试本地登录态重试...', true);
+              setStatus('登录态校验失败，需重新登录。', true);
               return false;
             }
 
@@ -939,8 +987,8 @@
             }
 
             setAccessView(true);
-            setEditOnlyView(accountState.canEditStore);
-            setStatus(accountState.canEditStore ? '权限权限验证通过，正在加载数据...' : '订单查看权限验证通过，正在加载订单...');
+            setEditOnlyView(true);
+            setStatus('权限验证通过，正在加载数据...');
             return true;
           } catch (error) {
             setAccessView(false);
@@ -968,8 +1016,8 @@
                 </div>
                 <div>
                   <input type="text" value="${escapeHtml(product.name)}" data-admin-name />
-                  <textarea data-admin-description>${escapeHtml(product.description)}</textarea>
-                  <div class="image-editor">
+                  <textarea class="admin-form-wide" data-admin-description>${escapeHtml(product.description)}</textarea>
+                  <div class="image-editor admin-form-wide">
                     <input type="text" value="${escapeHtml(product.imageUrl)}" placeholder="图片地址（/product-images/... 或 http(s)://...）" data-admin-image-url />
                     <div class="image-preview">${product.imageUrl ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)}" loading="lazy" />` : '<div style="display:grid;place-items:center;height:100%;font-size:12px;color:#64748b;">暂无图片</div>'}</div>
                     <div class="image-upload-row">
@@ -988,7 +1036,7 @@
                   <input type="text" value="${escapeHtml(category)}" data-admin-category />
                   <input type="number" min="0" step="1" value="${Math.max(0, Math.round(product.stock || 0))}" data-admin-stock />
                   <input type="number" step="1" value="${Math.round(product.sortOrder)}" data-admin-sort />
-                  <input type="text" value="${escapeHtml(extraTags)}" data-admin-tags />
+                  <input type="text" class="admin-form-wide" value="${escapeHtml(extraTags)}" data-admin-tags />
                 </div>
                 <div class="admin-row-actions">
                   <button class="mini-btn primary" type="button" data-admin-save>保存</button>
@@ -1040,15 +1088,14 @@
           cardTable.innerHTML = secrets.map((secret) => `
             <div class="admin-row" data-card-secret-row>
               <div>
-                <div class="order-row-title">${escapeHtml(secret.secretCode || '')}</div>
-                <div class="order-row-subtitle">${escapeHtml(secret.productCode || '')}</div>
+                <div class="order-row-title">${escapeHtml(secret.productCode || '')}</div>
+                <div class="order-row-subtitle">${escapeHtml(secret.label || '未命名')}</div>
               </div>
               <div>
-                <div class="order-row-title">${escapeHtml(secret.label || '未命名')}</div>
-                <div class="order-row-subtitle">${escapeHtml(secret.isUsed ? '已使用' : '未使用')}</div>
+                <div class="card-secret-value">${escapeHtml(secret.secretCode || '')}</div>
               </div>
               <div>
-                <div class="order-row-title">${secret.isUsed ? '已绑定' : '未绑定'}</div>
+                <div class="order-row-title">${escapeHtml(secret.isUsed ? '已使用' : '未使用')}</div>
                 <div class="order-row-subtitle">${escapeHtml(secret.usedOrderNo || '--')}</div>
               </div>
               <div>
@@ -1056,6 +1103,7 @@
                 <div class="order-row-subtitle">更新：${escapeHtml(secret.updatedAt || '--')}</div>
               </div>
               <div class="admin-row-actions">
+                <button type="button" class="mini-btn primary card-secret-copy-btn" data-card-secret-copy="${escapeHtml(secret.secretCode || '')}">复制</button>
                 <button type="button" class="mini-btn warn" data-card-delete="${escapeHtml(secret.secretCode || '')}">删除</button>
               </div>
             </div>
@@ -1183,6 +1231,8 @@
             const status = String(raw?.status || '').trim() || 'PENDING';
             const contact = String(raw?.contact || '').trim() || '未填写';
             const buyerNote = String(raw?.buyerNote || '').trim() || '无';
+            const couponCode = String(raw?.couponCode || '').trim();
+            const couponDiscountFen = Number(raw?.couponDiscountFen || 0);
             const createdAt = String(raw?.createdAt || '').trim() || '--';
             const paymentMethod = String(raw?.paymentMethod || 'wechat').trim().toLowerCase();
             return `
@@ -1198,6 +1248,7 @@
                 <div class="order-row-meta">
                   <div class="order-row-title">${escapeHtml(formatMoney(raw?.amountFen))}</div>
                   <div class="order-row-subtitle">${escapeHtml(paymentMethod === 'alipay' ? '支付宝' : '微信支付')}</div>
+                  ${couponCode ? `<div class="order-row-subtitle">券 ${escapeHtml(couponCode)} · 减免 ${escapeHtml(formatMoney(couponDiscountFen))}</div>` : ''}
                 </div>
                 <div class="order-row-actions">
                     <select data-order-status ${canEditOrders ? '' : 'disabled'}>
@@ -1304,6 +1355,12 @@
               adminProducts = Array.isArray(result?.products) ? result.products : [];
               renderAdminTable();
               renderCardProductPicker(adminProducts);
+
+              const couponResponse = await fetch('/api/store/coupons/admin', { headers: getAuthHeaders() });
+              const couponResult = await couponResponse.json();
+              if (!couponResponse.ok) throw new Error(couponResult.message || '加载折扣券失败');
+              adminCoupons = Array.isArray(couponResult?.coupons) ? couponResult.coupons : [];
+              renderCouponTable();
             }
 
             if (accountState.canViewOrders) {
@@ -1311,15 +1368,84 @@
             }
 
             if (accountState.canEditStore && accountState.canViewOrders) {
-              setStatus(`已加载 ${adminProducts.length} 件商品和 ${adminOrders.length} 笔订单。`);
+              setStatus(`已加载 ${adminProducts.length} 件商品、${adminCoupons.length} 张折扣券和 ${adminOrders.length} 笔订单。`);
             } else if (accountState.canEditStore) {
-              setStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
+              setStatus(`已加载 ${adminProducts.length} 件商品和 ${adminCoupons.length} 张折扣券，可管理商品与折扣券。`);
             } else {
               setStatus(`已加载 ${adminOrders.length} 笔订单。`);
             }
           } catch (error) {
             setStatus(error.message || '加载失败', true);
           }
+        }
+
+        if (couponCreateSubmit) {
+          couponCreateSubmit.addEventListener('click', async () => {
+            try {
+              const code = String(couponCreateCode?.value || '').trim().toUpperCase();
+              const discountType = String(couponCreateType?.value || 'percent');
+              const value = Number(couponCreateValue?.value);
+              const minimum = Number(couponCreateMinimum?.value || 0);
+              if (!code) throw new Error('请填写折扣券编码');
+              if (!Number.isFinite(value) || value <= 0) throw new Error('请填写有效的折扣数值');
+              if (discountType === 'percent' && (!Number.isInteger(value) || value > 99)) throw new Error('减免百分比需为 1-99 的整数');
+              if (!Number.isFinite(minimum) || minimum < 0) throw new Error('最低消费金额无效');
+              if (!confirmCriticalAction(`确认创建折扣券「${code}」吗？`)) return;
+
+              const response = await fetch('/api/store/coupons/admin/create', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                  code,
+                  discountType,
+                  discountValue: discountType === 'fixed' ? Math.round(value * 100) : value,
+                  minimumAmountFen: Math.round(minimum * 100),
+                  startsAt: String(couponCreateStart?.value || ''),
+                  expiresAt: String(couponCreateExpiry?.value || '')
+                })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '创建折扣券失败');
+              setStatus(result.message || '折扣券已创建。');
+              if (couponCreateCode) couponCreateCode.value = '';
+              if (couponCreateValue) couponCreateValue.value = '';
+              if (couponCreateMinimum) couponCreateMinimum.value = '';
+              if (couponCreateStart) couponCreateStart.value = '';
+              if (couponCreateExpiry) couponCreateExpiry.value = '';
+              await loadAdminProducts();
+            } catch (error) {
+              setStatus(error.message || '创建折扣券失败', true);
+            }
+          });
+        }
+
+        if (couponTable) {
+          couponTable.addEventListener('click', async (event) => {
+            const row = event.target.closest('[data-coupon-code]');
+            if (!row) return;
+            const code = String(row.dataset.couponCode || '').trim();
+            const toggleButton = event.target.closest('[data-coupon-toggle]');
+            const deleteButton = event.target.closest('[data-coupon-delete]');
+            if (!toggleButton && !deleteButton) return;
+
+            try {
+              if (deleteButton && !confirmCriticalAction(`确认删除折扣券 ${code} 吗？`)) return;
+              const endpoint = deleteButton ? '/api/store/coupons/admin/delete' : '/api/store/coupons/admin/toggle';
+              const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(deleteButton
+                  ? { code }
+                  : { code, isActive: row.dataset.couponActive !== '1' })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '折扣券操作失败');
+              setStatus(result.message || '折扣券已更新。');
+              await loadAdminProducts();
+            } catch (error) {
+              setStatus(error.message || '折扣券操作失败', true);
+            }
+          });
         }
 
         if (createSubmit) {
@@ -1404,16 +1530,48 @@
           });
         }
 
-        if (storeSettingsSaveButton) {
-          storeSettingsSaveButton.addEventListener('click', async () => {
+        if (storePaymentsSaveButton) {
+          storePaymentsSaveButton.addEventListener('click', async () => {
             try {
-              if (!confirmCriticalAction('确认保存公告、白名单和维护设置吗？')) {
-                setStatus('已取消保存设置。');
+              if (!confirmCriticalAction('确认保存支付通道状态吗？')) {
+                setStatus('已取消保存支付通道设置。');
                 return;
               }
-              await saveStoreSettings();
+              await saveStoreSettings({ successText: '支付通道设置已保存，并已生效。' });
             } catch (error) {
-              setStatus(error.message || '保存设置失败', true);
+              setStatus(error.message || '保存支付通道设置失败', true);
+            }
+          });
+        }
+
+        if (lotterySaveButton) {
+          lotterySaveButton.addEventListener('click', async () => {
+            const enabled = Boolean(lotteryEnabledInput?.checked);
+            try {
+              if (!confirmCriticalAction(`确认${enabled ? '开启' : '关闭'}抽奖中心吗？`)) {
+                setStatus('已取消抽奖设置更改。');
+                return;
+              }
+              await saveStoreSettings({
+                includeLotteryEnabled: true,
+                successText: `抽奖中心已${enabled ? '开启' : '关闭'}并生效。`
+              });
+            } catch (error) {
+              setStatus(error.message || '保存抽奖设置失败', true);
+            }
+          });
+        }
+
+        if (siteMaintenanceSaveButton) {
+          siteMaintenanceSaveButton.addEventListener('click', async () => {
+            try {
+              if (!confirmCriticalAction('确认保存维护设置吗？')) {
+                setStatus('已取消保存维护设置。');
+                return;
+              }
+              await saveStoreSettings({ successText: '维护设置已保存并生效。' });
+            } catch (error) {
+              setStatus(error.message || '保存维护设置失败', true);
             }
           });
         }
@@ -1493,6 +1651,19 @@
 
         if (cardTable) {
           cardTable.addEventListener('click', async (event) => {
+            const copyButton = event.target.closest('[data-card-secret-copy]');
+            if (copyButton) {
+              const secretCode = String(copyButton.dataset.cardSecretCopy || '').trim();
+              if (!secretCode) return;
+              try {
+                await navigator.clipboard.writeText(secretCode);
+                setStatus(`卡密 ${secretCode} 已复制到剪贴板。`);
+              } catch {
+                setStatus(`复制失败：${secretCode}`, true);
+              }
+              return;
+            }
+
             const deleteButton = event.target.closest('[data-card-delete]');
             if (!deleteButton) return;
             const secretCode = String(deleteButton.dataset.cardDelete || '').trim();
@@ -1648,38 +1819,6 @@
             } catch (error) {
               setStatus(error.message || '更新订单失败', true);
             }
-          });
-        }
-
-        if (storeWhitelistAddButton) {
-          storeWhitelistAddButton.addEventListener('click', () => {
-            const nextName = String(storeWhitelistInputBox?.value || '').trim();
-            if (!nextName) {
-              setStatus('请输入要添加的白名单用户名', true);
-              return;
-            }
-
-            if (!confirmCriticalAction(`确认将 ${nextName} 加入白名单吗？`)) {
-              setStatus('已取消添加白名单。');
-              return;
-            }
-
-            const nextList = normalizeWhitelistText(storeWhitelistInput?.value || '');
-            if (!nextList.includes(nextName)) {
-              nextList.push(nextName);
-            }
-
-            renderWhitelistList(nextList);
-            if (storeWhitelistInputBox) {
-              storeWhitelistInputBox.value = '';
-            }
-            setStatus(`已加入白名单：${nextName}`);
-          });
-        }
-
-        if (storeOrderViewerList) {
-          storeOrderViewerList.addEventListener('click', () => {
-            setStatus('订单查看员名单可直接在文本框中编辑后保存。');
           });
         }
 
@@ -1848,29 +1987,11 @@
           });
         }
 
-        if (storeWhitelistList) {
-          storeWhitelistList.addEventListener('click', (event) => {
-            const removeButton = event.target.closest('[data-whitelist-remove]');
-            if (!removeButton) {
-              return;
-            }
-
-            const removeName = String(removeButton.dataset.whitelistRemove || '').trim();
-            if (!confirmCriticalAction(`确认将 ${removeName} 移出白名单吗？`)) {
-              setStatus('已取消白名单移除。');
-              return;
-            }
-            const nextList = normalizeWhitelistText(storeWhitelistInput?.value || '').filter((item) => item !== removeName);
-            renderWhitelistList(nextList);
-            setStatus(`已移出白名单：${removeName}`);
-          });
-        }
-
         if (adminTabButtons.length) {
           adminTabButtons.forEach((button) => {
             button.addEventListener('click', () => setAdminCategory(button.dataset.adminTab));
           });
-          setAdminCategory('overview');
+          setAdminCategory('store');
         }
 
         if (refreshButton) {

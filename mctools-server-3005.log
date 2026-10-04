@@ -46,3 +46,7 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:8492) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3005  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:39080) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3005  (正式版1.4)

@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="keywords" content="夜轻的店铺"/>
+    <meta name="description" content=""/>
+    <link href="/favicon.ico" rel="icon">
+    <link rel="stylesheet" href="/assets/static/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/static/font/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/assets/static/css/i.css?v=3.8.3">
+    <link href="/app/View/User/Theme/Dream/Assets/Main.css?v=2.0.2" rel="stylesheet">
+    <script nonce="jwcy78KjXHfEKjikH-ZnfQ" src="/assets/static/jquery.min.js"></script>
+    <script nonce="jwcy78KjXHfEKjikH-ZnfQ" src="/assets/common/js/ready.js?v=3.8.3"></script>
+    <script nonce="jwcy78KjXHfEKjikH-ZnfQ" src="/assets/static/acg.js?v=3.8.3"></script>
+    <title>夜轻的店铺</title>
+    <link rel="stylesheet" type="text/css" href="/app/Plugin/SmallPopup/View/Css/iziToast.min.css?v=1.0.21" />
+    <script nonce="jwcy78KjXHfEKjikH-ZnfQ">
+        const cache_status = parseInt("0");
+        const cache_expire = parseInt("60");
+    </script>
+    <script nonce="jwcy78KjXHfEKjikH-ZnfQ" src="/assets/common/js/csp-bind.js?v=3.8.3.1788428089"></script>
+</head>
+<body style="background: url('https://api.yppp.net/pe.php') fixed no-repeat;background-size: cover;">
+<div id="app">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" style="background-color: rgba(255,255,255,0.85) !important;">
+        <div class="container">
+            <div class="navbar-brand">
+                <a href="/">
+                    <img src="/favicon.ico" height="30px" style="border-radius: 50%;box-shadow: #f0d1d4 1px 1px 1px;">
+                    <span style="position: relative;top: 4px;left: 3px;font-weight: bold;color: #1396558a;"> 夜轻的店铺 </span>
+                </a>
+                <a href="/user/authentication/login?goto=/">
+                    <span style="position: relative;top: 4px;left: 10px;font-size: 18px;color: #79b9fbbd;font-weight: bold;">
+                        <i class="fa fa-sign-in"></i> 登录
+                    </span>
+                </a>
+                <script nonce="jwcy78KjXHfEKjikH-ZnfQ">window._data_var=window._data_var||{};window._data_var.LANG="zh-cn";window._data_var.CURRENCY={"code":"CNY","symbol":"¥","rate":"1","decimals":2};</script>
+            </div>
+            <div class="row">
+                <a class="nav-link" href="/" style="font-weight: bolder;"><i class="fa fa-shopping-cart" aria-hidden="true"></i> 购物</a>
+                <a class="nav-link" href="/user/index/query" style="font-weight: bolder;"><i class="fa fa-search-plus" aria-hidden="true"></i> 查订单</a>
+                <a class="nav-link" href="https://qm.qq.com/q/fC9G8HQdoI" target="_blank" style="font-weight: bolder;"><i class="fa fa-twitch" aria-hidden="true"></i> 在线客服</a>
+                <span class="acg-lang" data-lang-parent>
+                    <a class="nav-link acg-lang-toggle" href="#" data-acg-noop="" style="font-weight: bolder;" title="语言" aria-label="切换语言"><i class="fa fa-globe" aria-hidden="true"></i> <span data-lang-label></span></a>
+                    <span class="acg-lang-menu">
+                        <a href="#" data-acg-noop="" data-lang-value="zh-cn">简体中文</a>
+                        <a href="#" data-acg-noop="" data-lang-value="zh-tw">繁體中文</a>
+                        <a href="#" data-acg-noop="" data-lang-value="en">English</a>
+                        <a href="#" data-acg-noop="" data-lang-value="ja">日本語</a>
+                    </span>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <p class="card-title"><i class="fa fa-bullhorn" aria-hidden="true"></i> 公告</p>
+                </div>
+                <div class="card-block">
+                    <p>引导页: <a>https://blog.yeqing.net/store.html/</a><br />使用地址 教程 退款政策等 见上方引导页<br />QQ群: 1056426833(进群后查看群公告)<br />请不要使用网站的工单功能 优先使用上方联系方式</p>
+                    <p>多数商品为兑换码形式发货 <strong>不支持退款和换货</strong> 购买前请确认无误</p>
+                </div>
+            </div>
+            <div class="category-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="open-commodity" style="display: none;">
+    <div class="layout commodity-di">
+        <div class="layout-content __html">
+            <form class="commodity-form">
+                <p class="commodity_name"></p>
+                <p class="share_url"><i class="fa fa-share"></i> 将宝贝分享给好友</p>
+                <p class="description"></p>
+                <p class="seckill general">限时秒杀：<span class="seckill_timer"></span></p>
+                <p class="general"><span class="price">0</span></p>
+                <p class="general">发货方式：<span class="delivery_way"></span><span class="stock">库存: ...</span></p>
+                <p class="general race-view">宝贝类型：<span></span></p>
+                <p class="general sku-view"></p>
+                <p class="general">联系方式：<input class="acg-input contact" type="text" name="contact" placeholder="请输入联系方式"></p>
+                <p class="password general">查询密码：<input class="acg-input" type="text" name="password" placeholder="请设置查询密码"></p>
+                <p class="widget general"></p>
+                <p class="coupon general">优惠代卷：<input class="acg-input" type="text" name="coupon" placeholder="没有可不填写" data-acg-change="acg.API.tradeAmountPerform" data-acg-args='[".trade_amount"]'></p>
+                <p class="general">购买数量：<input class="acg-input purchase_num" type="number" name="num" value="1" data-acg-change="acg.API.tradeAmountPerform" data-acg-args='[".trade_amount"]'> </p>
+                <p class="general captcha_status">人机验证：<input class="acg-input captcha-input" name="captcha" type="text" placeholder="请输入验证码"> <img class="captcha"></p>
+                <p class="purchase_count general"></p>
+                <p class="general">售前客服：<a target="_blank" class="qq-service"><i class="fa fa-qq"></i> QQ客服</a><a target="_blank" class="web-service"><i class="fa fa-user-plus"></i> 网页客服</a></p>
+                <p class="lot"></p>
+                <p class="draft_status"></p>
+            </form>
+        </div>
+    </div>
+    <div class="layout pay-content">
+        <label><i class="fa fa-shopping-cart"></i> 付款</label>
+        <div class="pay_list"></div>
+    </div>
+</div>
+
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ">
+    acg.ready("0", () => {
+        let __html = $('.__html').html();
+        let __htmlInit = () => {
+            $('.commodity-di').show();
+            $('.__html').html(__html);
+        }
+        let __htmlUnload = () => {
+            $('.commodity-di').hide();
+            $('.__html').html("");
+        }
+        __htmlUnload();
+        let defaultCommodity = "";
+        function inventoryHidden(state, count) {
+            if (state == 0) {
+                return count;
+            }
+            if (count <= 0) {
+                return "已售罄";
+            } else if (count <= 5) {
+                return "马上卖完";
+            } else if (count <= 20) {
+                return "一般";
+            } else if (count > 20) {
+                return "充足";
+            }
+        }
+        let dom = {
+            pageViewExec() {
+                let height = 760;
+                let pageHeight = $('.layui-layer-page[type=page]').height();
+                let top = ($(window).height() - height) / 2;
+                if (pageHeight > height) {
+                    $('.layui-layer-page[type=page]').css("top", top + "px");
+                    $('.layui-layer-content').css("height", height + "px");
+                } else {
+                    let top2 = ($(window).height() - pageHeight) / 2;
+                    $('.layui-layer-page[type=page]').css("top", top2 + "px");
+                }
+            },
+            pageView() {
+                if (acg.Util.isPc()) {
+                    dom.pageViewExec();
+                    $('.layui-layer-page[type=page]').bind('DOMNodeInserted', function (e) {
+                        dom.pageViewExec();
+                    });
+                    $('.layui-layer-page[type=page] img').each(function () {
+                        this.onload = function () {
+                            dom.pageViewExec();
+                        }
+                    });
+                }
+            },
+            initCategory() {
+                let self = this;
+                acg.API.category({
+                    success: function (res) {
+                        if (res.commodity_count > 0) {
+                            $('.category-list').append(`<div class="card">
+                    <div class="card-header">
+                        <p class="card-title"><img class="commodity-icon" src="` + res.icon + `"> ` + res.name + `</p>
+                    </div>
+                    <div class="card-block">
+                        <table class="layui-table">
+                            <tbody class="category-` + res.id + `">
+                            <tr class="head">
+                                <th><i class="fa fa-ioxhost" aria-hidden="true"></i> ${"商品名称"}</th>
+                                <th><i class="fa fa-buysellads" aria-hidden="true"></i> ${"单价"}</th>
+                                <th><i class="fa fa-bolt" aria-hidden="true"></i> ${"库存"}</th>
+                                <th></th>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`);
+                            let buyButton = function (item) {
+                                if (item.delivery_way == 0 && !item.shared && item.card_count <= 0) {
+                                    return '<td>-</td>';
+                                }
+                                return `<td><a data-id="` + item.id + `" href="#" data-acg-noop="" class="commodity-click-` + res.id + `"><i class="fa fa-shopping-cart" aria-hidden="true"></i> ${"购买"}</a></td>`;
+                            }
+                            acg.API.commoditys({
+                                keywords: "",
+                                categoryId: res.id,
+                                success: item => {
+                                    $('.category-' + res.id).append(`<tr class="item">
+                                <td><img class="commodity-icon" src="` + item.cover + `"> ` + item.name + `</td>
+                                <td>¥` + (item.price) + `</td>
+                                <td>` + item.stock + `</td>
+                                ` + buyButton(item) + `
+                            </tr>`);
+                                },
+                                empty: () => {
+                                },
+                                yes: () => {
+                                    $('.commodity-click-' + res.id).click(function () {
+                                        let commodityId = $(this).attr("data-id");
+                                        dom.commodity(commodityId);
+                                    });
+                                    if (defaultCommodity && defaultCommodity != 0) {
+                                        $('.commodity-click-' + res.id + '[data-id=' + defaultCommodity + ']').trigger("click");
+                                        defaultCommodity = null;
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            },
+            commodity(commodityId) {
+                acg.API.commodity({
+                    commodityId: commodityId,
+                    pay: ".pay-content",
+                    auto: {
+                        race: '.race-view',
+                        name: '.commodity_name',
+                        share_url: '.share_url',
+                        description: '.description',
+                        delivery_way: '.delivery_way',
+                        contact_type: '.contact',
+                        coupon: '.coupon',
+                        purchase_num: '.purchase_num',
+                        captcha: '.captcha',
+                        password_status: '.password',
+                        lot_status: '.lot',
+                        seckill_status: '.seckill',
+                        card: '.card_count',
+                        purchase_count: '.purchase_count',
+                        price: '.price',
+                        draft_status: '.draft_status',
+                        widget: '.widget',
+                        sku: '.sku-view'
+                    },
+                    begin: () => {
+                        __htmlInit();
+                    },
+                    success: res => {
+                        $('.qq-service').attr("href", 'https://wpa.qq.com/msgrd?v=1&uin=' + res.service_qq);
+                        $('.web-service').attr("href", res.service_url);
+                        layer.open({
+                            type: 1,
+                            shade: [0.3, "#fff"],
+                            title: acg.Util.isPc() ? false : res.name,
+                            content: $('.open-commodity'),
+                            area: acg.Util.isPc() ? "620px" : ["100%", "100%"],
+                            success: () => {
+                                dom.pageView();
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        dom.initCategory();
+        acg.API.pay({
+            success: item => {
+                if (item.handle === "#system") {
+                } else {
+                    $('.pay_list').append(' <a class="pay-button" data-acg-action="acg.API.tradePerform" data-acg-args=\'[' + item.id + ']\' style="line-height: 22px;"><img src="' + item.icon + '"> ' + item.name + '</a>');
+                }
+            }
+        });
+    });
+</script>
+
+<div class="content-icp"></div>
+
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ">
+    function getCookie(name) {
+        let strCookie = document.cookie;
+        let arrCookie = strCookie.split("; ");
+        for (let i = 0; i < arrCookie.length; i++) {
+            let arr = arrCookie[i].split("=");
+            if (name == arr[0]) {
+                return arr[1];
+            }
+        }
+        return "";
+    }
+
+    if (localStorage.hasOwnProperty("Remember")) {
+        document.cookie = "ACG-SHOP=" + localStorage.getItem("Remember");
+        localStorage.removeItem("Remember");
+        window.location.reload();
+    }
+</script>
+
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ" type="text/javascript" src="/app/Plugin/SmallPopup/View/Js/iziToast.min.js?v=1.0.21"></script>
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ" type="text/javascript" src="/app/Plugin/SmallPopup/View/Js/control.js?v=1.0.21"></script>
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ">const small_popup_config = {style:'notice',avatar_url:'https://list.yppp.net/d/cos/yeqing.jpeg',position:'bottomCenter',cache:'notLimited',title:'夜轻:',content:'使用教程 联系方式 退款政策见引导页',timeOut: 10000};</script>
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ">SmallPopup.construct();</script>
+
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ" defer src="https://u.2a.hk/js/script.js" data-host-url="https://u.2a.hk" data-website-id="aca58896-4544-4d91-a069-b4add9a5fa4f"></script>
+<link rel="stylesheet" href="/app/Plugin/PopupNotice/View/css/notice.css?v=1.0.11">
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ" type="application/json" id="acg-popup-notice-data">{"version":"33372d760f8a","lang":"zh-CN","title":"","subtitle":"","avatar":"https://list.yppp.net/d/cos/yeqing.jpeg","html":"\u003Cp style=\u0022text-align:center;\u0022\u003E\u003Cfont color=\u0022#c24f4a\u0022\u003E如有问题请进群 在群内反馈\u003C/font\u003E\u003C/p\u003E\u003Cp style=\u0022text-align:center;\u0022\u003E\u003Cfont color=\u0022#000000\u0022\u003E群号:\u003C/font\u003E\u003Cb style=\u0022color:rgb(194,79,74);\u0022\u003E \u003C/b\u003E\u003Ca target=\u0022_blank\u0022 style=\u0022background-color:rgb(255,255,255);font-family:\u0027Helvetica Neue\u0027, Helvetica, \u0027PingFang SC\u0027, Tahoma, Arial, sans-serif;font-size:14px;\u0022 rel=\u0022noreferrer noopener\u0022\u003E1056426833\u003C/a\u003E \u003C/p\u003E\u003Cp style=\u0022text-align:center;\u0022\u003E教程和使用地址见引导页:\u003C/p\u003E\u003Cp style=\u0022text-align:center;\u0022\u003E\u003Ca target=\u0022_blank\u0022 rel=\u0022noreferrer noopener\u0022\u003Ehttps://blog.yeqing.net/store.html/\u003C/a\u003E\u003C/p\u003E","links":[{"title":"QQ群","url":"https://qm.qq.com/q/GUd4GI1vaw","tint":"default"},{"title":"引导页","url":"https://blog.yeqing.net/store.html/","tint":"default"}],"confirm":"","life":2,"mini":1,"appearance":"auto","width":"720px","linkStyle":"auto","snoozeDefault":true,"i18n":{"ok":"我知道了","close":"关闭","snooze":"今天不再显示","open":"查看公告","hint":"随时点这里，再次查看公告","tag":"公告","links":"相关链接","site":"本站页面"}}</script>
+<script nonce="jwcy78KjXHfEKjikH-ZnfQ" src="/app/Plugin/PopupNotice/View/js/notice.js?v=1.0.11" defer></script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="night">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#122c3a" />
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('mctools-store-theme');
+      document.documentElement.dataset.theme = savedTheme === 'day' ? 'day' : 'night';
+    } catch {
+      document.documentElement.dataset.theme = 'night';
+    }
+  </script>
+  <title>查单中心 · 星际商店</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #e5edf9;
+      --muted: #b6c4d8;
+      --line: rgba(148, 163, 184, 0.2);
+      --paper: #0f172a;
+      --panel: rgba(15, 23, 42, 0.78);
+      --teal: #0ea5e9;
+      --teal-dark: #2563eb;
+      --danger: #ad3434;
+      --success: #167348;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(168, 85, 247, 0.16), transparent 30%),
+        linear-gradient(180deg, #08111f 0%, #0f172a 48%, #111827 100%);
+      font-family: "Segoe UI", system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+    }
+    html[data-theme="day"] { color-scheme: light; --ink: #0f172a; --muted: #475569; --line: rgba(148, 163, 184, 0.26); --paper: #e2e8f0; --panel: rgba(255, 255, 255, 0.86); }
+    html[data-theme="day"] body { background: radial-gradient(ellipse at top left, rgba(96,165,250,.14), transparent 28%), linear-gradient(180deg, #eaf3ff 0%, #dbeafe 42%, #e2e8f0 100%); }
+    .shell { width: min(100% - 32px, 880px); margin: 0 auto; padding: 28px 0 48px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 900; }
+    .brand-mark { display: grid; place-items: center; width: 40px; aspect-ratio: 1; border-radius: 12px; background: linear-gradient(135deg, #0ea5e9, #2563eb); color: white; box-shadow: 0 10px 22px rgba(37,99,235,.24); }
+    .brand small { display: block; margin-top: 3px; color: var(--muted); font-size: 0.74rem; font-weight: 700; }
+    .back-link { color: #7dd3fc; font-weight: 800; text-decoration: none; }
+    html[data-theme="day"] .back-link { color: #1d4ed8; }
+    h1 { margin: 0; font-size: 2.4rem; }
+    .intro { margin: 8px 0 22px; max-width: 62ch; color: var(--muted); line-height: 1.65; }
+    .lookup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: start; }
+    .lookup { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); box-shadow: 0 20px 44px rgba(2,6,23,.22); backdrop-filter: blur(14px); }
+    .lookup h2 { margin: 0 0 6px; font-size: 1.12rem; }
+    .lookup p { margin: 0 0 15px; color: var(--muted); font-size: .9rem; line-height: 1.55; }
+    label { display: block; margin-bottom: 7px; font-weight: 800; font-size: .88rem; }
+    input { width: 100%; min-height: 46px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: rgba(2,6,23,.28); color: var(--ink); font: inherit; }
+    html[data-theme="day"] input { background: rgba(255,255,255,.96); }
+    input:focus { outline: 3px solid rgba(8,126,120,.18); border-color: var(--teal); }
+    button { min-height: 44px; padding: 0 15px; border: 1px solid rgba(191,219,254,.26); border-radius: 12px; background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6); color: white; font: inherit; font-weight: 850; cursor: pointer; box-shadow: 0 12px 24px rgba(37,99,235,.2); animation: button-breathe 2.2s ease-in-out infinite; }
+    button:hover { filter: brightness(1.08); }
+    button:disabled { opacity: .58; cursor: wait; }
+    .lookup button { width: 100%; margin-top: 10px; }
+    .message { min-height: 1.4em; margin-top: 10px; color: var(--muted); font-size: .88rem; }
+    .message.error { color: var(--danger); }
+    .result { display: grid; gap: 9px; margin-top: 14px; }
+    .result:empty { display: none; }
+    .result-card { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(2,6,23,.24); }
+    html[data-theme="day"] .result-card { background: rgba(255,255,255,.92); }
+    .result-card.success { border-left: 4px solid var(--success); }
+    .result-card.pending { border-left: 4px solid #c58c17; }
+    .result-card.error { border-left: 4px solid var(--danger); }
+    .result-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; line-height: 1.45; }
+    .result-row span { color: var(--muted); }
+    .result-row strong { max-width: 68%; text-align: right; overflow-wrap: anywhere; }
+    .secret { margin-top: 10px; padding: 12px; border-radius: 12px; background: rgba(14,165,233,.14); border: 1px solid rgba(56,189,248,.22); overflow-wrap: anywhere; font-weight: 900; }
+    .order-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+    .order-item:first-child { border-top: 0; }
+    .order-item strong, .order-item span { display: block; overflow-wrap: anywhere; }
+    .order-item span { margin-top: 4px; color: var(--muted); font-size: .83rem; }
+    .order-item button { width: auto; min-width: 76px; margin: 0; }
+    .lottery-entry {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 35;
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 58px;
+      padding: 10px 17px 10px 11px;
+      border: 1px solid rgba(191,219,254,.28);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(14,165,233,.96), rgba(124,58,237,.96));
+      color: #fff;
+      text-decoration: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(255,255,255,.24);
+      box-shadow: 0 20px 40px rgba(30,64,175,.3);
+      backdrop-filter: blur(14px);
+      animation: button-breathe 2.2s ease-in-out infinite;
+      transition: transform 45ms ease-out, box-shadow 45ms ease-out, filter 45ms ease-out;
+    }
+    .lottery-entry-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: rgba(255,255,255,.18); font-weight: 900; }
+    .lottery-entry-copy { display: grid; gap: 3px; line-height: 1.1; }
+    .lottery-entry-copy small { color: rgba(255,255,255,.82); font-size: .72rem; }
+    .lottery-entry:active { animation: none; transition: none; transform: translateY(4px) scale(.86); filter: brightness(.72); box-shadow: inset 0 5px 12px rgba(2,6,23,.5), 0 2px 5px rgba(30,64,175,.5); }
+    .lottery-entry:focus-visible { outline: 3px solid rgba(125,211,252,.85); outline-offset: 3px; }
+    @keyframes button-breathe {
+      0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 10px 20px rgba(37,99,235,.16); }
+      50% { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 30px rgba(139,92,246,.28); }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 22px, 520px); padding-top: 16px; }
+      .topbar { margin-bottom: 18px; }
+      .lookup-grid { grid-template-columns: 1fr; }
+      .lookup { padding: 16px; }
+      h1 { font-size: 1.8rem; }
+      .lottery-entry { right: 14px; bottom: 14px; min-height: 52px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">S</span><span>星际商店<small>订单服务</small></span></div>
+      <a class="back-link" href="/store.html">返回商店</a>
+    </header>
+    <h1>查单中心</h1>
+    <p class="intro">按订单号查看支付状态和卡密，也可以用下单时填写的联系方式查找最近订单。</p>
+
+    <div class="lookup-grid">
+      <section class="lookup" aria-labelledby="lookup-order-heading">
+        <h2 id="lookup-order-heading">订单号查询</h2>
+        <p>查询单笔订单状态；已支付订单可直接查看卡密。</p>
+        <form data-order-form>
+          <label for="order-number">订单号</label>
+          <input id="order-number" type="text" autocomplete="off" placeholder="输入完整订单号" data-order-input />
+          <button type="submit" data-order-submit>查询订单</button>
+        </form>
+        <div class="message" data-order-message aria-live="polite"></div>
+        <div class="result" data-order-result aria-live="polite">
+          <div class="result-card">输入订单号后查询支付状态和卡密。</div>
+        </div>
+      </section>
+
+      <section class="lookup" aria-labelledby="lookup-contact-heading">
+        <h2 id="lookup-contact-heading">联系方式查单</h2>
+        <p>输入下单时留存的 QQ、微信号、手机号或邮箱。</p>
+        <form data-contact-form>
+          <label for="order-contact">联系方式</label>
+          <input id="order-contact" type="text" autocomplete="email" placeholder="输入至少 4 位联系方式" data-contact-input />
+          <button type="submit" data-contact-submit>查找订单</button>
+        </form>
+        <div class="message" data-contact-message aria-live="polite"></div>
+        <div class="result" data-contact-result aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <a class="lottery-entry" href="/lottery.html" aria-label="打开抽奖中心">
+    <span class="lottery-entry-mark">抽</span>
+    <span class="lottery-entry-copy"><strong>抽奖中心</strong><small>查看奖池与活动</small></span>
+  </a>
+  <script>
+    (() => {
+      const orderForm = document.querySelector('[data-order-form]');
+      const orderInput = document.querySelector('[data-order-input]');
+      const orderSubmit = document.querySelector('[data-order-submit]');
+      const orderMessage = document.querySelector('[data-order-message]');
+      const orderResult = document.querySelector('[data-order-result]');
+      const contactForm = document.querySelector('[data-contact-form]');
+      const contactInput = document.querySelector('[data-contact-input]');
+      const contactSubmit = document.querySelector('[data-contact-submit]');
+      const contactMessage = document.querySelector('[data-contact-message]');
+      const contactResult = document.querySelector('[data-contact-result]');
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
+      }
+
+      async function fetchJson(url) {
+        const response = await fetch(url);
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || '查询失败');
+        return result;
+      }
+
+      function normalizeOrderNo(value) {
+        const raw = String(value || '').trim().toUpperCase();
+        const stripped = raw.replace(/^#+|^\*+|\*+$/g, '');
+        const matched = stripped.match(/[A-Z0-9][A-Z0-9_-]{6,}/);
+        return String(matched ? matched[0] : stripped).replace(/[^A-Z0-9_-]/g, '');
+      }
+
+      function setMessage(element, message, isError = false) {
+        element.textContent = message;
+        element.classList.toggle('error', isError);
+      }
+
+      function renderOrder(order) {
+        const paid = Boolean(order.paid);
+        const status = String(order.status || 'PENDING');
+        const cardSecret = String(order.cardSecret || '').trim();
+        const note = paid
+          ? (cardSecret ? '订单已支付，卡密已发放。' : '订单已支付，卡密正在生成，请稍候。')
+          : '订单尚未支付成功，请完成付款后再查询。';
+        orderResult.innerHTML = `
+          <div class="result-card ${paid ? 'success' : 'pending'}">
+            <div class="result-row"><span>订单号</span><strong>${escapeHtml(order.orderNo || '--')}</strong></div>
+            <div class="result-row"><span>商品</span><strong>${escapeHtml(order.productName || '--')}</strong></div>
+            <div class="result-row"><span>状态</span><strong>${escapeHtml(status)}</strong></div>
+            <div class="result-row"><span>支付结果</span><strong>${paid ? '已支付' : '未支付'}</strong></div>
+            <div class="result-row"><span>更新时间</span><strong>${escapeHtml(order.updatedAt || '--')}</strong></div>
+            ${order.couponCode ? `<div class="result-row"><span>折扣券</span><strong>${escapeHtml(order.couponCode)}</strong></div>` : ''}
+            <p>${escapeHtml(note)}</p>
+            ${cardSecret ? `<div class="secret">卡密：${escapeHtml(cardSecret)}</div>` : ''}
+          </div>`;
+      }
+
+      async function queryOrder(orderNo) {
+        const normalized = normalizeOrderNo(orderNo);
+        if (!normalized) throw new Error('请输入有效订单号');
+        return fetchJson(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalized)}`);
+      }
+
+      orderForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        orderSubmit.disabled = true;
+        orderResult.replaceChildren();
+        setMessage(orderMessage, '正在查询...');
+        try {
+          const order = await queryOrder(orderInput.value);
+          renderOrder(order);
+          setMessage(orderMessage, '查询完成。');
+          orderInput.value = normalizeOrderNo(orderInput.value);
+        } catch (error) {
+          orderResult.innerHTML = `<div class="result-card error">${escapeHtml(error.message || '查询失败')}</div>`;
+          setMessage(orderMessage, '', true);
+        } finally {
+          orderSubmit.disabled = false;
+        }
+      });
+
+      contactForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const contact = String(contactInput.value || '').trim();
+        if (contact.length < 4) {
+          setMessage(contactMessage, '联系方式长度至少 4 位。', true);
+          return;
+        }
+        contactSubmit.disabled = true;
+        contactResult.replaceChildren();
+        setMessage(contactMessage, '正在查找...');
+        try {
+          const result = await fetchJson(`/api/store/orders/by-contact?contact=${encodeURIComponent(contact)}&limit=20`);
+          const orders = Array.isArray(result.orders) ? result.orders : [];
+          setMessage(contactMessage, orders.length ? `找到 ${orders.length} 笔订单。` : '该联系方式暂无订单。');
+          contactResult.innerHTML = orders.map((order) => {
+            const orderNo = String(order.orderNo || '');
+            const status = String(order.status || 'PENDING');
+            return `<div class="order-item"><div><strong>${escapeHtml(orderNo)}</strong><span>${escapeHtml(order.productName || '--')} · ${escapeHtml(status)} · ${escapeHtml((Number(order.amountFen || 0) / 100).toFixed(2))} 元</span></div><button type="button" data-view-order="${escapeHtml(orderNo)}">查看详情</button></div>`;
+          }).join('');
+        } catch (error) {
+          setMessage(contactMessage, error.message || '联系方式查单失败', true);
+        } finally {
+          contactSubmit.disabled = false;
+        }
+      });
+
+      contactResult.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-view-order]');
+        if (!button) return;
+        orderInput.value = button.dataset.viewOrder || '';
+        orderForm.requestSubmit();
+      });
+
+      const prefillOrderNo = new URL(location.href).searchParams.get('orderNo');
+      if (prefillOrderNo) {
+        orderInput.value = prefillOrderNo;
+        orderForm.requestSubmit();
+      }
+    })();
+  </script>
+</body>
+</html>

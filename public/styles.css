@@ -36,6 +36,71 @@ body::before {
   margin-right: auto;
 }
 
+body.minimal-glass .brand,
+body.minimal-glass .top-actions,
+body.minimal-glass .panel,
+body.minimal-glass .card,
+body.minimal-glass .menu-card,
+body.minimal-glass .auth-card,
+body.minimal-glass .settings-panel,
+body.minimal-glass .about-panel,
+body.minimal-glass .switch-card,
+body.minimal-glass .page-tab,
+body.minimal-glass .nav-btn,
+body.minimal-glass .theme-toggle,
+body.minimal-glass .secondary-btn,
+body.minimal-glass .primary-btn {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+body.minimal-glass * {
+  text-shadow: none !important;
+}
+
+body.high-contrast,
+body.high-contrast * {
+  color-scheme: light dark;
+}
+
+body.high-contrast .lead,
+body.high-contrast .brand small,
+body.high-contrast .muted,
+body.high-contrast .auth-note,
+body.high-contrast .switch-copy small,
+body.high-contrast .settings-panel-copy,
+body.high-contrast .about-panel,
+body.high-contrast p,
+body.high-contrast span,
+body.high-contrast label,
+body.high-contrast strong,
+body.high-contrast small {
+  opacity: 1 !important;
+  filter: contrast(1.18) saturate(1.2);
+}
+
+body.lower-glow *,
+body.lower-glow *::before,
+body.lower-glow *::after {
+  box-shadow: none !important;
+  filter: saturate(0.85) !important;
+}
+
+body.sticky-header .topbar,
+body.sticky-header .site-header,
+body.sticky-header .header-bar {
+  position: sticky !important;
+  top: 12px !important;
+  z-index: 30;
+}
+
+body.hide-decorations::before,
+body.hide-decorations::after {
+  display: none !important;
+}
+
 .hero-home-centered .meta-row {
   justify-content: center;
 }

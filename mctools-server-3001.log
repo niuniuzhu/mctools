@@ -565,3 +565,31 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:17544) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3001  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:26352) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+D:\Projects\mctools\server.js:197
+db.exec(`
+   ^
+
+Error: disk I/O error
+    at Object.<anonymous> (D:\Projects\mctools\server.js:197:4)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 1546,
+  errstr: 'disk I/O error'
+}
+
+Node.js v24.14.1
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:35036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4)

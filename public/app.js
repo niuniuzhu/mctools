@@ -1,8 +1,33 @@
 const SITE_BACKGROUND_ENDPOINT = '/api/store/background-image';
 
+function shouldUseGlobalBackgroundImage() {
+  try {
+    if (window.MCToolsGlobalPreferences && typeof window.MCToolsGlobalPreferences.getBackgroundImageEnabled === 'function') {
+      return window.MCToolsGlobalPreferences.getBackgroundImageEnabled();
+    }
+
+    return localStorage.getItem('mctools-store-background-enabled') !== '0';
+  } catch {
+    return true;
+  }
+}
+
 function applyGlobalBackgroundImage() {
   try {
     const style = document.body ? document.body.style : null;
+
+    if (!shouldUseGlobalBackgroundImage()) {
+      if (style) {
+        style.background = '';
+        style.backgroundImage = '';
+        style.backgroundPosition = '';
+        style.backgroundSize = '';
+        style.backgroundRepeat = '';
+        style.backgroundAttachment = '';
+      }
+      return;
+    }
+
     const imageUrl = `${SITE_BACKGROUND_ENDPOINT}?ts=${Date.now()}`;
 
     if (style) {
@@ -30,6 +55,12 @@ if (document.readyState === 'loading') {
 } else {
   applyGlobalBackgroundImage();
 }
+
+window.addEventListener('storage', (event) => {
+  if (event.key === 'mctools-store-background-enabled') {
+    applyGlobalBackgroundImage();
+  }
+});
 
 const COMMANDS = {
   tp: ({ target, destination }) => {

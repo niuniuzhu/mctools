@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>商店账号中心</title>
+    <title>商店设置</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; }
       html, body { margin: 0; min-height: 100%; }
@@ -25,15 +25,6 @@
         background:
           radial-gradient(circle at 20% 22%, rgba(255,255,255,0.5), transparent 18%),
           radial-gradient(circle at 78% 12%, rgba(255,255,255,0.38), transparent 16%),
-          radial-gradient(circle at 50% 88%, rgba(255,255,255,0.22), transparent 20%);
-        opacity: 0.95;
-      }
-      body::after {
-        content: '';
-        position: fixed;
-        inset: 0;
-        pointer-events: none;
-        background:
           radial-gradient(circle at 18% 16%, rgba(255, 188, 214, 0.34), transparent 28%),
           radial-gradient(circle at 78% 20%, rgba(196, 181, 253, 0.26), transparent 26%),
           radial-gradient(circle at 64% 72%, rgba(186, 230, 253, 0.24), transparent 30%),
@@ -46,15 +37,6 @@
           radial-gradient(ellipse 62% 44% at 18% 10%, rgba(255, 173, 214, 0.18), transparent 48%),
           radial-gradient(ellipse 42% 38% at 82% 18%, rgba(196, 181, 253, 0.12), transparent 44%),
           linear-gradient(180deg, #0f172a 0%, #111827 55%, #0f172a 100%);
-        color: #e2e8f0;
-      }
-      html[data-theme="night"] body::after {
-        opacity: 0.3;
-        background:
-          radial-gradient(circle at 18% 16%, rgba(236, 72, 153, 0.14), transparent 28%),
-          radial-gradient(circle at 78% 20%, rgba(129, 140, 248, 0.18), transparent 26%),
-          radial-gradient(circle at 64% 72%, rgba(56, 189, 248, 0.12), transparent 30%),
-          linear-gradient(125deg, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.32) 40%, rgba(15, 23, 42, 0.65));
       }
       .shell {
         width: min(980px, calc(100% - 28px));
@@ -107,6 +89,36 @@
         background: linear-gradient(135deg, #7dd3fc, #60a5fa 30%, #a78bfa 100%);
         color: #081521; border: 1px solid transparent; box-shadow: 0 16px 30px rgba(96, 165, 250, 0.26);
       }
+      body.compact-mode .shell {
+        width: min(920px, calc(100% - 18px));
+        padding-top: 12px;
+      }
+
+      body.compact-mode .card-head,
+      body.compact-mode .card-body,
+      body.compact-mode .settings-panel,
+      body.compact-mode .about-panel,
+      body.compact-mode .switch-card {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+
+      body.compact-mode .page-tabs,
+      body.compact-mode .auth-tabs,
+      body.compact-mode .settings-choice-row,
+      body.compact-mode .settings-stack,
+      body.compact-mode .auth-actions,
+      body.compact-mode .oauth-actions {
+        gap: 8px;
+      }
+
+      body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
       .auth-card {
         background: rgba(255,255,255,0.7); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 28px;
         box-shadow: 0 30px 70px rgba(15, 23, 42, 0.12); overflow: hidden; backdrop-filter: blur(18px);
@@ -117,6 +129,91 @@
       .card-head h1 { margin: 0; font-size: clamp(2rem, 4vw, 2.6rem); }
       .card-body { padding: 8px 24px 24px; }
       .lead { color: #4b5a6a; line-height: 1.8; margin: 0 0 20px; }
+      .page-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+      }
+      .page-tab {
+        padding: 10px 16px;
+        background: rgba(255,255,255,0.38);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        color: #334155;
+        font-weight: 700;
+      }
+      .page-tab.active {
+        background: linear-gradient(135deg, #7dd3fc, #60a5fa 30%, #a78bfa 100%);
+        color: #081521;
+        border: 1px solid transparent;
+        box-shadow: 0 16px 30px rgba(96, 165, 250, 0.26);
+      }
+      .page-panel { display: none; }
+      .page-panel.active { display: block; }
+      .settings-panel {
+        display: grid;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.42);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+      }
+      .settings-panel strong {
+        font-size: 1.05rem;
+      }
+      .settings-panel-copy {
+        margin: 0;
+        color: #51657d;
+        line-height: 1.75;
+      }
+      .settings-choice-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .choice-btn {
+        min-width: 140px;
+      }
+      .settings-stack {
+        display: grid;
+        gap: 14px;
+      }
+      .switch-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.58);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .switch-card input {
+        width: auto;
+        margin-top: 4px;
+      }
+      .switch-copy strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+      .switch-copy small {
+        color: #64748b;
+        line-height: 1.7;
+      }
+      .settings-select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(255,255,255,0.62);
+        color: #0f172a;
+        outline: none;
+        font: inherit;
+      }
+      .settings-select:focus {
+        border-color: rgba(96, 165, 250, 0.65);
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+      }
       .auth-tabs { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
       .auth-tab {
         padding: 10px 16px; background: rgba(255,255,255,0.38); border: 1px solid rgba(148, 163, 184, 0.22); color: #334155; font-weight: 700;
@@ -179,6 +276,96 @@
       }
       .auth-status.error { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.25); color: #b91c1c; }
       .auth-note { color: #51657d; line-height: 1.7; margin-bottom: 12px; }
+      .about-panel {
+        display: grid;
+        gap: 16px;
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.42);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+      }
+      .about-panel strong {
+        font-size: 1.05rem;
+      }
+      .about-version {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(125, 211, 252, 0.24), rgba(167, 139, 250, 0.24));
+        color: #0f172a;
+        font-weight: 800;
+      }
+      .about-contact-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+      }
+      .about-contact-value {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.62);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        color: #0f172a;
+        font-weight: 800;
+      }
+      .language-loading {
+        position: fixed;
+        inset: 0;
+        display: none;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.16), transparent 24%),
+          radial-gradient(circle at 50% 70%, rgba(244, 114, 182, 0.12), transparent 28%),
+          rgba(15, 23, 42, 0.985);
+        z-index: 9999;
+      }
+      .language-loading.active {
+        display: grid;
+      }
+      .language-loading-card {
+        min-width: min(88vw, 360px);
+        text-align: center;
+      }
+      .language-loading-text {
+        margin: 0;
+        color: #f8fafc;
+        font-weight: 800;
+        font-size: clamp(1.08rem, 3vw, 1.34rem);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        text-shadow: 0 0 22px rgba(125, 211, 252, 0.2);
+        animation: languageLoadingPulse 1.6s ease-in-out infinite;
+      }
+      .language-loading-text::after {
+        content: '...';
+        display: inline-block;
+        width: 1.5em;
+        overflow: hidden;
+        vertical-align: bottom;
+        animation: languageLoadingDots 1.2s steps(4, end) infinite;
+      }
+      @keyframes languageLoadingPulse {
+        0%, 100% {
+          opacity: 0.58;
+          letter-spacing: 0.16em;
+          transform: translateY(0);
+        }
+        50% {
+          opacity: 1;
+          letter-spacing: 0.24em;
+          transform: translateY(-2px);
+        }
+      }
+      @keyframes languageLoadingDots {
+        0% { width: 0; }
+        100% { width: 1.5em; }
+      }
       .auth-divider {
         display: flex;
         align-items: center;
@@ -291,19 +478,28 @@
       html[data-theme="night"] .brand,
       html[data-theme="night"] .top-actions,
       html[data-theme="night"] .auth-card,
+      html[data-theme="night"] .settings-panel,
       html[data-theme="night"] .auth-qr-panel,
       html[data-theme="night"] .scan-confirm-panel,
       html[data-theme="night"] .auth-remember,
       html[data-theme="night"] .auth-tab,
       html[data-theme="night"] .secondary-btn,
       html[data-theme="night"] .muted-btn,
-      html[data-theme="night"] input {
+      html[data-theme="night"] .switch-card,
+      html[data-theme="night"] .language-loading-card,
+      html[data-theme="night"] .about-contact-value,
+      html[data-theme="night"] input,
+      html[data-theme="night"] .settings-select {
         background: rgba(15, 23, 42, 0.72); color: #e2e8f0; border-color: rgba(148, 163, 184, 0.22);
         box-shadow: 0 22px 50px rgba(2, 6, 23, 0.24);
       }
       html[data-theme="night"] .brand small,
       html[data-theme="night"] .lead,
       html[data-theme="night"] .field label,
+      html[data-theme="night"] .about-panel,
+      html[data-theme="night"] .settings-panel-copy,
+      html[data-theme="night"] .switch-copy small,
+      html[data-theme="night"] .language-loading-text,
       html[data-theme="night"] .auth-remember small,
       html[data-theme="night"] .auth-qr-head small,
       html[data-theme="night"] .scan-confirm-head small,
@@ -318,6 +514,15 @@
       html[data-theme="night"] input { background: rgba(15, 23, 42, 0.68); }
       html[data-theme="night"] .theme-toggle, html[data-theme="night"] .nav-btn, html[data-theme="night"] .secondary-btn {
         background: rgba(255,255,255,0.08); color: #e2e8f0;
+      }
+      html[data-theme="night"] .page-tab {
+        background: rgba(15, 23, 42, 0.72);
+        color: #e2e8f0;
+        border-color: rgba(148, 163, 184, 0.22);
+        box-shadow: 0 22px 50px rgba(2, 6, 23, 0.24);
+      }
+      html[data-theme="night"] .about-version {
+        color: #e2e8f0;
       }
       html[data-theme="night"] .auth-status { color: #b7f0cc; }
       html[data-theme="night"] .auth-qr-preview {
@@ -334,133 +539,278 @@
   </head>
   <body>
     <main class="shell">
+      <div class="language-loading" data-language-loading hidden>
+        <div class="language-loading-card">
+          <p class="language-loading-text" data-language-loading-text>正在切换语言...</p>
+        </div>
+      </div>
+
       <header class="topbar">
         <div class="brand">
           <div class="brand-badge">S</div>
           <div>
-            <strong>星际商店</strong>
-            <small>账号中心</small>
+            <strong data-i18n="brandTitle">星际商店</strong>
+            <small data-i18n="brandSubtitle">设置</small>
           </div>
         </div>
         <div class="top-actions">
           <button type="button" class="theme-toggle" data-theme-toggle>🌙 夜间</button>
-          <a href="/store.html" class="nav-btn primary">返回商店</a>
+          <a href="/store.html" class="nav-btn primary" data-i18n="backToStore">返回商店</a>
         </div>
       </header>
 
-      <section class="auth-card" aria-label="商店账号中心">
+      <section class="auth-card" aria-label="商店设置">
         <div class="card-head">
-          <h1>账号中心</h1>
-          <button type="button" class="secondary-btn header-btn" data-auth-logout hidden>退出登录</button>
+          <h1 data-i18n="pageTitle">设置</h1>
+          <button type="button" class="secondary-btn header-btn" data-auth-logout data-i18n="logoutButton" hidden>退出登录</button>
         </div>
         <div class="card-body">
-          <p class="lead">登录商店账号后，可同步购买记录、查看权限状态，并继续购买商品。账号在商店中与收款设置独立管理。</p>
+          <p class="lead" data-i18n="lead">登录商店账号后，可同步购买记录、查看权限状态，并继续购买商品。账号在商店中与收款设置独立管理。</p>
 
-          <div class="auth-tabs">
-            <button class="auth-tab active" type="button" data-auth-tab="register">注册账号</button>
-            <button class="auth-tab" type="button" data-auth-tab="login">登录账号</button>
+          <div class="page-tabs" data-page-tabs>
+            <button class="auth-tab page-tab active" type="button" data-page-tab="account" data-i18n="pageTabAccount">账号</button>
+            <button class="auth-tab page-tab" type="button" data-page-tab="about" data-i18n="pageTabAbout">关于</button>
+            <button class="auth-tab page-tab" type="button" data-page-tab="language" data-i18n="pageTabLanguage">语言</button>
+            <button class="auth-tab page-tab" type="button" data-page-tab="general" data-i18n="pageTabGeneral">通用</button>
           </div>
 
-          <label class="auth-remember" for="auth-remember-login">
-            <input id="auth-remember-login" type="checkbox" data-auth-remember-login checked />
-            <span>
-              <strong>保持登录</strong>
-              <small>勾选后登录状态保持 30 天，不勾选保持 3 天。</small>
-            </span>
-          </label>
+          <section class="page-panel active" data-page-panel="account">
+            <div class="auth-tabs">
+              <button class="auth-tab active" type="button" data-auth-tab="register" data-i18n="authTabRegister">注册账号</button>
+              <button class="auth-tab" type="button" data-auth-tab="login" data-i18n="authTabLogin">登录账号</button>
+            </div>
 
-          <section class="auth-panel active" data-auth-panel="register">
+            <label class="auth-remember" for="auth-remember-login">
+              <input id="auth-remember-login" type="checkbox" data-auth-remember-login checked />
+              <span>
+                <strong data-i18n="rememberTitle">保持登录</strong>
+                <small data-i18n="rememberCopy">勾选后登录状态保持 30 天，不勾选保持 3 天。</small>
+              </span>
+            </label>
+
+            <section class="auth-panel active" data-auth-panel="register">
             <div class="row">
               <div class="field">
-                <label for="register-username">用户名</label>
-                <input id="register-username" type="text" autocomplete="username" placeholder="3-32 位用户名" data-register-username />
+                <label for="register-username" data-i18n="registerUsernameLabel">用户名</label>
+                <input id="register-username" type="text" autocomplete="username" placeholder="3-32 位用户名" data-register-username data-i18n-placeholder="registerUsernamePlaceholder" />
               </div>
               <div class="field">
-                <label for="register-email">邮箱</label>
-                <input id="register-email" type="email" autocomplete="email" placeholder="请输入邮箱地址" data-register-email />
+                <label for="register-email" data-i18n="registerEmailLabel">邮箱</label>
+                <input id="register-email" type="email" autocomplete="email" placeholder="请输入邮箱地址" data-register-email data-i18n-placeholder="registerEmailPlaceholder" />
               </div>
             </div>
             <div class="field">
-              <label for="register-password">登录密码</label>
-              <input id="register-password" type="password" autocomplete="new-password" placeholder="6-64 位密码" data-register-password />
+              <label for="register-password" data-i18n="registerPasswordLabel">登录密码</label>
+              <input id="register-password" type="password" autocomplete="new-password" placeholder="6-64 位密码" data-register-password data-i18n-placeholder="registerPasswordPlaceholder" />
             </div>
             <div class="field">
-              <label>账号类型</label>
+              <label data-i18n="registerTypeLabel">账号类型</label>
               <div class="auth-remember" style="margin-bottom: 0;">
                 <input id="register-developer-toggle" type="checkbox" data-register-developer-toggle />
                 <span>
-                  <strong>注册为权限账号</strong>
-                  <small>可用于控制面板和高级权限访问。</small>
+                  <strong data-i18n="developerToggleTitle">注册为权限账号</strong>
+                  <small data-i18n="developerToggleCopy">可用于控制面板和高级权限访问。</small>
                 </span>
               </div>
-              <input id="register-developer-secret" type="text" autocomplete="off" placeholder="权限口令（仅权限填写）" data-register-developer-secret style="margin-top: 12px;" />
+              <input id="register-developer-secret" type="text" autocomplete="off" placeholder="权限口令（仅权限填写）" data-register-developer-secret data-i18n-placeholder="developerSecretPlaceholder" style="margin-top: 12px;" />
             </div>
-            <div class="auth-note">直接注册账号即可，系统不再使用验证码。</div>
+            <div class="auth-note" data-i18n="registerNote">直接注册账号即可，系统不再使用验证码。</div>
             <div class="auth-actions">
-              <button class="primary-btn" type="button" data-submit-register>注册并登录</button>
+              <button class="primary-btn" type="button" data-submit-register data-i18n="registerAction">注册并登录</button>
             </div>
             <div class="oauth-actions">
               <button class="secondary-btn google-btn" type="button" data-google-login>
                 <span class="google-mark">G</span>
-                <span>使用 Google 注册 / 登录</span>
+                <span data-i18n="googleRegisterAction">使用 Google 注册 / 登录</span>
               </button>
             </div>
-            <div class="auth-status" data-register-status>等待填写注册信息。</div>
+            <div class="auth-status" data-register-status data-i18n="registerStatusIdle">等待填写注册信息。</div>
 
-            <div class="auth-divider">已有账号可直接扫码</div>
+            <div class="auth-divider" data-i18n="qrDivider">已有账号可直接扫码</div>
             <section class="auth-qr-panel" data-qr-login-panel>
               <div class="auth-qr-head">
                 <div>
-                  <strong>扫码登录</strong>
-                  <small>请用已经登录商店账号的设备扫码确认登录</small>
+                  <strong data-i18n="qrTitle">扫码登录</strong>
+                  <small data-i18n="qrCopy">请用已经登录商店账号的设备扫码确认登录</small>
                 </div>
-                <button class="secondary-btn" type="button" data-qr-refresh>刷新二维码</button>
+                <button class="secondary-btn" type="button" data-qr-refresh data-i18n="qrRefresh">刷新二维码</button>
               </div>
               <div class="auth-qr-shell">
                 <div class="auth-qr-preview" data-qr-preview>
-                  <div class="auth-qr-placeholder" data-qr-placeholder>正在生成二维码...</div>
+                  <div class="auth-qr-placeholder" data-qr-placeholder data-i18n="qrGenerating">正在生成二维码...</div>
                 </div>
                 <div class="auth-qr-copy">
-                  <p data-qr-status>等待生成二维码。</p>
+                  <p data-qr-status data-i18n="qrWait">等待生成二维码。</p>
                   <div class="auth-qr-meta">
-                    <span data-qr-expire>有效期：--</span>
+                    <span data-qr-expire data-expire-label="有效期：">有效期：--</span>
                   </div>
                   <div class="auth-qr-links">
-                    <a class="secondary-btn qr-link-btn" href="/store-account.html" target="_blank" rel="noreferrer" data-qr-open aria-disabled="true">在已登录设备打开确认页</a>
-                    <button class="muted-btn" type="button" data-qr-copy-link disabled>复制确认链接</button>
+                    <a class="secondary-btn qr-link-btn" href="/store-account.html" target="_blank" rel="noreferrer" data-qr-open aria-disabled="true" data-i18n="qrOpenLink">在已登录设备打开确认页</a>
+                    <button class="muted-btn" type="button" data-qr-copy-link disabled data-i18n="qrCopyLink">复制确认链接</button>
                   </div>
-                  <div class="auth-qr-link-text" data-qr-link-text>确认链接：--</div>
+                  <div class="auth-qr-link-text" data-qr-link-text data-link-label="确认链接：">确认链接：--</div>
                 </div>
               </div>
             </section>
-          </section>
+            </section>
 
-          <section class="auth-panel" data-auth-panel="login" hidden>
+            <section class="auth-panel" data-auth-panel="login" hidden>
             <div class="row">
               <div class="field">
-                <label for="login-username">用户名</label>
-                <input id="login-username" type="text" autocomplete="username" placeholder="输入已有账号" data-login-username />
+                <label for="login-username" data-i18n="loginUsernameLabel">用户名</label>
+                <input id="login-username" type="text" autocomplete="username" placeholder="输入已有账号" data-login-username data-i18n-placeholder="loginUsernamePlaceholder" />
               </div>
               <div class="field">
-                <label for="login-email">邮箱</label>
-                <input id="login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email />
+                <label for="login-email" data-i18n="loginEmailLabel">邮箱</label>
+                <input id="login-email" type="email" autocomplete="email" placeholder="输入注册邮箱" data-login-email data-i18n-placeholder="loginEmailPlaceholder" />
               </div>
             </div>
             <div class="field">
-              <label for="login-password">密码登录</label>
-              <input id="login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password />
+              <label for="login-password" data-i18n="loginPasswordLabel">密码登录</label>
+              <input id="login-password" type="password" autocomplete="current-password" placeholder="输入登录密码" data-login-password data-i18n-placeholder="loginPasswordPlaceholder" />
             </div>
-            <div class="auth-note">密码登录为主要方式，已取消验证码登录。</div>
+            <div class="auth-note" data-i18n="loginNote">密码登录为主要方式，已取消验证码登录。</div>
             <div class="auth-actions">
-              <button class="primary-btn" type="button" data-submit-password-login>密码登录</button>
+              <button class="primary-btn" type="button" data-submit-password-login data-i18n="passwordLoginAction">密码登录</button>
             </div>
             <div class="oauth-actions">
               <button class="secondary-btn google-btn" type="button" data-google-login>
                 <span class="google-mark">G</span>
-                <span>使用 Google 登录</span>
+                <span data-i18n="googleLoginAction">使用 Google 登录</span>
               </button>
             </div>
-            <div class="auth-status" data-login-status>等待登录。</div>
+            <div class="auth-status" data-login-status data-i18n="loginStatusIdle">等待登录。</div>
+            </section>
+          </section>
+
+          <section class="page-panel" data-page-panel="about" hidden>
+            <div class="about-panel">
+              <strong data-i18n="aboutTitle">关于</strong>
+              <div class="about-version" data-i18n="aboutVersion">版本号 2.3.5</div>
+              <div class="auth-note" data-i18n="aboutCopy">当前页面用于管理商店账号登录、注册与基础会话设置。</div>
+              <div class="about-contact-row">
+                <span class="about-contact-value" data-about-qq>客服 QQ 3805506653</span>
+                <button class="secondary-btn" type="button" data-copy-about-qq data-i18n="copyQqAction">复制 QQ</button>
+              </div>
+              <div class="auth-status" data-about-copy-status data-i18n="aboutCopyStatusIdle">点击按钮可复制客服 QQ。</div>
+            </div>
+          </section>
+
+          <section class="page-panel" data-page-panel="language" hidden>
+            <div class="settings-panel">
+              <strong data-i18n="languageTitle">语言</strong>
+              <p class="settings-panel-copy" data-i18n="languageCopy">可在简体中文和繁体中文之间切换，切换时会显示加载动画。</p>
+              <div class="settings-choice-row">
+                <button class="secondary-btn choice-btn" type="button" data-language-choice="zh-Hans" data-i18n="languageHans">简体中文</button>
+                <button class="secondary-btn choice-btn" type="button" data-language-choice="zh-Hant" data-i18n="languageHant">繁體中文</button>
+                <button class="secondary-btn choice-btn" type="button" data-language-choice="en-GB" data-i18n="languageEnglishUk">English (UK)</button>
+              </div>
+              <div class="auth-status" data-language-status data-i18n="languageStatusHans">当前语言：简体中文</div>
+            </div>
+          </section>
+
+          <section class="page-panel" data-page-panel="general" hidden>
+            <div class="settings-panel">
+              <strong data-i18n="generalTitle">通用</strong>
+              <p class="settings-panel-copy" data-i18n="generalCopy">可调整商店设置、AI 选购和在线状态等通用偏好。</p>
+              <div class="settings-stack">
+                <div class="field" style="margin-bottom: 0;">
+                  <label for="general-theme-select" data-i18n="generalThemeTitle">默认主题</label>
+                  <select id="general-theme-select" class="settings-select" data-general-theme-select>
+                    <option value="day" data-i18n="generalThemeDay">白天</option>
+                    <option value="night" data-i18n="generalThemeNight">夜间</option>
+                  </select>
+                </div>
+                <label class="switch-card" for="background-image-toggle">
+                  <input id="background-image-toggle" type="checkbox" data-background-image-toggle checked />
+                  <span class="switch-copy">
+                    <strong data-i18n="backgroundToggleTitle">启用背景图片</strong>
+                    <small data-i18n="backgroundToggleCopy">关闭后将回退为纯渐变背景，不再请求远程背景图。</small>
+                  </span>
+                </label>
+                <div class="field" style="margin-bottom: 0;">
+                  <label for="thinking-time-select" data-i18n="thinkingTimeTitle">AI 选购思考时间</label>
+                  <select id="thinking-time-select" class="settings-select" data-thinking-time-select>
+                    <option value="1000" data-i18n="thinkingTimeFast">快速 · 1 秒</option>
+                    <option value="3000" data-i18n="thinkingTimeStandard">标准 · 3 秒</option>
+                    <option value="5000" data-i18n="thinkingTimeSlow">慢速 · 5 秒</option>
+                  </select>
+                </div>
+                <label class="switch-card" for="reduced-motion-toggle">
+                  <input id="reduced-motion-toggle" type="checkbox" data-reduced-motion-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="reducedMotionTitle">减少动画效果</strong>
+                    <small data-i18n="reducedMotionCopy">关闭页面动效，适合低性能设备或偏简洁体验。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="compact-mode-toggle">
+                  <input id="compact-mode-toggle" type="checkbox" data-compact-mode-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="compactModeTitle">紧凑布局</strong>
+                    <small data-i18n="compactModeCopy">减少卡片间距，提升页面内容密度和浏览效率。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="system-theme-toggle">
+                  <input id="system-theme-toggle" type="checkbox" data-system-theme-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="systemThemeTitle">跟随系统主题</strong>
+                    <small data-i18n="systemThemeCopy">按照系统亮色/深色模式自动切换页面主题。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="minimal-glass-toggle">
+                  <input id="minimal-glass-toggle" type="checkbox" data-minimal-glass-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="minimalGlassTitle">简约玻璃效果</strong>
+                    <small data-i18n="minimalGlassCopy">减少半透明与高光层，界面更清爽、更稳定。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="high-contrast-toggle">
+                  <input id="high-contrast-toggle" type="checkbox" data-high-contrast-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="highContrastTitle">高对比文本</strong>
+                    <small data-i18n="highContrastCopy">提高文字和控件的对比度，适合长时间观看。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="lower-glow-toggle">
+                  <input id="lower-glow-toggle" type="checkbox" data-lower-glow-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="lowerGlowTitle">降低发光效果</strong>
+                    <small data-i18n="lowerGlowCopy">关闭部分蓝光氛围和高光，页面更稳、更清爽。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="sticky-header-toggle">
+                  <input id="sticky-header-toggle" type="checkbox" data-sticky-header-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="stickyHeaderTitle">固定顶部栏</strong>
+                    <small data-i18n="stickyHeaderCopy">滚动时顶部导航保持可见，切换页面更方便。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="remember-last-page-toggle">
+                  <input id="remember-last-page-toggle" type="checkbox" data-remember-last-page-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="rememberLastPageTitle">自动记住上次页面</strong>
+                    <small data-i18n="rememberLastPageCopy">下一次回到站点时优先恢复你最后停留的位置。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="hide-decorations-toggle">
+                  <input id="hide-decorations-toggle" type="checkbox" data-hide-decorations-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="hideDecorationsTitle">隐藏装饰背景</strong>
+                    <small data-i18n="hideDecorationsCopy">关闭页面顶部光效与浮层装饰，适合专注浏览。</small>
+                  </span>
+                </label>
+                <label class="switch-card" for="hide-online-status-toggle">
+                  <input id="hide-online-status-toggle" type="checkbox" data-hide-online-status-toggle />
+                  <span class="switch-copy">
+                    <strong data-i18n="hideOnlineTitle">隐藏在线状态</strong>
+                    <small data-i18n="hideOnlineCopy">开启后，在线榜将不再显示当前账号。该设置会同步保存到你的账号。</small>
+                  </span>
+                </label>
+              </div>
+              <div class="auth-status" data-background-status data-i18n="backgroundStatusOn">当前：已启用背景图片</div>
+              <div class="auth-status" data-thinking-time-status data-i18n="thinkingTimeStatusStandard">当前：AI 选购思考 3 秒</div>
+              <div class="auth-status" data-hide-online-status data-i18n="hideOnlineStatusOff">当前：在线榜会显示你的账号</div>
+            </div>
           </section>
 
           <section class="scan-confirm-panel" data-scan-panel hidden>
@@ -487,6 +837,11 @@
     <script>
       (function () {
         const themeToggle = document.querySelector('[data-theme-toggle]');
+        const languageLoading = document.querySelector('[data-language-loading]');
+        const languageLoadingText = document.querySelector('[data-language-loading-text]');
+        const pageTabs = Array.from(document.querySelectorAll('[data-page-tab]'));
+        const pagePanels = Array.from(document.querySelectorAll('[data-page-panel]'));
+        const languageButtons = Array.from(document.querySelectorAll('[data-language-choice]'));
         const authTabs = Array.from(document.querySelectorAll('[data-auth-tab]'));
         const authPanels = Array.from(document.querySelectorAll('[data-auth-panel]'));
         const submitRegisterButton = document.querySelector('[data-submit-register]');
@@ -520,6 +875,378 @@
         const scanStatus = document.querySelector('[data-scan-status]');
         const scanExpire = document.querySelector('[data-scan-expire]');
         const scanApproveButton = document.querySelector('[data-scan-approve]');
+        const languageStatus = document.querySelector('[data-language-status]');
+        const backgroundImageToggle = document.querySelector('[data-background-image-toggle]');
+        const backgroundStatus = document.querySelector('[data-background-status]');
+        const generalThemeSelect = document.querySelector('[data-general-theme-select]');
+        const reducedMotionToggle = document.querySelector('[data-reduced-motion-toggle]');
+        const compactModeToggle = document.querySelector('[data-compact-mode-toggle]');
+        const systemThemeToggle = document.querySelector('[data-system-theme-toggle]');
+        const minimalGlassToggle = document.querySelector('[data-minimal-glass-toggle]');
+        const highContrastToggle = document.querySelector('[data-high-contrast-toggle]');
+        const lowerGlowToggle = document.querySelector('[data-lower-glow-toggle]');
+        const stickyHeaderToggle = document.querySelector('[data-sticky-header-toggle]');
+        const rememberLastPageToggle = document.querySelector('[data-remember-last-page-toggle]');
+        const hideDecorationsToggle = document.querySelector('[data-hide-decorations-toggle]');
+        const thinkingTimeSelect = document.querySelector('[data-thinking-time-select]');
+        const thinkingTimeStatus = document.querySelector('[data-thinking-time-status]');
+        const hideOnlineStatusToggle = document.querySelector('[data-hide-online-status-toggle]');
+        const hideOnlineStatus = document.querySelector('[data-hide-online-status]');
+        const aboutQqValue = document.querySelector('[data-about-qq]');
+        const copyAboutQqButton = document.querySelector('[data-copy-about-qq]');
+        const aboutCopyStatus = document.querySelector('[data-about-copy-status]');
+        const languageStorageKey = 'mctools-store-language';
+        const backgroundImageStorageKey = 'mctools-store-background-enabled';
+        const aiThinkingTimeStorageKey = 'mctools-ai-shop-thinking-ms';
+        const reducedMotionStorageKey = 'mctools-store-reduced-motion';
+        const compactModeStorageKey = 'mctools-store-compact-mode';
+        const systemThemeStorageKey = 'mctools-store-system-theme';
+        const minimalGlassStorageKey = 'mctools-store-minimal-glass';
+        const highContrastStorageKey = 'mctools-store-high-contrast';
+        const lowerGlowStorageKey = 'mctools-store-lower-glow';
+        const stickyHeaderStorageKey = 'mctools-store-sticky-header';
+        const rememberLastPageStorageKey = 'mctools-store-remember-last-page';
+        const hideDecorationsStorageKey = 'mctools-store-hide-decorations';
+        const serviceQq = '3805506653';
+        const defaultAiThinkingTimeMs = 3000;
+        let currentCommunityLoggedIn = false;
+        const languageMessages = {
+          'zh-Hans': {
+            switching: '正在切换语言...',
+            themeDay: '☀️ 白天',
+            themeNight: '🌙 夜间',
+            brandTitle: '星际商店',
+            brandSubtitle: '设置',
+            backToStore: '返回商店',
+            pageTitle: '设置',
+            logoutButton: '退出登录',
+            lead: '登录商店账号后，可同步购买记录、查看权限状态，并继续购买商品。账号在商店中与收款设置独立管理。',
+            pageTabAccount: '账号',
+            pageTabAbout: '关于',
+            pageTabLanguage: '语言',
+            pageTabGeneral: '通用',
+            authTabRegister: '注册账号',
+            authTabLogin: '登录账号',
+            rememberTitle: '保持登录',
+            rememberCopy: '勾选后登录状态保持 30 天，不勾选保持 3 天。',
+            registerUsernameLabel: '用户名',
+            registerUsernamePlaceholder: '3-32 位用户名',
+            registerEmailLabel: '邮箱',
+            registerEmailPlaceholder: '请输入邮箱地址',
+            registerPasswordLabel: '登录密码',
+            registerPasswordPlaceholder: '6-64 位密码',
+            registerTypeLabel: '账号类型',
+            developerToggleTitle: '注册为权限账号',
+            developerToggleCopy: '可用于控制面板和高级权限访问。',
+            developerSecretPlaceholder: '权限口令（仅权限填写）',
+            registerNote: '直接注册账号即可，系统不再使用验证码。',
+            registerAction: '注册并登录',
+            googleRegisterAction: '使用 Google 注册 / 登录',
+            registerStatusIdle: '等待填写注册信息。',
+            qrDivider: '已有账号可直接扫码',
+            qrTitle: '扫码登录',
+            qrCopy: '请用已经登录商店账号的设备扫码确认登录',
+            qrRefresh: '刷新二维码',
+            qrGenerating: '正在生成二维码...',
+            qrWait: '等待生成二维码。',
+            qrOpenLink: '在已登录设备打开确认页',
+            qrCopyLink: '复制确认链接',
+            loginUsernameLabel: '用户名',
+            loginUsernamePlaceholder: '输入已有账号',
+            loginEmailLabel: '邮箱',
+            loginEmailPlaceholder: '输入注册邮箱',
+            loginPasswordLabel: '密码登录',
+            loginPasswordPlaceholder: '输入登录密码',
+            loginNote: '密码登录为主要方式，已取消验证码登录。',
+            passwordLoginAction: '密码登录',
+            googleLoginAction: '使用 Google 登录',
+            loginStatusIdle: '等待登录。',
+            aboutTitle: '关于',
+            aboutVersion: '版本号 2.3.5',
+            aboutCopy: '当前页面用于管理商店账号登录、注册与基础会话设置。',
+            aboutQqLabel: '客服 QQ 3805506653',
+            copyQqAction: '复制 QQ',
+            aboutCopyStatusIdle: '点击按钮可复制客服 QQ。',
+            aboutCopyStatusSuccess: '客服 QQ 已复制。',
+            aboutCopyStatusError: '复制失败，请手动复制客服 QQ。',
+            languageTitle: '语言',
+            languageCopy: '可在简体中文和繁体中文之间切换，切换时会显示加载动画。',
+            languageHans: '简体中文',
+            languageHant: '繁體中文',
+            languageEnglishUk: 'English (UK)',
+            languageStatusHans: '当前语言：简体中文',
+            languageStatusHant: '当前语言：繁體中文',
+            languageStatusEnglishUk: '当前语言：English (UK)',
+            generalTitle: '通用',
+            generalCopy: '可调整商店设置、AI 选购和在线状态等通用偏好。',
+            generalThemeTitle: '默认主题',
+            generalThemeDay: '白天',
+            generalThemeNight: '夜间',
+            backgroundToggleTitle: '启用背景图片',
+            backgroundToggleCopy: '关闭后将回退为纯渐变背景，不再请求远程背景图。',
+            backgroundStatusOn: '当前：已启用背景图片',
+            backgroundStatusOff: '当前：已关闭背景图片',
+            reducedMotionTitle: '减少动画效果',
+            reducedMotionCopy: '关闭页面动效，适合低性能设备或偏简洁体验。',
+            compactModeTitle: '紧凑布局',
+            compactModeCopy: '减少卡片间距，提升页面内容密度和浏览效率。',
+            systemThemeTitle: '跟随系统主题',
+            systemThemeCopy: '按照系统亮色/深色模式自动切换页面主题。',
+            minimalGlassTitle: '简约玻璃效果',
+            minimalGlassCopy: '减少半透明与高光层，界面更清爽、更稳定。',
+            highContrastTitle: '高对比文本',
+            highContrastCopy: '提高文字和控件的对比度，适合长时间观看。',
+            lowerGlowTitle: '降低发光效果',
+            lowerGlowCopy: '关闭部分蓝光氛围和高光，页面更稳、更清爽。',
+            stickyHeaderTitle: '固定顶部栏',
+            stickyHeaderCopy: '滚动时顶部导航保持可见，切换页面更方便。',
+            rememberLastPageTitle: '自动记住上次页面',
+            rememberLastPageCopy: '下一次回到站点时优先恢复你最后停留的位置。',
+            hideDecorationsTitle: '隐藏装饰背景',
+            hideDecorationsCopy: '关闭页面顶部光效与浮层装饰，适合专注浏览。',
+            thinkingTimeTitle: 'AI 选购思考时间',
+            thinkingTimeFast: '快速 · 1 秒',
+            thinkingTimeStandard: '标准 · 3 秒',
+            thinkingTimeSlow: '慢速 · 5 秒',
+            thinkingTimeStatusFast: '当前：AI 选购思考 1 秒',
+            thinkingTimeStatusStandard: '当前：AI 选购思考 3 秒',
+            thinkingTimeStatusSlow: '当前：AI 选购思考 5 秒',
+            hideOnlineTitle: '隐藏在线状态',
+            hideOnlineCopy: '开启后，在线榜将不再显示当前账号。该设置会同步保存到你的账号。',
+            hideOnlineStatusOn: '当前：在线榜不再显示你的账号',
+            hideOnlineStatusOff: '当前：在线榜会显示你的账号',
+            hideOnlineStatusLoggedOut: '请先登录后再保存在线状态设置。',
+            hideOnlineStatusSaving: '正在保存在线状态设置...',
+            hideOnlineStatusSaved: '在线状态设置已保存。',
+            hideOnlineStatusSaveError: '保存失败，请稍后重试。',
+            expireLabel: '有效期：',
+            linkLabel: '确认链接：'
+          },
+          'zh-Hant': {
+            switching: '正在切換語言...',
+            themeDay: '☀️ 白天',
+            themeNight: '🌙 夜間',
+            brandTitle: '星際商店',
+            brandSubtitle: '設定',
+            backToStore: '返回商店',
+            pageTitle: '設定',
+            logoutButton: '退出登入',
+            lead: '登入商店帳號後，可同步購買記錄、查看權限狀態，並繼續購買商品。帳號在商店中與收款設定獨立管理。',
+            pageTabAccount: '帳號',
+            pageTabAbout: '關於',
+            pageTabLanguage: '語言',
+            pageTabGeneral: '通用',
+            authTabRegister: '註冊帳號',
+            authTabLogin: '登入帳號',
+            rememberTitle: '保持登入',
+            rememberCopy: '勾選後登入狀態保持 30 天，不勾選保持 3 天。',
+            registerUsernameLabel: '使用者名稱',
+            registerUsernamePlaceholder: '3-32 位使用者名稱',
+            registerEmailLabel: '信箱',
+            registerEmailPlaceholder: '請輸入信箱地址',
+            registerPasswordLabel: '登入密碼',
+            registerPasswordPlaceholder: '6-64 位密碼',
+            registerTypeLabel: '帳號類型',
+            developerToggleTitle: '註冊為權限帳號',
+            developerToggleCopy: '可用於控制面板和高級權限存取。',
+            developerSecretPlaceholder: '權限口令（僅權限填寫）',
+            registerNote: '直接註冊帳號即可，系統不再使用驗證碼。',
+            registerAction: '註冊並登入',
+            googleRegisterAction: '使用 Google 註冊 / 登入',
+            registerStatusIdle: '等待填寫註冊資訊。',
+            qrDivider: '已有帳號可直接掃碼',
+            qrTitle: '掃碼登入',
+            qrCopy: '請用已登入商店帳號的裝置掃碼確認登入',
+            qrRefresh: '重新整理二維碼',
+            qrGenerating: '正在生成二維碼...',
+            qrWait: '等待生成二維碼。',
+            qrOpenLink: '在已登入裝置開啟確認頁',
+            qrCopyLink: '複製確認連結',
+            loginUsernameLabel: '使用者名稱',
+            loginUsernamePlaceholder: '輸入已有帳號',
+            loginEmailLabel: '信箱',
+            loginEmailPlaceholder: '輸入註冊信箱',
+            loginPasswordLabel: '密碼登入',
+            loginPasswordPlaceholder: '輸入登入密碼',
+            loginNote: '密碼登入為主要方式，已取消驗證碼登入。',
+            passwordLoginAction: '密碼登入',
+            googleLoginAction: '使用 Google 登入',
+            loginStatusIdle: '等待登入。',
+            aboutTitle: '關於',
+            aboutVersion: '版本號 2.3.5',
+            aboutCopy: '目前頁面用於管理商店帳號登入、註冊與基礎會話設定。',
+            aboutQqLabel: '客服 QQ 3805506653',
+            copyQqAction: '複製 QQ',
+            aboutCopyStatusIdle: '點擊按鈕可複製客服 QQ。',
+            aboutCopyStatusSuccess: '客服 QQ 已複製。',
+            aboutCopyStatusError: '複製失敗，請手動複製客服 QQ。',
+            languageTitle: '語言',
+            languageCopy: '可在簡體中文、繁體中文和 English (UK) 之間切換，切換時會顯示載入動畫。',
+            languageHans: '簡體中文',
+            languageHant: '繁體中文',
+            languageEnglishUk: 'English (UK)',
+            languageStatusHans: '目前語言：簡體中文',
+            languageStatusHant: '目前語言：繁體中文',
+            languageStatusEnglishUk: '目前語言：English (UK)',
+            generalTitle: '通用',
+            generalCopy: '可調整商店設定、AI 選購與在線狀態等通用偏好。',
+            generalThemeTitle: '預設主題',
+            generalThemeDay: '白天',
+            generalThemeNight: '夜間',
+            backgroundToggleTitle: '啟用背景圖片',
+            backgroundToggleCopy: '關閉後將回退為純漸層背景，不再請求遠端背景圖。',
+            backgroundStatusOn: '目前：已啟用背景圖片',
+            backgroundStatusOff: '目前：已關閉背景圖片',
+            reducedMotionTitle: '減少動畫效果',
+            reducedMotionCopy: '關閉頁面動效，適合低性能裝置或偏簡潔體驗。',
+            compactModeTitle: '緊湊版面',
+            compactModeCopy: '減少卡片間距，提升頁面內容密度和瀏覽效率。',
+            systemThemeTitle: '跟隨系統主題',
+            systemThemeCopy: '依照系統亮色／深色模式自動切換頁面主題。',
+            minimalGlassTitle: '簡約玻璃效果',
+            minimalGlassCopy: '減少半透明與高光層，界面更清爽、更穩定。',
+            highContrastTitle: '高對比文字',
+            highContrastCopy: '提高文字和控制元件的對比度，適合長時間觀看。',
+            lowerGlowTitle: '降低發光效果',
+            lowerGlowCopy: '關閉部分藍光氛圍和高光，頁面更穩、更清爽。',
+            stickyHeaderTitle: '固定頂部欄',
+            stickyHeaderCopy: '滾動時頂部導覽保持可見，切換頁面更方便。',
+            rememberLastPageTitle: '自動記住上次頁面',
+            rememberLastPageCopy: '下一次回到站點時優先恢復你最後停留的位置。',
+            hideDecorationsTitle: '隱藏裝飾背景',
+            hideDecorationsCopy: '關閉頁面頂部光效與浮層裝飾，適合專注瀏覽。',
+            thinkingTimeTitle: 'AI 選購思考時間',
+            thinkingTimeFast: '快速 · 1 秒',
+            thinkingTimeStandard: '標準 · 3 秒',
+            thinkingTimeSlow: '慢速 · 5 秒',
+            thinkingTimeStatusFast: '目前：AI 選購思考 1 秒',
+            thinkingTimeStatusStandard: '目前：AI 選購思考 3 秒',
+            thinkingTimeStatusSlow: '目前：AI 選購思考 5 秒',
+            hideOnlineTitle: '隱藏在線狀態',
+            hideOnlineCopy: '開啟後，線上榜將不再顯示目前帳號。此設定會同步保存到你的帳號。',
+            hideOnlineStatusOn: '目前：線上榜不再顯示你的帳號',
+            hideOnlineStatusOff: '目前：線上榜會顯示你的帳號',
+            hideOnlineStatusLoggedOut: '請先登入後再保存在線狀態設定。',
+            hideOnlineStatusSaving: '正在保存在線狀態設定...',
+            hideOnlineStatusSaved: '在線狀態設定已保存。',
+            hideOnlineStatusSaveError: '保存失敗，請稍後重試。',
+            expireLabel: '有效期：',
+            linkLabel: '確認連結：'
+          },
+          'en-GB': {
+            switching: 'Switching language...',
+            themeDay: '☀️ Day',
+            themeNight: '🌙 Night',
+            brandTitle: 'Stellar Store',
+            brandSubtitle: 'Settings',
+            backToStore: 'Back to Store',
+            pageTitle: 'Settings',
+            logoutButton: 'Sign Out',
+            lead: 'After signing in to your store account, you can sync purchase records, review access status, and continue buying products. Store accounts are managed separately from payment settings.',
+            pageTabAccount: 'Account',
+            pageTabAbout: 'About',
+            pageTabLanguage: 'Language',
+            pageTabGeneral: 'General',
+            authTabRegister: 'Register',
+            authTabLogin: 'Sign In',
+            rememberTitle: 'Keep me signed in',
+            rememberCopy: 'When enabled, sign-in stays active for 30 days. When disabled, it lasts 3 days.',
+            registerUsernameLabel: 'Username',
+            registerUsernamePlaceholder: '3-32 character username',
+            registerEmailLabel: 'Email',
+            registerEmailPlaceholder: 'Enter your email address',
+            registerPasswordLabel: 'Sign-in password',
+            registerPasswordPlaceholder: '6-64 character password',
+            registerTypeLabel: 'Account type',
+            developerToggleTitle: 'Register as a privileged account',
+            developerToggleCopy: 'Can be used for the control panel and advanced permissions.',
+            developerSecretPlaceholder: 'Privilege passphrase (only for privileged accounts)',
+            registerNote: 'You can register directly. Verification codes are no longer required.',
+            registerAction: 'Register and Sign In',
+            googleRegisterAction: 'Register / Sign In with Google',
+            registerStatusIdle: 'Waiting for registration details.',
+            qrDivider: 'Existing accounts can sign in by QR code',
+            qrTitle: 'QR Sign-in',
+            qrCopy: 'Use a device that is already signed in to confirm this sign-in request.',
+            qrRefresh: 'Refresh QR Code',
+            qrGenerating: 'Generating QR code...',
+            qrWait: 'Waiting to generate QR code.',
+            qrOpenLink: 'Open the confirmation page on a signed-in device',
+            qrCopyLink: 'Copy confirmation link',
+            loginUsernameLabel: 'Username',
+            loginUsernamePlaceholder: 'Enter an existing username',
+            loginEmailLabel: 'Email',
+            loginEmailPlaceholder: 'Enter your registered email',
+            loginPasswordLabel: 'Password sign-in',
+            loginPasswordPlaceholder: 'Enter your sign-in password',
+            loginNote: 'Password sign-in is the main method. Verification code sign-in has been removed.',
+            passwordLoginAction: 'Sign In with Password',
+            googleLoginAction: 'Sign In with Google',
+            loginStatusIdle: 'Waiting to sign in.',
+            aboutTitle: 'About',
+            aboutVersion: 'Version 2.3.5',
+            aboutCopy: 'This page is used to manage store account sign-in, registration, and basic session settings.',
+            aboutQqLabel: 'Support QQ 3805506653',
+            copyQqAction: 'Copy QQ',
+            aboutCopyStatusIdle: 'Use the button to copy the support QQ number.',
+            aboutCopyStatusSuccess: 'Support QQ copied.',
+            aboutCopyStatusError: 'Copy failed. Please copy the support QQ number manually.',
+            languageTitle: 'Language',
+            languageCopy: 'Switch between Simplified Chinese, Traditional Chinese, and English (UK). A loading animation appears during switching.',
+            languageHans: 'Simplified Chinese',
+            languageHant: 'Traditional Chinese',
+            languageEnglishUk: 'English (UK)',
+            languageStatusHans: 'Current language: Simplified Chinese',
+            languageStatusHant: 'Current language: Traditional Chinese',
+            languageStatusEnglishUk: 'Current language: English (UK)',
+            generalTitle: 'General',
+            generalCopy: 'Adjust shared preferences for store settings, AI picks, and online status.',
+            generalThemeTitle: 'Default theme',
+            generalThemeDay: 'Day',
+            generalThemeNight: 'Night',
+            backgroundToggleTitle: 'Enable background image',
+            backgroundToggleCopy: 'When disabled, the page falls back to the default gradient background and stops requesting the remote background image.',
+            backgroundStatusOn: 'Current: background image enabled',
+            backgroundStatusOff: 'Current: background image disabled',
+            reducedMotionTitle: 'Reduce animation',
+            reducedMotionCopy: 'Turn off page motion effects for lower-end devices or a cleaner experience.',
+            compactModeTitle: 'Compact layout',
+            compactModeCopy: 'Reduce card spacing and improve content density for faster browsing.',
+            systemThemeTitle: 'Follow system theme',
+            systemThemeCopy: 'Automatically switch the page theme to match your system light or dark mode.',
+            minimalGlassTitle: 'Minimal glass effect',
+            minimalGlassCopy: 'Reduce transparency and highlight layers for a cleaner, more stable interface.',
+            highContrastTitle: 'High contrast text',
+            highContrastCopy: 'Increase the contrast of text and controls for easier long-form reading.',
+            lowerGlowTitle: 'Lower glow effects',
+            lowerGlowCopy: 'Reduce ambient blue light and highlight layers for a calmer interface.',
+            stickyHeaderTitle: 'Pin top bar',
+            stickyHeaderCopy: 'Keep the top navigation visible while you scroll and switch pages more smoothly.',
+            rememberLastPageTitle: 'Remember last page',
+            rememberLastPageCopy: 'Restore the place you last visited when you return to the site.',
+            hideDecorationsTitle: 'Hide decorative background',
+            hideDecorationsCopy: 'Turn off the top light effects and floating decorations for a more focused browsing view.',
+            thinkingTimeTitle: 'AI pick thinking time',
+            thinkingTimeFast: 'Fast · 1 second',
+            thinkingTimeStandard: 'Standard · 3 seconds',
+            thinkingTimeSlow: 'Slow · 5 seconds',
+            thinkingTimeStatusFast: 'Current: AI pick thinking time is 1 second',
+            thinkingTimeStatusStandard: 'Current: AI pick thinking time is 3 seconds',
+            thinkingTimeStatusSlow: 'Current: AI pick thinking time is 5 seconds',
+            hideOnlineTitle: 'Hide online status',
+            hideOnlineCopy: 'When enabled, your account will no longer appear in the online board. This setting is synced to your account.',
+            hideOnlineStatusOn: 'Current: your account is hidden from the online board',
+            hideOnlineStatusOff: 'Current: your account appears in the online board',
+            hideOnlineStatusLoggedOut: 'Sign in before saving your online status setting.',
+            hideOnlineStatusSaving: 'Saving online status setting...',
+            hideOnlineStatusSaved: 'Online status setting saved.',
+            hideOnlineStatusSaveError: 'Save failed. Please try again later.',
+            expireLabel: 'Valid for: ',
+            linkLabel: 'Confirmation link: '
+          }
+        };
+        let currentLanguage = 'zh-Hans';
+        let pageMode = 'account';
         let authMode = 'register';
         const qrLoginPollIntervalMs = 2000;
         const qrTicketLifetimeMs = 1000 * 60 * 3;
@@ -530,11 +1257,64 @@
         let qrLoginConfirmUrl = '';
         let scanExpireTimer = 0;
 
+        function getCurrentMessages() {
+          return languageMessages[currentLanguage] || languageMessages['zh-Hans'];
+        }
+
+        function getPreferredLanguage() {
+          try {
+            const stored = String(localStorage.getItem(languageStorageKey) || '').trim();
+            return stored === 'zh-Hant' || stored === 'en-GB' ? stored : 'zh-Hans';
+          } catch {
+            return 'zh-Hans';
+          }
+        }
+
+        function getBackgroundImageEnabled() {
+          try {
+            const stored = String(localStorage.getItem(backgroundImageStorageKey) || '').trim();
+            return stored === '0' ? false : true;
+          } catch {
+            return true;
+          }
+        }
+
+        function getAiThinkingTimeMs() {
+          try {
+            const stored = Number.parseInt(String(localStorage.getItem(aiThinkingTimeStorageKey) || ''), 10);
+            return stored === 1000 || stored === 5000 ? stored : defaultAiThinkingTimeMs;
+          } catch {
+            return defaultAiThinkingTimeMs;
+          }
+        }
+
+        function showLanguageLoading() {
+          if (!languageLoading) return;
+          languageLoading.hidden = false;
+          languageLoading.classList.add('active');
+          if (languageLoadingText) {
+            languageLoadingText.textContent = getCurrentMessages().switching;
+          }
+        }
+
+        function hideLanguageLoading() {
+          if (!languageLoading) return;
+          languageLoading.classList.remove('active');
+          languageLoading.hidden = true;
+        }
+
+        function updateThemeToggleLabel() {
+          const messages = getCurrentMessages();
+          const theme = document.documentElement.getAttribute('data-theme') === 'day' ? 'day' : 'night';
+          themeToggle.textContent = theme === 'day' ? messages.themeDay : messages.themeNight;
+        }
+
         function setTheme(theme) {
           const normalized = theme === 'day' ? 'day' : 'night';
           document.documentElement.setAttribute('data-theme', normalized);
-          themeToggle.textContent = normalized === 'day' ? '☀️ 白天' : '🌙 夜间';
+          updateThemeToggleLabel();
           try { localStorage.setItem('mctools-store-theme', normalized); } catch {}
+          applyBackgroundPreference();
         }
 
         function applyBackgroundImageFromApi() {
@@ -556,6 +1336,233 @@
           catch { return 'night'; }
         }
 
+        function updateLanguageStatus() {
+          if (!languageStatus) {
+            return;
+          }
+          const messages = getCurrentMessages();
+          languageStatus.textContent = currentLanguage === 'zh-Hant'
+            ? messages.languageStatusHant
+            : currentLanguage === 'en-GB'
+              ? messages.languageStatusEnglishUk
+              : messages.languageStatusHans;
+        }
+
+        function updateAboutContact() {
+          if (aboutQqValue) {
+            aboutQqValue.textContent = getCurrentMessages().aboutQqLabel;
+          }
+          if (aboutCopyStatus) {
+            aboutCopyStatus.textContent = getCurrentMessages().aboutCopyStatusIdle;
+            aboutCopyStatus.classList.remove('error');
+          }
+        }
+
+        function updateBackgroundStatus() {
+          if (!backgroundStatus) {
+            return;
+          }
+          const messages = getCurrentMessages();
+          backgroundStatus.textContent = getBackgroundImageEnabled()
+            ? messages.backgroundStatusOn
+            : messages.backgroundStatusOff;
+        }
+
+        function updateThinkingTimeStatus() {
+          if (!thinkingTimeStatus) {
+            return;
+          }
+          const messages = getCurrentMessages();
+          const thinkingTimeMs = getAiThinkingTimeMs();
+          thinkingTimeStatus.textContent = thinkingTimeMs === 1000
+            ? messages.thinkingTimeStatusFast
+            : thinkingTimeMs === 5000
+              ? messages.thinkingTimeStatusSlow
+              : messages.thinkingTimeStatusStandard;
+        }
+
+        function updateHideOnlineStatus(message, isError = false) {
+          if (!hideOnlineStatus) {
+            return;
+          }
+          const messages = getCurrentMessages();
+          hideOnlineStatus.textContent = message || (hideOnlineStatusToggle?.checked ? messages.hideOnlineStatusOn : messages.hideOnlineStatusOff);
+          hideOnlineStatus.classList.toggle('error', isError);
+        }
+
+        function updateLanguageButtons() {
+          languageButtons.forEach((button) => {
+            button.classList.toggle('primary-btn', button.dataset.languageChoice === currentLanguage);
+            button.classList.toggle('secondary-btn', button.dataset.languageChoice !== currentLanguage);
+          });
+        }
+
+        function applyLanguage(language) {
+          currentLanguage = language === 'zh-Hant' || language === 'en-GB' ? language : 'zh-Hans';
+          const messages = getCurrentMessages();
+          document.documentElement.lang = currentLanguage === 'zh-Hant' ? 'zh-Hant' : currentLanguage === 'en-GB' ? 'en-GB' : 'zh-CN';
+          document.title = messages.pageTitle;
+
+          document.querySelectorAll('[data-i18n]').forEach((element) => {
+            const key = element.dataset.i18n;
+            if (messages[key]) {
+              element.textContent = messages[key];
+            }
+          });
+
+          document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+            const key = element.dataset.i18nPlaceholder;
+            if (messages[key]) {
+              element.setAttribute('placeholder', messages[key]);
+            }
+          });
+
+          if (qrExpire) {
+            qrExpire.dataset.expireLabel = messages.expireLabel;
+            setQrExpireText();
+          }
+          if (qrLinkText) {
+            qrLinkText.dataset.linkLabel = messages.linkLabel;
+            updateQrManualLink(qrLoginConfirmUrl);
+          }
+
+          updateThemeToggleLabel();
+          updateLanguageStatus();
+          updateBackgroundStatus();
+          updateThinkingTimeStatus();
+          updateAboutContact();
+          updateHideOnlineStatus();
+          updateLanguageButtons();
+          if (languageLoadingText) {
+            languageLoadingText.textContent = messages.switching;
+          }
+        }
+
+        function switchLanguage(language) {
+          showLanguageLoading();
+          window.setTimeout(() => {
+            try {
+              localStorage.setItem(languageStorageKey, language);
+            } catch {}
+            applyLanguage(language);
+            hideLanguageLoading();
+          }, 5000);
+        }
+
+        async function copyAboutQq() {
+          if (!aboutCopyStatus) {
+            return;
+          }
+          try {
+            await navigator.clipboard.writeText(serviceQq);
+            aboutCopyStatus.textContent = getCurrentMessages().aboutCopyStatusSuccess;
+            aboutCopyStatus.classList.remove('error');
+          } catch {
+            aboutCopyStatus.textContent = getCurrentMessages().aboutCopyStatusError;
+            aboutCopyStatus.classList.add('error');
+          }
+        }
+
+        function applyMotionPreference() {
+          const reducedMotionEnabled = Boolean(reducedMotionToggle && reducedMotionToggle.checked);
+          document.body.classList.toggle('reduced-motion', reducedMotionEnabled);
+          try {
+            localStorage.setItem(reducedMotionStorageKey, reducedMotionEnabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyCompactModePreference() {
+          const compactModeEnabled = Boolean(compactModeToggle && compactModeToggle.checked);
+          document.body.classList.toggle('compact-mode', compactModeEnabled);
+          try {
+            localStorage.setItem(compactModeStorageKey, compactModeEnabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applySystemThemePreference() {
+          const followSystem = Boolean(systemThemeToggle && systemThemeToggle.checked);
+          if (generalThemeSelect) {
+            generalThemeSelect.disabled = followSystem;
+          }
+          try {
+            localStorage.setItem(systemThemeStorageKey, followSystem ? '1' : '0');
+          } catch {}
+          if (followSystem) {
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const nextTheme = prefersDark ? 'night' : 'day';
+            setTheme(nextTheme);
+          }
+        }
+
+        function applyMinimalGlassPreference() {
+          const minimalGlassEnabled = Boolean(minimalGlassToggle && minimalGlassToggle.checked);
+          document.body.classList.toggle('minimal-glass', minimalGlassEnabled);
+          try {
+            localStorage.setItem(minimalGlassStorageKey, minimalGlassEnabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyHighContrastPreference() {
+          const enabled = Boolean(highContrastToggle && highContrastToggle.checked);
+          document.body.classList.toggle('high-contrast', enabled);
+          try {
+            localStorage.setItem(highContrastStorageKey, enabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyLowerGlowPreference() {
+          const enabled = Boolean(lowerGlowToggle && lowerGlowToggle.checked);
+          document.body.classList.toggle('lower-glow', enabled);
+          try {
+            localStorage.setItem(lowerGlowStorageKey, enabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyStickyHeaderPreference() {
+          const enabled = Boolean(stickyHeaderToggle && stickyHeaderToggle.checked);
+          document.body.classList.toggle('sticky-header', enabled);
+          try {
+            localStorage.setItem(stickyHeaderStorageKey, enabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyRememberLastPagePreference() {
+          const enabled = Boolean(rememberLastPageToggle && rememberLastPageToggle.checked);
+          try {
+            localStorage.setItem(rememberLastPageStorageKey, enabled ? '1' : '0');
+          } catch {}
+          if (enabled) {
+            try {
+              localStorage.setItem('mctools-last-visited-page', window.location.pathname + window.location.search);
+            } catch {}
+          }
+        }
+
+        function applyHideDecorationsPreference() {
+          const enabled = Boolean(hideDecorationsToggle && hideDecorationsToggle.checked);
+          document.body.classList.toggle('hide-decorations', enabled);
+          try {
+            localStorage.setItem(hideDecorationsStorageKey, enabled ? '1' : '0');
+          } catch {}
+        }
+
+        function applyBackgroundPreference() {
+          const enabled = getBackgroundImageEnabled();
+          if (backgroundImageToggle) {
+            backgroundImageToggle.checked = enabled;
+          }
+          if (thinkingTimeSelect) {
+            thinkingTimeSelect.value = String(getAiThinkingTimeMs());
+          }
+          if (enabled) {
+            applyBackgroundImageFromApi();
+          } else {
+            document.body.style.background = '';
+          }
+          updateBackgroundStatus();
+          updateThinkingTimeStatus();
+        }
+
         function setAuthTab(nextMode) {
           authMode = nextMode;
           authTabs.forEach((tab) => {
@@ -568,7 +1575,28 @@
           });
         }
 
+        function setPageTab(nextMode) {
+          pageMode = nextMode;
+          pageTabs.forEach((tab) => {
+            tab.classList.toggle('active', tab.dataset.pageTab === nextMode);
+          });
+          pagePanels.forEach((panel) => {
+            const isActive = panel.dataset.pagePanel === nextMode;
+            panel.hidden = !isActive;
+            panel.classList.toggle('active', isActive);
+          });
+        }
+
         function setScanMode(active) {
+          pageTabs.forEach((tab) => {
+            tab.hidden = active;
+          });
+          pagePanels.forEach((panel) => {
+            if (active) {
+              panel.hidden = true;
+              panel.classList.remove('active');
+            }
+          });
           if (authTabsRow) authTabsRow.hidden = active;
           if (rememberLoginPanel) rememberLoginPanel.hidden = active;
           authPanels.forEach((panel) => {
@@ -652,12 +1680,13 @@
 
         function setQrExpireText() {
           if (!qrExpire) return;
+          const label = qrExpire.dataset.expireLabel || '有效期：';
           if (!qrLoginExpiresAt) {
-            qrExpire.textContent = '有效期：--';
+            qrExpire.textContent = `${label}--`;
             return;
           }
           const remainSeconds = Math.max(0, Math.ceil((qrLoginExpiresAt - Date.now()) / 1000));
-          qrExpire.textContent = `有效期：${remainSeconds} 秒`;
+          qrExpire.textContent = `${label}${remainSeconds} 秒`;
         }
 
         function buildQrUrls(content, size) {
@@ -680,6 +1709,7 @@
 
         function updateQrManualLink(url) {
           qrLoginConfirmUrl = url || '';
+          const label = qrLinkText?.dataset.linkLabel || '确认链接：';
           if (qrOpenLink) {
             qrOpenLink.href = qrLoginConfirmUrl || '/store-account.html?auth=login';
             qrOpenLink.setAttribute('aria-disabled', qrLoginConfirmUrl ? 'false' : 'true');
@@ -688,7 +1718,7 @@
             qrCopyLinkButton.disabled = !qrLoginConfirmUrl;
           }
           if (qrLinkText) {
-            qrLinkText.textContent = '确认链接：' + (qrLoginConfirmUrl || '--');
+            qrLinkText.textContent = label + (qrLoginConfirmUrl || '--');
           }
         }
 
@@ -890,18 +1920,73 @@
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const response = await fetch('/api/community/me', { headers });
             if (!response.ok) {
+              currentCommunityLoggedIn = false;
               logoutButton.hidden = true;
+              if (hideOnlineStatusToggle) {
+                hideOnlineStatusToggle.checked = false;
+                hideOnlineStatusToggle.disabled = true;
+              }
+              updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusLoggedOut, true);
               return;
             }
             const result = await response.json();
             if (result?.loggedIn && result?.username) {
+              currentCommunityLoggedIn = true;
               logoutButton.hidden = false;
               logoutButton.textContent = `退出登录 · ${result.username}`;
+              if (hideOnlineStatusToggle) {
+                hideOnlineStatusToggle.disabled = false;
+                hideOnlineStatusToggle.checked = Boolean(result.hideOnlineStatus);
+              }
+              updateHideOnlineStatus();
             } else {
+              currentCommunityLoggedIn = false;
               logoutButton.hidden = true;
+              if (hideOnlineStatusToggle) {
+                hideOnlineStatusToggle.checked = false;
+                hideOnlineStatusToggle.disabled = true;
+              }
+              updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusLoggedOut, true);
             }
           } catch {
+            currentCommunityLoggedIn = false;
             logoutButton.hidden = true;
+            if (hideOnlineStatusToggle) {
+              hideOnlineStatusToggle.checked = false;
+              hideOnlineStatusToggle.disabled = true;
+            }
+            updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusSaveError, true);
+          }
+        }
+
+        async function saveHideOnlineStatusPreference() {
+          if (!hideOnlineStatusToggle) {
+            return;
+          }
+          if (!currentCommunityLoggedIn) {
+            hideOnlineStatusToggle.checked = false;
+            updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusLoggedOut, true);
+            return;
+          }
+
+          const nextValue = hideOnlineStatusToggle.checked;
+          updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusSaving, false);
+          try {
+            const response = await fetch('/api/community/preferences', {
+              method: 'POST',
+              headers: getCommunityAuthHeaders({ 'Content-Type': 'application/json; charset=utf-8' }),
+              body: JSON.stringify({ hideOnlineStatus: nextValue })
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              throw new Error(result.message || getCurrentMessages().hideOnlineStatusSaveError);
+            }
+            hideOnlineStatusToggle.checked = Boolean(result.hideOnlineStatus);
+            updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusSaved, false);
+            window.setTimeout(() => updateHideOnlineStatus(), 1000);
+          } catch (error) {
+            hideOnlineStatusToggle.checked = !nextValue;
+            updateHideOnlineStatus(error.message || getCurrentMessages().hideOnlineStatusSaveError, true);
           }
         }
 
@@ -997,6 +2082,15 @@
           setStatus('register', '已退出登录。');
         }
 
+        pageTabs.forEach((tab) => {
+          tab.addEventListener('click', () => setPageTab(tab.dataset.pageTab));
+        });
+
+        languageButtons.forEach((button) => {
+          button.addEventListener('click', () => switchLanguage(button.dataset.languageChoice));
+        });
+        copyAboutQqButton?.addEventListener('click', copyAboutQq);
+
         authTabs.forEach((tab) => {
           tab.addEventListener('click', () => setAuthTab(tab.dataset.authTab));
         });
@@ -1013,6 +2107,67 @@
           setTheme(nextTheme);
         });
 
+        generalThemeSelect?.addEventListener('change', () => {
+          const nextTheme = String(generalThemeSelect.value || 'night');
+          if (nextTheme === 'day' || nextTheme === 'night') {
+            setTheme(nextTheme);
+          }
+        });
+
+        backgroundImageToggle?.addEventListener('change', () => {
+          try {
+            localStorage.setItem(backgroundImageStorageKey, backgroundImageToggle.checked ? '1' : '0');
+          } catch {}
+          applyBackgroundPreference();
+        });
+
+        reducedMotionToggle?.addEventListener('change', () => {
+          applyMotionPreference();
+        });
+
+        compactModeToggle?.addEventListener('change', () => {
+          applyCompactModePreference();
+        });
+
+        systemThemeToggle?.addEventListener('change', () => {
+          applySystemThemePreference();
+        });
+
+        minimalGlassToggle?.addEventListener('change', () => {
+          applyMinimalGlassPreference();
+        });
+
+        highContrastToggle?.addEventListener('change', () => {
+          applyHighContrastPreference();
+        });
+
+        lowerGlowToggle?.addEventListener('change', () => {
+          applyLowerGlowPreference();
+        });
+
+        stickyHeaderToggle?.addEventListener('change', () => {
+          applyStickyHeaderPreference();
+        });
+
+        rememberLastPageToggle?.addEventListener('change', () => {
+          applyRememberLastPagePreference();
+        });
+
+        hideDecorationsToggle?.addEventListener('change', () => {
+          applyHideDecorationsPreference();
+        });
+
+        thinkingTimeSelect?.addEventListener('change', () => {
+          const nextValue = Number.parseInt(String(thinkingTimeSelect.value || defaultAiThinkingTimeMs), 10);
+          const normalized = nextValue === 1000 || nextValue === 5000 ? nextValue : defaultAiThinkingTimeMs;
+          try {
+            localStorage.setItem(aiThinkingTimeStorageKey, String(normalized));
+          } catch {}
+          thinkingTimeSelect.value = String(normalized);
+          updateThinkingTimeStatus();
+        });
+        hideOnlineStatusToggle?.addEventListener('change', saveHideOnlineStatusPreference);
+
         const bootUrl = new URL(window.location.href);
         const authModeFromUrl = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
         const scanToken = String(bootUrl.searchParams.get('token') || '').trim();
@@ -1020,12 +2175,122 @@
         if (authModeFromUrl === 'login') setAuthTab('login');
         else if (authModeFromUrl === 'register') setAuthTab('register');
 
+        if (!isScanMode && scanPanel) {
+          scanPanel.remove();
+        }
+
+        const reducedMotionEnabled = (() => {
+          try {
+            return String(localStorage.getItem(reducedMotionStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const compactModeEnabled = (() => {
+          try {
+            return String(localStorage.getItem(compactModeStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const systemThemeEnabled = (() => {
+          try {
+            return String(localStorage.getItem(systemThemeStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const minimalGlassEnabled = (() => {
+          try {
+            return String(localStorage.getItem(minimalGlassStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const highContrastEnabled = (() => {
+          try {
+            return String(localStorage.getItem(highContrastStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const lowerGlowEnabled = (() => {
+          try {
+            return String(localStorage.getItem(lowerGlowStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const stickyHeaderEnabled = (() => {
+          try {
+            return String(localStorage.getItem(stickyHeaderStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const rememberLastPageEnabled = (() => {
+          try {
+            return String(localStorage.getItem(rememberLastPageStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+        const hideDecorationsEnabled = (() => {
+          try {
+            return String(localStorage.getItem(hideDecorationsStorageKey) || '0') === '1';
+          } catch {
+            return false;
+          }
+        })();
+
+        if (generalThemeSelect) {
+          generalThemeSelect.value = document.documentElement.getAttribute('data-theme') === 'day' ? 'day' : 'night';
+        }
+        if (reducedMotionToggle) {
+          reducedMotionToggle.checked = reducedMotionEnabled;
+        }
+        if (compactModeToggle) {
+          compactModeToggle.checked = compactModeEnabled;
+        }
+        if (systemThemeToggle) {
+          systemThemeToggle.checked = systemThemeEnabled;
+        }
+        if (minimalGlassToggle) {
+          minimalGlassToggle.checked = minimalGlassEnabled;
+        }
+        if (highContrastToggle) {
+          highContrastToggle.checked = highContrastEnabled;
+        }
+        if (lowerGlowToggle) {
+          lowerGlowToggle.checked = lowerGlowEnabled;
+        }
+        if (stickyHeaderToggle) {
+          stickyHeaderToggle.checked = stickyHeaderEnabled;
+        }
+        if (rememberLastPageToggle) {
+          rememberLastPageToggle.checked = rememberLastPageEnabled;
+        }
+        if (hideDecorationsToggle) {
+          hideDecorationsToggle.checked = hideDecorationsEnabled;
+        }
+
+        applyLanguage(getPreferredLanguage());
         setTheme(getPreferredTheme());
         if (!isScanMode) {
+          setPageTab(pageMode);
           setAuthTab(authMode);
         }
         setScanMode(isScanMode);
-        applyBackgroundImageFromApi();
+        applyBackgroundPreference();
+        applyMotionPreference();
+        applyCompactModePreference();
+        applyMinimalGlassPreference();
+        applyHighContrastPreference();
+        applyLowerGlowPreference();
+        applyStickyHeaderPreference();
+        applyRememberLastPagePreference();
+        applyHideDecorationsPreference();
+        applySystemThemePreference();
         loadAccountState();
 
         if (consumeGoogleAuthResult()) {

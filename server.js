@@ -247,6 +247,8 @@ db.exec(`
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL DEFAULT '',
+    hide_online_status INTEGER NOT NULL DEFAULT 0,
+    store_discount_tier TEXT NOT NULL DEFAULT '',
     is_developer INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at TEXT
@@ -266,6 +268,12 @@ try {
   }
   if (!communityColumns.includes('google_id')) {
     db.exec('ALTER TABLE community_accounts ADD COLUMN google_id TEXT');
+  }
+  if (!communityColumns.includes('hide_online_status')) {
+    db.exec('ALTER TABLE community_accounts ADD COLUMN hide_online_status INTEGER NOT NULL DEFAULT 0');
+  }
+  if (!communityColumns.includes('store_discount_tier')) {
+    db.exec("ALTER TABLE community_accounts ADD COLUMN store_discount_tier TEXT NOT NULL DEFAULT ''");
   }
 } catch {
   // Keep startup resilient if migration fails unexpectedly.
@@ -336,6 +344,7 @@ db.exec(`
     payment_method TEXT NOT NULL DEFAULT '',
     contact TEXT NOT NULL DEFAULT '',
     buyer_note TEXT NOT NULL DEFAULT '',
+    buyer_username TEXT NOT NULL DEFAULT '',
     card_secret TEXT NOT NULL DEFAULT '',
     mch_id TEXT NOT NULL DEFAULT '',
     app_id TEXT NOT NULL DEFAULT '',
@@ -345,6 +354,20 @@ db.exec(`
     request_json TEXT NOT NULL DEFAULT '',
     response_json TEXT NOT NULL DEFAULT '',
     notify_json TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_discount_coupons (
+    code TEXT PRIMARY KEY,
+    discount_type TEXT NOT NULL,
+    discount_value INTEGER NOT NULL,
+    minimum_amount_fen INTEGER NOT NULL DEFAULT 0,
+    starts_at TEXT NOT NULL DEFAULT '',
+    expires_at TEXT NOT NULL DEFAULT '',
+    is_active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
@@ -360,6 +383,15 @@ try {
   }
   if (!storeOrderColumns.includes('buyer_note')) {
     db.exec('ALTER TABLE store_orders ADD COLUMN buyer_note TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeOrderColumns.includes('buyer_username')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN buyer_username TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeOrderColumns.includes('coupon_code')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN coupon_code TEXT NOT NULL DEFAULT ""');
+  }
+  if (!storeOrderColumns.includes('coupon_discount_fen')) {
+    db.exec('ALTER TABLE store_orders ADD COLUMN coupon_discount_fen INTEGER NOT NULL DEFAULT 0');
   }
   if (!storeOrderColumns.includes('quantity')) {
     db.exec('ALTER TABLE store_orders ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1');
@@ -576,35 +608,50 @@ const defaultStoreProducts = [
     tags: ['建筑导入', '一次']
   },
   {
-    productCode: 'LOW-AGENT-30',
-    name: '低级代理',
-    description: '购买后永久享受八折优惠。',
-    originalPriceFen: 3000,
-    salePriceFen: 3000,
-    stock: 999,
-    currency: 'CNY',
-    isActive: 1,
-    sortOrder: 50,
-    tags: ['权限', '永久优惠', '八折']
-  },
-  {
-    productCode: 'MID-AGENT-100',
-    name: '中级代理',
-    description: '购买后永久享受七折优惠。',
+    productCode: 'LVIP-30',
+    name: 'LVIP 永久七折',
+    description: '购买后本人账号永久享受全店商品七折优惠。',
     originalPriceFen: 10000,
     salePriceFen: 10000,
     stock: 999,
     currency: 'CNY',
     isActive: 1,
-    sortOrder: 60,
-    tags: ['权限', '永久优惠', '七折']
-  }
+    sortOrder: 2,
+    tags: ['会员权益', 'LVIP', '永久七折']
+  },
+  {
+    productCode: 'VIP-45',
+    name: 'VIP 永久 4.5 折',
+    description: '购买后本人账号永久享受全店 4.5 折优惠。',
+    originalPriceFen: 23000,
+    salePriceFen: 23000,
+    stock: 999,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 3,
+    tags: ['会员权益', 'VIP', '永久4.5折']
+  },
+  {
+    productCode: 'SVIP-15',
+    name: 'SVIP 永久 1.5 折',
+    description: '购买后本人账号永久享受全店 1.5 折优惠。',
+    originalPriceFen: 50000,
+    salePriceFen: 50000,
+    stock: 999,
+    currency: 'CNY',
+    isActive: 1,
+    sortOrder: 4,
+    tags: ['会员权益', 'SVIP', '永久1.5折']
+  },
 ];
 
 const lotteryDrawPriceFen = 5000;
 const lotteryDailyDrawLimit = 2;
-const lotteryFeatureEnabled = false;
 const lotteryDisabledMessage = '抽奖活动暂时关闭，敬请关注后续通知。';
+function getLotteryFeatureEnabled() {
+  return normalizeStoreBoolean(getSettingValue('lottery_feature_enabled', '0'), false);
+}
+
 const defaultLotteryPrizes = [
   {
     name: 'NB������һ��',
@@ -635,6 +682,7 @@ const defaultLotteryPrizes = [
     isActive: 1
   }
 ];
+defaultLotteryPrizes.length = 0;
 
 function seedStoreProductsIfEmpty() {
   const row = db.prepare('SELECT COUNT(1) AS count FROM store_products').get();
@@ -786,6 +834,24 @@ function sendHtml(response, statusCode, content) {
   response.end(content);
 }
 
+function injectGlobalPreferencesScript(html) {
+  const scriptTag = '<script defer src="/mctools-global-preferences.js"></script>';
+
+  if (typeof html !== 'string' || html.includes('/mctools-global-preferences.js')) {
+    return html;
+  }
+
+  if (html.includes('</head>')) {
+    return html.replace('</head>', `    ${scriptTag}\n  </head>`);
+  }
+
+  if (html.includes('<body')) {
+    return html.replace(/<body([^>]*)>/iu, `<body$1>\n${scriptTag}`);
+  }
+
+  return `${scriptTag}${html}`;
+}
+
 function sendFile(filePath, response) {
   fs.readFile(filePath, (error, content) => {
     if (error) {
@@ -800,6 +866,12 @@ function sendFile(filePath, response) {
 
     const extension = path.extname(filePath).toLowerCase();
     const contentType = mimeTypes[extension] || 'application/octet-stream';
+
+    if (extension === '.html') {
+      sendHtml(response, 200, injectGlobalPreferencesScript(content.toString('utf8')));
+      return;
+    }
+
     response.writeHead(200, { 'Content-Type': contentType });
     response.end(content);
   });
@@ -1108,6 +1180,111 @@ function getStoreProductByCode(productCode, includeInactive = false) {
   return normalizeStoreProductRow(row);
 }
 
+function getStoreDiscountedSalePriceFen(product, username) {
+  const salePriceFen = Number(product?.salePriceFen || 0);
+  const productCode = String(product?.productCode || '').trim().toUpperCase();
+  if (['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
+    return salePriceFen;
+  }
+  const account = username ? getCommunityAccountByUsername(username) : null;
+  const discountRate = account?.storeDiscountTier === 'svip' ? 0.15 : account?.storeDiscountTier === 'vip' ? 0.45 : account?.storeDiscountTier === 'lvip' ? 0.7 : 1;
+  return discountRate < 1 ? Math.max(1, Math.round(salePriceFen * discountRate)) : salePriceFen;
+}
+
+function normalizeStoreCouponRow(row) {
+  if (!row) return null;
+  return {
+    code: String(row.code || ''),
+    discountType: String(row.discountType || ''),
+    discountValue: Number(row.discountValue || 0),
+    minimumAmountFen: Number(row.minimumAmountFen || 0),
+    startsAt: String(row.startsAt || ''),
+    expiresAt: String(row.expiresAt || ''),
+    isActive: Boolean(Number(row.isActive || 0)),
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt
+  };
+}
+
+function getStoreCouponByCode(code, includeInactive = false) {
+  const normalizedCode = String(code || '').trim().toUpperCase();
+  if (!normalizedCode) return null;
+  const row = db.prepare(`
+    SELECT code, discount_type AS discountType, discount_value AS discountValue,
+      minimum_amount_fen AS minimumAmountFen, starts_at AS startsAt, expires_at AS expiresAt,
+      is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+    FROM store_discount_coupons WHERE code = ? ${includeInactive ? '' : 'AND is_active = 1'}
+  `).get(normalizedCode);
+  return normalizeStoreCouponRow(row);
+}
+
+function listStoreCoupons(includeInactive = false) {
+  const rows = db.prepare(`
+    SELECT code, discount_type AS discountType, discount_value AS discountValue,
+      minimum_amount_fen AS minimumAmountFen, starts_at AS startsAt, expires_at AS expiresAt,
+      is_active AS isActive, created_at AS createdAt, updated_at AS updatedAt
+    FROM store_discount_coupons ${includeInactive ? '' : 'WHERE is_active = 1'}
+    ORDER BY created_at DESC, code ASC
+  `).all();
+  return rows.map(normalizeStoreCouponRow);
+}
+
+function calculateStoreOrderPricing(product, quantity, username, couponCode = '') {
+  const normalizedQuantity = Math.max(1, Math.min(99, Number.parseInt(String(quantity || '1'), 10) || 1));
+  const subtotalFen = getStoreDiscountedSalePriceFen(product, username) * normalizedQuantity;
+  const normalizedCode = String(couponCode || '').trim().toUpperCase();
+  if (!normalizedCode) {
+    return { subtotalFen, couponCode: '', couponDiscountFen: 0, amountFen: subtotalFen };
+  }
+
+  const coupon = getStoreCouponByCode(normalizedCode);
+  if (!coupon) return { error: '折扣券不存在或已停用。' };
+  const now = Date.now();
+  const startsAt = coupon.startsAt ? Date.parse(coupon.startsAt) : NaN;
+  const expiresAt = coupon.expiresAt ? Date.parse(coupon.expiresAt) : NaN;
+  if (Number.isFinite(startsAt) && now < startsAt) return { error: '折扣券尚未生效。' };
+  if (Number.isFinite(expiresAt) && now > expiresAt) return { error: '折扣券已过期。' };
+  if (subtotalFen < coupon.minimumAmountFen) return { error: '订单金额未达到折扣券使用门槛。' };
+
+  const rawDiscountFen = coupon.discountType === 'percent'
+    ? Math.round(subtotalFen * coupon.discountValue / 100)
+    : coupon.discountValue;
+  const couponDiscountFen = Math.min(Math.max(0, subtotalFen - 1), rawDiscountFen);
+  if (couponDiscountFen <= 0) return { error: '折扣券不适用于当前订单金额。' };
+
+  return {
+    subtotalFen,
+    couponCode: normalizedCode,
+    couponDiscountFen,
+    amountFen: subtotalFen - couponDiscountFen
+  };
+}
+
+function grantStoreEntitlementForPaidOrder(order) {
+  if (
+    !order ||
+    !normalizePaymentSuccess(order.status) ||
+    !['LVIP-30', 'VIP-45', 'SVIP-15'].includes(String(order.productCode || '').trim().toUpperCase()) ||
+    !String(order.buyerUsername || '').trim()
+  ) {
+    return;
+  }
+
+  const tierByProduct = { 'LVIP-30': 'lvip', 'VIP-45': 'vip', 'SVIP-15': 'svip' };
+  const tier = tierByProduct[String(order.productCode || '').trim().toUpperCase()];
+  db.prepare(`
+    UPDATE community_accounts
+    SET store_discount_tier = CASE
+      WHEN store_discount_tier = 'svip' THEN 'svip'
+      WHEN ? = 'svip' THEN 'svip'
+      WHEN store_discount_tier = 'vip' THEN 'vip'
+      WHEN ? = 'vip' THEN 'vip'
+      ELSE 'lvip'
+    END
+    WHERE username = ?
+  `).run(tier, tier, String(order.buyerUsername).trim());
+}
+
 function listStoreProducts(includeInactive = false) {
   const rows = includeInactive
     ? db.prepare(
@@ -1255,6 +1432,124 @@ function handleStoreProductsAdmin(request, response) {
   });
 }
 
+function handleStoreCouponsAdmin(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+  sendJson(response, 200, { coupons: listStoreCoupons(true), operator: session.username });
+}
+
+function handleStoreCouponCreate(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const code = String(body.code || '').trim().toUpperCase();
+      const discountType = String(body.discountType || '').trim().toLowerCase();
+      const discountValue = Number(body.discountValue);
+      const minimumAmountFen = Number(body.minimumAmountFen || 0);
+      const startsAt = String(body.startsAt || '').trim();
+      const expiresAt = String(body.expiresAt || '').trim();
+      const isActive = body.isActive === false || body.isActive === 0 ? 0 : 1;
+
+      if (!/^[A-Z0-9_-]{3,32}$/.test(code)) {
+        sendJson(response, 400, { message: '折扣券编码需为 3-32 位大写字母、数字、下划线或连字符。' });
+        return;
+      }
+      if (!['percent', 'fixed'].includes(discountType)) {
+        sendJson(response, 400, { message: '请选择有效的折扣类型。' });
+        return;
+      }
+      if (!Number.isInteger(discountValue) || discountValue <= 0 || (discountType === 'percent' && discountValue > 99)) {
+        sendJson(response, 400, { message: discountType === 'percent' ? '折扣比例需为 1-99 的整数。' : '减免金额需为大于 0 的整数分。' });
+        return;
+      }
+      if (!Number.isInteger(minimumAmountFen) || minimumAmountFen < 0) {
+        sendJson(response, 400, { message: '最低消费金额无效。' });
+        return;
+      }
+      const startTime = startsAt ? Date.parse(startsAt) : NaN;
+      const expiryTime = expiresAt ? Date.parse(expiresAt) : NaN;
+      if ((startsAt && !Number.isFinite(startTime)) || (expiresAt && !Number.isFinite(expiryTime)) || (Number.isFinite(startTime) && Number.isFinite(expiryTime) && expiryTime <= startTime)) {
+        sendJson(response, 400, { message: '折扣券有效时间无效，结束时间必须晚于开始时间。' });
+        return;
+      }
+
+      db.prepare(`
+        INSERT INTO store_discount_coupons (
+          code, discount_type, discount_value, minimum_amount_fen, starts_at, expires_at, is_active, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `).run(code, discountType, discountValue, minimumAmountFen, startsAt, expiresAt, isActive);
+      sendJson(response, 201, { message: '折扣券已创建。', coupon: getStoreCouponByCode(code, true) });
+    })
+    .catch((error) => {
+      const message = String(error?.message || '创建折扣券失败');
+      sendJson(response, message.includes('UNIQUE') ? 409 : 400, {
+        message: message.includes('UNIQUE') ? '折扣券编码已存在。' : message
+      });
+    });
+}
+
+function handleStoreCouponToggle(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const code = String(body.code || '').trim().toUpperCase();
+      const isActive = body.isActive ? 1 : 0;
+      const result = db.prepare('UPDATE store_discount_coupons SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?').run(isActive, code);
+      if (Number(result.changes || 0) === 0) {
+        sendJson(response, 404, { message: '未找到该折扣券。' });
+        return;
+      }
+      sendJson(response, 200, { message: isActive ? '折扣券已启用。' : '折扣券已停用。', coupon: getStoreCouponByCode(code, true) });
+    })
+    .catch((error) => sendJson(response, 400, { message: error.message || '更新折扣券失败' }));
+}
+
+function handleStoreCouponDelete(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const code = String(body.code || '').trim().toUpperCase();
+      const result = db.prepare('DELETE FROM store_discount_coupons WHERE code = ?').run(code);
+      if (Number(result.changes || 0) === 0) {
+        sendJson(response, 404, { message: '未找到该折扣券。' });
+        return;
+      }
+      sendJson(response, 200, { message: `折扣券 ${code} 已删除。` });
+    })
+    .catch((error) => sendJson(response, 400, { message: error.message || '删除折扣券失败' }));
+}
+
+function handleStoreCouponQuote(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录后再使用折扣券。' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const product = getStoreProductByCode(body.productCode, false);
+      if (!product) {
+        sendJson(response, 404, { message: '商品不存在或已下架。' });
+        return;
+      }
+      const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body.quantity || '1'), 10) || 1));
+      const pricing = calculateStoreOrderPricing(product, quantity, session.username, body.couponCode);
+      if (pricing.error) {
+        sendJson(response, 400, { message: pricing.error });
+        return;
+      }
+      sendJson(response, 200, { ...pricing, currency: product.currency || 'CNY' });
+    })
+    .catch((error) => sendJson(response, 400, { message: error.message || '折扣券校验失败' }));
+}
+
 function handleStoreOrdersAdmin(request, response) {
   const session = getCommunitySessionFromRequest(request);
 
@@ -1286,7 +1581,7 @@ function handleStoreOrdersAdmin(request, response) {
   });
 
   if (exportFormat === 'csv') {
-    const header = ['orderNo', 'productCode', 'productName', 'amountFen', 'currency', 'status', 'paymentMethod', 'contact', 'buyerNote', 'cardSecret', 'createdAt', 'updatedAt'];
+    const header = ['orderNo', 'productCode', 'productName', 'amountFen', 'couponCode', 'couponDiscountFen', 'currency', 'status', 'paymentMethod', 'contact', 'buyerNote', 'cardSecret', 'createdAt', 'updatedAt'];
     const csv = [
       header.join(','),
       ...orders.map((order) => header.map((key) => csvEscapeValue(order[key])).join(','))
@@ -1321,7 +1616,7 @@ function listStoreOrdersByContact(contact, limit = 20) {
   }
 
   return db.prepare(
-    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, created_at AS createdAt, updated_at AS updatedAt
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, coupon_code AS couponCode, coupon_discount_fen AS couponDiscountFen, card_secret AS cardSecret, created_at AS createdAt, updated_at AS updatedAt
      FROM store_orders
      WHERE contact = ?
      ORDER BY id DESC
@@ -1782,9 +2077,10 @@ function drawLotteryPrize(username, email) {
 }
 
 function handleLotteryConfig(request, response) {
+  const enabled = getLotteryFeatureEnabled();
   sendJson(response, 200, {
-    enabled: lotteryFeatureEnabled,
-    message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+    enabled,
+    message: enabled ? '' : lotteryDisabledMessage,
     priceFen: lotteryDrawPriceFen,
     dailyLimit: lotteryDailyDrawLimit,
     prizeCount: listLotteryPrizes(true).length,
@@ -1793,15 +2089,16 @@ function handleLotteryConfig(request, response) {
 }
 
 function handleLotteryRecords(request, response) {
+  const enabled = getLotteryFeatureEnabled();
   const session = getCommunitySessionFromRequest(request);
   if (!session) {
     sendJson(response, 200, {
-      enabled: lotteryFeatureEnabled,
-      message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+      enabled,
+      message: enabled ? '' : lotteryDisabledMessage,
       loggedIn: false,
       records: [],
       todayDrawCount: 0,
-      remainingTodayDraws: lotteryFeatureEnabled ? lotteryDailyDrawLimit : 0
+      remainingTodayDraws: enabled ? lotteryDailyDrawLimit : 0
     });
     return;
   }
@@ -1809,18 +2106,18 @@ function handleLotteryRecords(request, response) {
   const records = listLotteryRecordsByUsername(session.username, 30);
   const todayDrawCount = countTodayLotteryDraws(session.username);
   sendJson(response, 200, {
-    enabled: lotteryFeatureEnabled,
-    message: lotteryFeatureEnabled ? '' : lotteryDisabledMessage,
+    enabled,
+    message: enabled ? '' : lotteryDisabledMessage,
     loggedIn: true,
     username: session.username,
     records,
     todayDrawCount,
-    remainingTodayDraws: lotteryFeatureEnabled ? Math.max(0, lotteryDailyDrawLimit - todayDrawCount) : 0
+    remainingTodayDraws: enabled ? Math.max(0, lotteryDailyDrawLimit - todayDrawCount) : 0
   });
 }
 
 function handleLotteryDraw(request, response) {
-  if (!lotteryFeatureEnabled) {
+  if (!getLotteryFeatureEnabled()) {
     sendJson(response, 503, { message: lotteryDisabledMessage, enabled: false });
     return;
   }
@@ -1862,20 +2159,26 @@ function handleStoreSettingsSave(request, response) {
       const announcement = String(body.announcement || '').trim();
       const whitelistUsernames = normalizeStoreWhitelistUsernames(body.whitelistUsernames || body.whitelist || []);
       const maintenanceEnabled = normalizeStoreBoolean(body.maintenanceEnabled ?? body.siteMaintenanceEnabled ?? body.maintenance, false);
+      const paymentsEnabled = normalizeStoreBoolean(body.paymentsEnabled ?? body.storePaymentsEnabled ?? body.paymentEnabled, true);
       const maintenanceMessage = String(body.maintenanceMessage || body.siteMaintenanceMessage || '').trim();
       const maintenanceReason = String(body.maintenanceReason || '').trim();
       const maintenanceUntil = String(body.maintenanceUntil || '').trim();
       const orderViewerUsernames = normalizeStoreWhitelistUsernames(body.orderViewerUsernames || body.orderViewers || []);
 
-      saveStorePublicSettings({
+      const nextSettings = {
         announcement,
         whitelistUsernames,
         maintenanceEnabled,
+        paymentsEnabled,
         maintenanceMessage,
         maintenanceReason,
         maintenanceUntil,
         orderViewerUsernames
-      });
+      };
+      if (Object.prototype.hasOwnProperty.call(body, 'lotteryEnabled')) {
+        nextSettings.lotteryEnabled = normalizeStoreBoolean(body.lotteryEnabled, false);
+      }
+      saveStorePublicSettings(nextSettings);
 
       sendJson(response, 200, {
         message: '���桢��������ά�������Ѹ���',
@@ -2437,7 +2740,14 @@ async function trySyncStoreOrderFromHongxing(order) {
   }
 
   const currentStatus = String(order.status || '').trim().toUpperCase();
+  const cardSecretReady = String(order.cardSecret || '').trim();
   if (currentStatus === 'SUCCESS' || currentStatus === 'TRADE_SUCCESS') {
+    if (!cardSecretReady) {
+      const generated = ensureStoreOrderCardSecret(order.orderNo, String(order.productCode || '').trim().toUpperCase());
+      if (generated) {
+        return true;
+      }
+    }
     return true;
   }
 
@@ -2551,7 +2861,7 @@ async function trySyncStoreOrderFromHongxing(order) {
 
 function getStoreOrderByNo(orderNo) {
   return db.prepare(
-    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
+    'SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, buyer_username AS buyerUsername, coupon_code AS couponCode, coupon_discount_fen AS couponDiscountFen, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, request_json AS requestJson, response_json AS responseJson, notify_json AS notifyJson, created_at AS createdAt, updated_at AS updatedAt FROM store_orders WHERE order_no = ?'
   ).get(orderNo) || null;
 }
 
@@ -2656,10 +2966,10 @@ function createStoreOrder(record) {
 
   db.prepare(
     `INSERT INTO store_orders (
-      order_no, product_code, product_name, amount_fen, currency, status, payment_method, contact, buyer_note, quantity,
+      order_no, product_code, product_name, amount_fen, currency, status, payment_method, contact, buyer_note, quantity, buyer_username, coupon_code, coupon_discount_fen,
       card_secret, mch_id, app_id, code_url, wechat_prepay_id, wechat_transaction_id,
       request_json, response_json, notify_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     record.orderNo,
     record.productCode,
@@ -2671,6 +2981,9 @@ function createStoreOrder(record) {
     record.contact || '',
     record.buyerNote || '',
     Math.max(1, Math.min(99, Number.parseInt(String(record.quantity || '1'), 10) || 1)),
+    record.buyerUsername || '',
+    record.couponCode || '',
+    Math.max(0, Number(record.couponDiscountFen) || 0),
     cardSecret,
     record.mchId || '',
     record.appId || '',
@@ -2684,6 +2997,7 @@ function createStoreOrder(record) {
 
   if (normalizePaymentSuccess(record.status)) {
     ensureStoreOrderCardSecret(record.orderNo);
+    grantStoreEntitlementForPaidOrder(getStoreOrderByNo(record.orderNo));
   }
 }
 
@@ -2750,6 +3064,8 @@ function updateStoreOrder(orderNo, updates) {
     ensureStoreOrderCardSecret(orderNo, String(reloadedOrder.productCode || '').trim().toUpperCase());
   }
 
+  grantStoreEntitlementForPaidOrder(reloadedOrder);
+
   return getStoreOrderByNo(orderNo);
 }
 
@@ -2807,6 +3123,7 @@ async function createWechatPayNativeOrder(request, response) {
     const config = getWechatPayConfig();
     const productCode = String(body.productCode || '').trim().toUpperCase();
     const product = getStoreProductByCode(productCode, false);
+    const buyerSession = getCommunitySessionFromRequest(request);
     const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body.quantity || '1'), 10) || 1));
 
     if (!config.appId || !config.mchId || !config.serialNo || !config.apiV3Key || !config.notifyUrl || !config.privateKeyPem) {
@@ -2821,13 +3138,25 @@ async function createWechatPayNativeOrder(request, response) {
       return;
     }
 
+    if (['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode) && !buyerSession) {
+      sendJson(response, 401, { message: '购买会员折扣权益前请先登录账号。' });
+      return;
+    }
+
     if (Number(product.stock || 0) < quantity) {
       sendJson(response, 400, { message: '当前库存不足，当前可购买数量为 ' + Number(product.stock || 0) + '。' });
       return;
     }
 
+    const couponCode = String(body.couponCode || '').trim().toUpperCase();
+    const pricing = calculateStoreOrderPricing(product, quantity, buyerSession?.username, couponCode);
+    if (pricing.error) {
+      sendJson(response, 400, { message: pricing.error });
+      return;
+    }
+
     const orderNo = createStoreOrderNo();
-    const amountFen = Number(product.salePriceFen || 0) * quantity;
+    const amountFen = pricing.amountFen;
     const productName = String(product.name || '').trim();
     const paymentMethod = normalizeStorePaymentMethod(body.paymentMethod, config.payType);
     const contact = String(body.contact || '').trim();
@@ -2859,7 +3188,9 @@ async function createWechatPayNativeOrder(request, response) {
         paymentMethod,
         contact,
         buyerNote,
-        quantity
+        quantity,
+        couponCode: pricing.couponCode,
+        couponDiscountFen: pricing.couponDiscountFen
       })
     };
 
@@ -2919,6 +3250,9 @@ async function createWechatPayNativeOrder(request, response) {
       contact,
       buyerNote,
       quantity,
+      buyerUsername: buyerSession?.username || '',
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen,
       status: 'PENDING',
       cardSecret: '',
       mchId: config.mchId,
@@ -2937,6 +3271,9 @@ async function createWechatPayNativeOrder(request, response) {
       productCode,
       productName,
       amountFen,
+      subtotalFen: pricing.subtotalFen,
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen,
       currency: product.currency || 'CNY',
       paymentMethod,
       contact,
@@ -2994,10 +3331,16 @@ async function createHongxingNativeOrder(request, body, response) {
 
   const productCode = String(body?.productCode || '').trim().toUpperCase();
   const product = getStoreProductByCode(productCode, false);
+  const buyerSession = getCommunitySessionFromRequest(request);
   const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body?.quantity || '1'), 10) || 1));
 
   if (!product) {
     sendJson(response, 404, { message: '��Ʒ�����ڻ����¼�' });
+    return;
+  }
+
+  if (['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode) && !buyerSession) {
+    sendJson(response, 401, { message: '购买会员折扣权益前请先登录账号。' });
     return;
   }
 
@@ -3006,8 +3349,15 @@ async function createHongxingNativeOrder(request, body, response) {
     return;
   }
 
+  const couponCode = String(body?.couponCode || '').trim().toUpperCase();
+  const pricing = calculateStoreOrderPricing(product, quantity, buyerSession?.username, couponCode);
+  if (pricing.error) {
+    sendJson(response, 400, { message: pricing.error });
+    return;
+  }
+
   const orderNo = createStoreOrderNo();
-  const amountFen = Number(product.salePriceFen || 0) * quantity;
+  const amountFen = pricing.amountFen;
   const productName = String(product.name || '').trim();
   const paymentMethod = normalizeStorePaymentMethod(body?.paymentMethod, config.payType);
   const contact = String(body?.contact || '').trim();
@@ -3035,6 +3385,8 @@ async function createHongxingNativeOrder(request, body, response) {
       returnUrl,
       name: productName || '�̵궩��',
       money: (amountFen / 100).toFixed(2),
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen,
       sitename: ''
     }, config);
 
@@ -3054,6 +3406,9 @@ async function createHongxingNativeOrder(request, body, response) {
       contact,
       buyerNote,
       quantity,
+      buyerUsername: buyerSession?.username || '',
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen,
       status: 'PENDING',
       cardSecret: '',
       mchId: String(config.merchantId),
@@ -3067,7 +3422,9 @@ async function createHongxingNativeOrder(request, body, response) {
         signType: config.signType,
         notifyUrl,
         returnUrl,
-        contact
+        contact,
+        couponCode: pricing.couponCode,
+        couponDiscountFen: pricing.couponDiscountFen
       }),
       responseJson: JSON.stringify({ payUrl }),
       notifyJson: ''
@@ -3080,6 +3437,9 @@ async function createHongxingNativeOrder(request, body, response) {
       productCode,
       productName,
       amountFen,
+      subtotalFen: pricing.subtotalFen,
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen,
       currency: product.currency || 'CNY',
       paymentMethod,
       contact,
@@ -3102,6 +3462,8 @@ async function createHongxingNativeOrder(request, body, response) {
     notifyUrl: String(config.notifyUrl || '').trim(),
     paymentMethod: normalizeStorePaymentMethod(body.paymentMethod, config.payType),
     contact: String(body.contact || '').trim(),
+    couponCode: pricing.couponCode,
+    couponDiscountFen: pricing.couponDiscountFen,
       buyerNote,
     attach: {
       productCode,
@@ -3109,7 +3471,9 @@ async function createHongxingNativeOrder(request, body, response) {
       paymentMethod: normalizeStorePaymentMethod(body.paymentMethod, config.payType),
       contact: String(body.contact || '').trim(),
       buyerNote,
-      quantity
+      quantity,
+      couponCode: pricing.couponCode,
+      couponDiscountFen: pricing.couponDiscountFen
     }
   };
 
@@ -3212,6 +3576,9 @@ async function createHongxingNativeOrder(request, body, response) {
     contact: String(payload.contact || '').trim(),
     buyerNote: String(payload.buyerNote || '').trim(),
     quantity,
+    buyerUsername: buyerSession?.username || '',
+    couponCode: pricing.couponCode,
+    couponDiscountFen: pricing.couponDiscountFen,
     status: normalizePaymentSuccess(initialPaidFlag) ? 'SUCCESS' : 'PENDING',
     cardSecret: '',
     mchId: config.merchantId || 'hongxing',
@@ -3231,6 +3598,9 @@ async function createHongxingNativeOrder(request, body, response) {
     productCode,
     productName,
     amountFen,
+    subtotalFen: pricing.subtotalFen,
+    couponCode: pricing.couponCode,
+    couponDiscountFen: pricing.couponDiscountFen,
     currency: product.currency || 'CNY',
     codeUrl: qrText,
     qrDataUrl,
@@ -3302,7 +3672,7 @@ function listStoreOrdersAdmin(filters = {}) {
   params.push(safeLimit);
 
   return db.prepare(
-    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName, amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, contact, buyer_note AS buyerNote, quantity, coupon_code AS couponCode, coupon_discount_fen AS couponDiscountFen, card_secret AS cardSecret, mch_id AS mchId, app_id AS appId, code_url AS codeUrl, wechat_prepay_id AS prepayId, wechat_transaction_id AS transactionId, created_at AS createdAt, updated_at AS updatedAt
      FROM store_orders
      ${whereClause}
      ORDER BY id DESC
@@ -3631,6 +4001,11 @@ function getCommunityOnlineLeaderboard() {
 
     const username = String(session.username || '').trim();
     if (!username) {
+      continue;
+    }
+
+    const account = getCommunityAccountByEmail(String(session.email || '').trim().toLowerCase());
+    if (account?.hideOnlineStatus) {
       continue;
     }
 
@@ -4024,19 +4399,19 @@ function cleanupExpiredCommunityCodes() {
 }
 
 function getCommunityAccountByUsername(username) {
-  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, hide_online_status AS hideOnlineStatus, store_discount_tier AS storeDiscountTier, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
 }
 
 function getCommunityAccountByEmail(email) {
-  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, hide_online_status AS hideOnlineStatus, store_discount_tier AS storeDiscountTier, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
 }
 
 function getCommunityAccountAuthByUsername(username) {
-  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
+  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, hide_online_status AS hideOnlineStatus, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE username = ?').get(username) || null;
 }
 
 function getCommunityAccountAuthByEmail(email) {
-  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
+  return db.prepare('SELECT id, username, email, password_hash AS passwordHash, is_developer AS isDeveloper, hide_online_status AS hideOnlineStatus, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE email = ?').get(email) || null;
 }
 
 function createCommunityAccount(username, email, isDeveloper = false, passwordHash = '') {
@@ -4051,6 +4426,20 @@ function createCommunityAccount(username, email, isDeveloper = false, passwordHa
 
 function markCommunityAccountLogin(email) {
   db.prepare('UPDATE community_accounts SET last_login_at = CURRENT_TIMESTAMP WHERE email = ?').run(email);
+}
+
+function updateCommunityAccountPreferences(email, nextPreferences = {}) {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!normalizedEmail) {
+    return;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextPreferences, 'hideOnlineStatus')) {
+    db.prepare('UPDATE community_accounts SET hide_online_status = ? WHERE email = ?').run(
+      nextPreferences.hideOnlineStatus ? 1 : 0,
+      normalizedEmail
+    );
+  }
 }
 
 function getCommunitySessionFromRequest(request) {
@@ -4382,10 +4771,33 @@ function handleCommunityMe(request, response) {
     email: session.email,
     registered: Boolean(account),
     isDeveloper: isCommunityDeveloper,
+    hideOnlineStatus: Boolean(account?.hideOnlineStatus),
+    storeDiscountTier: String(account?.storeDiscountTier || ''),
     permissionRole,
     canViewOrders: permissionRole === 'developer' || permissionRole === 'order-viewer',
     canEditStore: permissionRole === 'developer'
   });
+}
+
+function handleCommunityPreferencesUpdate(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '未登录' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const hideOnlineStatus = body.hideOnlineStatus === true || body.hideOnlineStatus === 'true' || body.hideOnlineStatus === 1 || body.hideOnlineStatus === '1';
+      updateCommunityAccountPreferences(session.email, { hideOnlineStatus });
+      sendJson(response, 200, {
+        message: '设置已保存',
+        hideOnlineStatus
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效' });
+    });
 }
 
 function handleCommunityLogout(request, response) {
@@ -4420,7 +4832,7 @@ function getGoogleClientSecret() {
 
 function getCommunityAccountByGoogleId(googleId) {
   if (!googleId) return null;
-  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, google_id AS googleId, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE google_id = ?').get(String(googleId)) || null;
+  return db.prepare('SELECT id, username, email, is_developer AS isDeveloper, hide_online_status AS hideOnlineStatus, google_id AS googleId, created_at AS createdAt, last_login_at AS lastLoginAt FROM community_accounts WHERE google_id = ?').get(String(googleId)) || null;
 }
 
 function updateCommunityAccountGoogleId(email, googleId) {
@@ -5639,6 +6051,10 @@ function getStoreMaintenanceUntil() {
   return String(getSettingValue('site_maintenance_until', '') || '').trim();
 }
 
+function getStorePaymentsEnabled() {
+  return normalizeStoreBoolean(getSettingValue('store_payments_enabled', '1'), true);
+}
+
 function getStoreWhitelistUsernames() {
   try {
     return normalizeStoreWhitelistUsernames(
@@ -5662,6 +6078,8 @@ function getStorePublicSettings() {
     maintenanceMessage: getStoreMaintenanceMessage(),
     maintenanceReason: getStoreMaintenanceReason(),
     maintenanceUntil: getStoreMaintenanceUntil(),
+    paymentsEnabled: getStorePaymentsEnabled(),
+    lotteryEnabled: getLotteryFeatureEnabled(),
     orderViewerUsernames: getStoreOrderViewerUsernames()
   };
 }
@@ -5677,6 +6095,14 @@ function saveStorePublicSettings(nextSettings) {
 
   if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceEnabled')) {
     setSettingValue('site_maintenance_enabled', normalizeStoreBoolean(nextSettings.maintenanceEnabled) ? '1' : '0');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'paymentsEnabled')) {
+    setSettingValue('store_payments_enabled', normalizeStoreBoolean(nextSettings.paymentsEnabled, true) ? '1' : '0');
+  }
+
+  if (Object.prototype.hasOwnProperty.call(nextSettings, 'lotteryEnabled')) {
+    setSettingValue('lottery_feature_enabled', normalizeStoreBoolean(nextSettings.lotteryEnabled, false) ? '1' : '0');
   }
 
   if (Object.prototype.hasOwnProperty.call(nextSettings, 'maintenanceMessage')) {
@@ -5912,6 +6338,16 @@ function ensureStoreSettings() {
     setSettingValue('site_maintenance_enabled', '0');
   }
 
+  const storedPaymentsEnabled = String(getSettingValue('store_payments_enabled', '') || '').trim();
+  if (!storedPaymentsEnabled) {
+    setSettingValue('store_payments_enabled', '1');
+  }
+
+  const storedLotteryEnabled = String(getSettingValue('lottery_feature_enabled', '') || '').trim();
+  if (!storedLotteryEnabled) {
+    setSettingValue('lottery_feature_enabled', '0');
+  }
+
   const storedOrderViewers = String(getSettingValue('store_order_viewer_usernames', '') || '').trim();
   if (!storedOrderViewers) {
     setSettingValue('store_order_viewer_usernames', '[]');
@@ -5922,7 +6358,6 @@ ensureStoreSettings();
 
 function repairLegacyStoreData() {
   const fixedAnnouncement = '欢迎来到星际无限资源服商店，购买前请先确认联系方式与支付方式。';
-  const fixedMaintenanceMessage = '当前服务维护中，请稍后再试。';
   const fixedProducts = [
     {
       productCode: '65997548',
@@ -5972,35 +6407,9 @@ function repairLegacyStoreData() {
       sortOrder: 40,
       tags: ['建筑导入', '一次']
     },
-    {
-      productCode: 'LOW-AGENT-30',
-      name: '低级代理',
-      description: '购买后永久享受八折优惠。',
-      originalPriceFen: 3000,
-      salePriceFen: 3000,
-      stock: 999,
-      currency: 'CNY',
-      isActive: 1,
-      sortOrder: 50,
-      tags: ['权限', '永久优惠', '八折']
-    },
-    {
-      productCode: 'MID-AGENT-100',
-      name: '中级代理',
-      description: '购买后永久享受七折优惠。',
-      originalPriceFen: 10000,
-      salePriceFen: 10000,
-      stock: 999,
-      currency: 'CNY',
-      isActive: 1,
-      sortOrder: 60,
-      tags: ['权限', '永久优惠', '七折']
-    }
   ];
 
   setSettingValue('store_announcement', fixedAnnouncement);
-  setSettingValue('site_maintenance_message', fixedMaintenanceMessage);
-  setSettingValue('site_maintenance_enabled', '0');
 
   for (const product of fixedProducts) {
     db.prepare(
@@ -6030,6 +6439,13 @@ function repairLegacyStoreData() {
       product.productCode
     );
   }
+
+  db.prepare(`
+    UPDATE store_products
+    SET is_active = 0, updated_at = CURRENT_TIMESTAMP
+    WHERE product_code IN ('LOW-AGENT-30', 'MID-AGENT-100')
+       OR name IN ('低级代理', '高级代理', '中级代理')
+  `).run();
 }
 
 repairLegacyStoreData();
@@ -7714,6 +8130,8 @@ function buildPreviewPageHtml(staticPath) {
     html = html.replace(/<main\b([^>]*)>/iu, `<main$1>${previewBanner}`);
   }
 
+  html = injectGlobalPreferencesScript(html);
+
   const previewOverlay = `
       <aside class="preview-fixed-tip" aria-label="��¼��ʾ">
         <strong>���ǹ�������ҳ</strong>
@@ -7962,6 +8380,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'POST' && pathname === '/api/community/preferences') {
+      handleCommunityPreferencesUpdate(request, response);
+      return;
+    }
+
     if (request.method === 'POST' && pathname === '/api/community/logout') {
       handleCommunityLogout(request, response);
       return;
@@ -8150,6 +8573,31 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'GET' && pathname === '/api/store/products/admin') {
       handleStoreProductsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/coupons/admin') {
+      handleStoreCouponsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/coupons/admin/create') {
+      handleStoreCouponCreate(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/coupons/admin/toggle') {
+      handleStoreCouponToggle(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/coupons/admin/delete') {
+      handleStoreCouponDelete(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/coupons/quote') {
+      handleStoreCouponQuote(request, response);
       return;
     }
 

@@ -430,6 +430,60 @@
         color: #e2e8f0;
         box-shadow: 0 12px 22px rgba(2, 6, 23, 0.25);
       }
+      .top-actions [data-lvip-entry],
+      html[data-theme="night"] .top-actions [data-lvip-entry] {
+        background: linear-gradient(135deg, #f8fafc, #cbd5e1 52%, #94a3b8);
+        border-color: rgba(226, 232, 240, 0.9);
+        color: #1e293b;
+        box-shadow: 0 10px 24px rgba(148, 163, 184, 0.25);
+      }
+      .top-actions [data-lvip-entry]:hover:not(:disabled),
+      html[data-theme="night"] .top-actions [data-lvip-entry]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #ffffff, #dbe3ec 52%, #a8b5c5);
+        border-color: #f8fafc;
+        color: #0f172a;
+        box-shadow: 0 14px 28px rgba(148, 163, 184, 0.34);
+      }
+      .top-actions [data-lvip-entry]:focus-visible {
+        outline: 2px solid #cbd5e1;
+        outline-offset: 2px;
+      }
+      .top-actions [data-vip-entry],
+      html[data-theme="night"] .top-actions [data-vip-entry] {
+        background: linear-gradient(135deg, #fde047, #f59e0b);
+        border-color: rgba(251, 191, 36, 0.82);
+        color: #422006;
+        box-shadow: 0 10px 24px rgba(245, 158, 11, 0.25);
+      }
+      .top-actions [data-vip-entry]:hover:not(:disabled),
+      html[data-theme="night"] .top-actions [data-vip-entry]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #facc15, #d97706);
+        border-color: #fbbf24;
+        color: #3b1d02;
+        box-shadow: 0 14px 28px rgba(245, 158, 11, 0.34);
+      }
+      .top-actions [data-vip-entry]:focus-visible {
+        outline: 2px solid #fbbf24;
+        outline-offset: 2px;
+      }
+      .top-actions [data-svip-entry],
+      html[data-theme="night"] .top-actions [data-svip-entry] {
+        background: linear-gradient(135deg, #cffafe, #67e8f9 52%, #0891b2);
+        border-color: rgba(103, 232, 249, 0.9);
+        color: #083344;
+        box-shadow: 0 10px 24px rgba(8, 145, 178, 0.25);
+      }
+      .top-actions [data-svip-entry]:hover:not(:disabled),
+      html[data-theme="night"] .top-actions [data-svip-entry]:hover:not(:disabled) {
+        background: linear-gradient(135deg, #ecfeff, #a5f3fc 52%, #22d3ee);
+        border-color: #cffafe;
+        color: #082f49;
+        box-shadow: 0 14px 28px rgba(8, 145, 178, 0.34);
+      }
+      .top-actions [data-svip-entry]:focus-visible {
+        outline: 2px solid #67e8f9;
+        outline-offset: 2px;
+      }
       html[data-theme="night"] .top-actions,
       html[data-theme="night"] .chip-row,
       html[data-theme="night"] .online-board,
@@ -531,7 +585,7 @@
       .hero,
       .summary-card {
         border-radius: 24px;
-        padding: 24px;
+        padding: 20px;
         background: rgba(10, 15, 25, 0.78);
         box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
         border: 1px solid rgba(148, 163, 184, 0.18);
@@ -539,14 +593,15 @@
       .hero {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 16px;
-        max-width: 760px;
-        width: min(100%, 760px);
+        gap: 8px;
+        max-width: 640px;
+        width: min(100%, 640px);
+        padding: 14px 16px;
         margin: 0 auto;
       }
       .hero-copy {
         display: grid;
-        gap: 12px;
+        gap: 8px;
         justify-items: center;
         text-align: center;
         max-width: 620px;
@@ -573,7 +628,7 @@
       .hero-title {
         margin: 0;
         max-width: 9ch;
-        font-size: clamp(2rem, 4.1vw, 3.35rem);
+        font-size: clamp(1.6rem, 3vw, 2.3rem);
         line-height: 1.04;
         letter-spacing: -0.015em;
         font-weight: 900;
@@ -1178,7 +1233,13 @@
         gap: 4px;
         cursor: pointer;
         color: #e2e8f0;
+        font: inherit;
+        text-decoration: none;
+        animation: button-breathe 2.2s ease-in-out infinite;
+        transition: transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1), box-shadow 260ms ease;
       }
+      .feature-btn:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 16px 30px rgba(15, 23, 42, 0.22); }
+      .feature-btn:active { transform: translateY(0) scale(0.99); }
       .feature-btn strong {
         font-size: 0.95rem;
       }
@@ -1566,6 +1627,7 @@
         font-size: 0.76rem;
         color: rgba(255,255,255,0.86);
       }
+      .lottery-shop-entry { bottom: 94px; }
       html[data-theme="day"] .ai-shop-entry {
         background: linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(147, 51, 234, 0.94));
         box-shadow: 0 18px 34px rgba(59, 130, 246, 0.22);
@@ -2554,19 +2616,30 @@
         .catalog-main { border-radius: 16px; }
         .top-actions {
           display: grid;
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 8px;
           padding: 8px;
+        }
+        .top-actions [data-control-panel],
+        .top-actions .auth-trigger {
+          grid-column: 1 / -1;
         }
         .top-actions .theme-toggle,
         .top-actions .auth-trigger,
         .top-actions [data-control-panel] {
           width: 100%;
+          min-width: 0;
           min-height: 42px;
           justify-content: center;
         }
-        .hero { padding: 16px; }
-        .hero-title { font-size: clamp(1.7rem, 9vw, 2.2rem); }
+        .top-actions .theme-toggle {
+          min-width: 0;
+          padding: 8px 3px;
+          font-size: 0.7rem;
+          white-space: normal;
+        }
+        .hero { padding: 12px; }
+        .hero-title { font-size: clamp(1.5rem, 8vw, 1.9rem); }
         .announcement-card { margin: 12px 0 0; }
         .chip-row { gap: 8px; padding: 10px; }
         .shop-catalog { padding: 10px; gap: 10px; }
@@ -2617,6 +2690,7 @@
           justify-content: center;
           padding-right: 12px;
         }
+        .lottery-shop-entry { bottom: 76px; }
         .auth-captcha-row { flex-direction: column; }
         .admin-grid { grid-template-columns: 1fr; }
       }
@@ -2634,6 +2708,9 @@
         </div>
         <div class="top-actions">
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="切换白天/黑夜模式">黑夜模式</button>
+          <button class="theme-toggle" type="button" data-lvip-entry data-open-payment hidden aria-label="购买 LVIP 永久七折">LVIP · 7折</button>
+          <button class="theme-toggle" type="button" data-vip-entry data-open-payment hidden aria-label="购买 VIP 永久 4.5 折">VIP</button>
+          <button class="theme-toggle" type="button" data-svip-entry data-open-payment hidden aria-label="购买 SVIP 永久 1.5 折，售价 500 元">SVIP</button>
           <button class="theme-toggle" type="button" data-control-panel hidden>控制面板</button>
           <button class="theme-toggle auth-trigger" type="button" data-auth-trigger>登录 / 注册</button>
         </div>
@@ -2652,7 +2729,8 @@
             <p class="hero-desc">精选商品与便捷支付，支持一键购买、订单查询与卡密领取。</p>
             <div class="hero-highlights">
               <span class="hero-highlight"><b>24H</b> 订单可追踪</span>
-              <span class="hero-highlight"><b>折扣</b> 代理权限永久生效</span>
+              <span class="hero-highlight"><b>LVIP</b> 全店永久 7 折</span>
+              <span class="hero-highlight"><b>SVIP</b> ¥500 解锁全店永久 1.5 折</span>
               <span class="hero-highlight"><b>库存</b> 商品状态实时刷新</span>
             </div>
             <div class="hero-stats">
@@ -2746,10 +2824,10 @@
             <strong>账号中心</strong>
             <span>登录、注册、切换账号</span>
           </button>
-          <button class="feature-btn primary" type="button" data-feature-action="order-query">
+          <a class="feature-btn primary" href="/order-query.html">
             <strong>查单中心</strong>
-            <span>输入订单号查询状态和卡密</span>
-          </button>
+            <span>打开独立查单页，查询状态和卡密</span>
+          </a>
         </div>
       </section>
 
@@ -2785,6 +2863,13 @@
       <span class="ai-shop-entry-copy">
         <strong>AI选购商品</strong>
         <span>不会选就让 AI 帮你挑</span>
+      </span>
+    </a>
+    <a class="floating-button ai-shop-entry lottery-shop-entry" href="/lottery.html" aria-label="打开抽奖中心">
+      <span class="ai-shop-entry-badge">抽</span>
+      <span class="ai-shop-entry-copy">
+        <strong>抽奖中心</strong>
+        <span>查看奖池与活动</span>
       </span>
     </a>
 
@@ -3001,6 +3086,9 @@
     <script>
       (function () {
         const toggleButton = document.querySelector('[data-theme-toggle]');
+        const lvipEntryButton = document.querySelector('[data-lvip-entry]');
+        const vipEntryButton = document.querySelector('[data-vip-entry]');
+        const svipEntryButton = document.querySelector('[data-svip-entry]');
         const controlPanelButton = document.querySelector('[data-control-panel]');
         const authTriggerButton = document.querySelector('[data-auth-trigger]');
         const orderQueryTriggerButtons = Array.from(document.querySelectorAll('[data-feature-action="order-query"]'));
@@ -3096,6 +3184,7 @@
           loggedIn: false,
           username: '',
           isDeveloper: false,
+          storeDiscountTier: '',
           token: localStorage.getItem('mctools-auth-token') || null
         };
 
@@ -3127,6 +3216,10 @@
         const hongxingReturnOrderStorageKey = 'mctools-hongxing-return-order';
         let storeAnnouncementText = '购买功能已正常开放';
         let storeWhitelistUsernames = [];
+        let storeFeatureSettings = {
+          maintenanceEnabled: false,
+          paymentsEnabled: true
+        };
         let onlineAccountsSnapshot = [];
 
         function getPaymentMethodLabel(method) {
@@ -3309,6 +3402,13 @@
 
         async function applyBackgroundImageFromApi() {
           try {
+            if (window.MCToolsGlobalPreferences && !window.MCToolsGlobalPreferences.getBackgroundImageEnabled()) {
+              document.body.style.background = '';
+              return;
+            }
+          } catch {}
+
+          try {
             const remoteUrl = `/api/store/background-image?ts=${Date.now()}`;
             const isDayTheme = document.documentElement.dataset.theme === 'day';
             const dayOverlay = `
@@ -3391,10 +3491,20 @@
 
             storeAnnouncementText = String(result?.announcement || '').trim() || '购买功能已正常开放';
             storeWhitelistUsernames = Array.isArray(result?.whitelistUsernames) ? result.whitelistUsernames : [];
+            storeFeatureSettings = {
+              maintenanceEnabled: Boolean(result?.maintenanceEnabled),
+              paymentsEnabled: result?.paymentsEnabled !== false
+            };
+            paymentConfigReady = null;
             renderStoreWhitelist();
           } catch {
             storeAnnouncementText = '购买功能已正常开放';
             storeWhitelistUsernames = ['霜庭幻影'];
+            storeFeatureSettings = {
+              maintenanceEnabled: false,
+              paymentsEnabled: true
+            };
+            paymentConfigReady = null;
             renderStoreWhitelist();
           }
         }
@@ -3489,37 +3599,26 @@
         }
 
         function isStorePaymentsTemporarilyClosed() {
-          return false;
+          return Boolean(storeFeatureSettings.maintenanceEnabled || !storeFeatureSettings.paymentsEnabled);
         }
 
         function getPermanentAgentDiscountTier() {
-          try {
-            const storedTier = String(localStorage.getItem('mctools-permanent-agent-tier') || '').trim().toLowerCase();
-            if (storedTier === 'low' || storedTier === 'mid') {
-              return storedTier;
-            }
-            return String(localStorage.getItem('mctools-permanent-agent-discount') || '').trim() === 'active' ? 'low' : '';
-          } catch {
-            return '';
-          }
+          return accountState.storeDiscountTier;
         }
 
         function isPermanentAgentDiscountActive() {
-          try {
-            if (isStorePaymentsTemporarilyClosed()) {
-              localStorage.removeItem('mctools-permanent-agent-discount');
-              localStorage.removeItem('mctools-permanent-agent-tier');
-              return false;
-            }
-            return getPermanentAgentDiscountTier() !== '';
-          } catch {
-            return false;
-          }
+          return ['lvip', 'vip', 'svip'].includes(accountState.storeDiscountTier);
         }
 
         function getPermanentAgentDiscountRate() {
           const tier = getPermanentAgentDiscountTier();
-          if (tier === 'mid') {
+          if (tier === 'svip') {
+            return 0.15;
+          }
+          if (tier === 'vip') {
+            return 0.45;
+          }
+          if (tier === 'lvip' || tier === 'mid') {
             return 0.7;
           }
           if (tier === 'low') {
@@ -3529,11 +3628,16 @@
         }
 
         function getPermanentAgentDiscountLabel() {
-          return getPermanentAgentDiscountTier() === 'mid' ? '永久七折' : '永久八折';
+          if (accountState.storeDiscountTier === 'svip') return '永久 1.5 折';
+          if (accountState.storeDiscountTier === 'vip') return '永久 4.5 折';
+          return '永久七折';
         }
 
         function getEffectiveSalePriceFen(product) {
           const baseSalePriceFen = Number(product?.salePriceFen || 0);
+          if (['LVIP-30', 'VIP-45', 'SVIP-15'].includes(String(product?.productCode || '').trim().toUpperCase())) {
+            return baseSalePriceFen;
+          }
           const rate = getPermanentAgentDiscountRate();
 
           if (rate >= 1) {
@@ -3645,9 +3749,61 @@
             return;
           }
 
-          renderCategoryList(products);
+          const lvipProduct = products.find((product) => String(product?.productCode || '').trim().toUpperCase() === 'LVIP-30');
+          const vipProduct = products.find((product) => String(product?.productCode || '').trim().toUpperCase() === 'VIP-45');
+          const svipProduct = products.find((product) => String(product?.productCode || '').trim().toUpperCase() === 'SVIP-15');
+          if (lvipEntryButton) {
+            lvipEntryButton.hidden = !lvipProduct;
+            if (lvipProduct) {
+              const normalizedLvip = normalizeProduct(lvipProduct);
+              lvipEntryButton.dataset.productCode = normalizedLvip.productCode;
+              lvipEntryButton.dataset.productName = normalizedLvip.name;
+              lvipEntryButton.dataset.productPrice = (normalizedLvip.salePriceFen / 100).toFixed(2);
+              lvipEntryButton.dataset.productDescription = normalizedLvip.description;
+              lvipEntryButton.textContent = accountState.storeDiscountTier === 'lvip'
+                ? 'LVIP · 7折生效'
+                : ['vip', 'svip'].includes(accountState.storeDiscountTier) ? 'LVIP · 已升级' : `LVIP · ¥${formatFenToYuan(normalizedLvip.salePriceFen)} · 7折`;
+              lvipEntryButton.disabled = isPermanentAgentDiscountActive();
+              lvipEntryButton.title = accountState.storeDiscountTier === 'svip' ? '此账号已拥有更高档 SVIP 折扣' : accountState.storeDiscountTier === 'vip' ? '此账号已拥有更高档 VIP 折扣' : accountState.storeDiscountTier === 'lvip' ? '此账号已拥有永久七折权益' : '购买后此账号全店永久七折';
+            }
+          }
 
-          const normalizedAll = products.map(normalizeProduct);
+          if (vipEntryButton) {
+            vipEntryButton.hidden = !vipProduct;
+            if (vipProduct) {
+              const normalizedVip = normalizeProduct(vipProduct);
+              vipEntryButton.dataset.productCode = normalizedVip.productCode;
+              vipEntryButton.dataset.productName = normalizedVip.name;
+              vipEntryButton.dataset.productPrice = (normalizedVip.salePriceFen / 100).toFixed(2);
+              vipEntryButton.dataset.productDescription = normalizedVip.description;
+              vipEntryButton.textContent = accountState.storeDiscountTier === 'vip'
+                ? 'VIP · 4.5 折生效'
+                : accountState.storeDiscountTier === 'svip' ? 'VIP · 已升级' : `VIP · ¥${formatFenToYuan(normalizedVip.salePriceFen)} · 4.5 折`;
+              vipEntryButton.disabled = ['vip', 'svip'].includes(accountState.storeDiscountTier);
+              vipEntryButton.title = accountState.storeDiscountTier === 'svip' ? '此账号已拥有更高档 SVIP 折扣' : accountState.storeDiscountTier === 'vip' ? '此账号已拥有永久 4.5 折权益' : '购买后此账号全店永久 4.5 折';
+            }
+          }
+
+          if (svipEntryButton) {
+            svipEntryButton.hidden = !svipProduct;
+            if (svipProduct) {
+              const normalizedSvip = normalizeProduct(svipProduct);
+              svipEntryButton.dataset.productCode = normalizedSvip.productCode;
+              svipEntryButton.dataset.productName = normalizedSvip.name;
+              svipEntryButton.dataset.productPrice = (normalizedSvip.salePriceFen / 100).toFixed(2);
+              svipEntryButton.dataset.productDescription = normalizedSvip.description;
+              svipEntryButton.textContent = accountState.storeDiscountTier === 'svip'
+                ? 'SVIP · 1.5 折生效'
+                : `SVIP · ¥${formatFenToYuan(normalizedSvip.salePriceFen)} · 1.5 折`;
+              svipEntryButton.disabled = accountState.storeDiscountTier === 'svip';
+              svipEntryButton.title = accountState.storeDiscountTier === 'svip' ? '此账号已拥有永久 1.5 折权益' : '购买后此账号全店永久 1.5 折';
+            }
+          }
+
+          const catalogProducts = products.filter((product) => !['LVIP-30', 'VIP-45', 'SVIP-15'].includes(String(product?.productCode || '').trim().toUpperCase()));
+          renderCategoryList(catalogProducts);
+
+          const normalizedAll = catalogProducts.map(normalizeProduct);
           const normalized = selectedCategory === '全部商品'
             ? normalizedAll
             : normalizedAll.filter((item) => getPrimaryCategory(item) === selectedCategory);
@@ -3676,7 +3832,6 @@
             const stock = Math.max(0, Number(product.stock || 0));
             const hasStock = stock > 0;
             const discountLabel = isPermanentAgentDiscountActive() ? getPermanentAgentDiscountLabel() : '立省';
-            const paymentsClosed = isStorePaymentsTemporarilyClosed();
 
             return `
               <article class="product-card ${index === 0 ? 'featured' : ''}">
@@ -3698,15 +3853,13 @@
                   </div>
                   <div class="card-actions">
                     <button
-                      class="buy-btn ${paymentsClosed ? 'maintenance' : ''}"
+                      class="buy-btn"
                       type="button"
                       data-open-payment
-                      data-payment-closed="${paymentsClosed ? 'true' : 'false'}"
                       data-product-name="${escapeHtml(product.name)}"
                       data-product-price="${(product.salePriceFen / 100).toFixed(2)}"
                       data-product-code="${escapeHtml(product.productCode)}"
                       data-product-description="${escapeHtml(product.description)}"
-                      ${paymentsClosed ? 'disabled' : ''}
                     >立即购买</button>
                   </div>
                 </div>
@@ -4019,7 +4172,7 @@
           }
 
           authTriggerButton.textContent = accountState.loggedIn
-            ? `已登录：${accountState.username}`
+            ? '设置'
             : '登录 / 注册';
           authTriggerButton.classList.toggle('auth-logged-in', accountState.loggedIn);
 
@@ -4046,6 +4199,7 @@
               accountState.loggedIn = false;
               accountState.username = '';
               accountState.isDeveloper = false;
+              accountState.storeDiscountTier = '';
               accountState.token = null;
               localStorage.removeItem('mctools-auth-token');
               updateAuthTrigger();
@@ -4056,17 +4210,21 @@
             accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
             accountState.username = String(result?.username || '');
             accountState.isDeveloper = Boolean(result?.isDeveloper);
+            accountState.storeDiscountTier = String(result?.storeDiscountTier || '');
             accountState.token = accountState.loggedIn ? token : null;
             if (!accountState.loggedIn) {
               localStorage.removeItem('mctools-auth-token');
             }
             updateAuthTrigger();
+            renderStoreProducts(storeProducts);
           } catch {
             accountState.loggedIn = false;
             accountState.username = '';
             accountState.isDeveloper = false;
+            accountState.storeDiscountTier = '';
             accountState.token = null;
             updateAuthTrigger();
+            renderStoreProducts(storeProducts);
           }
         }
 
@@ -4109,6 +4267,7 @@
           accountState.loggedIn = false;
           accountState.username = '';
           accountState.isDeveloper = false;
+          accountState.storeDiscountTier = '';
           accountState.token = null;
           pendingPurchaseProduct = null;
           updateAuthTrigger();
@@ -4495,18 +4654,14 @@
 
           const productName = String(result?.productName || '').trim();
           const productCode = String(result?.productCode || '').trim().toUpperCase();
-          const isLowAgentOrder = productName === '低级代理' || productCode === 'LOW-AGENT-30';
-          const isMidAgentOrder = productName === '中级代理' || productCode === 'MID-AGENT-100';
-          if (result?.paid && (isLowAgentOrder || isMidAgentOrder)) {
-            try {
-              localStorage.setItem('mctools-permanent-agent-discount', 'active');
-              localStorage.setItem('mctools-permanent-agent-tier', isMidAgentOrder ? 'mid' : 'low');
-            } catch {
-              // ignore storage failures
-            }
+          const status = String(result?.status || '').trim().toUpperCase();
+          const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
+          if (paid && ['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
+            await loadAccountState();
+            await loadStoreProducts();
           }
 
-          if (!result.paid) {
+          if (!paid) {
             throw new Error('订单尚未支付成功，请完成付款后重试');
           }
 
@@ -4637,14 +4792,22 @@
 
         async function ensurePaymentConfigReady() {
           if (paymentConfigReady !== null) {
-            return paymentConfigReady;
+            return paymentConfigReady && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled;
           }
 
           try {
-            const response = await fetch('/api/store/wechat/meta');
-            const result = await response.json();
+            const [metaResponse, settingsResponse] = await Promise.all([
+              fetch('/api/store/wechat/meta'),
+              fetch('/api/store/settings')
+            ]);
+            const result = await metaResponse.json();
+            const settingsResult = await settingsResponse.json();
+            storeFeatureSettings = {
+              maintenanceEnabled: Boolean(settingsResult?.maintenanceEnabled),
+              paymentsEnabled: settingsResult?.paymentsEnabled !== false
+            };
             activePaymentProvider = String(result?.provider || '').trim().toLowerCase();
-            paymentConfigReady = Boolean(response.ok && result.ready);
+            paymentConfigReady = Boolean(metaResponse.ok && result.ready && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled);
             return paymentConfigReady;
           } catch {
             activePaymentProvider = '';
@@ -4690,6 +4853,10 @@
             return currentPaymentOrder;
           }
 
+          if (isStorePaymentsTemporarilyClosed()) {
+            throw new Error('支付通道已关闭，当前无法创建订单。');
+          }
+
           const ready = await ensurePaymentConfigReady();
           if (!ready) {
             throw new Error('微信支付配置不完整');
@@ -4729,7 +4896,8 @@
             const result = await fetchJsonSafely('/api/store/wechat/native-order', {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json; charset=utf-8'
+                'Content-Type': 'application/json; charset=utf-8',
+                ...(accountState.token ? { Authorization: `Bearer ${accountState.token}` } : {})
               },
               body: JSON.stringify({
                 productCode: activePaymentProduct.code,
@@ -5053,26 +5221,33 @@
           passwordLoginButton.addEventListener('click', submitPasswordLogin);
         }
 
+        function openCheckoutFromButton(button) {
+          const checkoutUrl = buildCheckoutUrl({
+            code: button.dataset.productCode,
+            name: button.dataset.productName,
+            price: button.dataset.productPrice,
+            description: button.dataset.productDescription
+          });
+          window.location.href = checkoutUrl;
+        }
+
         if (productGrid) {
           productGrid.addEventListener('click', (event) => {
             const button = event.target.closest('[data-open-payment]');
-            if (!button) {
-              return;
-            }
-
-            if (button.dataset.paymentClosed === 'true' || isStorePaymentsTemporarilyClosed()) {
-              setPaymentStatus('支付状态正在处理，请稍后再试。', true);
-              return;
-            }
-
-            const checkoutUrl = buildCheckoutUrl({
-              code: button.dataset.productCode,
-              name: button.dataset.productName,
-              price: button.dataset.productPrice,
-              description: button.dataset.productDescription
-            });
-            window.location.href = checkoutUrl;
+            if (button) openCheckoutFromButton(button);
           });
+        }
+
+        if (lvipEntryButton) {
+          lvipEntryButton.addEventListener('click', () => openCheckoutFromButton(lvipEntryButton));
+        }
+
+        if (vipEntryButton) {
+          vipEntryButton.addEventListener('click', () => openCheckoutFromButton(vipEntryButton));
+        }
+
+        if (svipEntryButton) {
+          svipEntryButton.addEventListener('click', () => openCheckoutFromButton(svipEntryButton));
         }
 
         closePaymentButtons.forEach((button) => {
