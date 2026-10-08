@@ -45,6 +45,24 @@
       gap: 10px;
     }
 
+    .account-state {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .top-actions [hidden] {
+      display: none;
+    }
+
     .btn {
       border: 1px solid rgba(148, 163, 184, 0.3);
       background: rgba(255, 255, 255, 0.95);
@@ -216,6 +234,10 @@
   <main class="shell">
     <header class="top">
       <a class="btn" href="/store.html">返回商店</a>
+      <div class="top-actions">
+        <span class="account-state" data-account-state>正在读取登录状态…</span>
+        <a class="btn" href="/store.html?auth=login" data-login-link>登录账号</a>
+      </div>
     </header>
 
     <section class="grid">
@@ -224,7 +246,7 @@
         <p class="desc">每次抽奖消耗一次抽奖机会。奖品会从奖池中随机抽取并扣减库存，中奖记录只显示当前账号。</p>
 
         <div class="stats">
-          <div class="stat"><span>抽奖价格</span><strong data-price>¥50.00</strong></div>
+          <div class="stat"><span>抽奖价格</span><strong data-price>¥270.00</strong></div>
           <div class="stat"><span>可抽奖品</span><strong data-prize-count>0</strong></div>
           <div class="stat"><span>剩余次数</span><strong data-remaining>0</strong></div>
         </div>
@@ -259,8 +281,13 @@
       const remainingEl = document.querySelector('[data-remaining]');
       const drawButton = document.querySelector('[data-draw-btn]');
       const drawStatus = document.querySelector('[data-draw-status]');
+      const accountState = document.querySelector('[data-account-state]');
+      const loginLink = document.querySelector('[data-login-link]');
       const prizeList = document.querySelector('[data-prize-list]');
       const recordList = document.querySelector('[data-record-list]');
+      const lotteryOrderStorageKey = 'mctools-lottery-pending-order';
+      let lotteryLoggedIn = false;
+      let hasAvailablePrize = false;
       let lotteryEnabled = true;
       let lotteryClosedMessage = '';
 
@@ -331,6 +358,7 @@
 
         if (priceEl) priceEl.textContent = formatPriceFen(result.priceFen || 0);
         if (prizeCountEl) prizeCountEl.textContent = String(result.prizeCount || 0);
+        hasAvailablePrize = Array.isArray(result.prizes) && result.prizes.some((prize) => Number(prize.stock || 0) > 0);
         renderPrizes(result.prizes || []);
 
         if (drawButton && !lotteryEnabled) {
@@ -349,6 +377,9 @@
         }
 
         const loggedIn = Boolean(result.loggedIn);
+        lotteryLoggedIn = loggedIn;
+        if (accountState) accountState.textContent = loggedIn ? `已登录：${String(result.username || '账号')}` : '未登录';
+        if (loginLink) loginLink.hidden = loggedIn;
         const enabled = result?.enabled !== false;
         const disabledMessage = String(result?.message || '').trim();
         lotteryEnabled = enabled;
@@ -356,14 +387,34 @@
           lotteryClosedMessage = disabledMessage;
         }
         if (remainingEl) remainingEl.textContent = String(result.remainingTodayDraws ?? 0);
-        if (drawButton) drawButton.disabled = !loggedIn || !lotteryEnabled || Number(result.remainingTodayDraws || 0) <= 0;
+        if (drawButton) drawButton.disabled = !lotteryEnabled || !hasAvailablePrize || (loggedIn && Number(result.remainingTodayDraws || 0) <= 0);
         renderRecords(result.records || [], loggedIn);
 
         if (!lotteryEnabled) {
           setStatus(lotteryClosedMessage || '抽奖活动暂时关闭', 'error');
         } else if (!loggedIn) {
           setStatus('登录后可进行抽奖。');
+        } else if (!hasAvailablePrize) {
+          setStatus(`已登录：${String(result.username || '账号')}，当前奖池暂无可抽奖品。`);
+        } else if (Number(result.remainingTodayDraws || 0) <= 0) {
+          setStatus(`已登录：${String(result.username || '账号')}，今日抽奖次数已用完。`);
+        } else {
+          setStatus(`已登录：${String(result.username || '账号')}，今日还可抽奖 ${Number(result.remainingTodayDraws)} 次。`);
         }
+      }
+
+      async function refreshLotteryState() {
+        await loadConfig();
+        await loadRecords();
+      }
+
+      function navigateToLotteryCheckout() {
+        const checkoutUrl = new URL('/store-checkout.html', window.location.origin);
+        checkoutUrl.searchParams.set('productCode', 'LOTTERY-ENTRY');
+        checkoutUrl.searchParams.set('productName', '抽奖机会');
+        checkoutUrl.searchParams.set('price', '270.00');
+        checkoutUrl.searchParams.set('description', '抽奖中心单次抽奖机会');
+        window.location.assign(checkoutUrl.toString());
       }
 
       async function drawOnce() {
@@ -377,8 +428,31 @@
           return;
         }
 
+        if (!hasAvailablePrize) {
+          setStatus('当前奖池暂无可抽奖品。', 'error');
+          return;
+        }
+
+        let orderNo = '';
+        try {
+          const params = new URLSearchParams(window.location.search);
+          orderNo = String(params.get('lotteryOrderNo') || localStorage.getItem(lotteryOrderStorageKey) || '').trim();
+        } catch {
+          orderNo = '';
+        }
+
+        if (!orderNo) {
+          navigateToLotteryCheckout();
+          return;
+        }
+
+        if (!lotteryLoggedIn) {
+          setStatus('请先登录账号，再验证抽奖订单。', 'error');
+          return;
+        }
+
         drawButton.disabled = true;
-        setStatus('正在抽奖，请稍候...');
+        setStatus('正在确认支付并准备开奖...');
 
         try {
           const response = await fetch('/api/lottery/draw', {
@@ -387,14 +461,20 @@
               'Content-Type': 'application/json; charset=utf-8',
               ...getAuthHeaders()
             },
-            body: JSON.stringify({})
+            body: JSON.stringify({ orderNo })
           });
           const result = await response.json();
           if (!response.ok) {
+            if (response.status === 409 && result.pending) {
+              localStorage.removeItem(lotteryOrderStorageKey);
+              navigateToLotteryCheckout();
+              return;
+            }
             throw new Error(result.message || '抽奖失败');
           }
 
           const prizeName = String(result?.prize?.name || '未知奖品');
+          localStorage.removeItem(lotteryOrderStorageKey);
           setStatus(`恭喜你抽中：${prizeName}`, 'success');
           await loadConfig();
           await loadRecords();
@@ -408,9 +488,32 @@
         drawButton.addEventListener('click', drawOnce);
       }
 
+      window.addEventListener('focus', () => {
+        refreshLotteryState().catch((error) => setStatus(error.message || '刷新登录状态失败', 'error'));
+      });
+      window.addEventListener('storage', (event) => {
+        if (!event.key || event.key === 'mctools-auth-token') {
+          refreshLotteryState().catch((error) => setStatus(error.message || '刷新登录状态失败', 'error'));
+        }
+      });
+
       Promise.resolve()
         .then(loadConfig)
         .then(loadRecords)
+        .then(async () => {
+          const params = new URLSearchParams(window.location.search);
+          const returnedOrderNo = String(params.get('lotteryOrderNo') || '').trim();
+          if (returnedOrderNo) {
+            localStorage.setItem(lotteryOrderStorageKey, returnedOrderNo);
+            params.delete('lotteryOrderNo');
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.delete('lotteryOrderNo');
+            window.history.replaceState({}, '', nextUrl.toString());
+          }
+          if (localStorage.getItem(lotteryOrderStorageKey) && lotteryLoggedIn && lotteryEnabled) {
+            await drawOnce();
+          }
+        })
         .catch((error) => {
           setStatus(error.message || '初始化失败', 'error');
         });

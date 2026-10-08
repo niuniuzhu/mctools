@@ -298,6 +298,53 @@
         color: #0f172a;
         font-weight: 800;
       }
+      .about-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(125, 211, 252, 0.26), rgba(167, 139, 250, 0.26));
+        border: 1px solid rgba(148, 163, 184, 0.22);
+      }
+      .about-logo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 900;
+        box-shadow: 0 10px 22px rgba(139, 92, 246, 0.3);
+        flex: none;
+      }
+      .about-head-main { flex: 1; min-width: 0; }
+      .about-head-title-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .about-head-title-row strong { font-size: 1.15rem; }
+      .about-head-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.55);
+        color: #0f172a;
+        font-size: 0.74rem;
+        font-weight: 800;
+      }
+      .about-head-sub {
+        margin: 4px 0 0;
+        color: #475569;
+        font-size: 0.86rem;
+        line-height: 1.5;
+      }
       .about-contact-row {
         display: flex;
         flex-wrap: wrap;
@@ -313,6 +360,64 @@
         border: 1px solid rgba(148, 163, 184, 0.22);
         color: #0f172a;
         font-weight: 800;
+      }
+      .about-updates {
+        display: grid;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.5);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .about-updates-title {
+        font-size: 0.92rem;
+        font-weight: 900;
+        color: #0f172a;
+      }
+      .about-update-item {
+        display: grid;
+        gap: 8px;
+      }
+      .about-update-item + .about-update-item {
+        padding-top: 10px;
+        border-top: 1px dashed rgba(148, 163, 184, 0.28);
+      }
+      .about-update-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .about-update-date {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(125, 211, 252, 0.24), rgba(167, 139, 250, 0.24));
+        color: #0f172a;
+        font-size: 0.78rem;
+        font-weight: 900;
+      }
+      .about-update-version {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.28), rgba(244, 114, 182, 0.26));
+        color: #0f172a;
+        font-size: 0.78rem;
+        font-weight: 900;
+      }
+      .about-update-list {
+        margin: 0;
+        padding-left: 20px;
+        display: grid;
+        gap: 6px;
+        color: #334155;
+        font-size: 0.9rem;
+        line-height: 1.7;
       }
       .language-loading {
         position: fixed;
@@ -524,9 +629,101 @@
       html[data-theme="night"] .about-version {
         color: #e2e8f0;
       }
+      html[data-theme="night"] .about-head {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(148, 163, 184, 0.22);
+      }
+      html[data-theme="night"] .about-head-sub { color: #94a3b8; }
+      html[data-theme="night"] .about-head-badge { background: rgba(255, 255, 255, 0.12); color: #e2e8f0; }
+      html[data-theme="night"] .about-updates {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(148, 163, 184, 0.22);
+      }
+      html[data-theme="night"] .about-updates-title,
+      html[data-theme="night"] .about-update-date,
+      html[data-theme="night"] .about-update-version {
+        color: #e2e8f0;
+      }
+      html[data-theme="night"] .about-update-list {
+        color: #cbd5e1;
+      }
       html[data-theme="night"] .auth-status { color: #b7f0cc; }
       html[data-theme="night"] .auth-qr-preview {
         background: rgba(15, 23, 42, 0.76);
+      }
+      .personal-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .personal-stat,
+      .personal-profile,
+      .personal-order {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(248, 250, 252, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      .personal-stat span,
+      .personal-profile span,
+      .personal-order span {
+        display: block;
+        color: #64748b;
+        font-size: 0.82rem;
+      }
+      .personal-stat strong,
+      .personal-profile strong,
+      .personal-order strong {
+        display: block;
+        margin-top: 6px;
+        color: #0f172a;
+        font-size: 1.05rem;
+        word-break: break-word;
+      }
+      .personal-stack {
+        display: grid;
+        gap: 12px;
+      }
+      .personal-order {
+        display: grid;
+        gap: 8px;
+      }
+      .personal-order-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+      .personal-order-meta {
+        color: #64748b;
+        font-size: 0.86rem;
+        line-height: 1.6;
+      }
+      .personal-order-secret {
+        padding: 9px 10px;
+        border-radius: 10px;
+        color: #1d4ed8;
+        background: rgba(219, 234, 254, 0.74);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        font-family: Consolas, monospace;
+        overflow-wrap: anywhere;
+      }
+      html[data-theme="night"] .personal-stat,
+      html[data-theme="night"] .personal-profile,
+      html[data-theme="night"] .personal-order {
+        background: rgba(15, 23, 42, 0.72);
+        border-color: rgba(148, 163, 184, 0.22);
+      }
+      html[data-theme="night"] .personal-stat strong,
+      html[data-theme="night"] .personal-profile strong,
+      html[data-theme="night"] .personal-order strong {
+        color: #e2e8f0;
+      }
+      html[data-theme="night"] .personal-order-secret {
+        color: #bae6fd;
+        background: rgba(14, 165, 233, 0.12);
+        border-color: rgba(125, 211, 252, 0.18);
       }
       @media (max-width: 700px) {
         .row { grid-template-columns: 1fr; }
@@ -534,6 +731,7 @@
         .top-actions { justify-content: space-between; }
         .auth-qr-shell { grid-template-columns: 1fr; }
         .auth-qr-preview { width: min(100%, 220px); }
+        .personal-grid { grid-template-columns: 1fr; }
       }
     </style>
   </head>
@@ -568,13 +766,46 @@
           <p class="lead" data-i18n="lead">登录商店账号后，可同步购买记录、查看权限状态，并继续购买商品。账号在商店中与收款设置独立管理。</p>
 
           <div class="page-tabs" data-page-tabs>
-            <button class="auth-tab page-tab active" type="button" data-page-tab="account" data-i18n="pageTabAccount">账号</button>
+            <button class="auth-tab page-tab active" type="button" data-page-tab="personal">个人中心</button>
+            <button class="auth-tab page-tab" type="button" data-page-tab="account" data-i18n="pageTabAccount">账号</button>
             <button class="auth-tab page-tab" type="button" data-page-tab="about" data-i18n="pageTabAbout">关于</button>
             <button class="auth-tab page-tab" type="button" data-page-tab="language" data-i18n="pageTabLanguage">语言</button>
             <button class="auth-tab page-tab" type="button" data-page-tab="general" data-i18n="pageTabGeneral">通用</button>
           </div>
 
-          <section class="page-panel active" data-page-panel="account">
+          <section class="page-panel active" data-page-panel="personal">
+            <div class="settings-panel">
+              <div class="section-title">个人档案</div>
+              <div class="personal-grid">
+                <div class="personal-profile"><span>账号</span><strong data-personal-username>未登录</strong></div>
+                <div class="personal-profile"><span>邮箱</span><strong data-personal-email>登录后显示</strong></div>
+                <div class="personal-profile"><span>会员权益</span><strong data-personal-tier>普通用户</strong></div>
+              </div>
+              <div class="settings-inline">
+                <button class="primary-btn" type="button" data-personal-refresh>刷新个人数据</button>
+                <a class="secondary-btn" href="/store.html">继续浏览商品</a>
+              </div>
+              <div class="auth-status" data-personal-status>登录后可查看会员权益和购买记录。</div>
+            </div>
+
+            <div class="settings-panel">
+              <div class="section-title">消费概览</div>
+              <div class="personal-grid">
+                <div class="personal-stat"><span>订单总数</span><strong data-personal-order-count>--</strong></div>
+                <div class="personal-stat"><span>已支付订单</span><strong data-personal-paid-count>--</strong></div>
+                <div class="personal-stat"><span>累计支付</span><strong data-personal-paid-amount>--</strong></div>
+              </div>
+            </div>
+
+            <div class="settings-panel">
+              <div class="section-title">我的订单与卡密</div>
+              <div class="personal-stack" data-personal-order-list>
+                <div class="auth-status">登录后自动加载订单。</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="page-panel" data-page-panel="account" hidden>
             <div class="auth-tabs">
               <button class="auth-tab active" type="button" data-auth-tab="register" data-i18n="authTabRegister">注册账号</button>
               <button class="auth-tab" type="button" data-auth-tab="login" data-i18n="authTabLogin">登录账号</button>
@@ -685,14 +916,73 @@
 
           <section class="page-panel" data-page-panel="about" hidden>
             <div class="about-panel">
-              <strong data-i18n="aboutTitle">关于</strong>
-              <div class="about-version" data-i18n="aboutVersion">版本号 2.3.5</div>
+              <div class="about-head">
+                <div class="about-logo" aria-hidden="true">星</div>
+                <div class="about-head-main">
+                  <div class="about-head-title-row">
+                    <strong data-i18n="aboutTitle">关于</strong>
+                    <span class="about-head-badge" data-i18n="aboutHeadBadge">官方商店</span>
+                  </div>
+                  <p class="about-head-sub" data-i18n="aboutSubtitle">星际商店 · 资源服一站式卡密商店</p>
+                </div>
+                <div class="about-version" data-i18n="aboutVersion">版本号 2.6.0</div>
+              </div>
               <div class="auth-note" data-i18n="aboutCopy">当前页面用于管理商店账号登录、注册与基础会话设置。</div>
               <div class="about-contact-row">
                 <span class="about-contact-value" data-about-qq>客服 QQ 3805506653</span>
                 <button class="secondary-btn" type="button" data-copy-about-qq data-i18n="copyQqAction">复制 QQ</button>
               </div>
               <div class="auth-status" data-about-copy-status data-i18n="aboutCopyStatusIdle">点击按钮可复制客服 QQ。</div>
+              <div class="about-updates">
+                <span class="about-updates-title" data-i18n="aboutUpdatesTitle">最近更新</span>
+                <div class="about-update-item">
+                  <div class="about-update-head">
+                    <span class="about-update-date">2026-10-08</span>
+                    <span class="about-update-version" data-i18n="aboutUpdateVersion260">版本号 2.6.0</span>
+                  </div>
+                  <ul class="about-update-list">
+                    <li data-i18n="aboutUpdate2601">商店公告改为每天首次进入自动弹出一次，当天不再重复打扰；公告内容仍可在控制面板修改。</li>
+                    <li data-i18n="aboutUpdate2602">新增左侧「商店公告」漂浮按钮，可随时查看公告，未读时按钮带红点提醒。</li>
+                    <li data-i18n="aboutUpdate2603">控制面板「商店基本管理」新增「刷新签到」，一键让所有用户当天可以重新签到。</li>
+                    <li data-i18n="aboutUpdate2604">商店首页大标题新增发光徽标与官方授权徽章，并修复数据回退导致的会员状态异常问题。</li>
+                    <li data-i18n="aboutUpdate2605">漂浮按钮全部收纳进左右侧边栏：鼠标靠近屏幕边缘自动展开、离开自动收起，手机端点小箭头展开，不再占用页面空间。</li>
+                  </ul>
+                </div>
+                <div class="about-update-item">
+                  <div class="about-update-head">
+                    <span class="about-update-date">2026-10-08</span>
+                    <span class="about-update-version" data-i18n="aboutUpdateVersion108">版本号 2.5.8</span>
+                  </div>
+                  <ul class="about-update-list">
+                    <li data-i18n="aboutUpdate1081">新增「签到日历 · 积分商城」独立页面：当月签到日历、积分卡片、积分好礼兑换与我的兑换记录。</li>
+                    <li data-i18n="aboutUpdate1082">商店页将「每日签到」与「签到日历 · 积分商城」合并为一个漂浮按钮（呼吸 + 点击动效），点击进入签到与积分商城。</li>
+                  </ul>
+                </div>
+                <div class="about-update-item">
+                  <div class="about-update-head">
+                    <span class="about-update-date">2026-10-08</span>
+                    <span class="about-update-version" data-i18n="aboutUpdateVersion1008">版本号 2.5.6</span>
+                  </div>
+                  <ul class="about-update-list">
+                    <li data-i18n="aboutUpdate10081">修复工单与签到在已登录状态下仍提示「请先登录」的问题。</li>
+                    <li data-i18n="aboutUpdate10082">客服页「返回商店」改为回到你进入客服页时的那个商店页面。</li>
+                    <li data-i18n="aboutUpdate10083">关于页新增「最近更新」区块，可直接查看每个版本的更新内容。</li>
+                  </ul>
+                </div>
+                <div class="about-update-item">
+                  <div class="about-update-head">
+                    <span class="about-update-date">2026-10-07</span>
+                    <span class="about-update-version" data-i18n="aboutUpdateVersion1007">版本号 2.5.0</span>
+                  </div>
+                  <ul class="about-update-list">
+                    <li data-i18n="aboutUpdate10071">新增客服页 kefu.html：展示客服 QQ 3805506653，支持一键复制与发起 QQ 会话。</li>
+                    <li data-i18n="aboutUpdate10072">商店页新增左下角「联系客服」悬浮入口，漂浮与点击动效和购物车按钮保持一致。</li>
+                    <li data-i18n="aboutUpdate10073">本地服务新增 3008 端口实例，可与其他端口并行调试；3004 端口作为社区端口使用。</li>
+                    <li data-i18n="aboutUpdate10074">新增客服工单：登录后在客服页提交问题，客服回复可在「我的工单」查看。</li>
+                    <li data-i18n="aboutUpdate10075">新增每日签到积分：每天签到得 10 积分，连续签到最高再送 12 积分。</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -892,6 +1182,15 @@
         const thinkingTimeStatus = document.querySelector('[data-thinking-time-status]');
         const hideOnlineStatusToggle = document.querySelector('[data-hide-online-status-toggle]');
         const hideOnlineStatus = document.querySelector('[data-hide-online-status]');
+        const personalUsername = document.querySelector('[data-personal-username]');
+        const personalEmail = document.querySelector('[data-personal-email]');
+        const personalTier = document.querySelector('[data-personal-tier]');
+        const personalOrderCount = document.querySelector('[data-personal-order-count]');
+        const personalPaidCount = document.querySelector('[data-personal-paid-count]');
+        const personalPaidAmount = document.querySelector('[data-personal-paid-amount]');
+        const personalOrderList = document.querySelector('[data-personal-order-list]');
+        const personalStatus = document.querySelector('[data-personal-status]');
+        const personalRefreshButton = document.querySelector('[data-personal-refresh]');
         const aboutQqValue = document.querySelector('[data-about-qq]');
         const copyAboutQqButton = document.querySelector('[data-copy-about-qq]');
         const aboutCopyStatus = document.querySelector('[data-about-copy-status]');
@@ -910,6 +1209,7 @@
         const serviceQq = '3805506653';
         const defaultAiThinkingTimeMs = 3000;
         let currentCommunityLoggedIn = false;
+        let currentCommunityAccount = null;
         const languageMessages = {
           'zh-Hans': {
             switching: '正在切换语言...',
@@ -962,13 +1262,35 @@
             googleLoginAction: '使用 Google 登录',
             loginStatusIdle: '等待登录。',
             aboutTitle: '关于',
-            aboutVersion: '版本号 2.3.5',
+            aboutHeadBadge: '官方商店',
+            aboutSubtitle: '星际商店 · 资源服一站式卡密商店',
+            aboutVersion: '版本号 2.6.0',
             aboutCopy: '当前页面用于管理商店账号登录、注册与基础会话设置。',
             aboutQqLabel: '客服 QQ 3805506653',
             copyQqAction: '复制 QQ',
             aboutCopyStatusIdle: '点击按钮可复制客服 QQ。',
             aboutCopyStatusSuccess: '客服 QQ 已复制。',
             aboutCopyStatusError: '复制失败，请手动复制客服 QQ。',
+            aboutUpdatesTitle: '最近更新',
+            aboutUpdateVersion1007: '版本号 2.5.0',
+            aboutUpdate10071: '新增客服页 kefu.html：展示客服 QQ 3805506653，支持一键复制与发起 QQ 会话。',
+            aboutUpdate10072: '商店页新增左下角「联系客服」悬浮入口，漂浮与点击动效和购物车按钮保持一致。',
+            aboutUpdate10073: '本地服务新增 3008 端口实例，可与其他端口并行调试；3004 端口作为社区端口使用。',
+            aboutUpdate10074: '新增客服工单：登录后在客服页提交问题，客服回复可在「我的工单」查看。',
+            aboutUpdate10075: '新增每日签到积分：每天签到得 10 积分，连续签到最高再送 12 积分。',
+            aboutUpdateVersion1008: '版本号 2.5.6',
+            aboutUpdate10081: '修复工单与签到在已登录状态下仍提示「请先登录」的问题。',
+            aboutUpdate10082: '客服页「返回商店」改为回到你进入客服页时的那个商店页面。',
+            aboutUpdate10083: '关于页新增「最近更新」区块，可直接查看每个版本的更新内容。',
+            aboutUpdateVersion108: '版本号 2.5.8',
+            aboutUpdate1081: '新增「签到日历 · 积分商城」独立页面：当月签到日历、积分卡片、积分好礼兑换与我的兑换记录。',
+            aboutUpdate1082: '商店页将「每日签到」与「签到日历 · 积分商城」合并为一个漂浮按钮（呼吸 + 点击动效），点击进入签到与积分商城。',
+            aboutUpdateVersion260: '版本号 2.6.0',
+            aboutUpdate2601: '商店公告改为每天首次进入自动弹出一次，当天不再重复打扰；公告内容仍可在控制面板修改。',
+            aboutUpdate2602: '新增左侧「商店公告」漂浮按钮，可随时查看公告，未读时按钮带红点提醒。',
+            aboutUpdate2603: '控制面板「商店基本管理」新增「刷新签到」，一键让所有用户当天可以重新签到。',
+            aboutUpdate2604: '商店首页大标题新增发光徽标与官方授权徽章，并修复数据回退导致的会员状态异常问题。',
+            aboutUpdate2605: '漂浮按钮全部收纳进左右侧边栏：鼠标靠近屏幕边缘自动展开、离开自动收起，手机端点小箭头展开，不再占用页面空间。',
             languageTitle: '语言',
             languageCopy: '可在简体中文和繁体中文之间切换，切换时会显示加载动画。',
             languageHans: '简体中文',
@@ -1073,13 +1395,35 @@
             googleLoginAction: '使用 Google 登入',
             loginStatusIdle: '等待登入。',
             aboutTitle: '關於',
-            aboutVersion: '版本號 2.3.5',
+            aboutHeadBadge: '官方商店',
+            aboutSubtitle: '星際商店 · 資源服一站式卡密商店',
+            aboutVersion: '版本號 2.6.0',
             aboutCopy: '目前頁面用於管理商店帳號登入、註冊與基礎會話設定。',
             aboutQqLabel: '客服 QQ 3805506653',
             copyQqAction: '複製 QQ',
             aboutCopyStatusIdle: '點擊按鈕可複製客服 QQ。',
             aboutCopyStatusSuccess: '客服 QQ 已複製。',
             aboutCopyStatusError: '複製失敗，請手動複製客服 QQ。',
+            aboutUpdatesTitle: '最近更新',
+            aboutUpdateVersion1007: '版本號 2.5.0',
+            aboutUpdate10071: '新增客服頁 kefu.html：展示客服 QQ 3805506653，支援一鍵複製與發起 QQ 會話。',
+            aboutUpdate10072: '商店頁新增左下角「聯絡客服」懸浮入口，漂浮與點擊動效和購物車按鈕保持一致。',
+            aboutUpdate10073: '本地服務新增 3008 連接埠實例，可與其他連接埠平行除錯；3004 連接埠作為社群連接埠使用。',
+            aboutUpdate10074: '新增客服工單：登入後在客服頁提交問題，客服回覆可在「我的工單」查看。',
+            aboutUpdate10075: '新增每日簽到積分：每天簽到得 10 積分，連續簽到最高再送 12 積分。',
+            aboutUpdateVersion1008: '版本號 2.5.6',
+            aboutUpdate10081: '修復工單與簽到在已登入狀態下仍提示「請先登入」的問題。',
+            aboutUpdate10082: '客服頁「返回商店」改為回到你進入客服頁時的那個商店頁面。',
+            aboutUpdate10083: '關於頁新增「最近更新」區塊，可直接查看每個版本的更新內容。',
+            aboutUpdateVersion108: '版本號 2.5.8',
+            aboutUpdate1081: '新增「簽到日曆 · 積分商城」獨立頁面：當月簽到日曆、積分卡片、積分好禮兌換與我的兌換記錄。',
+            aboutUpdate1082: '商店頁將「每日簽到」與「簽到日曆 · 積分商城」合併為一個漂浮按鈕（呼吸 + 點擊動效），點擊進入簽到與積分商城。',
+            aboutUpdateVersion260: '版本號 2.6.0',
+            aboutUpdate2601: '商店公告改為每天首次進入自動彈出一次，當天不再重複打擾；公告內容仍可在控制面板修改。',
+            aboutUpdate2602: '新增左側「商店公告」漂浮按鈕，可隨時查看公告，未讀時按鈕帶紅點提醒。',
+            aboutUpdate2603: '控制面板「商店基本管理」新增「刷新簽到」，一鍵讓所有使用者當天可以重新簽到。',
+            aboutUpdate2604: '商店首頁大標題新增發光徽標與官方授權徽章，並修復資料回退導致的會員狀態異常問題。',
+            aboutUpdate2605: '漂浮按鈕全部收納進左右側邊欄：滑鼠靠近螢幕邊緣自動展開、離開自動收起，手機端點小箭頭展開，不再佔用頁面空間。',
             languageTitle: '語言',
             languageCopy: '可在簡體中文、繁體中文和 English (UK) 之間切換，切換時會顯示載入動畫。',
             languageHans: '簡體中文',
@@ -1184,13 +1528,35 @@
             googleLoginAction: 'Sign In with Google',
             loginStatusIdle: 'Waiting to sign in.',
             aboutTitle: 'About',
-            aboutVersion: 'Version 2.3.5',
+            aboutHeadBadge: 'Official Store',
+            aboutSubtitle: 'Star Store · One-stop card-key shop for resource servers',
+            aboutVersion: 'Version 2.6.0',
             aboutCopy: 'This page is used to manage store account sign-in, registration, and basic session settings.',
             aboutQqLabel: 'Support QQ 3805506653',
             copyQqAction: 'Copy QQ',
             aboutCopyStatusIdle: 'Use the button to copy the support QQ number.',
             aboutCopyStatusSuccess: 'Support QQ copied.',
             aboutCopyStatusError: 'Copy failed. Please copy the support QQ number manually.',
+            aboutUpdatesTitle: 'Recent updates',
+            aboutUpdateVersion1007: 'Version 2.5.0',
+            aboutUpdate10071: 'Added kefu.html: shows support QQ 3805506653 with one-tap copy and a direct QQ chat link.',
+            aboutUpdate10072: 'Added a floating "Contact support" entry at the bottom-left of the store page, with the same float and press animations as the cart button.',
+            aboutUpdate10073: 'Added a local service instance on port 3008 for parallel debugging; port 3004 serves the community endpoints.',
+            aboutUpdate10074: 'Added support tickets: submit issues on the support page after sign-in and read replies under My tickets.',
+            aboutUpdate10075: 'Added daily check-in points: 10 points per day, plus up to 12 bonus points for a check-in streak.',
+            aboutUpdateVersion1008: 'Version 2.5.6',
+            aboutUpdate10081: 'Fixed tickets and check-in still asking for sign-in when the account was already logged in.',
+            aboutUpdate10082: 'The support page back button now returns to the store page you came from.',
+            aboutUpdate10083: 'Added a "Recent updates" block on the About panel so every version changelog is visible.',
+            aboutUpdateVersion108: 'Version 2.5.8',
+            aboutUpdate1081: 'Added a standalone "Check-in Calendar · Points Mall" page: monthly check-in calendar, points card, redeemable rewards, and my redemption history.',
+            aboutUpdate1082: 'Merged "Daily check-in" and "Check-in Calendar · Points Mall" into one floating button (breathing + press animation) on the store page that opens the calendar and mall.',
+            aboutUpdateVersion260: 'Version 2.6.0',
+            aboutUpdate2601: 'Store announcements now pop up automatically once per day on your first visit, and no longer interrupt you again the same day; the content is still editable from the control panel.',
+            aboutUpdate2602: 'Added a floating "Store announcement" button on the left so you can read announcements at any time, with a red dot while unread.',
+            aboutUpdate2603: 'Added "Refresh check-in" under "Basic store management" in the control panel, letting every user check in again the same day with one click.',
+            aboutUpdate2604: 'The store hero title now has a glowing emblem and official-authorization badges, and membership status issues caused by database fallback were fixed.',
+            aboutUpdate2605: 'All floating buttons are now docked in left and right side rails: they expand when the pointer nears a screen edge and collapse when it leaves, and on mobile you tap the small arrow to open them, so they no longer take up page space.',
             languageTitle: 'Language',
             languageCopy: 'Switch between Simplified Chinese, Traditional Chinese, and English (UK). A loading animation appears during switching.',
             languageHans: 'Simplified Chinese',
@@ -1246,7 +1612,7 @@
           }
         };
         let currentLanguage = 'zh-Hans';
-        let pageMode = 'account';
+        let pageMode = 'personal';
         let authMode = 'register';
         const qrLoginPollIntervalMs = 2000;
         const qrTicketLifetimeMs = 1000 * 60 * 3;
@@ -1914,6 +2280,100 @@
           }
         }
 
+        function escapeHtml(value) {
+          return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+          }[character]));
+        }
+
+        function formatPersonalAmount(fen) {
+          return `¥${(Math.max(0, Number(fen || 0)) / 100).toFixed(2)}`;
+        }
+
+        function getPersonalTierLabel(tier) {
+          const labels = {
+            lvip: 'LVIP · 永久 7 折',
+            vip: 'VIP · 永久 4.5 折',
+            svip: 'SVIP · 永久 1.5 折'
+          };
+          return labels[String(tier || '').trim().toLowerCase()] || '普通用户';
+        }
+
+        function resetPersonalCenter(message) {
+          if (personalUsername) personalUsername.textContent = '未登录';
+          if (personalEmail) personalEmail.textContent = '登录后显示';
+          if (personalTier) personalTier.textContent = '普通用户';
+          if (personalOrderCount) personalOrderCount.textContent = '--';
+          if (personalPaidCount) personalPaidCount.textContent = '--';
+          if (personalPaidAmount) personalPaidAmount.textContent = '--';
+          if (personalOrderList) personalOrderList.innerHTML = '<div class="auth-status">登录后自动加载订单。</div>';
+          if (personalStatus) personalStatus.textContent = message || '登录后可查看会员权益和购买记录。';
+        }
+
+        function renderPersonalOrders(orders) {
+          if (!personalOrderList) return;
+          if (!Array.isArray(orders) || orders.length === 0) {
+            personalOrderList.innerHTML = '<div class="auth-status">暂时没有与当前账号关联的订单。</div>';
+            return;
+          }
+
+          personalOrderList.innerHTML = orders.map((order) => {
+            const status = String(order?.status || 'PENDING').toUpperCase();
+            const secret = String(order?.cardSecret || '').trim();
+            return `
+              <article class="personal-order">
+                <div class="personal-order-head">
+                  <strong>${escapeHtml(order?.productName || order?.productCode || '商品订单')}</strong>
+                  <span>${escapeHtml(status)}</span>
+                </div>
+                <div class="personal-order-meta">
+                  订单号：${escapeHtml(order?.orderNo || '--')} · 数量：${Math.max(1, Number(order?.quantity || 1))}<br />
+                  金额：${escapeHtml(formatPersonalAmount(order?.amountFen))} · ${escapeHtml(String(order?.createdAt || '').replace('T', ' ').slice(0, 16))}
+                </div>
+                ${secret ? `<div class="personal-order-secret">卡密：${escapeHtml(secret)}</div>` : ''}
+              </article>
+            `;
+          }).join('');
+        }
+
+        async function loadPersonalCenter() {
+          if (!currentCommunityLoggedIn || !currentCommunityAccount) {
+            resetPersonalCenter();
+            return;
+          }
+
+          if (personalUsername) personalUsername.textContent = currentCommunityAccount.username || '当前账号';
+          if (personalEmail) personalEmail.textContent = currentCommunityAccount.email || '未提供';
+          if (personalTier) personalTier.textContent = getPersonalTierLabel(currentCommunityAccount.storeDiscountTier);
+          if (personalStatus) personalStatus.textContent = '正在加载与当前账号关联的订单...';
+
+          try {
+            const response = await fetch('/api/store/orders/mine?limit=50', {
+              headers: getCommunityAuthHeaders()
+            });
+            const result = await response.json();
+            if (!response.ok) {
+              throw new Error(result.message || '订单加载失败');
+            }
+
+            if (personalOrderCount) personalOrderCount.textContent = String(result?.summary?.orderCount || 0);
+            if (personalPaidCount) personalPaidCount.textContent = String(result?.summary?.paidCount || 0);
+            if (personalPaidAmount) personalPaidAmount.textContent = formatPersonalAmount(result?.summary?.paidAmountFen);
+            renderPersonalOrders(result?.orders);
+            if (personalStatus) personalStatus.textContent = '个人档案和订单已更新。';
+          } catch (error) {
+            if (personalOrderCount) personalOrderCount.textContent = '--';
+            if (personalPaidCount) personalPaidCount.textContent = '--';
+            if (personalPaidAmount) personalPaidAmount.textContent = '--';
+            if (personalOrderList) personalOrderList.innerHTML = '<div class="auth-status">订单暂时无法加载，请稍后刷新。</div>';
+            if (personalStatus) personalStatus.textContent = error.message || '订单加载失败。';
+          }
+        }
+
         async function loadAccountState() {
           try {
             const token = localStorage.getItem('mctools-auth-token');
@@ -1921,17 +2381,20 @@
             const response = await fetch('/api/community/me', { headers });
             if (!response.ok) {
               currentCommunityLoggedIn = false;
+              currentCommunityAccount = null;
               logoutButton.hidden = true;
               if (hideOnlineStatusToggle) {
                 hideOnlineStatusToggle.checked = false;
                 hideOnlineStatusToggle.disabled = true;
               }
               updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusLoggedOut, true);
+              resetPersonalCenter();
               return;
             }
             const result = await response.json();
             if (result?.loggedIn && result?.username) {
               currentCommunityLoggedIn = true;
+              currentCommunityAccount = result;
               logoutButton.hidden = false;
               logoutButton.textContent = `退出登录 · ${result.username}`;
               if (hideOnlineStatusToggle) {
@@ -1939,23 +2402,28 @@
                 hideOnlineStatusToggle.checked = Boolean(result.hideOnlineStatus);
               }
               updateHideOnlineStatus();
+              await loadPersonalCenter();
             } else {
               currentCommunityLoggedIn = false;
+              currentCommunityAccount = null;
               logoutButton.hidden = true;
               if (hideOnlineStatusToggle) {
                 hideOnlineStatusToggle.checked = false;
                 hideOnlineStatusToggle.disabled = true;
               }
               updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusLoggedOut, true);
+              resetPersonalCenter();
             }
           } catch {
             currentCommunityLoggedIn = false;
+            currentCommunityAccount = null;
             logoutButton.hidden = true;
             if (hideOnlineStatusToggle) {
               hideOnlineStatusToggle.checked = false;
               hideOnlineStatusToggle.disabled = true;
             }
             updateHideOnlineStatus(getCurrentMessages().hideOnlineStatusSaveError, true);
+            resetPersonalCenter('个人中心加载失败，请刷新页面。');
           }
         }
 
@@ -2077,6 +2545,9 @@
 
           try { await fetch('/api/community/logout', { method: 'POST' }); } catch {}
           localStorage.removeItem('mctools-auth-token');
+          currentCommunityLoggedIn = false;
+          currentCommunityAccount = null;
+          resetPersonalCenter('已退出登录。');
           logoutButton.hidden = true;
           setStatus('login', '已退出登录。');
           setStatus('register', '已退出登录。');
@@ -2085,6 +2556,7 @@
         pageTabs.forEach((tab) => {
           tab.addEventListener('click', () => setPageTab(tab.dataset.pageTab));
         });
+        personalRefreshButton?.addEventListener('click', loadPersonalCenter);
 
         languageButtons.forEach((button) => {
           button.addEventListener('click', () => switchLanguage(button.dataset.languageChoice));
@@ -2172,8 +2644,13 @@
         const authModeFromUrl = String(bootUrl.searchParams.get('auth') || '').trim().toLowerCase();
         const scanToken = String(bootUrl.searchParams.get('token') || '').trim();
         const isScanMode = authModeFromUrl === 'scan';
-        if (authModeFromUrl === 'login') setAuthTab('login');
-        else if (authModeFromUrl === 'register') setAuthTab('register');
+        if (authModeFromUrl === 'login') {
+          setAuthTab('login');
+          pageMode = 'account';
+        } else if (authModeFromUrl === 'register') {
+          setAuthTab('register');
+          pageMode = 'account';
+        }
 
         if (!isScanMode && scanPanel) {
           scanPanel.remove();

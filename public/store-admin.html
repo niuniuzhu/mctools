@@ -237,6 +237,70 @@
         font-size: 0.9rem;
         line-height: 1.6;
       }
+      .interaction-toolbar,
+      .interaction-row-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .interaction-toolbar select {
+        flex: 1 1 280px;
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        background: #fff;
+        font: inherit;
+      }
+      .interaction-table {
+        display: grid;
+        gap: 10px;
+      }
+      .interaction-row {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 14px;
+        background: rgba(248, 250, 252, 0.86);
+      }
+      .interaction-row strong {
+        color: #0f172a;
+      }
+      .interaction-row p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.65;
+        white-space: pre-wrap;
+      }
+      .interaction-row textarea {
+        width: 100%;
+        min-height: 76px;
+        padding: 10px 12px;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 12px;
+        font: inherit;
+        resize: vertical;
+      }
+      .interaction-state {
+        width: fit-content;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.14);
+        color: #b45309;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+      .interaction-state.approved,
+      .interaction-state.answered {
+        background: rgba(34, 197, 94, 0.14);
+        color: #15803d;
+      }
+      .interaction-state.hidden {
+        background: rgba(100, 116, 139, 0.14);
+        color: #475569;
+      }
       .admin-category-tabs {
         display: flex;
         flex-wrap: wrap;
@@ -483,6 +547,7 @@
             <button type="button" class="admin-category-tab" data-admin-tab="coupons">折扣券管理</button>
             <button type="button" class="admin-category-tab" data-admin-tab="cards">卡密管理</button>
             <button type="button" class="admin-category-tab" data-admin-tab="orders">订单管理</button>
+            <button type="button" class="admin-category-tab" data-admin-tab="interactions">商品互动</button>
           </div>
 
           <div data-edit-only>
@@ -524,6 +589,15 @@
                 <input type="text" placeholder="维护原因，例如：支付通道升级" data-site-maintenance-reason />
                 <input type="text" placeholder="预计恢复时间，例如：2026-10-04 18:00" data-site-maintenance-until />
                 <div class="settings-note">开启后普通用户会看到维护页面；维护提示、原因和恢复时间会同步显示。</div>
+              </div>
+
+              <div class="section-title">每日签到</div>
+              <div class="settings-block">
+                <div class="settings-inline">
+                  <button type="button" class="warn" data-checkin-reset>刷新签到</button>
+                </div>
+                <div class="settings-note">点击后会清空所有人的今日签到状态与今日签到记录，所有用户今天可以重新签到一次（积分不会扣除，连续签到天数会重新计算）。</div>
+                <div class="status" data-checkin-reset-status>尚未刷新</div>
               </div>
             </div>
 
@@ -618,10 +692,31 @@
                   </select>
                   <button type="button" class="primary" data-order-refresh>刷新</button>
                   <button type="button" class="warn" data-order-export>导出CSV</button>
+                  <button type="button" class="success" data-order-reissue-all>全部补发卡密</button>
                   <div class="settings-note order-summary-line" data-order-summary>暂无订单数据</div>
                 </div>
                 <div class="admin-table" data-order-table></div>
               </div>
+            </div>
+
+            <div class="admin-category-panel" data-admin-category-panel="interactions" hidden>
+              <div class="section-title">评价与问答审核</div>
+              <div class="settings-block">
+                <div class="settings-note">按商品处理用户评价与提问。评价通过后会公开展示；问题填写回复并发布后会显示在商品详情页。</div>
+                <div class="interaction-toolbar">
+                  <select data-interaction-product-select aria-label="选择商品">
+                    <option value="">请先加载商品</option>
+                  </select>
+                  <button type="button" class="primary" data-interaction-load>加载互动内容</button>
+                </div>
+                <div class="status" data-interaction-summary>请选择商品以加载评价和问答。</div>
+              </div>
+
+              <div class="section-title">商品评价</div>
+              <div class="interaction-table" data-interaction-review-table></div>
+
+              <div class="section-title">商品问答</div>
+              <div class="interaction-table" data-interaction-question-table></div>
             </div>
           </div>
         </div>
@@ -653,6 +748,9 @@
         const orderPaymentFilter = document.querySelector('[data-order-payment-filter]');
         const refreshOrdersButton = document.querySelector('[data-order-refresh]');
         const exportOrdersButton = document.querySelector('[data-order-export]');
+        const reissueAllOrdersButton = document.querySelector('[data-order-reissue-all]');
+        const checkinResetButton = document.querySelector('[data-checkin-reset]');
+        const checkinResetStatus = document.querySelector('[data-checkin-reset-status]');
         const orderSummary = document.querySelector('[data-order-summary]');
         const orderTable = document.querySelector('[data-order-table]');
         const couponTable = document.querySelector('[data-coupon-table]');
@@ -663,6 +761,11 @@
         const couponCreateStart = document.querySelector('[data-coupon-create-start]');
         const couponCreateExpiry = document.querySelector('[data-coupon-create-expiry]');
         const couponCreateSubmit = document.querySelector('[data-coupon-create-submit]');
+        const interactionProductSelect = document.querySelector('[data-interaction-product-select]');
+        const interactionLoadButton = document.querySelector('[data-interaction-load]');
+        const interactionSummary = document.querySelector('[data-interaction-summary]');
+        const interactionReviewTable = document.querySelector('[data-interaction-review-table]');
+        const interactionQuestionTable = document.querySelector('[data-interaction-question-table]');
 
         const createCode = document.querySelector('[data-create-code]');
         const createName = document.querySelector('[data-create-name]');
@@ -697,6 +800,8 @@
         let adminProducts = [];
         let adminCoupons = [];
         let adminOrders = [];
+        let adminReviews = [];
+        let adminQuestions = [];
         let orderFilters = {
           query: '',
           status: 'ALL',
@@ -711,6 +816,12 @@
 
         function confirmCriticalAction(message) {
           return window.confirm(String(message || '确认继续执行该操作？'));
+        }
+
+        function setCheckinResetStatus(text, isError = false, isPending = false) {
+          if (!checkinResetStatus) return;
+          checkinResetStatus.textContent = text;
+          checkinResetStatus.style.color = isError ? '#dc2626' : (isPending ? '#b45309' : '#334155');
         }
 
         function setAccessView(hasAccess) {
@@ -794,6 +905,78 @@
               </div>
             `;
           }).join('');
+        }
+
+        function renderInteractionProductOptions() {
+          if (!interactionProductSelect) return;
+          const previousValue = String(interactionProductSelect.value || '').trim();
+          interactionProductSelect.innerHTML = adminProducts.length
+            ? adminProducts.map((product) => {
+              const normalized = normalizeProduct(product);
+              return `<option value="${escapeHtml(normalized.productCode)}">${escapeHtml(normalized.name)} · ${escapeHtml(normalized.productCode)}</option>`;
+            }).join('')
+            : '<option value="">暂无可管理商品</option>';
+          if (previousValue && adminProducts.some((product) => String(product?.productCode || '').trim() === previousValue)) {
+            interactionProductSelect.value = previousValue;
+          }
+        }
+
+        function renderInteractionTables() {
+          if (interactionReviewTable) {
+            interactionReviewTable.innerHTML = adminReviews.length ? adminReviews.map((review) => `
+              <article class="interaction-row" data-review-id="${Number(review.id || 0)}">
+                <div class="interaction-row-actions">
+                  <strong>${escapeHtml(review.username)} · ${'★'.repeat(Math.max(0, Math.min(5, Number(review.rating) || 0)))}</strong>
+                  <span class="interaction-state ${escapeHtml(String(review.status || '').toLowerCase())}">${escapeHtml(review.status || 'pending')}</span>
+                </div>
+                <p>${escapeHtml(review.content)}</p>
+                <div class="settings-note">${escapeHtml(String(review.createdAt || '').replace('T', ' ').slice(0, 16))}</div>
+                <div class="interaction-row-actions">
+                  <button type="button" class="mini-btn primary" data-review-approve>通过并公开</button>
+                  <button type="button" class="mini-btn warn" data-review-hide>隐藏</button>
+                </div>
+              </article>
+            `).join('') : '<div class="status">该商品暂无评价。</div>';
+          }
+
+          if (interactionQuestionTable) {
+            interactionQuestionTable.innerHTML = adminQuestions.length ? adminQuestions.map((question) => `
+              <article class="interaction-row" data-question-id="${Number(question.id || 0)}">
+                <div class="interaction-row-actions">
+                  <strong>${escapeHtml(question.username)} · 提问</strong>
+                  <span class="interaction-state ${escapeHtml(String(question.status || '').toLowerCase())}">${escapeHtml(question.status || 'pending')}</span>
+                </div>
+                <p>${escapeHtml(question.question)}</p>
+                <textarea data-question-answer placeholder="填写管理员回复">${escapeHtml(question.answer || '')}</textarea>
+                <div class="interaction-row-actions">
+                  <button type="button" class="mini-btn primary" data-question-publish>发布回复</button>
+                  <button type="button" class="mini-btn warn" data-question-hide>隐藏</button>
+                </div>
+              </article>
+            `).join('') : '<div class="status">该商品暂无问题。</div>';
+          }
+        }
+
+        async function loadInteractions() {
+          const productCode = String(interactionProductSelect?.value || '').trim();
+          if (!productCode) {
+            throw new Error('请先选择商品。');
+          }
+
+          if (interactionSummary) interactionSummary.textContent = '正在加载商品互动内容...';
+          const encodedProductCode = encodeURIComponent(productCode);
+          const [reviewResponse, questionResponse] = await Promise.all([
+            fetch(`/api/store/reviews/admin?productCode=${encodedProductCode}`, { headers: getAuthHeaders() }),
+            fetch(`/api/store/questions/admin?productCode=${encodedProductCode}`, { headers: getAuthHeaders() })
+          ]);
+          const [reviewResult, questionResult] = await Promise.all([reviewResponse.json(), questionResponse.json()]);
+          if (!reviewResponse.ok) throw new Error(reviewResult.message || '加载评价失败');
+          if (!questionResponse.ok) throw new Error(questionResult.message || '加载问题失败');
+
+          adminReviews = Array.isArray(reviewResult?.reviews) ? reviewResult.reviews : [];
+          adminQuestions = Array.isArray(questionResult?.questions) ? questionResult.questions : [];
+          renderInteractionTables();
+          if (interactionSummary) interactionSummary.textContent = `${productCode}：${adminReviews.length} 条评价 · ${adminQuestions.length} 个问题`;
         }
 
         function getProductCategory(product) {
@@ -1355,6 +1538,7 @@
               adminProducts = Array.isArray(result?.products) ? result.products : [];
               renderAdminTable();
               renderCardProductPicker(adminProducts);
+              renderInteractionProductOptions();
 
               const couponResponse = await fetch('/api/store/coupons/admin', { headers: getAuthHeaders() });
               const couponResult = await couponResponse.json();
@@ -1576,6 +1760,29 @@
           });
         }
 
+        if (checkinResetButton) {
+          checkinResetButton.addEventListener('click', async () => {
+            if (!confirmCriticalAction('确认刷新签到吗？\n点击后所有人的今日签到都会被清空，所有用户今天可以重新签到一次。')) {
+              setCheckinResetStatus('已取消刷新签到。');
+              return;
+            }
+            try {
+              setCheckinResetStatus('正在刷新签到...', false, true);
+              const response = await fetch('/api/store/checkin/reset', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+              });
+              const result = await response.json().catch(() => ({}));
+              if (!response.ok) {
+                throw new Error(result.message || `请求失败 (${response.status})`);
+              }
+              setCheckinResetStatus(result.message || '已刷新签到，所有人现在可以重新签到。');
+            } catch (error) {
+              setCheckinResetStatus(error.message || '刷新签到失败', true);
+            }
+          });
+        }
+
         if (refreshOrdersButton) {
           refreshOrdersButton.addEventListener('click', async () => {
             try {
@@ -1586,6 +1793,31 @@
               setStatus(`已刷新 ${adminOrders.length} 笔订单。`);
             } catch (error) {
               setStatus(error.message || '刷新订单失败', true);
+            }
+          });
+        }
+
+        if (reissueAllOrdersButton) {
+          reissueAllOrdersButton.addEventListener('click', async () => {
+            try {
+              if (!confirmCriticalAction('确认对全部「已支付但缺少卡密」的订单批量补发卡密吗？\n（已退款/已取消订单会被跳过）')) {
+                setStatus('已取消全部补发。');
+                return;
+              }
+              setStatus('正在批量补发卡密...');
+              const response = await fetch('/api/store/orders/admin/reissue-all', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ onlyMissing: true })
+              });
+              const result = await response.json();
+              if (!response.ok) {
+                throw new Error(result.message || '批量补发失败');
+              }
+              setStatus(result.message || `已补发 ${result.reissued || 0} 笔订单。`);
+              await loadOrders();
+            } catch (error) {
+              setStatus(error.message || '批量补发失败', true);
             }
           });
         }
@@ -1992,6 +2224,64 @@
             button.addEventListener('click', () => setAdminCategory(button.dataset.adminTab));
           });
           setAdminCategory('store');
+        }
+
+        if (interactionLoadButton) {
+          interactionLoadButton.addEventListener('click', async () => {
+            try {
+              await loadInteractions();
+            } catch (error) {
+              if (interactionSummary) interactionSummary.textContent = error.message || '加载商品互动内容失败';
+              setStatus(error.message || '加载商品互动内容失败', true);
+            }
+          });
+        }
+
+        if (interactionReviewTable) {
+          interactionReviewTable.addEventListener('click', async (event) => {
+            const actionButton = event.target.closest('[data-review-approve], [data-review-hide]');
+            if (!actionButton) return;
+            const row = actionButton.closest('[data-review-id]');
+            const id = Number(row?.dataset?.reviewId);
+            const status = actionButton.hasAttribute('data-review-approve') ? 'approved' : 'hidden';
+            try {
+              const response = await fetch('/api/store/reviews/admin/moderate', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, status })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '评价审核失败');
+              setStatus(result.message || '评价状态已更新');
+              await loadInteractions();
+            } catch (error) {
+              setStatus(error.message || '评价审核失败', true);
+            }
+          });
+        }
+
+        if (interactionQuestionTable) {
+          interactionQuestionTable.addEventListener('click', async (event) => {
+            const actionButton = event.target.closest('[data-question-publish], [data-question-hide]');
+            if (!actionButton) return;
+            const row = actionButton.closest('[data-question-id]');
+            const id = Number(row?.dataset?.questionId);
+            const status = actionButton.hasAttribute('data-question-publish') ? 'answered' : 'hidden';
+            const answer = String(row?.querySelector('[data-question-answer]')?.value || '').trim();
+            try {
+              const response = await fetch('/api/store/questions/admin/answer', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, status, answer })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '问题处理失败');
+              setStatus(result.message || '问题状态已更新');
+              await loadInteractions();
+            } catch (error) {
+              setStatus(error.message || '问题处理失败', true);
+            }
+          });
         }
 
         if (refreshButton) {

@@ -593,3 +593,47 @@ SQLite database path: D:\Projects\mctools\data\users.db
 (node:35036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
 Server is running at http://0.0.0.0:3001  (正式版1.4)
+SQLite database path: D:\Projects\mctools\data\users.db
+(node:24996) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3001  (正式版1.4)
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 261,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1
+D:\Projects\mctools\server.js:178
+      throw error;
+      ^
+
+Error: database is locked
+    at resolveWritableDatabasePath (D:\Projects\mctools\server.js:158:14)
+    at Object.<anonymous> (D:\Projects\mctools\server.js:185:30)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  code: 'ERR_SQLITE_ERROR',
+  errcode: 5,
+  errstr: 'database is locked'
+}
+
+Node.js v24.14.1

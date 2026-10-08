@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>签到日历 · 积分商城 | MC TOOLS</title>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #14b8a6;
+      --primary-2: #0ea5e9;
+      --gold: #f59e0b;
+      --line: #e2e8f0;
+      --danger: #ef4444;
+      --ok: #10b981;
+    }
+    html[data-theme="night"] {
+      --bg: #0b1220;
+      --panel: #111a2b;
+      --panel-2: #0f1726;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --line: #1e293b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 16px 14px 60px; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 4px 18px;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      text-decoration: none; color: var(--primary-2);
+      font-weight: 600; font-size: 0.95rem;
+      background: var(--panel); border: 1px solid var(--line);
+      padding: 8px 14px; border-radius: 999px;
+    }
+    .topbar h1 { font-size: 1.25rem; margin: 0; flex: 1; }
+    .theme-toggle {
+      border: 1px solid var(--line); background: var(--panel);
+      color: var(--text); border-radius: 999px; padding: 8px 12px; cursor: pointer; font-size: 0.9rem;
+    }
+    .card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 16px; padding: 18px; margin-bottom: 18px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.05);
+    }
+    .points-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .points-big { font-size: 2.4rem; font-weight: 800; color: var(--gold); line-height: 1.1; }
+    .points-big small { font-size: 0.9rem; color: var(--muted); font-weight: 500; margin-left: 6px; }
+    .points-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+    .pill {
+      background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 999px; padding: 6px 12px; font-size: 0.85rem; color: var(--muted);
+    }
+    .pill b { color: var(--text); }
+    .section-title { font-size: 1.1rem; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-nav button {
+      border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+      border-radius: 10px; padding: 6px 12px; cursor: pointer; font-size: 0.95rem;
+    }
+    .cal-month { font-weight: 700; font-size: 1.05rem; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .cal-cell {
+      aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; font-size: 0.9rem; background: var(--panel-2);
+      border: 1px solid var(--line); color: var(--text); position: relative;
+    }
+    .cal-weekday { background: transparent; border: none; color: var(--muted); font-weight: 600; aspect-ratio: auto; padding: 4px 0; }
+    .cal-cell.checked {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff; border-color: transparent; font-weight: 700;
+    }
+    .cal-cell.today { outline: 2px solid var(--gold); outline-offset: -2px; }
+    .cal-cell.empty { visibility: hidden; }
+    .checkin-btn {
+      margin-top: 16px; width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff; border: none; border-radius: 12px; padding: 14px;
+      font-size: 1.05rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 8px 18px rgba(20, 184, 166, 0.35);
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+    .checkin-btn[disabled] { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; animation: none; cursor: not-allowed; }
+    .checkin-btn:active:not([disabled]) { animation: pop 220ms ease; }
+    @keyframes breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(0.96); } 100% { transform: scale(1); } }
+    .mall-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+    .mall-item {
+      background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px;
+      padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .mall-icon { font-size: 2rem; }
+    .mall-name { font-weight: 700; font-size: 1rem; }
+    .mall-desc { font-size: 0.82rem; color: var(--muted); min-height: 34px; }
+    .mall-cost { color: var(--gold); font-weight: 800; }
+    .mall-cost small { color: var(--muted); font-weight: 500; }
+    .mall-btn {
+      margin-top: auto; border: none; border-radius: 10px; padding: 10px;
+      background: linear-gradient(135deg, var(--gold), #f97316); color: #fff;
+      font-weight: 700; cursor: pointer;
+    }
+    .mall-btn[disabled] { background: #cbd5e1; color: #475569; cursor: not-allowed; }
+    .records { list-style: none; padding: 0; margin: 0; }
+    .records li {
+      display: flex; justify-content: space-between; gap: 10px;
+      padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 0.9rem;
+    }
+    .records li:last-child { border-bottom: none; }
+    .records .r-name { font-weight: 600; }
+    .records .r-time { color: var(--muted); font-size: 0.8rem; }
+    .toast {
+      position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92); color: #fff; padding: 12px 20px;
+      border-radius: 12px; font-size: 0.95rem; opacity: 0; pointer-events: none;
+      transition: opacity 0.25s; z-index: 999;
+    }
+    .toast.show { opacity: 1; }
+    .toast.err { background: rgba(220, 38, 38, 0.94); }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back-link" href="/store.html" data-back>← 返回商店</a>
+      <h1>签到日历 · 积分商城</h1>
+      <button class="theme-toggle" type="button" data-theme-toggle>🌙 暗色</button>
+    </div>
+
+    <div class="card">
+      <div class="points-head">
+        <div>
+          <div class="points-big"><span data-points>--</span><small>积分</small></div>
+          <div class="points-meta">
+            <span class="pill">连续签到 <b data-streak>0</b> 天</span>
+            <span class="pill">累计获得 <b data-total>0</b></span>
+            <span class="pill">今日奖励 <b data-reward>10</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">📅 每日签到</h2>
+      <div class="cal-nav">
+        <button type="button" data-cal-prev>← 上月</button>
+        <span class="cal-month" data-cal-month>----年--月</span>
+        <button type="button" data-cal-next>下月 →</button>
+      </div>
+      <div class="cal-grid" data-cal-weekdays></div>
+      <div class="cal-grid" data-cal-grid></div>
+      <button class="checkin-btn" type="button" data-checkin>立即签到</button>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">🎁 积分商城</h2>
+      <div class="mall-grid" data-mall-grid></div>
+      <p class="muted" data-mall-empty style="display:none">暂无可兑换商品。</p>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">🧾 我的兑换记录</h2>
+      <ul class="records" data-records></ul>
+      <p class="muted" data-records-empty>还没有兑换记录，去上面挑一件吧～</p>
+    </div>
+  </div>
+
+  <div class="toast" data-toast></div>
+
+  <script>
+    (function () {
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('mctools-theme', theme); } catch (e) {}
+        var btn = document.querySelector('[data-theme-toggle]');
+        if (btn) btn.textContent = theme === 'night' ? '☀️ 亮色' : '🌙 暗色';
+      }
+      try {
+        var saved = localStorage.getItem('mctools-theme');
+        if (saved) applyTheme(saved);
+      } catch (e) {}
+
+      var themeToggle = document.querySelector('[data-theme-toggle]');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function () {
+          var cur = document.documentElement.getAttribute('data-theme');
+          applyTheme(cur === 'night' ? 'light' : 'night');
+        });
+      }
+
+      function authHeaders(extra) {
+        var token = '';
+        try { token = localStorage.getItem('mctools-auth-token') || ''; } catch (e) {}
+        return Object.assign({}, extra || {}, token ? { Authorization: 'Bearer ' + token } : {});
+      }
+
+      function toast(msg, isErr) {
+        var el = document.querySelector('[data-toast]');
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'toast show' + (isErr ? ' err' : '');
+        clearTimeout(el._t);
+        el._t = setTimeout(function () { el.className = 'toast'; }, 2600);
+      }
+
+      var state = { loggedIn: false, points: 0, year: 0, month: 0 };
+
+      var pointsNode = document.querySelector('[data-points]');
+      var streakNode = document.querySelector('[data-streak]');
+      var totalNode = document.querySelector('[data-total]');
+      var rewardNode = document.querySelector('[data-reward]');
+      var checkinBtn = document.querySelector('[data-checkin]');
+
+      function renderPoints(data) {
+        if (!data) return;
+        state.loggedIn = Boolean(data.loggedIn);
+        state.points = Number(data.points || 0);
+        if (pointsNode) pointsNode.textContent = state.points;
+        if (streakNode) streakNode.textContent = data.streak || 0;
+        if (totalNode) totalNode.textContent = data.totalEarned || 0;
+        if (rewardNode) rewardNode.textContent = data.basePoints || 10;
+        if (checkinBtn) {
+          checkinBtn.disabled = !state.loggedIn || Boolean(data.checkedToday);
+          checkinBtn.textContent = !state.loggedIn ? '登录后签到' : (data.checkedToday ? '今天已签到 ✓' : '立即签到');
+        }
+      }
+
+      async function loadPoints() {
+        try {
+          var res = await fetch('/api/store/points', { headers: authHeaders(), credentials: 'same-origin' });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok) {
+            renderPoints(data);
+            return data;
+          }
+          renderPoints({ loggedIn: false, points: 0, streak: 0, totalEarned: 0, basePoints: 10 });
+        } catch (e) {
+          renderPoints({ loggedIn: false, points: 0, streak: 0, totalEarned: 0, basePoints: 10 });
+        }
+        return null;
+      }
+
+      // ---- Calendar ----
+      var weekdays = ['一', '二', '三', '四', '五', '六', '日'];
+      var wdBox = document.querySelector('[data-cal-weekdays]');
+      if (wdBox) {
+        wdBox.innerHTML = '';
+        weekdays.forEach(function (w) {
+          var c = document.createElement('div');
+          c.className = 'cal-cell cal-weekday';
+          c.textContent = w;
+          wdBox.appendChild(c);
+        });
+      }
+      var gridBox = document.querySelector('[data-cal-grid]');
+      var monthLabel = document.querySelector('[data-cal-month]');
+      var now = new Date();
+      state.year = now.getFullYear();
+      state.month = now.getMonth() + 1;
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+
+      async function renderCalendar() {
+        if (!gridBox) return;
+        var prefix = state.year + '-' + pad(state.month);
+        if (monthLabel) monthLabel.textContent = state.year + '年' + state.month + '月';
+        var checked = [];
+        if (state.loggedIn) {
+          try {
+            var cres = await fetch('/api/store/points/calendar?month=' + prefix, { headers: authHeaders(), credentials: 'same-origin' });
+            var cdata = await cres.json().catch(function () { return {}; });
+            checked = (cdata.checkedDates || []);
+          } catch (e) {}
+        }
+        var checkedSet = {};
+        checked.forEach(function (d) { checkedSet[d] = true; });
+
+        var first = new Date(state.year, state.month - 1, 1);
+        var startOffset = (first.getDay() + 6) % 7; // Monday-first
+        var daysInMonth = new Date(state.year, state.month, 0).getDate();
+        var todayStr = (new Date().getFullYear()) + '-' + pad(new Date().getMonth() + 1) + '-' + pad(new Date().getDate());
+
+        gridBox.innerHTML = '';
+        for (var i = 0; i < startOffset; i++) {
+          var empty = document.createElement('div');
+          empty.className = 'cal-cell empty';
+          gridBox.appendChild(empty);
+        }
+        for (var d = 1; d <= daysInMonth; d++) {
+          var cell = document.createElement('div');
+          cell.className = 'cal-cell';
+          var dateStr = state.year + '-' + pad(state.month) + '-' + pad(d);
+          if (checkedSet[dateStr]) cell.className += ' checked';
+          if (dateStr === todayStr) cell.className += ' today';
+          cell.textContent = d;
+          gridBox.appendChild(cell);
+        }
+      }
+
+      var prevBtn = document.querySelector('[data-cal-prev]');
+      var nextBtn = document.querySelector('[data-cal-next]');
+      if (prevBtn) prevBtn.addEventListener('click', function () {
+        state.month--; if (state.month < 1) { state.month = 12; state.year--; }
+        renderCalendar();
+      });
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        state.month++; if (state.month > 12) { state.month = 1; state.year++; }
+        renderCalendar();
+      });
+
+      if (checkinBtn) {
+        checkinBtn.addEventListener('click', async function () {
+          if (!state.loggedIn) { toast('请先登录社区账号后再签到。', true); return; }
+          checkinBtn.disabled = true;
+          try {
+            var res = await fetch('/api/store/points/checkin', {
+              method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), credentials: 'same-origin'
+            });
+            var data = await res.json().catch(function () { return {}; });
+            if (res.ok) {
+              toast(data.message || '签到成功');
+              renderPoints(data);
+              await renderCalendar();
+              await loadMall();
+            } else {
+              toast(data.message || '签到失败', true);
+              checkinBtn.disabled = false;
+            }
+          } catch (e) {
+            toast('网络异常，签到失败', true);
+            checkinBtn.disabled = false;
+          }
+        });
+      }
+
+      // ---- Mall ----
+      var mallGrid = document.querySelector('[data-mall-grid]');
+      var mallEmpty = document.querySelector('[data-mall-empty]');
+
+      function renderMall(items) {
+        if (!mallGrid) return;
+        mallGrid.innerHTML = '';
+        if (!items || !items.length) {
+          if (mallEmpty) mallEmpty.style.display = 'block';
+          return;
+        }
+        if (mallEmpty) mallEmpty.style.display = 'none';
+        items.forEach(function (it) {
+          var card = document.createElement('div');
+          card.className = 'mall-item';
+          var canBuy = state.loggedIn && !it.outOfStock && state.points >= it.costPoints;
+          card.innerHTML =
+            '<div class="mall-icon">' + (it.icon || '🎁') + '</div>' +
+            '<div class="mall-name">' + escapeHtml(it.name) + '</div>' +
+            '<div class="mall-desc">' + escapeHtml(it.description || '') + '</div>' +
+            '<div class="mall-cost">' + it.costPoints + ' <small>积分</small>' + (it.outOfStock ? ' · 已兑罄' : '') + '</div>' +
+            '<button class="mall-btn" type="button"' + (canBuy ? '' : ' disabled') + '>' +
+            (it.outOfStock ? '已兑罄' : (state.loggedIn ? '立即兑换' : '登录后兑换')) + '</button>';
+          var btn = card.querySelector('.mall-btn');
+          if (btn && canBuy) {
+            btn.addEventListener('click', function () { redeem(it); });
+          }
+          mallGrid.appendChild(card);
+        });
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+
+      async function loadMall() {
+        try {
+          var res = await fetch('/api/store/mall/items', { headers: authHeaders(), credentials: 'same-origin' });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok) {
+            state.loggedIn = state.loggedIn || Boolean(data.loggedIn);
+            renderMall(data.items || []);
+          }
+        } catch (e) {}
+      }
+
+      async function redeem(item) {
+        if (!state.loggedIn) { toast('请先登录社区账号后再兑换。', true); return; }
+        try {
+          var res = await fetch('/api/store/mall/redeem', {
+            method: 'POST',
+            headers: authHeaders({ 'Content-Type': 'application/json' }),
+            credentials: 'same-origin',
+            body: JSON.stringify({ itemId: item.id })
+          });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok) {
+            toast(data.message || '兑换成功');
+            state.points = Number(data.remainingPoints || data.points || state.points);
+            if (pointsNode) pointsNode.textContent = state.points;
+            await loadMall();
+            await loadRecords();
+          } else {
+            toast(data.message || '兑换失败', true);
+          }
+        } catch (e) {
+          toast('网络异常，兑换失败', true);
+        }
+      }
+
+      // ---- My records ----
+      var recordsBox = document.querySelector('[data-records]');
+      var recordsEmpty = document.querySelector('[data-records-empty]');
+      async function loadRecords() {
+        if (!recordsBox) return;
+        if (!state.loggedIn) {
+          recordsBox.innerHTML = '';
+          if (recordsEmpty) { recordsEmpty.style.display = 'block'; recordsEmpty.textContent = '登录后查看你的兑换记录。'; }
+          return;
+        }
+        try {
+          var res = await fetch('/api/store/mall/my', { headers: authHeaders(), credentials: 'same-origin' });
+          var data = await res.json().catch(function () { return {}; });
+          if (res.ok) {
+            var list = data.records || [];
+            recordsBox.innerHTML = '';
+            if (!list.length) {
+              if (recordsEmpty) { recordsEmpty.style.display = 'block'; recordsEmpty.textContent = '还没有兑换记录，去上面挑一件吧～'; }
+              return;
+            }
+            if (recordsEmpty) recordsEmpty.style.display = 'none';
+            list.forEach(function (r) {
+              var li = document.createElement('li');
+              li.innerHTML = '<span class="r-name">' + escapeHtml(r.itemName) + ' <small style="color:var(--gold)">-' + r.costPoints + '</small></span>' +
+                '<span class="r-time">' + escapeHtml(r.createdAt || '') + '</span>';
+              recordsBox.appendChild(li);
+            });
+          }
+        } catch (e) {}
+      }
+
+      // ---- Smart back ----
+      var backLink = document.querySelector('[data-back]');
+      if (backLink) {
+        backLink.addEventListener('click', function (e) {
+          if (document.referrer && document.referrer.indexOf(location.host) !== -1) {
+            e.preventDefault();
+            history.back();
+          }
+        });
+      }
+
+      // ---- init ----
+      (async function init() {
+        await loadPoints();
+        await renderCalendar();
+        await loadMall();
+        await loadRecords();
+      })();
+    })();
+  </script>
+</body>
+</html>

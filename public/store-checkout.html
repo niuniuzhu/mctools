@@ -251,6 +251,10 @@
       gap: 10px;
     }
 
+    .contact-group[hidden] {
+      display: none;
+    }
+
     .field-label {
       font-weight: 900;
       font-size: 0.92rem;
@@ -562,7 +566,7 @@
           <div class="hint">每个商品按当前数量生成订单并按数量结算。</div>
         </div>
 
-        <div class="contact-group">
+        <div class="contact-group" data-coupon-group>
           <label class="field-label" for="checkout-coupon">折扣券</label>
           <div class="coupon-row">
             <input id="checkout-coupon" type="text" placeholder="输入折扣券码" autocomplete="off" data-coupon-code />
@@ -671,6 +675,28 @@
         price: String(params.get('price') || '').trim(),
         description: String(params.get('description') || '').trim()
       };
+      const isLotteryCheckout = product.code.toUpperCase() === 'LOTTERY-ENTRY';
+      const lotteryOrderStorageKey = 'mctools-lottery-pending-order';
+      const quantityGroup = quantityInput?.closest('.contact-group');
+      const couponGroup = document.querySelector('[data-coupon-group]');
+      if (isLotteryCheckout) {
+        const backupWechatButton = methodButtons.find((button) => button.dataset.paymentMethod === 'wechat_backup');
+        product.name = '抽奖机会';
+        product.price = '270.00';
+        product.description = '抽奖中心单次抽奖机会';
+        if (backupWechatButton) backupWechatButton.hidden = true;
+        if (quantityGroup) quantityGroup.hidden = true;
+        if (couponInput) {
+          couponInput.disabled = true;
+          couponInput.placeholder = '抽奖订单不支持优惠券';
+        }
+        if (applyCouponButton) applyCouponButton.disabled = true;
+        if (couponStatus) couponStatus.textContent = '抽奖机会固定售价 ¥270，不支持使用优惠券。';
+        if (quantityInput) {
+          quantityInput.value = '1';
+          quantityInput.disabled = true;
+        }
+      }
 
       function setStatus(message, kind) {
         if (!statusBox) return;
@@ -769,6 +795,7 @@
       }
 
       async function requestCouponQuote(couponCode = '', showStatus = false) {
+        if (isLotteryCheckout) return false;
         const requestId = ++pricingRequestId;
         const token = String(localStorage.getItem('mctools-auth-token') || '').trim();
         if (!state.loggedIn || !token) {
@@ -967,6 +994,9 @@
             const orderNo = String(result?.orderNo || '').trim();
             if (orderNo) {
               localStorage.setItem(hongxingReturnOrderStorageKey, orderNo);
+              if (isLotteryCheckout) {
+                localStorage.setItem(lotteryOrderStorageKey, orderNo);
+              }
             }
           } catch {
             // ignore storage errors
@@ -1000,11 +1030,25 @@
         button.addEventListener('click', () => setMethod(button.dataset.paymentMethod || 'wechat'));
       });
 
+      fetch('/api/store/wechat/meta')
+        .then((response) => response.json())
+        .then((result) => {
+          if (result?.ready && result?.defaultPaymentMethod) {
+            setMethod(result.defaultPaymentMethod);
+          }
+        })
+        .catch(() => {});
+
       if (contactInput) {
         contactInput.addEventListener('input', () => updateContact(contactInput.value));
       }
 
       if (quantityInput) {
+        const presetQuantity = Number.parseInt(String(params.get('quantity') || '1'), 10);
+        if (!isLotteryCheckout && Number.isFinite(presetQuantity) && presetQuantity > 1) {
+          quantityInput.value = String(Math.min(99, presetQuantity));
+          updateQuantityView();
+        }
         quantityInput.addEventListener('input', () => {
           updateQuantityView();
           if (state.loggedIn) requestCouponQuote(appliedCouponCode);

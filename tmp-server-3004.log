@@ -1,0 +1,4 @@
+SQLite database path: C:\Users\aiden\AppData\Local\Temp\mctools-data\users.db
+(node:29008) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Server is running at http://0.0.0.0:3004 (正式版1.4)

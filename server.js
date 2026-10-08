@@ -115,7 +115,12 @@ function canUseDirectory(dirPath) {
     fs.accessSync(dirPath, fs.constants.W_OK);
     const probePath = path.join(dirPath, `.probe-${process.pid}-${Date.now()}`);
     fs.writeFileSync(probePath, 'ok');
-    fs.unlinkSync(probePath);
+    try {
+      fs.unlinkSync(probePath);
+    } catch {
+      // 探测文件删除失败（例如被系统回收站/安全策略拦截）不影响目录可写性判断，
+      // 写入已成功即代表该目录可用，残留的探测文件是可忽略的临时文件。
+    }
     return true;
   } catch {
     return false;
@@ -453,10 +458,142 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS store_product_reviews (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT NOT NULL,
+    username TEXT NOT NULL,
+    rating INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    moderator_username TEXT NOT NULL DEFAULT '',
+    moderation_note TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(product_code, username)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_product_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_code TEXT NOT NULL,
+    username TEXT NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending',
+    responder_username TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(product_code, username, question)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_support_tickets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_no TEXT NOT NULL,
+    username TEXT NOT NULL,
+    contact TEXT NOT NULL DEFAULT '',
+    order_no TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT '其他',
+    content TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    reply TEXT NOT NULL DEFAULT '',
+    replier_username TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_user_points (
+    username TEXT PRIMARY KEY,
+    points INTEGER NOT NULL DEFAULT 0,
+    total_earned INTEGER NOT NULL DEFAULT 0,
+    checkin_streak INTEGER NOT NULL DEFAULT 0,
+    last_checkin_date TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_checkin_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    checkin_date TEXT NOT NULL,
+    gained INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (username, checkin_date)
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_mall_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    icon TEXT NOT NULL DEFAULT '',
+    cost_points INTEGER NOT NULL DEFAULT 0,
+    stock INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'active',
+    sort_order INTEGER NOT NULL DEFAULT 100,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS store_mall_redemptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    item_id INTEGER NOT NULL,
+    item_name TEXT NOT NULL DEFAULT '',
+    cost_points INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+(function seedStoreMallItems() {
+  const count = db.prepare('SELECT COUNT(*) AS c FROM store_mall_items').get().c;
+  if (count > 0) return;
+  const defaults = [
+    ['商店满减券 ¥5', '全店通用满 ¥30 减 ¥5', '🎫', 80, 100],
+    ['定制头像框', '专属社区头像边框一枚', '🖼️', 200, 30],
+    ['优先客服工单', '工单插队优先处理一次', '⚡', 150, 40],
+    ['幸运抽奖券 ×3', '额外获得 3 次抽奖机会', '🎰', 60, 200]
+  ];
+  const stmt = db.prepare(
+    'INSERT INTO store_mall_items (name, description, icon, cost_points, stock, status, sort_order) VALUES (?, ?, ?, ?, ?, \'active\', ?)'
+  );
+  defaults.forEach((item, index) => stmt.run(item[0], item[1], item[2], item[3], item[4], index + 1));
+})();
+
+(function backfillStoreCheckinLog() {
+  try {
+    const rows = db.prepare("SELECT username, checkin_streak, last_checkin_date FROM store_user_points WHERE checkin_streak > 0 AND last_checkin_date <> ''").all();
+    const stmt = db.prepare('INSERT INTO store_checkin_log (username, checkin_date, gained) VALUES (?, ?, 0) ON CONFLICT(username, checkin_date) DO NOTHING');
+    for (const r of rows) {
+      const end = new Date(r.last_checkin_date + 'T00:00:00');
+      if (isNaN(end.getTime())) continue;
+      for (let i = Number(r.checkin_streak) - 1; i >= 0; i--) {
+        const d = new Date(end);
+        d.setDate(end.getDate() - i);
+        const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        stmt.run(r.username, ds);
+      }
+    }
+  } catch (e) {
+    console.warn('签到日志回填失败（可忽略）:', e.message);
+  }
+})();
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS lottery_prizes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
+    reward_tier TEXT NOT NULL DEFAULT '',
     stock INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 100,
     is_active INTEGER NOT NULL DEFAULT 1,
@@ -464,6 +601,11 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+const lotteryPrizeColumns = db.prepare('PRAGMA table_info(lottery_prizes)').all().map((column) => column.name);
+if (!lotteryPrizeColumns.includes('reward_tier')) {
+  db.exec(`ALTER TABLE lottery_prizes ADD COLUMN reward_tier TEXT NOT NULL DEFAULT ''`);
+}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS lottery_draw_records (
@@ -476,6 +618,12 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+const lotteryDrawRecordColumns = db.prepare('PRAGMA table_info(lottery_draw_records)').all().map((column) => column.name);
+if (!lotteryDrawRecordColumns.includes('order_no')) {
+  db.exec(`ALTER TABLE lottery_draw_records ADD COLUMN order_no TEXT NOT NULL DEFAULT ''`);
+}
+db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_lottery_draw_records_order_no ON lottery_draw_records(order_no) WHERE order_no <> ''`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS server_listings (
@@ -645,44 +793,65 @@ const defaultStoreProducts = [
   },
 ];
 
-const lotteryDrawPriceFen = 5000;
+const lotteryDrawPriceFen = 27000;
+const lotteryDrawProductCode = 'LOTTERY-ENTRY';
 const lotteryDailyDrawLimit = 2;
 const lotteryDisabledMessage = '抽奖活动暂时关闭，敬请关注后续通知。';
 function getLotteryFeatureEnabled() {
   return normalizeStoreBoolean(getSettingValue('lottery_feature_enabled', '0'), false);
 }
 
+function validateLotteryCheckout(productCode, buyerSession, body) {
+  if (String(productCode || '').trim().toUpperCase() !== lotteryDrawProductCode) {
+    return null;
+  }
+  if (!getLotteryFeatureEnabled()) {
+    return { status: 503, message: lotteryDisabledMessage };
+  }
+  if (!buyerSession) {
+    return { status: 401, message: '购买抽奖机会前请先登录账号。' };
+  }
+  if (countTodayLotteryDraws(buyerSession.username) >= lotteryDailyDrawLimit) {
+    return { status: 409, message: '今日抽奖次数已用完，请明天再来。' };
+  }
+  if (Number(body?.quantity ?? 1) !== 1) {
+    return { status: 400, message: '抽奖订单一次只能购买一次抽奖机会。' };
+  }
+  if (String(body?.couponCode || '').trim()) {
+    return { status: 400, message: '抽奖订单不能使用折扣券。' };
+  }
+  if (!listLotteryPrizes(true).some((prize) => prize.stock > 0)) {
+    return { status: 409, message: '当前奖池暂无可抽奖品，暂时不能购买抽奖机会。' };
+  }
+  return null;
+}
+
 const defaultLotteryPrizes = [
   {
-    name: 'NB������һ��',
-    description: 'NovaBuilder��������������/ɽͷ/��������/����/������ / ��� 1',
+    name: 'LVIP 永久七折',
+    description: '中奖后自动获得永久店铺七折权益。',
+    rewardTier: 'lvip',
     stock: 1,
     sortOrder: 10,
     isActive: 1
   },
   {
-    name: 'NF��ҵ��һ��',
-    description: 'NexusEgo��������ɽͷ/��������/������/���������� / ��� 61',
-    stock: 61,
+    name: 'VIP 永久 4.5 折',
+    description: '中奖后自动获得永久店铺 4.5 折权益。',
+    rewardTier: 'vip',
+    stock: 1,
     sortOrder: 20,
     isActive: 1
   },
   {
-    name: 'FN������һ��',
-    description: 'FlewNixe��������ɽͷ/��������/��������������Ⱥ��/���/�������ߡ� / ��� 20',
-    stock: 20,
+    name: 'SVIP 永久 1.5 折',
+    description: '中奖后自动获得永久店铺 1.5 折权益。',
+    rewardTier: 'svip',
+    stock: 1,
     sortOrder: 30,
-    isActive: 1
-  },
-  {
-    name: '��ҵ���-�տ�',
-    description: 'Ae���������°汾����֧�֣���������ne��NB�� / ��� 6',
-    stock: 6,
-    sortOrder: 40,
     isActive: 1
   }
 ];
-defaultLotteryPrizes.length = 0;
 
 function seedStoreProductsIfEmpty() {
   const row = db.prepare('SELECT COUNT(1) AS count FROM store_products').get();
@@ -763,14 +932,15 @@ function seedLotteryPrizesIfEmpty() {
 
   const insert = db.prepare(
     `INSERT INTO lottery_prizes (
-      name, description, stock, sort_order, is_active
-    ) VALUES (?, ?, ?, ?, ?)`
+      name, description, reward_tier, stock, sort_order, is_active
+    ) VALUES (?, ?, ?, ?, ?, ?)`
   );
 
   for (const prize of defaultLotteryPrizes) {
     insert.run(
       prize.name,
       prize.description,
+      String(prize.rewardTier || ''),
       Number(prize.stock || 0),
       Number(prize.sortOrder || 100),
       Number(prize.isActive ? 1 : 0)
@@ -1088,13 +1258,15 @@ function getHongxingPayReadiness() {
 function getStorePaymentReadiness() {
   const hongxing = getHongxingPayReadiness();
   if (hongxing.ready) {
+    const wechat = getWechatPayReadiness();
     return {
       ready: true,
       provider: 'hongxing',
+      defaultPaymentMethod: normalizeStorePaymentMethod(getHongxingPayConfig().payType, 'wechat'),
       missing: [],
       providers: {
         hongxing,
-        wechat: getWechatPayReadiness()
+        wechat
       }
     };
   }
@@ -1103,6 +1275,7 @@ function getStorePaymentReadiness() {
   return {
     ready: wechat.ready,
     provider: wechat.ready ? 'wechat' : '',
+    defaultPaymentMethod: wechat.ready ? 'wechat' : '',
     missing: wechat.missing,
     providers: {
       hongxing,
@@ -1149,10 +1322,26 @@ function normalizeStoreProductRow(row) {
 }
 
 function getStoreProductByCode(productCode, includeInactive = false) {
-  const normalizedCode = String(productCode || '').trim();
+  const normalizedCode = String(productCode || '').trim().toUpperCase();
 
   if (!normalizedCode) {
     return null;
+  }
+
+  if (normalizedCode === lotteryDrawProductCode) {
+    return {
+      productCode: lotteryDrawProductCode,
+      name: '抽奖机会',
+      description: '抽奖中心单次抽奖机会',
+      imageUrl: '',
+      originalPriceFen: lotteryDrawPriceFen,
+      salePriceFen: lotteryDrawPriceFen,
+      stock: 999999,
+      currency: 'CNY',
+      isActive: true,
+      sortOrder: 0,
+      tags: ['抽奖']
+    };
   }
 
   const row = includeInactive
@@ -1180,10 +1369,85 @@ function getStoreProductByCode(productCode, includeInactive = false) {
   return normalizeStoreProductRow(row);
 }
 
+function normalizeStoreReviewRow(row) {
+  return {
+    id: Number(row.id || 0),
+    productCode: String(row.productCode || ''),
+    username: String(row.username || ''),
+    rating: Number(row.rating || 0),
+    content: String(row.content || ''),
+    status: String(row.status || ''),
+    createdAt: String(row.createdAt || ''),
+    updatedAt: String(row.updatedAt || '')
+  };
+}
+
+function getStoreReviewSummary(productCode) {
+  const row = db.prepare(
+    `SELECT COUNT(1) AS count, COALESCE(AVG(rating), 0) AS averageRating
+     FROM store_product_reviews
+     WHERE product_code = ? AND status = 'approved'`
+  ).get(String(productCode || '').trim().toUpperCase());
+
+  return {
+    count: Number(row?.count || 0),
+    averageRating: Number(Number(row?.averageRating || 0).toFixed(1))
+  };
+}
+
+function listStoreProductReviews(productCode, includeUnapproved = false) {
+  const normalizedCode = String(productCode || '').trim().toUpperCase();
+  if (!normalizedCode) {
+    return [];
+  }
+
+  const rows = db.prepare(
+    `SELECT id, product_code AS productCode, username, rating, content, status,
+      created_at AS createdAt, updated_at AS updatedAt
+     FROM store_product_reviews
+     WHERE product_code = ? ${includeUnapproved ? '' : "AND status = 'approved'"}
+     ORDER BY id DESC
+     LIMIT 100`
+  ).all(normalizedCode);
+
+  return rows.map(normalizeStoreReviewRow);
+}
+
+function normalizeStoreQuestionRow(row) {
+  return {
+    id: Number(row.id || 0),
+    productCode: String(row.productCode || ''),
+    username: String(row.username || ''),
+    question: String(row.question || ''),
+    answer: String(row.answer || ''),
+    status: String(row.status || ''),
+    createdAt: String(row.createdAt || ''),
+    updatedAt: String(row.updatedAt || '')
+  };
+}
+
+function listStoreProductQuestions(productCode, includeUnanswered = false) {
+  const normalizedCode = String(productCode || '').trim().toUpperCase();
+  if (!normalizedCode) {
+    return [];
+  }
+
+  const rows = db.prepare(
+    `SELECT id, product_code AS productCode, username, question, answer, status,
+      created_at AS createdAt, updated_at AS updatedAt
+     FROM store_product_questions
+     WHERE product_code = ? ${includeUnanswered ? '' : "AND status = 'answered'"}
+     ORDER BY id DESC
+     LIMIT 100`
+  ).all(normalizedCode);
+
+  return rows.map(normalizeStoreQuestionRow);
+}
+
 function getStoreDiscountedSalePriceFen(product, username) {
   const salePriceFen = Number(product?.salePriceFen || 0);
   const productCode = String(product?.productCode || '').trim().toUpperCase();
-  if (['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
+  if (productCode === lotteryDrawProductCode || ['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
     return salePriceFen;
   }
   const account = username ? getCommunityAccountByUsername(username) : null;
@@ -1272,7 +1536,15 @@ function grantStoreEntitlementForPaidOrder(order) {
 
   const tierByProduct = { 'LVIP-30': 'lvip', 'VIP-45': 'vip', 'SVIP-15': 'svip' };
   const tier = tierByProduct[String(order.productCode || '').trim().toUpperCase()];
-  db.prepare(`
+  grantStoreDiscountTier(String(order.buyerUsername).trim(), tier);
+}
+
+function grantStoreDiscountTier(username, tier) {
+  if (!['lvip', 'vip', 'svip'].includes(String(tier || ''))) {
+    return false;
+  }
+
+  const result = db.prepare(`
     UPDATE community_accounts
     SET store_discount_tier = CASE
       WHEN store_discount_tier = 'svip' THEN 'svip'
@@ -1282,7 +1554,8 @@ function grantStoreEntitlementForPaidOrder(order) {
       ELSE 'lvip'
     END
     WHERE username = ?
-  `).run(tier, tier, String(order.buyerUsername).trim());
+  `).run(tier, tier, String(username || '').trim());
+  return Number(result?.changes || 0) > 0;
 }
 
 function listStoreProducts(includeInactive = false) {
@@ -1430,6 +1703,616 @@ function handleStoreProductsAdmin(request, response) {
     products: listStoreProducts(true),
     operator: session.username
   });
+}
+
+function handleStoreProductReviews(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const productCode = String(url.searchParams.get('productCode') || '').trim().toUpperCase();
+  const product = getStoreProductByCode(productCode);
+
+  if (!product) {
+    sendJson(response, 404, { message: '商品不存在或已下架。' });
+    return;
+  }
+
+  sendJson(response, 200, {
+    productCode,
+    summary: getStoreReviewSummary(productCode),
+    reviews: listStoreProductReviews(productCode)
+  });
+}
+
+function handleStoreProductReviewCreate(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号后再提交评价。' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const rating = Number(body.rating);
+      const content = String(body.content || '').trim();
+
+      if (!getStoreProductByCode(productCode)) {
+        sendJson(response, 404, { message: '商品不存在或已下架。' });
+        return;
+      }
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+        sendJson(response, 400, { message: '评分必须是 1 到 5 之间的整数。' });
+        return;
+      }
+      if (content.length < 5 || content.length > 600) {
+        sendJson(response, 400, { message: '评价内容需为 5 到 600 个字符。' });
+        return;
+      }
+
+      db.prepare(
+        `INSERT INTO store_product_reviews (
+          product_code, username, rating, content, status, moderator_username, moderation_note
+        ) VALUES (?, ?, ?, ?, 'pending', '', '')
+        ON CONFLICT(product_code, username) DO UPDATE SET
+          rating = excluded.rating,
+          content = excluded.content,
+          status = 'pending',
+          moderator_username = '',
+          moderation_note = '',
+          updated_at = CURRENT_TIMESTAMP`
+      ).run(productCode, session.username, rating, content);
+
+      sendJson(response, 201, { message: '评价已提交，审核通过后会在商品页公开展示。' });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+function handleStoreProductReviewsAdmin(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const productCode = String(url.searchParams.get('productCode') || '').trim().toUpperCase();
+  if (!getStoreProductByCode(productCode, true)) {
+    sendJson(response, 404, { message: '商品不存在。' });
+    return;
+  }
+
+  sendJson(response, 200, {
+    productCode,
+    reviews: listStoreProductReviews(productCode, true)
+  });
+}
+
+function handleStoreProductReviewModerate(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number(body.id);
+      const status = String(body.status || '').trim().toLowerCase();
+      const moderationNote = String(body.moderationNote || '').trim().slice(0, 300);
+
+      if (!Number.isInteger(id) || id <= 0 || !['approved', 'hidden'].includes(status)) {
+        sendJson(response, 400, { message: '评价审核参数无效。' });
+        return;
+      }
+
+      const result = db.prepare(
+        `UPDATE store_product_reviews
+         SET status = ?, moderator_username = ?, moderation_note = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).run(status, session.username, moderationNote, id);
+
+      if (Number(result.changes || 0) === 0) {
+        sendJson(response, 404, { message: '评价不存在。' });
+        return;
+      }
+
+      sendJson(response, 200, { message: status === 'approved' ? '评价已通过。' : '评价已隐藏。' });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+function handleStoreProductQuestions(request, response) {
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const productCode = String(url.searchParams.get('productCode') || '').trim().toUpperCase();
+  const product = getStoreProductByCode(productCode);
+
+  if (!product) {
+    sendJson(response, 404, { message: '商品不存在或已下架。' });
+    return;
+  }
+
+  sendJson(response, 200, {
+    productCode,
+    questions: listStoreProductQuestions(productCode)
+  });
+}
+
+function handleStoreProductQuestionCreate(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号后再提问。' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const productCode = String(body.productCode || '').trim().toUpperCase();
+      const question = String(body.question || '').trim();
+
+      if (!getStoreProductByCode(productCode)) {
+        sendJson(response, 404, { message: '商品不存在或已下架。' });
+        return;
+      }
+      if (question.length < 5 || question.length > 400) {
+        sendJson(response, 400, { message: '问题需为 5 到 400 个字符。' });
+        return;
+      }
+
+      db.prepare(
+        `INSERT INTO store_product_questions (product_code, username, question, status)
+         VALUES (?, ?, ?, 'pending')
+         ON CONFLICT(product_code, username, question) DO UPDATE SET
+           status = 'pending',
+           answer = '',
+           responder_username = '',
+           updated_at = CURRENT_TIMESTAMP`
+      ).run(productCode, session.username, question);
+
+      sendJson(response, 201, { message: '问题已提交，管理员回复后会在商品详情页公开展示。' });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+function handleStoreProductQuestionsAdmin(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const productCode = String(url.searchParams.get('productCode') || '').trim().toUpperCase();
+  if (!getStoreProductByCode(productCode, true)) {
+    sendJson(response, 404, { message: '商品不存在。' });
+    return;
+  }
+
+  sendJson(response, 200, {
+    productCode,
+    questions: listStoreProductQuestions(productCode, true)
+  });
+}
+
+function handleStoreProductQuestionAnswer(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number(body.id);
+      const answer = String(body.answer || '').trim();
+      const status = String(body.status || 'answered').trim().toLowerCase();
+
+      if (!Number.isInteger(id) || id <= 0 || !['answered', 'hidden'].includes(status)) {
+        sendJson(response, 400, { message: '问题审核参数无效。' });
+        return;
+      }
+      if (status === 'answered' && (answer.length < 2 || answer.length > 600)) {
+        sendJson(response, 400, { message: '回复需为 2 到 600 个字符。' });
+        return;
+      }
+
+      const result = db.prepare(
+        `UPDATE store_product_questions
+         SET answer = ?, status = ?, responder_username = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).run(status === 'answered' ? answer : '', status, session.username, id);
+
+      if (Number(result.changes || 0) === 0) {
+        sendJson(response, 404, { message: '问题不存在。' });
+        return;
+      }
+
+      sendJson(response, 200, { message: status === 'answered' ? '问题已回复。' : '问题已隐藏。' });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+const SUPPORT_TICKET_CATEGORIES = ['付款问题', '发货/卡密', '退款', '账号问题', '商品咨询', '其他'];
+const DAILY_CHECKIN_BASE_POINTS = 10;
+const DAILY_CHECKIN_STREAK_BONUS = 2;
+const DAILY_CHECKIN_STREAK_BONUS_CAP = 12;
+
+function getTodayDateText() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function createTicketNo() {
+  return `T${getTodayDateText().replace(/-/g, '')}${String(Math.floor(Math.random() * 9000) + 1000)}`;
+}
+
+function normalizeTicket(row) {
+  return {
+    id: row.id,
+    ticketNo: row.ticket_no,
+    username: row.username,
+    contact: row.contact,
+    orderNo: row.order_no,
+    category: row.category,
+    content: row.content,
+    status: row.status,
+    reply: row.reply,
+    replierUsername: row.replier_username,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function getStoreAccountSession(request) {
+  return getCommunitySessionFromRequest(request) || getSessionFromRequest(request);
+}
+
+function handleStoreSupportTicketCreate(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号后再提交工单。' });
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const category = String(body.category || '').trim() || '其他';
+      const content = String(body.content || '').trim();
+      const contact = String(body.contact || '').trim();
+      const orderNo = String(body.orderNo || '').trim();
+
+      if (!SUPPORT_TICKET_CATEGORIES.includes(category)) {
+        sendJson(response, 400, { message: '问题类型无效。' });
+        return;
+      }
+      if (content.length < 5 || content.length > 600) {
+        sendJson(response, 400, { message: '问题描述需为 5 到 600 个字符。' });
+        return;
+      }
+      if (contact.length > 60) {
+        sendJson(response, 400, { message: '联系方式过长。' });
+        return;
+      }
+      if (orderNo.length > 60) {
+        sendJson(response, 400, { message: '订单号过长。' });
+        return;
+      }
+
+      const ticketNo = createTicketNo();
+      const result = db.prepare(
+        `INSERT INTO store_support_tickets (ticket_no, username, contact, order_no, category, content)
+         VALUES (?, ?, ?, ?, ?, ?)`
+      ).run(ticketNo, session.username, contact, orderNo, category, content);
+
+      sendJson(response, 201, {
+        message: '工单已提交，客服会尽快处理。',
+        ticketNo,
+        id: Number(result.lastInsertRowid)
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+function handleStoreSupportTickets(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号。' });
+    return;
+  }
+
+  const rows = db.prepare(
+    `SELECT * FROM store_support_tickets WHERE username = ? ORDER BY id DESC LIMIT 50`
+  ).all(session.username);
+
+  sendJson(response, 200, { tickets: rows.map(normalizeTicket) });
+}
+
+function handleStoreSupportTicketsAdmin(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  const rows = db.prepare(
+    `SELECT * FROM store_support_tickets ORDER BY id DESC LIMIT 200`
+  ).all();
+
+  sendJson(response, 200, { tickets: rows.map(normalizeTicket) });
+}
+
+function handleStoreSupportTicketReply(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) return;
+
+  parseRequestBody(request)
+    .then((body) => {
+      const id = Number(body.id);
+      const reply = String(body.reply || '').trim();
+      const status = String(body.status || 'answered').trim().toLowerCase();
+
+      if (!Number.isInteger(id) || id <= 0 || !['answered', 'closed', 'pending'].includes(status)) {
+        sendJson(response, 400, { message: '工单处理参数无效。' });
+        return;
+      }
+      if (status === 'answered' && (reply.length < 2 || reply.length > 600)) {
+        sendJson(response, 400, { message: '回复需为 2 到 600 个字符。' });
+        return;
+      }
+
+      const result = db.prepare(
+        `UPDATE store_support_tickets
+         SET reply = ?, status = ?, replier_username = ?, updated_at = CURRENT_TIMESTAMP
+         WHERE id = ?`
+      ).run(status === 'answered' ? reply : '', status, session.username, id);
+
+      if (Number(result.changes || 0) === 0) {
+        sendJson(response, 404, { message: '工单不存在。' });
+        return;
+      }
+
+      sendJson(response, 200, { message: status === 'closed' ? '工单已关闭。' : '回复已保存。' });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '请求无效。' });
+    });
+}
+
+function readUserPoints(username) {
+  const row = db.prepare('SELECT * FROM store_user_points WHERE username = ?').get(username);
+  const today = getTodayDateText();
+  return {
+    username,
+    points: Number(row?.points || 0),
+    totalEarned: Number(row?.total_earned || 0),
+    streak: Number(row?.checkin_streak || 0),
+    lastCheckinDate: String(row?.last_checkin_date || ''),
+    checkedToday: String(row?.last_checkin_date || '') === today
+  };
+}
+
+function handleStorePoints(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号。' });
+    return;
+  }
+
+  sendJson(response, 200, {
+    loggedIn: true,
+    username: session.username,
+    today: getTodayDateText(),
+    basePoints: DAILY_CHECKIN_BASE_POINTS,
+    ...readUserPoints(session.username)
+  });
+}
+
+function handleStorePointsCheckin(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号后再签到。' });
+    return;
+  }
+
+  const today = getTodayDateText();
+  const current = readUserPoints(session.username);
+  if (current.checkedToday) {
+    sendJson(response, 200, {
+      message: '今天已经签到过了，明天再来。',
+      alreadyChecked: true,
+      ...current
+    });
+    return;
+  }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayText = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+  const streak = current.lastCheckinDate === yesterdayText ? current.streak + 1 : 1;
+  const bonus = Math.min((streak - 1) * DAILY_CHECKIN_STREAK_BONUS, DAILY_CHECKIN_STREAK_BONUS_CAP);
+  const gained = DAILY_CHECKIN_BASE_POINTS + bonus;
+
+  db.prepare(
+    `INSERT INTO store_user_points (username, points, total_earned, checkin_streak, last_checkin_date)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(username) DO UPDATE SET
+       points = points + ?,
+       total_earned = total_earned + ?,
+       checkin_streak = ?,
+       last_checkin_date = ?,
+       updated_at = CURRENT_TIMESTAMP`
+  ).run(
+    session.username, gained, gained, streak, today,
+    gained, gained, streak, today
+  );
+
+  try {
+    db.prepare(
+      'INSERT INTO store_checkin_log (username, checkin_date, gained) VALUES (?, ?, ?) ON CONFLICT(username, checkin_date) DO NOTHING'
+    ).run(session.username, today, gained);
+  } catch (logError) {
+    console.warn('记录签到日志失败（不影响签到）:', logError.message);
+  }
+
+  const next = readUserPoints(session.username);
+  sendJson(response, 200, {
+    message: `签到成功，获得 ${gained} 积分${bonus > 0 ? `（含连续签到奖励 ${bonus}）` : ''}。`,
+    gained,
+    bonus,
+    ...next
+  });
+}
+
+function handleStorePointsCalendar(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号。' });
+    return;
+  }
+  const url = new URL(request.url, 'http://localhost');
+  const param = String(url.searchParams.get('month') || '').trim();
+  const now = new Date();
+  const year = param ? Number(param.slice(0, 4)) : now.getFullYear();
+  const month = param ? Number(param.slice(5, 7)) : (now.getMonth() + 1);
+  const prefix = `${year}-${String(month).padStart(2, '0')}`;
+  const rows = db.prepare(
+    'SELECT checkin_date FROM store_checkin_log WHERE username = ? AND checkin_date LIKE ?'
+  ).all(session.username, `${prefix}-%`);
+  const checkedDates = rows.map((r) => r.checkin_date);
+  sendJson(response, 200, { month: prefix, checkedDates });
+}
+
+function handleStoreCheckinReset(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  const today = getTodayDateText();
+  let clearedUsers = 0;
+  let clearedLogRows = 0;
+
+  db.exec('BEGIN');
+  try {
+    // 把所有用户的今日签到状态清空，让所有人今天可以重新签到一次
+    const resetPoints = db.prepare(
+      `UPDATE store_user_points
+       SET checkin_streak = 0, last_checkin_date = '', updated_at = CURRENT_TIMESTAMP
+       WHERE checkin_streak > 0 OR last_checkin_date <> ''`
+    );
+    clearedUsers = Number(resetPoints.run().changes || 0);
+
+    // 同时清掉今天的签到日历记录
+    const clearTodayLog = db.prepare('DELETE FROM store_checkin_log WHERE checkin_date = ?');
+    clearedLogRows = Number(clearTodayLog.run(today).changes || 0);
+
+    db.exec('COMMIT');
+  } catch (resetError) {
+    try {
+      db.exec('ROLLBACK');
+    } catch (rollbackError) {
+      // ignore rollback failure
+    }
+    sendJson(response, 500, { message: `刷新签到失败：${resetError.message}` });
+    return;
+  }
+
+  sendJson(response, 200, {
+    message: `已刷新签到：重置 ${clearedUsers} 个用户的今日签到状态，${clearedLogRows} 条今日签到记录已清除，所有人现在可以重新签到。`,
+    today,
+    clearedUsers,
+    clearedLogRows,
+  });
+}
+
+function listStoreMallItems(activeOnly) {
+  const rows = db.prepare(
+    'SELECT id, name, description, icon, cost_points AS costPoints, stock, status FROM store_mall_items ' +
+    (activeOnly ? "WHERE status = 'active' " : '') +
+    'ORDER BY sort_order ASC, id ASC'
+  ).all();
+  return rows.map((r) => ({
+    id: Number(r.id),
+    name: r.name,
+    description: r.description,
+    icon: r.icon,
+    costPoints: Number(r.costPoints),
+    stock: Number(r.stock),
+    status: r.status,
+    outOfStock: Number(r.stock) <= 0
+  }));
+}
+
+function handleStoreMallItems(request, response) {
+  const session = getStoreAccountSession(request);
+  const items = listStoreMallItems(true);
+  sendJson(response, 200, {
+    loggedIn: Boolean(session),
+    username: session ? session.username : '',
+    items
+  });
+}
+
+function handleStoreMallRedeem(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号后再兑换。' });
+    return;
+  }
+  parseRequestBody(request)
+    .then((body) => {
+      const itemId = Number(body.itemId);
+      if (!itemId) {
+        sendJson(response, 400, { message: '商品不存在。' });
+        return;
+      }
+      const item = db.prepare('SELECT * FROM store_mall_items WHERE id = ?').get(itemId);
+      if (!item || item.status !== 'active') {
+        sendJson(response, 400, { message: '该商品已下架。' });
+        return;
+      }
+      if (Number(item.stock) <= 0) {
+        sendJson(response, 400, { message: '该商品已兑罄。' });
+        return;
+      }
+      const current = readUserPoints(session.username);
+      if (current.points < Number(item.cost_points)) {
+        sendJson(response, 400, { message: `积分不足，还差 ${Number(item.cost_points) - current.points} 积分。` });
+        return;
+      }
+      const tx = db.transaction(() => {
+        db.prepare('UPDATE store_user_points SET points = points - ?, updated_at = CURRENT_TIMESTAMP WHERE username = ?')
+          .run(Number(item.cost_points), session.username);
+        db.prepare('UPDATE store_mall_items SET stock = stock - 1, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+          .run(item.id);
+        db.prepare(
+          'INSERT INTO store_mall_redemptions (username, item_id, item_name, cost_points) VALUES (?, ?, ?, ?)'
+        ).run(session.username, item.id, item.name, Number(item.cost_points));
+      });
+      tx();
+      const next = readUserPoints(session.username);
+      sendJson(response, 200, {
+        message: `兑换成功：${item.name}`,
+        itemName: item.name,
+        remainingPoints: next.points,
+        points: next.points,
+        totalEarned: next.totalEarned,
+        streak: next.streak,
+        lastCheckinDate: next.lastCheckinDate,
+        checkedToday: next.checkedToday
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '兑换失败。' });
+    });
+}
+
+function handleStoreMallMy(request, response) {
+  const session = getStoreAccountSession(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录账号。' });
+    return;
+  }
+  const rows = db.prepare(
+    'SELECT id, item_name AS itemName, cost_points AS costPoints, created_at AS createdAt FROM store_mall_redemptions WHERE username = ? ORDER BY id DESC LIMIT 50'
+  ).all(session.username);
+  sendJson(response, 200, { records: rows });
 }
 
 function handleStoreCouponsAdmin(request, response) {
@@ -1642,6 +2525,54 @@ function handleStoreOrdersByContact(request, response) {
   });
 }
 
+function listStoreOrdersByUsername(username, limit = 50) {
+  const normalizedUsername = String(username || '').trim();
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 50));
+  if (!normalizedUsername) {
+    return [];
+  }
+
+  return db.prepare(
+    `SELECT order_no AS orderNo, product_code AS productCode, product_name AS productName,
+      amount_fen AS amountFen, currency, status, payment_method AS paymentMethod, quantity,
+      coupon_code AS couponCode, coupon_discount_fen AS couponDiscountFen, card_secret AS cardSecret,
+      created_at AS createdAt, updated_at AS updatedAt
+     FROM store_orders
+     WHERE buyer_username = ?
+     ORDER BY id DESC
+     LIMIT ?`
+  ).all(normalizedUsername, safeLimit);
+}
+
+function handleStoreMyOrders(request, response) {
+  const session = getCommunitySessionFromRequest(request);
+  if (!session) {
+    sendJson(response, 401, { message: '请先登录社区账号。' });
+    return;
+  }
+
+  const url = new URL(request.url || '/', `http://${host}:${port}`);
+  const limit = Number(url.searchParams.get('limit') || 50);
+  let orders;
+  try {
+    orders = listStoreOrdersByUsername(session.username, limit);
+  } catch (error) {
+    sendJson(response, 500, { message: '订单暂时无法加载，请稍后刷新。' });
+    return;
+  }
+  const paidOrders = orders.filter((order) => normalizePaymentSuccess(order.status));
+
+  sendJson(response, 200, {
+    username: session.username,
+    orders,
+    summary: {
+      orderCount: orders.length,
+      paidCount: paidOrders.length,
+      paidAmountFen: paidOrders.reduce((total, order) => total + Math.max(0, Number(order.amountFen || 0)), 0)
+    }
+  });
+}
+
 function csvEscapeValue(value) {
   const text = String(value == null ? '' : value);
   if (/[",\r\n]/.test(text)) {
@@ -1793,12 +2724,15 @@ function handleStoreOrderReissue(request, response) {
 
       const order = getStoreOrderByNo(orderNo);
       if (!order) {
-        sendJson(response, 404, { message: '����������' });
+        sendJson(response, 404, { message: '订单不存在' });
         return;
       }
 
-      if (!normalizePaymentSuccess(order.status)) {
-        sendJson(response, 400, { message: '����֧���������Բ�������' });
+      // 允许为已支付/已发货/已标记支付的订单补发；未支付订单由管理员在确认收款后手动补发。
+      // 已取消或已退款的订单不允许补发。
+      const orderStatus = String(order.status || '').trim().toUpperCase();
+      if (['CANCELLED', 'REFUNDED'].includes(orderStatus)) {
+        sendJson(response, 400, { message: '已取消或已退款的订单无法补发卡密' });
         return;
       }
 
@@ -1822,13 +2756,81 @@ function handleStoreOrderReissue(request, response) {
       });
 
       sendJson(response, 200, {
-        message: '���ܲ����ɹ�',
+        message: '补发成功',
         order: next,
         cardSecret: newCardSecret
       });
     })
     .catch((error) => {
-      sendJson(response, 400, { message: error.message || '����ʧ��' });
+      sendJson(response, 400, { message: error.message || '补发失败' });
+    });
+}
+
+function handleStoreOrderReissueAll(request, response) {
+  const session = requireCommunityDeveloper(request, response);
+  if (!session) {
+    return;
+  }
+
+  parseRequestBody(request)
+    .then((body) => {
+      const onlyMissing = body.onlyMissing !== false;
+      const orders = listStoreOrdersAdmin({ limit: 1000, status: 'ALL' }) || [];
+      const details = [];
+      let reissued = 0;
+      let skipped = 0;
+
+      for (const order of orders) {
+        const orderNo = String(order.orderNo || '').trim();
+        const status = String(order.status || '').trim().toUpperCase();
+        if (!orderNo || !normalizePaymentSuccess(status)) {
+          skipped += 1;
+          continue;
+        }
+
+        const currentSecret = String(order.cardSecret || '').trim();
+        if (onlyMissing && currentSecret) {
+          skipped += 1;
+          continue;
+        }
+
+        const newCardSecret = createStoreCardSecret(orderNo, String(order.productCode || '').trim().toUpperCase());
+        if (!newCardSecret) {
+          skipped += 1;
+          continue;
+        }
+
+        const previousResponse = parseMaybeJson(order.responseJson);
+        updateStoreOrder(orderNo, {
+          cardSecret: newCardSecret,
+          responseJson: JSON.stringify({
+            ...previousResponse,
+            adminActions: [
+              ...Array.isArray(previousResponse?.adminActions) ? previousResponse.adminActions : [],
+              {
+                action: 'reissue-card-secret-all',
+                operator: session.username,
+                previousCardSecret: currentSecret,
+                nextCardSecret: newCardSecret,
+                at: new Date().toISOString()
+              }
+            ]
+          })
+        });
+
+        reissued += 1;
+        details.push({ orderNo, cardSecret: newCardSecret });
+      }
+
+      sendJson(response, 200, {
+        message: `已补发 ${reissued} 笔订单，跳过 ${skipped} 笔`,
+        reissued,
+        skipped,
+        details
+      });
+    })
+    .catch((error) => {
+      sendJson(response, 400, { message: error.message || '批量补发失败' });
     });
 }
 
@@ -1991,13 +2993,14 @@ function handleStoreCardSecretsDelete(request, response) {
 
 function listLotteryPrizes(activeOnly = true) {
   const rows = activeOnly
-    ? db.prepare('SELECT id, name, description, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes WHERE is_active = 1 ORDER BY sort_order ASC, id ASC').all()
-    : db.prepare('SELECT id, name, description, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes ORDER BY sort_order ASC, id ASC').all();
+    ? db.prepare('SELECT id, name, description, reward_tier AS rewardTier, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes WHERE is_active = 1 ORDER BY sort_order ASC, id ASC').all()
+    : db.prepare('SELECT id, name, description, reward_tier AS rewardTier, stock, sort_order AS sortOrder, is_active AS isActive FROM lottery_prizes ORDER BY sort_order ASC, id ASC').all();
 
   return rows.map((row) => ({
     id: Number(row.id || 0),
     name: String(row.name || ''),
     description: String(row.description || ''),
+    rewardTier: String(row.rewardTier || ''),
     stock: Math.max(0, Number(row.stock || 0)),
     sortOrder: Number(row.sortOrder || 100),
     isActive: Boolean(row.isActive)
@@ -2025,38 +3028,62 @@ function countTodayLotteryDraws(username) {
   return Number(row?.count || 0);
 }
 
-function drawLotteryPrize(username, email) {
-  const todayCount = countTodayLotteryDraws(username);
-  if (todayCount >= lotteryDailyDrawLimit) {
-    return { error: '���ճ齱����������' };
-  }
-
-  const prizes = listLotteryPrizes(true).filter((item) => item.stock > 0);
-  if (prizes.length === 0) {
-    return { error: '��ǰ�����ѿգ����Ժ�����' };
-  }
-
-  const weightedPool = prizes.flatMap((prize) => Array.from({ length: Math.max(1, prize.stock) }, () => prize));
-  const selected = weightedPool[Math.floor(Math.random() * weightedPool.length)];
-  if (!selected) {
-    return { error: '�齱ʧ�ܣ����Ժ�����' };
-  }
-
+function drawLotteryPrize(username, email, orderNo) {
+  const normalizedUsername = String(username || '').trim();
+  const normalizedOrderNo = String(orderNo || '').trim();
   db.exec('BEGIN IMMEDIATE');
 
   try {
+    const existing = db.prepare(
+      'SELECT prize_id AS prizeId, prize_name AS prizeName FROM lottery_draw_records WHERE order_no = ?'
+    ).get(normalizedOrderNo);
+    if (existing) {
+      db.exec('COMMIT');
+      const todayCount = countTodayLotteryDraws(normalizedUsername);
+      return {
+        prize: { id: Number(existing.prizeId || 0), name: String(existing.prizeName || '') },
+        todayDrawCount: todayCount,
+        remainingTodayDraws: Math.max(0, lotteryDailyDrawLimit - todayCount)
+      };
+    }
+
+    const todayCount = countTodayLotteryDraws(normalizedUsername);
+    if (todayCount >= lotteryDailyDrawLimit) {
+      db.exec('ROLLBACK');
+      return { error: '���ճ齱����������' };
+    }
+
+    const prizes = listLotteryPrizes(true).filter((item) => item.stock > 0);
+    if (prizes.length === 0) {
+      db.exec('ROLLBACK');
+      return { error: '��ǰ�����ѿգ����Ժ�����' };
+    }
+
+    const weightedPool = prizes.flatMap((prize) => Array.from({ length: Math.max(1, prize.stock) }, () => prize));
+    const selected = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    if (!selected) {
+      db.exec('ROLLBACK');
+      return { error: '�齱ʧ�ܣ����Ժ�����' };
+    }
+
     const result = db.prepare('UPDATE lottery_prizes SET stock = stock - 1, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND stock > 0').run(selected.id);
     if (!result || Number(result.changes || 0) <= 0) {
       db.exec('ROLLBACK');
       return { error: '��Ʒ��治�㣬������' };
     }
 
-    db.prepare('INSERT INTO lottery_draw_records (username, email, prize_id, prize_name, price_fen) VALUES (?, ?, ?, ?, ?)').run(
-      String(username || '').trim(),
+    if (selected.rewardTier && !grantStoreDiscountTier(normalizedUsername, selected.rewardTier)) {
+      db.exec('ROLLBACK');
+      return { error: '会员权益发放失败，请联系管理员。' };
+    }
+
+    db.prepare('INSERT INTO lottery_draw_records (username, email, prize_id, prize_name, price_fen, order_no) VALUES (?, ?, ?, ?, ?, ?)').run(
+      normalizedUsername,
       String(email || '').trim(),
       selected.id,
       selected.name,
-      lotteryDrawPriceFen
+      lotteryDrawPriceFen,
+      normalizedOrderNo
     );
 
     db.exec('COMMIT');
@@ -2116,7 +3143,7 @@ function handleLotteryRecords(request, response) {
   });
 }
 
-function handleLotteryDraw(request, response) {
+async function handleLotteryDraw(request, response) {
   if (!getLotteryFeatureEnabled()) {
     sendJson(response, 503, { message: lotteryDisabledMessage, enabled: false });
     return;
@@ -2128,19 +3155,53 @@ function handleLotteryDraw(request, response) {
     return;
   }
 
-  const result = drawLotteryPrize(session.username, session.email);
-  if (result.error) {
-    sendJson(response, 400, { message: result.error });
-    return;
-  }
+  try {
+    const body = await parseRequestBody(request);
+    const orderNo = String(body.orderNo || '').trim();
+    if (!orderNo) {
+      sendJson(response, 400, { message: '请先完成抽奖订单支付。' });
+      return;
+    }
 
-  sendJson(response, 200, {
-    message: '�齱�ɹ�',
-    prize: result.prize,
-    todayDrawCount: result.todayDrawCount,
-    remainingTodayDraws: result.remainingTodayDraws,
-    records: listLotteryRecordsByUsername(session.username, 10)
-  });
+    let order = getStoreOrderByNo(orderNo);
+    if (!order || String(order.productCode || '').trim().toUpperCase() !== lotteryDrawProductCode) {
+      sendJson(response, 404, { message: '未找到对应的抽奖支付订单。' });
+      return;
+    }
+    if (String(order.buyerUsername || '').trim() !== String(session.username || '').trim()) {
+      sendJson(response, 403, { message: '该抽奖订单不属于当前账号。' });
+      return;
+    }
+    if (Number(order.amountFen || 0) !== lotteryDrawPriceFen || Number(order.quantity || 0) !== 1 || Number(order.couponDiscountFen || 0) !== 0) {
+      sendJson(response, 400, { message: '抽奖订单金额或数量无效。' });
+      return;
+    }
+
+    try {
+      await trySyncStoreOrderFromHongxing(order);
+    } catch {
+      // The order remains pending when the payment provider cannot be reached.
+    }
+    order = getStoreOrderByNo(orderNo) || order;
+    if (!normalizePaymentSuccess(order.status)) {
+      sendJson(response, 409, { message: '尚未确认支付成功；完成支付后再次点击即可开奖。', pending: true });
+      return;
+    }
+
+    const result = drawLotteryPrize(session.username, session.email, orderNo);
+    if (result.error) {
+      sendJson(response, 400, { message: result.error });
+      return;
+    }
+
+    sendJson(response, 200, {
+      message: '�齱�ɹ�',
+      ...result,
+      records: listLotteryRecordsByUsername(session.username, 10)
+    });
+  } catch (error) {
+    sendJson(response, 400, { message: error.message || '抽奖失败' });
+  }
 }
 
 function handleStoreSettingsRead(request, response) {
@@ -2256,11 +3317,11 @@ function handleStoreProductsCreate(request, response) {
         salePriceFen,
         stock,
         isActive,
-        Number.isFinite(sortOrder) ? Math.round(sortOrder) : 100,
+        sortOrder,
         JSON.stringify(tags)
       );
 
-      sendJson(response, 201, {
+      sendJson(response, 200, {
         message: '��Ʒ�����ɹ�',
         product: getStoreProductByCode(productCode, true)
       });
@@ -2742,7 +3803,7 @@ async function trySyncStoreOrderFromHongxing(order) {
   const currentStatus = String(order.status || '').trim().toUpperCase();
   const cardSecretReady = String(order.cardSecret || '').trim();
   if (currentStatus === 'SUCCESS' || currentStatus === 'TRADE_SUCCESS') {
-    if (!cardSecretReady) {
+    if (!cardSecretReady && String(order.productCode || '').trim().toUpperCase() !== lotteryDrawProductCode) {
       const generated = ensureStoreOrderCardSecret(order.orderNo, String(order.productCode || '').trim().toUpperCase());
       if (generated) {
         return true;
@@ -2960,7 +4021,7 @@ function ensureStoreOrderCardSecret(orderNo, productCode = '') {
 
 function createStoreOrder(record) {
   const realizedProductCode = String(record.productCode || '').trim().toUpperCase();
-  const cardSecret = normalizePaymentSuccess(record.status) && !String(record.cardSecret || '').trim()
+  const cardSecret = realizedProductCode !== lotteryDrawProductCode && normalizePaymentSuccess(record.status) && !String(record.cardSecret || '').trim()
     ? createStoreCardSecret(record.orderNo, realizedProductCode)
     : String(record.cardSecret || '').trim();
 
@@ -2995,7 +4056,7 @@ function createStoreOrder(record) {
     record.notifyJson || ''
   );
 
-  if (normalizePaymentSuccess(record.status)) {
+  if (normalizePaymentSuccess(record.status) && realizedProductCode !== lotteryDrawProductCode) {
     ensureStoreOrderCardSecret(record.orderNo);
     grantStoreEntitlementForPaidOrder(getStoreOrderByNo(record.orderNo));
   }
@@ -3019,7 +4080,7 @@ function updateStoreOrder(orderNo, updates) {
   const nextBuyerNote = nextOrder.buyerNote || current.buyerNote || '';
   const nextQuantity = Math.max(1, Math.min(99, Number.parseInt(String(nextOrder.quantity ?? current.quantity ?? '1'), 10) || 1));
   const nextProductCode = String(nextOrder.productCode || current.productCode || '').trim().toUpperCase();
-  const nextCardSecret = normalizePaymentSuccess(nextStatus) && !String(nextOrder.cardSecret || '').trim()
+  const nextCardSecret = nextProductCode !== lotteryDrawProductCode && normalizePaymentSuccess(nextStatus) && !String(nextOrder.cardSecret || '').trim()
     ? ensureStoreOrderCardSecret(orderNo, nextProductCode)
     : (nextOrder.cardSecret || current.cardSecret || '');
   const nextCodeUrl = nextOrder.codeUrl || current.codeUrl || '';
@@ -3060,7 +4121,7 @@ function updateStoreOrder(orderNo, updates) {
 
   const reloadedOrder = getStoreOrderByNo(orderNo);
 
-  if (reloadedOrder && normalizePaymentSuccess(reloadedOrder.status) && !String(reloadedOrder.cardSecret || '').trim()) {
+  if (reloadedOrder && String(reloadedOrder.productCode || '').trim().toUpperCase() !== lotteryDrawProductCode && normalizePaymentSuccess(reloadedOrder.status) && !String(reloadedOrder.cardSecret || '').trim()) {
     ensureStoreOrderCardSecret(orderNo, String(reloadedOrder.productCode || '').trim().toUpperCase());
   }
 
@@ -3125,6 +4186,12 @@ async function createWechatPayNativeOrder(request, response) {
     const product = getStoreProductByCode(productCode, false);
     const buyerSession = getCommunitySessionFromRequest(request);
     const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body.quantity || '1'), 10) || 1));
+    const lotteryCheckoutError = validateLotteryCheckout(productCode, buyerSession, body);
+
+    if (lotteryCheckoutError) {
+      sendJson(response, lotteryCheckoutError.status, { message: lotteryCheckoutError.message });
+      return;
+    }
 
     if (!config.appId || !config.mchId || !config.serialNo || !config.apiV3Key || !config.notifyUrl || !config.privateKeyPem) {
       sendJson(response, 500, {
@@ -3290,15 +4357,16 @@ async function createWechatPayNativeOrder(request, response) {
   }
 }
 
-function buildHongxingReturnPageUrl(request, orderNo) {
+function buildHongxingReturnPageUrl(request, orderNo, productCode = '') {
   const host = String(request?.headers?.host || '').trim();
 
   if (!host) {
     return '';
   }
 
-  const url = new URL(`http://${host}/store.html`);
-  url.searchParams.set('hongxingOrderNo', orderNo);
+  const lotteryOrder = String(productCode || '').trim().toUpperCase() === lotteryDrawProductCode;
+  const url = new URL(`http://${host}/${lotteryOrder ? 'lottery.html' : 'store.html'}`);
+  url.searchParams.set(lotteryOrder ? 'lotteryOrderNo' : 'hongxingOrderNo', orderNo);
   return url.toString();
 }
 
@@ -3333,6 +4401,12 @@ async function createHongxingNativeOrder(request, body, response) {
   const product = getStoreProductByCode(productCode, false);
   const buyerSession = getCommunitySessionFromRequest(request);
   const quantity = Math.max(1, Math.min(99, Number.parseInt(String(body?.quantity || '1'), 10) || 1));
+  const lotteryCheckoutError = validateLotteryCheckout(productCode, buyerSession, body);
+
+  if (lotteryCheckoutError) {
+    sendJson(response, lotteryCheckoutError.status, { message: lotteryCheckoutError.message });
+    return;
+  }
 
   if (!product) {
     sendJson(response, 404, { message: '��Ʒ�����ڻ����¼�' });
@@ -3375,7 +4449,7 @@ async function createHongxingNativeOrder(request, body, response) {
     }
 
     const baseUrl = new URL(String(config.createUrl));
-    const returnUrl = String(config.returnUrl || buildHongxingReturnPageUrl(request, orderNo) || `${baseUrl.protocol}//${baseUrl.host}/index/payTest`).trim();
+    const returnUrl = String(config.returnUrl || buildHongxingReturnPageUrl(request, orderNo, productCode) || `${baseUrl.protocol}//${baseUrl.host}/index/payTest`).trim();
     const notifyUrl = String(config.notifyUrl || `${baseUrl.protocol}//${baseUrl.host}/Payment/UserRechargeNotify?out_trade_no=${encodeURIComponent(orderNo)}`).trim();
     const payUrl = buildHongxingSubmitPayUrl({
       pid: String(config.merchantId),
@@ -3633,7 +4707,9 @@ async function handleStoreOrderStatus(request, response) {
 
   const status = String(order.status || '').toUpperCase();
   const paid = normalizePaymentSuccess(status);
-  const cardSecret = paid ? ensureStoreOrderCardSecret(orderNo) : '';
+  const cardSecret = paid && String(order.productCode || '').trim().toUpperCase() !== lotteryDrawProductCode
+    ? ensureStoreOrderCardSecret(orderNo)
+    : '';
 
   sendJson(response, 200, {
     orderNo: order.orderNo,
@@ -3648,7 +4724,7 @@ async function handleStoreOrderStatus(request, response) {
 }
 
 function listStoreOrdersAdmin(filters = {}) {
-  const safeLimit = Math.max(1, Math.min(200, Number(filters.limit) || 50));
+  const safeLimit = Math.max(1, Math.min(5000, Number(filters.limit) || 50));
   const conditions = [];
   const params = [];
 
@@ -8545,6 +9621,7 @@ const server = http.createServer((request, response) => {
       sendJson(response, 200, {
         ready: readiness.ready,
         provider: readiness.provider,
+        defaultPaymentMethod: readiness.defaultPaymentMethod,
         missing: readiness.missing,
         providers: readiness.providers
       });
@@ -8558,6 +9635,101 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'GET' && pathname === '/api/store/products') {
       handleStoreProducts(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/reviews') {
+      handleStoreProductReviews(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/reviews') {
+      handleStoreProductReviewCreate(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/reviews/admin') {
+      handleStoreProductReviewsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/reviews/admin/moderate') {
+      handleStoreProductReviewModerate(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/questions') {
+      handleStoreProductQuestions(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/questions') {
+      handleStoreProductQuestionCreate(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/questions/admin') {
+      handleStoreProductQuestionsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/questions/admin/answer') {
+      handleStoreProductQuestionAnswer(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/tickets') {
+      handleStoreSupportTickets(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/tickets') {
+      handleStoreSupportTicketCreate(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/tickets/admin') {
+      handleStoreSupportTicketsAdmin(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/tickets/admin/reply') {
+      handleStoreSupportTicketReply(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/points') {
+      handleStorePoints(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/points/checkin') {
+      handleStorePointsCheckin(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/points/calendar') {
+      handleStorePointsCalendar(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/checkin/reset') {
+      handleStoreCheckinReset(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/mall/items') {
+      handleStoreMallItems(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/mall/redeem') {
+      handleStoreMallRedeem(request, response);
+      return;
+    }
+
+    if (request.method === 'GET' && pathname === '/api/store/mall/my') {
+      handleStoreMallMy(request, response);
       return;
     }
 
@@ -8626,6 +9798,11 @@ const server = http.createServer((request, response) => {
       return;
     }
 
+    if (request.method === 'GET' && pathname === '/api/store/orders/mine') {
+      handleStoreMyOrders(request, response);
+      return;
+    }
+
     if (request.method === 'POST' && pathname === '/api/store/orders/admin/update') {
       handleStoreOrderUpdate(request, response);
       return;
@@ -8638,6 +9815,11 @@ const server = http.createServer((request, response) => {
 
     if (request.method === 'POST' && pathname === '/api/store/orders/admin/reissue') {
       handleStoreOrderReissue(request, response);
+      return;
+    }
+
+    if (request.method === 'POST' && pathname === '/api/store/orders/admin/reissue-all') {
+      handleStoreOrderReissueAll(request, response);
       return;
     }
 

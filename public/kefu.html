@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>联系客服 · 星际无限资源服</title>
+    <script>
+        (function () {
+            try {
+                const savedTheme = localStorage.getItem('mctools-store-theme');
+                const theme = savedTheme === 'day' ? 'day' : 'night';
+                document.documentElement.dataset.theme = theme;
+                localStorage.setItem('mctools-store-theme', theme);
+            } catch {
+                document.documentElement.dataset.theme = 'night';
+            }
+        })();
+    </script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 28%),
+                radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 30%),
+                linear-gradient(180deg, #08111f 0%, #0f172a 48%, #111827 100%);
+            color: #e5edf9;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        html[data-theme="day"] body {
+            background:
+                radial-gradient(ellipse at top left, rgba(96, 165, 250, 0.12), transparent 28%),
+                radial-gradient(ellipse at top right, rgba(99, 102, 241, 0.1), transparent 32%),
+                linear-gradient(180deg, #eaf3ff 0%, #dbeafe 42%, #e2e8f0 100%);
+            color: #0f172a;
+        }
+
+        .shell {
+            width: min(760px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 22px 0 60px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 14px 28px rgba(2, 6, 23, 0.28);
+        }
+
+        .brand-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #38bdf8, #8b5cf6);
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 1rem;
+        }
+
+        .brand small {
+            color: #94a3b8;
+        }
+
+        html[data-theme="day"] .brand {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(148, 163, 184, 0.18);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+        }
+
+        html[data-theme="day"] .brand small {
+            color: #64748b;
+        }
+
+        button {
+            -webkit-appearance: none;
+            appearance: none;
+            border: none;
+            border-radius: 999px;
+            color: inherit;
+            cursor: pointer;
+            font: inherit;
+            min-height: 42px;
+            padding: 10px 18px;
+            font-weight: 800;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.96));
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            transition: transform 200ms ease, box-shadow 240ms ease, background 240ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.28);
+        }
+
+        html[data-theme="day"] button {
+            background: rgba(255, 255, 255, 0.92);
+            color: #1e293b;
+            border-color: rgba(148, 163, 184, 0.24);
+        }
+
+        .card {
+            border-radius: 24px;
+            padding: 22px;
+            background: rgba(15, 23, 42, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 20px 44px rgba(2, 6, 23, 0.34);
+            display: grid;
+            gap: 16px;
+        }
+
+        html[data-theme="day"] .card {
+            background: rgba(255, 255, 255, 0.86);
+            border-color: rgba(148, 163, 184, 0.18);
+            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.08);
+        }
+
+        .card h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .card-desc {
+            margin: 0;
+            color: #cbd5e1;
+            line-height: 1.75;
+        }
+
+        html[data-theme="day"] .card-desc {
+            color: #475569;
+        }
+
+        .qq-panel {
+            display: grid;
+            gap: 10px;
+            padding: 18px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(139, 92, 246, 0.14));
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            text-align: center;
+            justify-items: center;
+        }
+
+        .qq-label {
+            font-size: 0.8rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 900;
+            color: #bfdbfe;
+        }
+
+        html[data-theme="day"] .qq-label {
+            color: #1d4ed8;
+        }
+
+        .qq-value {
+            font-size: clamp(1.8rem, 6vw, 2.6rem);
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            color: #f8fafc;
+            word-break: break-all;
+        }
+
+        html[data-theme="day"] .qq-value {
+            color: #0f172a;
+        }
+
+        .qq-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb, #8b5cf6);
+            color: #fff;
+            border: none;
+            box-shadow: 0 16px 30px rgba(37, 99, 235, 0.24);
+        }
+
+        .ghost-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        html[data-theme="day"] .ghost-btn {
+            background: rgba(255, 255, 255, 0.92);
+            color: #334155;
+        }
+
+        .status {
+            min-height: 22px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .tip-list {
+            margin: 0;
+            padding-left: 20px;
+            display: grid;
+            gap: 8px;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+        html[data-theme="day"] .tip-list {
+            color: #475569;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .ticket-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .ticket-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .ticket-field span {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: #cbd5e1;
+        }
+
+        html[data-theme="day"] .ticket-field span {
+            color: #334155;
+        }
+
+        .ticket-field input,
+        .ticket-field select,
+        .ticket-field textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            padding: 11px 13px;
+            font: inherit;
+            background: rgba(15, 23, 42, 0.62);
+            color: #e5edf9;
+        }
+
+        .ticket-field textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        html[data-theme="day"] .ticket-field input,
+        html[data-theme="day"] .ticket-field select,
+        html[data-theme="day"] .ticket-field textarea {
+            background: rgba(255, 255, 255, 0.94);
+            color: #0f172a;
+        }
+
+        .ticket-submit {
+            justify-self: start;
+            background: linear-gradient(135deg, #22c55e, #0ea5e9);
+            color: #fff;
+            border: none;
+            box-shadow: 0 14px 28px rgba(14, 165, 233, 0.24);
+        }
+
+        .ticket-status {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            min-height: 20px;
+        }
+
+        .ticket-status.error {
+            color: #f87171;
+        }
+
+        .ticket-status.success {
+            color: #4ade80;
+        }
+
+        .ticket-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .ticket-item {
+            display: grid;
+            gap: 6px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.62);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        html[data-theme="day"] .ticket-item {
+            background: rgba(255, 255, 255, 0.82);
+        }
+
+        .ticket-item-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ticket-item-head strong {
+            font-size: 0.95rem;
+        }
+
+        .ticket-no {
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: 0.8rem;
+            color: #7dd3fc;
+        }
+
+        .ticket-state {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 900;
+        }
+
+        .ticket-state.pending {
+            background: rgba(245, 158, 11, 0.18);
+            color: #fbbf24;
+        }
+
+        .ticket-state.answered {
+            background: rgba(34, 197, 94, 0.18);
+            color: #4ade80;
+        }
+
+        .ticket-state.closed {
+            background: rgba(148, 163, 184, 0.18);
+            color: #cbd5e1;
+        }
+
+        .ticket-content {
+            margin: 0;
+            color: #cbd5e1;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        html[data-theme="day"] .ticket-content {
+            color: #475569;
+        }
+
+        .ticket-reply {
+            margin: 0;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #bbf7d0;
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        html[data-theme="day"] .ticket-reply {
+            background: rgba(34, 197, 94, 0.1);
+            color: #166534;
+        }
+
+        .ticket-meta {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .login-hint {
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(251, 191, 36, 0.12);
+            border: 1px solid rgba(251, 191, 36, 0.22);
+            color: #fcd34d;
+            line-height: 1.7;
+        }
+
+        html[data-theme="day"] .login-hint {
+            color: #92400e;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="shell">
+        <div class="topbar">
+            <div class="brand">
+                <span class="brand-badge">客</span>
+                <div>
+                    <strong>联系客服</strong>
+                    <small>星际无限资源服 · 商店与订单支持</small>
+                </div>
+            </div>
+            <a class="back-link" href="/store.html" data-kefu-back>
+                <button type="button">返回商店</button>
+            </a>
+        </div>
+
+        <section class="card">
+            <h1>需要帮助？加客服 QQ</h1>
+            <p class="card-desc">
+                付款、发货、卡密、退款和账号问题都可以直接联系客服。加好友时请附上订单号或游戏 ID，处理会更快。
+            </p>
+
+            <div class="qq-panel">
+                <span class="qq-label">客服 QQ</span>
+                <span class="qq-value" data-kefu-qq>3805506653</span>
+                <div class="qq-actions">
+                    <button class="primary-btn" type="button" data-copy-qq>复制 QQ 号</button>
+                    <a href="https://wpa.qq.com/msgrd?v=3&amp;uin=3805506653&amp;site=qq&amp;menu=yes" target="_blank"
+                        rel="noopener">
+                        <button class="ghost-btn" type="button">发起 QQ 会话</button>
+                    </a>
+                </div>
+            </div>
+            <div class="status" data-copy-status></div>
+        </section>
+
+        <section class="card">
+            <h1 style="font-size: 1.15rem;">联系前准备</h1>
+            <ul class="tip-list">
+                <li>订单号：在「订单查询」里可以查到，发给客服能直接定位。</li>
+                <li>游戏 ID：发货和补发需要核对，请一并发送。</li>
+                <li>付款凭证：支付完成截图或交易单号。</li>
+                <li>客服在线时间：每天 10:00 - 23:00，非在线时间留言会尽快回复。</li>
+            </ul>
+        </section>
+        <section class="card" data-ticket-card hidden>
+            <h1 style="font-size: 1.15rem;">提交工单</h1>
+            <p class="card-desc">
+                不方便加 QQ 时可以直接提交工单，客服处理后会在这里回复，同时会按你填写的联系方式通知你。
+            </p>
+            <form class="ticket-form" data-ticket-form>
+                <label class="ticket-field">
+                    <span>问题类型</span>
+                    <select data-ticket-category>
+                        <option value="付款问题">付款问题</option>
+                        <option value="发货/卡密">发货 / 卡密</option>
+                        <option value="退款">退款</option>
+                        <option value="账号问题">账号问题</option>
+                        <option value="商品咨询">商品咨询</option>
+                        <option value="其他" selected>其他</option>
+                    </select>
+                </label>
+                <label class="ticket-field">
+                    <span>订单号（可选）</span>
+                    <input type="text" data-ticket-order placeholder="在订单查询里可以查到" maxlength="60" />
+                </label>
+                <label class="ticket-field">
+                    <span>联系方式（可选）</span>
+                    <input type="text" data-ticket-contact placeholder="QQ / 邮箱，方便客服回复你" maxlength="60" />
+                </label>
+                <label class="ticket-field">
+                    <span>问题描述</span>
+                    <textarea data-ticket-content placeholder="请写清楚问题、订单号和发生时间，5-600 字" maxlength="600"></textarea>
+                </label>
+                <button class="ticket-submit" type="submit" data-ticket-submit>提交工单</button>
+                <div class="ticket-status" data-ticket-status></div>
+            </form>
+        </section>
+
+        <section class="card" data-mytickets-card hidden>
+            <h1 style="font-size: 1.15rem;">我的工单</h1>
+            <div class="ticket-list" data-ticket-list></div>
+        </section>
+
+        <section class="card" data-login-card hidden>
+            <h1 style="font-size: 1.15rem;">工单与积分</h1>
+            <div class="login-hint" data-login-hint>
+                正在检查登录状态…
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const qq = '3805506653';
+            const copyButton = document.querySelector('[data-copy-qq]');
+            const statusNode = document.querySelector('[data-copy-status]');
+            const backLink = document.querySelector('[data-kefu-back]');
+
+            if (backLink) {
+                const referrer = String(document.referrer || '').trim();
+                let target = '';
+                try {
+                    const referrerUrl = new URL(referrer);
+                    if (referrerUrl.origin === window.location.origin && referrerUrl.pathname.endsWith('.html')) {
+                        target = referrerUrl.pathname + referrerUrl.search + referrerUrl.hash;
+                    }
+                } catch { }
+
+                if (target) {
+                    backLink.setAttribute('href', target);
+                }
+
+                backLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (target) {
+                        window.location.href = target;
+                        return;
+                    }
+                    if (window.history.length > 1) {
+                        window.history.back();
+                        return;
+                    }
+                    window.location.href = '/store.html';
+                });
+            }
+
+            function writeStatus(text) {
+                if (statusNode) statusNode.textContent = text;
+            }
+
+            async function copyText(value) {
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(value);
+                        return true;
+                    }
+                } catch { }
+
+                try {
+                    const helper = document.createElement('textarea');
+                    helper.value = value;
+                    helper.setAttribute('readonly', 'readonly');
+                    helper.style.position = 'fixed';
+                    helper.style.opacity = '0';
+                    document.body.appendChild(helper);
+                    helper.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(helper);
+                    return ok;
+                } catch {
+                    return false;
+                }
+            }
+
+            if (copyButton) {
+                copyButton.addEventListener('click', async () => {
+                    const ok = await copyText(qq);
+                    writeStatus(ok ? '已复制客服 QQ：' + qq : '复制失败，请手动记录：' + qq);
+                });
+            }
+        })();
+    </script>
+
+    <script>
+        (function () {
+            const ticketCard = document.querySelector('[data-ticket-card]');
+            const myTicketsCard = document.querySelector('[data-mytickets-card]');
+            const loginCard = document.querySelector('[data-login-card]');
+            const loginHint = document.querySelector('[data-login-hint]');
+            const form = document.querySelector('[data-ticket-form]');
+            const statusNode = document.querySelector('[data-ticket-status]');
+            const listNode = document.querySelector('[data-ticket-list]');
+            const submitButton = document.querySelector('[data-ticket-submit]');
+
+            const stateText = { pending: '待处理', answered: '已回复', closed: '已关闭' };
+
+            function authHeaders(extra) {
+                let token = '';
+                try {
+                    token = localStorage.getItem('mctools-auth-token') || '';
+                } catch { }
+                return Object.assign({}, extra || {}, token ? { Authorization: 'Bearer ' + token } : {});
+            }
+
+            function setStatus(text, kind) {
+                if (!statusNode) return;
+                statusNode.textContent = text || '';
+                statusNode.className = 'ticket-status' + (kind ? ' ' + kind : '');
+            }
+
+            function renderTickets(tickets) {
+                if (!listNode) return;
+                if (!tickets.length) {
+                    listNode.innerHTML = '<div class="ticket-meta">还没有工单，提交后会出现在这里。</div>';
+                    return;
+                }
+                listNode.innerHTML = tickets.map((item) => `
+                    <article class="ticket-item">
+                        <div class="ticket-item-head">
+                            <div>
+                                <span class="ticket-no">${item.ticketNo}</span>
+                                <strong> · ${item.category}</strong>
+                            </div>
+                            <span class="ticket-state ${item.status}">${stateText[item.status] || item.status}</span>
+                        </div>
+                        <p class="ticket-content">${item.content.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</p>
+                        ${item.reply ? `<p class="ticket-reply"><strong>客服回复：</strong>${item.reply.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</p>` : ''}
+                        <div class="ticket-meta">${item.orderNo ? '订单号 ' + item.orderNo + ' · ' : ''}提交于 ${item.createdAt}</div>
+                    </article>
+                `).join('');
+            }
+
+            async function loadTickets() {
+                const response = await fetch('/api/store/tickets', { headers: authHeaders(), credentials: 'same-origin' });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    renderTickets([]);
+                    return;
+                }
+                renderTickets(Array.isArray(result.tickets) ? result.tickets : []);
+            }
+
+            let lastStatus = 0;
+
+            async function init() {
+                let loggedIn = false;
+                try {
+                    const response = await fetch('/api/store/points', { headers: authHeaders(), credentials: 'same-origin' });
+                    lastStatus = response.status;
+                    loggedIn = response.ok;
+                } catch { }
+
+                if (!loggedIn) {
+                    if (loginCard) loginCard.hidden = false;
+                    if (loginHint) {
+                        const detail = lastStatus === 401 || lastStatus === 0
+                            ? '工单和积分需要登录账号。'
+                            : `暂时无法读取账号信息（HTTP ${lastStatus}）。`;
+                        loginHint.innerHTML = detail + '<br />请先到 <a href="/store-account.html" style="color: inherit;">个人中心</a> 登录，之后再回来提交。';
+                    }
+                    return;
+                }
+
+                if (ticketCard) ticketCard.hidden = false;
+                if (myTicketsCard) myTicketsCard.hidden = false;
+                loadTickets();
+            }
+
+            if (form) {
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const payload = {
+                        category: document.querySelector('[data-ticket-category]').value,
+                        orderNo: document.querySelector('[data-ticket-order]').value.trim(),
+                        contact: document.querySelector('[data-ticket-contact]').value.trim(),
+                        content: document.querySelector('[data-ticket-content]').value.trim()
+                    };
+
+                    if (payload.content.length < 5) {
+                        setStatus('问题描述至少 5 个字。', 'error');
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    setStatus('正在提交…');
+
+                    try {
+                        const response = await fetch('/api/store/tickets', {
+                            method: 'POST',
+                            headers: authHeaders({ 'Content-Type': 'application/json' }),
+                            credentials: 'same-origin',
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            setStatus(result.message || '提交失败，请稍后再试。', 'error');
+                            return;
+                        }
+                        setStatus((result.message || '工单已提交。') + ' 工单号：' + result.ticketNo, 'success');
+                        form.querySelector('[data-ticket-content]').value = '';
+                        loadTickets();
+                    } catch {
+                        setStatus('网络异常，提交失败。', 'error');
+                    } finally {
+                        submitButton.disabled = false;
+                    }
+                });
+            }
+
+            init();
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>商品详情 · 星际商店</title>
+  <style>
+    :root { color-scheme: light; --bg: #eaf3ff; --panel: rgba(255, 255, 255, .82); --panel-strong: rgba(248, 250, 252, .92); --line: rgba(148, 163, 184, .2); --text: #0f172a; --muted: #64748b; --primary: #2563eb; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; overflow-x: hidden; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); background: radial-gradient(ellipse at top left, rgba(96, 165, 250, .18), transparent 28%), radial-gradient(ellipse at top right, rgba(168, 85, 247, .12), transparent 32%), linear-gradient(180deg, #f8fbff 0%, #eaf3ff 46%, #e2e8f0 100%); background-attachment: fixed; }
+    body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(180deg, rgba(255,255,255,.34), rgba(241,245,249,.08)), repeating-linear-gradient(135deg, rgba(148,163,184,.025), rgba(148,163,184,.025) 2px, transparent 2px, transparent 8px); }
+    body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(circle at 20% 18%, rgba(14,165,233,.08), transparent 28%); }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea, select { font: inherit; }
+    .shell { position: relative; width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 18px 0 72px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .brand, .top-actions, .product-card, .section { border: 1px solid var(--line); background: var(--panel); box-shadow: 0 20px 44px rgba(15, 23, 42, .1); backdrop-filter: blur(18px); }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 18px; }
+    .brand-badge { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 14px; color: #fff; font-weight: 900; background: linear-gradient(135deg, #0ea5e9, #2563eb 52%, #8b5cf6); box-shadow: 0 12px 24px rgba(37,99,235,.24); }
+    .brand-copy { display: grid; gap: 3px; }
+    .brand strong { font-size: 1.05rem; }
+    .brand span { color: var(--muted); font-size: .84rem; }
+    .top-actions { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 22px; }
+    @keyframes button-breathe {
+      0% { transform: translateY(0) scale(1); box-shadow: 0 8px 18px rgba(37, 99, 235, .14); filter: brightness(1); }
+      50% { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 30px rgba(96, 165, 250, .26); filter: brightness(1.04); }
+      100% { transform: translateY(0) scale(1); box-shadow: 0 8px 18px rgba(37, 99, 235, .14); filter: brightness(1); }
+    }
+    @keyframes button-click-pop {
+      0% { transform: translateY(0) scale(1); }
+      40% { transform: translateY(1px) scale(.95); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    .btn { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; cursor: pointer; color: #334155; background: rgba(255,255,255,.9); border: 1px solid var(--line); border-radius: 999px; font-weight: 800; animation: button-breathe 2.2s ease-in-out infinite; transition: transform 220ms ease, box-shadow 260ms ease, background 260ms ease; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 16px 30px rgba(15,23,42,.12); }
+    .btn:active { animation: button-click-pop 220ms ease-out; }
+    .btn.primary { border: 0; color: #fff; background: linear-gradient(135deg, #0ea5e9, #2563eb 52%, #8b5cf6); box-shadow: 0 16px 34px rgba(37,99,235,.24); }
+    .product-card { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr); gap: 24px; padding: 22px; border-radius: 24px; }
+    .product-image, .image-placeholder { width: 100%; aspect-ratio: 16 / 11; border-radius: 18px; object-fit: cover; border: 1px solid rgba(148,163,184,.24); background: linear-gradient(135deg, rgba(186,230,253,.9), rgba(219,234,254,.9), rgba(233,213,255,.82)); }
+    .image-placeholder { display: grid; place-items: center; color: #2563eb; font-size: 3rem; font-weight: 900; box-shadow: inset 0 1px rgba(255,255,255,.72); }
+    .product-copy { display: grid; align-content: start; gap: 14px; }
+    .eyebrow, .tag { display: inline-flex; width: fit-content; padding: 6px 10px; border: 1px solid rgba(96, 165, 250, .26); border-radius: 999px; color: #1d4ed8; background: rgba(219, 234, 254, .8); font-size: .76rem; font-weight: 800; }
+    h1, h2, p { margin: 0; }
+    h1 { font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: 1.15; }
+    .description { color: #475569; white-space: pre-wrap; line-height: 1.8; }
+    .price { color: #fbbf24; font-size: 2.2rem; font-weight: 900; }
+    .meta { color: var(--muted); font-size: .9rem; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag { color: #6d28d9; background: rgba(237, 233, 254, .86); border-color: rgba(196, 181, 253, .36); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .section { display: grid; gap: 15px; margin-top: 14px; padding: 18px; border-radius: 20px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .section-head h2 { font-size: 1.14rem; }
+    .summary { color: #fbbf24; font-weight: 900; }
+    .hint, .status, .empty, .review-meta { color: var(--muted); font-size: .9rem; }
+    .list { display: grid; gap: 10px; }
+    .entry { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel-strong); }
+    .entry p { color: #334155; line-height: 1.7; white-space: pre-wrap; }
+    .answer { display: grid; gap: 5px; padding-top: 8px; border-top: 1px solid var(--line); }
+    .answer strong { color: var(--primary); }
+    form { display: grid; gap: 10px; padding-top: 4px; }
+    label { display: grid; gap: 6px; font-weight: 800; color: #cbd5e1; }
+    textarea, select { width: 100%; padding: 11px 12px; color: var(--text); background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 14px; }
+    textarea { min-height: 92px; resize: vertical; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .status.error { color: #fca5a5; } .status.pending { color: #fcd34d; }
+    .page-error { margin-top: 18px; padding: 20px; border-radius: 20px; color: #fecaca; border: 1px solid rgba(248,113,113,.28); background: rgba(127,29,29,.26); }
+    [hidden] { display: none !important; }
+    @media (max-width: 720px) { .shell { width: min(100% - 18px, 1180px); padding-top: 12px; } .topbar { align-items: stretch; flex-direction: column; } .top-actions { justify-content: center; } .product-card { grid-template-columns: 1fr; padding: 16px; gap: 16px; border-radius: 20px; } .section { padding: 16px; border-radius: 18px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="/store.html">
+        <span class="brand-badge">S</span>
+        <span class="brand-copy"><strong>星际商店</strong><span>MCTools Store · 商品详情</span></span>
+      </a>
+      <nav class="top-actions" aria-label="商品详情导航">
+        <a class="btn" href="/store.html">商品列表</a>
+        <a class="btn" href="/order-query.html">查单中心</a>
+      </nav>
+    </header>
+
+    <section class="product-card" data-product-card hidden>
+      <div>
+        <img class="product-image" data-product-image alt="" hidden />
+        <div class="image-placeholder" data-image-placeholder>S</div>
+      </div>
+      <div class="product-copy">
+        <span class="eyebrow" data-product-code>商品详情</span>
+        <h1 data-product-name>正在加载商品</h1>
+        <strong class="price" data-product-price>--</strong>
+        <p class="description" data-product-description></p>
+        <span class="meta" data-product-meta></span>
+        <div class="tags" data-product-tags></div>
+        <div class="actions">
+          <button class="btn primary" type="button" data-buy-product>立即购买</button>
+          <a class="btn" href="/store.html">继续浏览</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" data-reviews-section hidden>
+      <div class="section-head"><h2>玩家评价</h2><strong class="summary" data-review-summary>正在加载评分</strong></div>
+      <div class="list" data-review-list></div>
+      <form data-review-form>
+        <label>我的评分<select data-review-rating><option value="5">5 星 · 非常满意</option><option value="4">4 星 · 满意</option><option value="3">3 星 · 一般</option><option value="2">2 星 · 不满意</option><option value="1">1 星 · 很不满意</option></select></label>
+        <label>使用体验<textarea data-review-content maxlength="600" placeholder="至少 5 个字符；提交后需管理员审核"></textarea></label>
+        <div class="form-actions"><span class="status" data-review-status>登录后可提交评价。</span><button class="btn primary" type="submit">提交评价</button></div>
+      </form>
+    </section>
+
+    <section class="section" data-questions-section hidden>
+      <div class="section-head"><h2>商品问答</h2><span class="hint">仅展示管理员已回复的问题</span></div>
+      <div class="list" data-question-list></div>
+      <form data-question-form>
+        <label>向管理员提问<textarea data-question-content maxlength="400" placeholder="例如：该商品的适用版本和使用方式是什么？"></textarea></label>
+        <div class="form-actions"><span class="status" data-question-status>登录后可提交问题。</span><button class="btn primary" type="submit">提交问题</button></div>
+      </form>
+    </section>
+
+    <div class="page-error" data-page-error hidden></div>
+  </main>
+  <script>
+    (function () {
+      const productCard = document.querySelector('[data-product-card]');
+      const reviewsSection = document.querySelector('[data-reviews-section]');
+      const questionsSection = document.querySelector('[data-questions-section]');
+      const pageError = document.querySelector('[data-page-error]');
+      const image = document.querySelector('[data-product-image]');
+      const imagePlaceholder = document.querySelector('[data-image-placeholder]');
+      const name = document.querySelector('[data-product-name]');
+      const code = document.querySelector('[data-product-code]');
+      const price = document.querySelector('[data-product-price]');
+      const description = document.querySelector('[data-product-description]');
+      const meta = document.querySelector('[data-product-meta]');
+      const tags = document.querySelector('[data-product-tags]');
+      const buyButton = document.querySelector('[data-buy-product]');
+      const reviewList = document.querySelector('[data-review-list]');
+      const reviewSummary = document.querySelector('[data-review-summary]');
+      const reviewForm = document.querySelector('[data-review-form]');
+      const reviewRating = document.querySelector('[data-review-rating]');
+      const reviewContent = document.querySelector('[data-review-content]');
+      const reviewStatus = document.querySelector('[data-review-status]');
+      const questionList = document.querySelector('[data-question-list]');
+      const questionForm = document.querySelector('[data-question-form]');
+      const questionContent = document.querySelector('[data-question-content]');
+      const questionStatus = document.querySelector('[data-question-status]');
+      const token = localStorage.getItem('mctools-auth-token') || '';
+      let product = null;
+
+      function escapeHtml(value) {
+        return String(value || '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+      }
+
+      function formatPrice(fen) { return `¥${(Number(fen || 0) / 100).toFixed(2)}`; }
+      function setStatus(target, text, state) { target.textContent = text; target.className = `status ${state || ''}`.trim(); }
+      function headers() { return token ? { Authorization: `Bearer ${token}` } : {}; }
+
+      function renderReviews(payload) {
+        const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
+        const count = Number(payload.summary?.count || 0);
+        const average = Number(payload.summary?.averageRating || 0);
+        reviewSummary.textContent = count ? `${average.toFixed(1)} / 5 · ${count} 条评价` : '暂无已审核评价';
+        reviewList.innerHTML = reviews.length ? reviews.map((item) => `
+          <article class="entry"><strong>${escapeHtml(item.username)} · ${'★'.repeat(item.rating)}${'☆'.repeat(5 - item.rating)}</strong><p>${escapeHtml(item.content)}</p><span class="review-meta">${escapeHtml(String(item.createdAt || '').replace('T', ' ').slice(0, 16))}</span></article>
+        `).join('') : '<div class="empty">暂时还没有已审核的评价，欢迎成为第一位分享体验的玩家。</div>';
+      }
+
+      function renderQuestions(payload) {
+        const questions = Array.isArray(payload.questions) ? payload.questions : [];
+        questionList.innerHTML = questions.length ? questions.map((item) => `
+          <article class="entry"><strong>${escapeHtml(item.username)} · 提问</strong><p>${escapeHtml(item.question)}</p><div class="answer"><strong>管理员回复</strong><p>${escapeHtml(item.answer)}</p></div></article>
+        `).join('') : '<div class="empty">暂无已回复问题，有疑问可以直接提交。</div>';
+      }
+
+      async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '请求失败');
+        return payload;
+      }
+
+      async function loadInteractions() {
+        const encodedCode = encodeURIComponent(product.productCode);
+        const [reviews, questions] = await Promise.all([
+          fetchJson(`/api/store/reviews?productCode=${encodedCode}`),
+          fetchJson(`/api/store/questions?productCode=${encodedCode}`)
+        ]);
+        renderReviews(reviews);
+        renderQuestions(questions);
+      }
+
+      function renderProduct() {
+        document.title = `${product.name} · 星际商店`;
+        name.textContent = product.name;
+        code.textContent = `商品编号 · ${product.productCode}`;
+        price.textContent = formatPrice(product.salePriceFen);
+        description.textContent = product.description || '暂无商品说明。';
+        meta.textContent = `库存：${Number(product.stock || 0) > 0 ? product.stock : '无货'} · ${product.currency || 'CNY'}`;
+        tags.innerHTML = (Array.isArray(product.tags) ? product.tags : []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join('');
+        if (product.imageUrl) { image.src = product.imageUrl; image.alt = product.name; image.hidden = false; imagePlaceholder.hidden = true; }
+        buyButton.disabled = Number(product.stock || 0) <= 0;
+        productCard.hidden = false; reviewsSection.hidden = false; questionsSection.hidden = false;
+      }
+
+      reviewForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!token) { setStatus(reviewStatus, '请返回商店登录后再提交评价。', 'error'); return; }
+        try {
+          setStatus(reviewStatus, '正在提交评价...');
+          const payload = await fetchJson('/api/store/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8', ...headers() }, body: JSON.stringify({ productCode: product.productCode, rating: Number(reviewRating.value), content: reviewContent.value.trim() }) });
+          reviewContent.value = ''; setStatus(reviewStatus, payload.message, 'pending');
+        } catch (error) { setStatus(reviewStatus, error.message, 'error'); }
+      });
+
+      questionForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!token) { setStatus(questionStatus, '请返回商店登录后再提交问题。', 'error'); return; }
+        try {
+          setStatus(questionStatus, '正在提交问题...');
+          const payload = await fetchJson('/api/store/questions', { method: 'POST', headers: { 'Content-Type': 'application/json; charset=utf-8', ...headers() }, body: JSON.stringify({ productCode: product.productCode, question: questionContent.value.trim() }) });
+          questionContent.value = ''; setStatus(questionStatus, payload.message, 'pending');
+        } catch (error) { setStatus(questionStatus, error.message, 'error'); }
+      });
+
+      buyButton.addEventListener('click', () => {
+        if (!product) return;
+        const url = new URL('/store-checkout.html', window.location.origin);
+        url.searchParams.set('productCode', product.productCode);
+        url.searchParams.set('productName', product.name);
+        url.searchParams.set('price', String((Number(product.salePriceFen || 0) / 100).toFixed(2)));
+        url.searchParams.set('description', product.description || '');
+        window.location.href = url.toString();
+      });
+
+      (async () => {
+        const productCode = String(new URLSearchParams(window.location.search).get('productCode') || '').trim();
+        if (!productCode) throw new Error('缺少商品编号，请从商店商品列表进入详情页。');
+        const payload = await fetchJson('/api/store/products');
+        product = (Array.isArray(payload.products) ? payload.products : []).find((item) => String(item.productCode || '').trim() === productCode);
+        if (!product) throw new Error('商品不存在或已下架。');
+        renderProduct();
+        await loadInteractions();
+      })().catch((error) => { pageError.textContent = error.message || '商品加载失败。'; pageError.hidden = false; });
+    })();
+  </script>
+</body>
+</html>

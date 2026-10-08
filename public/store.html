@@ -170,6 +170,17 @@
           html[data-theme="day"] .feature-btn.warn span {
             color: rgba(255,255,255,0.92);
           }
+          html[data-theme="day"] .catalog-search span,
+          html[data-theme="day"] .catalog-sort span {
+            color: #475569;
+          }
+          html[data-theme="day"] .catalog-search input,
+          html[data-theme="day"] .catalog-sort select,
+          html[data-theme="day"] .catalog-reset {
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            border-color: rgba(148, 163, 184, 0.28);
+          }
           html[data-theme="day"] .category-btn {
             background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(226, 232, 240, 0.94));
             color: #334155;
@@ -636,6 +647,76 @@
       }
       .hero-title .accent {
         color: #fbbf24;
+      }
+      .hero-titlerow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+      .hero-emblem {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: clamp(40px, 7vw, 58px);
+        height: clamp(40px, 7vw, 58px);
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.94), rgba(168, 85, 247, 0.88));
+        box-shadow: 0 14px 30px rgba(56, 189, 248, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        color: #fff;
+        font-size: clamp(1.2rem, 3vw, 1.7rem);
+        font-weight: 900;
+        flex-shrink: 0;
+        animation: emblem-float 3.6s ease-in-out infinite;
+      }
+      @keyframes emblem-float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+      .hero-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.14);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .hero-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.75;
+        flex-shrink: 0;
+      }
+      .hero-badge.accent {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(249, 115, 22, 0.18));
+        border-color: rgba(251, 191, 36, 0.42);
+        color: #fbbf24;
+      }
+      html[data-theme="day"] .hero-badge {
+        background: rgba(255, 255, 255, 0.7);
+        border-color: rgba(148, 163, 184, 0.2);
+        color: #334155;
+      }
+      html[data-theme="day"] .hero-badge.accent {
+        background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(249, 115, 22, 0.22));
+        border-color: rgba(251, 191, 36, 0.5);
+        color: #b45309;
       }
       .hero-subline {
         display: inline-flex;
@@ -1300,6 +1381,10 @@
         gap: 8px;
       }
       .category-btn {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
         text-align: left;
         border: 1px solid rgba(148, 163, 184, 0.18);
         background: rgba(15, 23, 42, 0.85);
@@ -1308,6 +1393,10 @@
         color: #e2e8f0;
         font-weight: 700;
         cursor: pointer;
+      }
+      .category-btn span {
+        font-size: 0.75rem;
+        opacity: 0.78;
       }
       .category-btn.active {
         background: linear-gradient(135deg, #f59e0b, #f97316);
@@ -1339,6 +1428,47 @@
         margin: 0;
       }
       .section-band p { color: #64748b; }
+      .catalog-tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: 10px;
+        padding: 14px 20px 0;
+      }
+      .catalog-search,
+      .catalog-sort {
+        display: grid;
+        gap: 6px;
+        min-width: 0;
+      }
+      .catalog-search { flex: 1 1 240px; }
+      .catalog-sort { flex: 0 1 190px; }
+      .catalog-search span,
+      .catalog-sort span {
+        color: #94a3b8;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+      }
+      .catalog-search input,
+      .catalog-sort select,
+      .catalog-reset {
+        width: 100%;
+        min-height: 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(15, 23, 42, 0.72);
+        color: #e2e8f0;
+        padding: 0 12px;
+        font: inherit;
+      }
+      .catalog-sort select { cursor: pointer; }
+      .catalog-reset {
+        width: auto;
+        border-radius: 999px;
+        cursor: pointer;
+        animation: none;
+      }
       .feed-meta {
         color: #64748b;
         font-size: 0.84rem;
@@ -1628,6 +1758,514 @@
         color: rgba(255,255,255,0.86);
       }
       .lottery-shop-entry { bottom: 94px; }
+      .cart-fab {
+        position: fixed;
+        left: 22px;
+        bottom: 22px;
+        z-index: 36;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        min-height: 54px;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 18px 36px rgba(249, 115, 22, 0.3);
+      }
+      .cart-fab-count {
+        min-width: 24px;
+        height: 24px;
+        padding: 0 6px;
+        border-radius: 999px;
+        display: inline-grid;
+        place-items: center;
+        background: #fff;
+        color: #ea580c;
+        font-size: 0.8rem;
+      }
+      .support-fab {
+        position: fixed;
+        left: 22px;
+        bottom: 88px;
+        z-index: 36;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        min-height: 54px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #14b8a6, #0ea5e9);
+        color: #fff;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: 0 18px 36px rgba(14, 165, 233, 0.3);
+      }
+      .support-fab:hover,
+      .support-fab:focus-visible {
+        outline: none;
+      }
+      .support-fab-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+      }
+      .support-fab-tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.22);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .checkin-fab {
+        position: fixed;
+        left: 22px;
+        bottom: 154px;
+        z-index: 36;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        min-height: 54px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: #fff;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: 0 18px 36px rgba(249, 115, 22, 0.32);
+      }
+      .checkin-fab:hover,
+      .checkin-fab:focus-visible {
+        outline: none;
+      }
+      .checkin-fab-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+      }
+      .checkin-fab-tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .notice-fab {
+        position: fixed;
+        left: 22px;
+        bottom: 220px;
+        z-index: 36;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        min-height: 54px;
+        border: none;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        font-weight: 900;
+        font-size: 1rem;
+        text-decoration: none;
+        cursor: pointer;
+        box-shadow: 0 18px 36px rgba(99, 102, 241, 0.34);
+      }
+      .notice-fab:hover,
+      .notice-fab:focus-visible {
+        outline: none;
+        filter: brightness(1.06);
+      }
+      .notice-fab-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+      }
+      .notice-fab-tag {
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+      }
+      .notice-fab-dot {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f43f5e;
+        box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.28);
+      }
+      .notice-fab-dot[hidden] { display: none; }
+
+      /* ============ 侧边收纳栏 ============ */
+      /* .side-dock 只做定位容器：铺满视口高度做 flex 居中，本身**不要任何可见背景**，
+         否则会形成一条通高深色色带（视觉上像面板乱飞）。可见胶囊交给 ::before。 */
+      .side-dock {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        z-index: 38;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        /* 整条区域不拦截点击，只有内部按钮可点 */
+        pointer-events: none;
+      }
+      .side-dock > * { pointer-events: auto; }
+      .side-dock-left { left: 0; width: 54px; }
+      .side-dock-right { right: 0; width: 54px; }
+      /* 视觉胶囊背景：仅包住把手 + 展开后的按钮，位置跟随 flex 居中结果 */
+      .side-dock::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 58px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.46);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 14px 34px rgba(2, 6, 23, 0.32);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: height 280ms ease;
+        pointer-events: none;
+      }
+      /* 展开时胶囊高度贴合内容（由 JS 写入 --dock-open-height） */
+      .side-dock.open::before { height: var(--dock-open-height, 100px); }
+
+      /* 收纳把手（小箭头）
+         * 箭头方向用字符本身表达，不用 transform 旋转，避免左右侧方向搞反：
+         *   左侧收起 »（提示可向右展开）  左侧展开 ‹（提示可向左收起）
+         *   右侧收起 «（提示可向左展开）  右侧展开 ›（提示可向右收起）
+         */
+      .side-dock-handle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+        color: #fff;
+        font-size: 1.25rem;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 8px 18px rgba(56, 189, 248, 0.34);
+        transition: transform 220ms ease, box-shadow 220ms ease;
+        flex-shrink: 0;
+      }
+      .side-dock-handle:hover,
+      .side-dock-handle:focus-visible {
+        outline: none;
+        filter: brightness(1.08);
+      }
+
+      /* 收纳槽：默认完全收起（display:none 确保不占位、gap 也不影响把手居中） */
+      .side-dock-items {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .side-dock.open .side-dock-items {
+        display: flex;
+        opacity: 1;
+        pointer-events: auto;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+      }
+      @keyframes dock-items-in {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      /* 不用 opacity/transform 入场动画，避免与呼吸动画叠加 */
+      /* 收纳槽内的圆形按钮
+         * 关键：这些按钮原本都是 position:fixed + top/left/bottom/right 定位的（如 top:-220px）。
+         * 改成 relative 后那些 top/bottom 仍会生效并把按钮拽出可视区，
+         * 所以必须在这里显式清零所有偏移值。 */
+      .side-dock-items .floating-button,
+      .side-dock-items .cart-fab {
+        position: relative;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        transform: none;
+        margin: 0;
+        width: 46px;
+        height: 46px;
+        min-height: 46px;
+        padding: 0;
+        gap: 0;
+        border-radius: 50%;
+        justify-content: center;
+        font-size: 0;
+        white-space: nowrap;
+        /* 收纳态禁用呼吸动画，避免 transform 干扰 flex 布局测量 */
+        animation: none !important;
+        flex: 0 0 auto;
+      }
+      /* 收纳槽整体做呼吸浮动（代替每个按钮各自呼吸，避免子元素 transform 乱位） */
+      .side-dock.open .side-dock-items {
+        animation: dock-items-breathe 2.6s ease-in-out infinite;
+      }
+      @keyframes dock-items-breathe {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+      }
+      /* 收纳槽内：图标 span 显示、纯文字 span 隐藏
+       * 注意：不要用 span + span 相邻选择器，会把图标 span 一起隐藏掉 */
+      .side-dock-items .floating-button > span.dock-ico,
+      .side-dock-items .cart-fab > span.dock-ico,
+      .side-dock-items .ai-shop-entry-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        font-size: 1.15rem;
+        line-height: 1;
+      }
+      /* 收纳态徽标圆形化 */
+      .side-dock-items .ai-shop-entry-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-size: 0.9rem;
+      }
+      .side-dock-items .floating-button > span.dock-label,
+      .side-dock-items .cart-fab > span.dock-label,
+      .side-dock-items .support-fab-tag,
+      .side-dock-items .checkin-fab-tag,
+      .side-dock-items .notice-fab-tag,
+      .side-dock-items .ai-shop-entry-copy {
+        display: none !important;
+      }
+      /* 购物车角标保留 */
+      .side-dock-items .cart-fab-count {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        min-width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: #f43f5e;
+        color: #fff;
+        font-size: 0.66rem;
+        font-weight: 900;
+      }
+      /* 公告未读红点保留 */
+      .side-dock-items .notice-fab-dot {
+        display: block;
+        top: -1px;
+        right: -1px;
+      }
+      /* 悬停提示气泡 */
+      .side-dock-items .floating-button::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: calc(100% + 10px);
+        top: 50%;
+        transform: translateY(-50%) scale(0.9);
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: rgba(2, 6, 23, 0.9);
+        color: #f8fafc;
+        font-size: 0.76rem;
+        font-weight: 800;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+        z-index: 2;
+      }
+      .side-dock-right .side-dock-items .floating-button::after {
+        left: auto;
+        right: calc(100% + 10px);
+      }
+      .side-dock-items .floating-button:hover::after {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+      }
+      /* 收起时给把手加呼吸感，提示可点 */
+      .side-dock:not(.open) .side-dock-handle {
+        animation: dock-handle-breathe 2.4s ease-in-out infinite;
+      }
+      @keyframes dock-handle-breathe {
+        0%, 100% { box-shadow: 0 8px 18px rgba(56, 189, 248, 0.34); }
+        50% { box-shadow: 0 8px 26px rgba(139, 92, 246, 0.6); }
+      }
+      .side-dock-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f43f5e;
+        box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.3);
+      }
+      .side-dock-badge[hidden] { display: none; }
+
+      /* 屏幕较矮时避免超出视口 */
+      @media (max-height: 620px) {
+        .side-dock-items .floating-button { width: 40px; height: 40px; min-height: 40px; }
+        .side-dock.open .side-dock-items { max-height: min(300px, calc(100vh - 100px)); }
+        .side-dock-handle { width: 34px; height: 34px; }
+      }
+
+      /* 窄屏：收纳栏更贴边、尺寸略小，不遮挡内容 */
+      @media (max-width: 560px) {
+        .side-dock { gap: 8px; padding: 5px; }
+        .side-dock-left { left: 6px; }
+        .side-dock-right { right: 6px; }
+        .side-dock-handle { width: 34px; height: 34px; font-size: 1rem; }
+        .side-dock-items .floating-button,
+        .side-dock-items .cart-fab { width: 40px; height: 40px; min-height: 40px; }
+        .side-dock.open .side-dock-items { max-height: min(260px, calc(100vh - 90px)); }
+      }
+
+      /* 触屏设备：点击箭头才展开，隐藏悬停气泡 */
+      @media (hover: none), (pointer: coarse) {
+        .side-dock-items .floating-button::after { display: none; }
+        .side-dock-handle { animation: none; }
+        .side-dock:not(.open) .side-dock-handle { animation: dock-handle-breathe 2.4s ease-in-out infinite; }
+      }
+      .cart-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(15, 23, 42, 0.5);
+        display: none;
+      }
+      .cart-overlay.open { display: block; }
+      .cart-drawer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: min(420px, 100%);
+        display: flex;
+        flex-direction: column;
+        background: #0f172a;
+        color: #e2e8f0;
+        border-right: 1px solid rgba(148, 163, 184, 0.24);
+        box-shadow: 18px 0 48px rgba(2, 6, 23, 0.4);
+      }
+      html[data-theme="day"] .cart-drawer {
+        background: #ffffff;
+        color: #0f172a;
+        box-shadow: 18px 0 48px rgba(15, 23, 42, 0.18);
+      }
+      .cart-head,
+      .cart-foot {
+        padding: 16px 18px;
+        display: grid;
+        gap: 10px;
+      }
+      .cart-head {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .cart-head h3 { margin: 0; }
+      .cart-foot { border-top: 1px solid rgba(148, 163, 184, 0.2); }
+      .cart-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 18px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .cart-item {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(148, 163, 184, 0.08);
+      }
+      .cart-item-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .cart-item-top strong { overflow-wrap: anywhere; }
+      .cart-item-meta { color: #64748b; font-size: 0.82rem; }
+      .cart-item-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .cart-qty {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cart-qty button,
+      .cart-item-row .cart-btn {
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: rgba(255, 255, 255, 0.9);
+        color: #0f172a;
+        cursor: pointer;
+        animation: none;
+        font: inherit;
+      }
+      .cart-qty button { width: 34px; padding: 0; }
+      .cart-item-row .cart-btn.primary {
+        background: linear-gradient(135deg, #0ea5e9, #2563eb);
+        color: #fff;
+        border-color: transparent;
+      }
+      .cart-total {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 900;
+        font-size: 1.05rem;
+      }
+      .cart-note { margin: 0; color: #64748b; font-size: 0.8rem; line-height: 1.5; }
+      .cart-empty { color: #64748b; padding: 24px 0; text-align: center; }
+      .cart-added {
+        position: fixed;
+        left: 50%;
+        bottom: 90px;
+        transform: translateX(-50%);
+        z-index: 70;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.92);
+        color: #fff;
+        font-size: 0.9rem;
+        pointer-events: none;
+      }
       html[data-theme="day"] .ai-shop-entry {
         background: linear-gradient(135deg, rgba(37, 99, 235, 0.96), rgba(147, 51, 234, 0.94));
         box-shadow: 0 18px 34px rgba(59, 130, 246, 0.22);
@@ -2572,6 +3210,96 @@
         background: rgba(255,255,255,0.08);
         color: #cbd5e1;
       }
+      .product-detail-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 72;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+      }
+      .product-detail-modal.open { display: flex; }
+      .product-detail-card {
+        width: min(760px, 100%);
+        max-height: min(820px, calc(100vh - 36px));
+        overflow-y: auto;
+        border-radius: 28px;
+        padding: 22px;
+        display: grid;
+        gap: 18px;
+        background: rgba(255, 255, 255, 0.98);
+        color: #111827;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+      }
+      .product-detail-head,
+      .product-detail-actions,
+      .review-head,
+      .review-form-actions,
+      .review-admin-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .product-detail-head h3,
+      .review-head h4 { margin: 0; }
+      .product-detail-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(200px, 0.7fr);
+        gap: 16px;
+        align-items: start;
+      }
+      .product-detail-copy { display: grid; gap: 10px; }
+      .product-detail-copy h4 { margin: 0; font-size: 1.45rem; }
+      .product-detail-copy p { margin: 0; color: #475569; line-height: 1.75; white-space: pre-wrap; }
+      .product-detail-image {
+        width: 100%;
+        border-radius: 18px;
+        aspect-ratio: 16 / 10;
+        object-fit: cover;
+        background: #e2e8f0;
+      }
+      .product-detail-meta { color: #64748b; font-size: 0.9rem; }
+      .review-section { display: grid; gap: 12px; }
+      .review-summary { color: #b45309; font-weight: 900; }
+      .review-list { display: grid; gap: 10px; }
+      .question-answer {
+        display: grid;
+        gap: 5px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      .question-answer strong { color: #2563eb; }
+      .review-item {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: #f8fafc;
+      }
+      .review-item p { margin: 0; color: #334155; line-height: 1.65; white-space: pre-wrap; }
+      .review-meta { color: #64748b; font-size: 0.84rem; }
+      .review-form { display: grid; gap: 10px; padding-top: 4px; }
+      .review-form label { display: grid; gap: 6px; font-weight: 800; color: #334155; }
+      .review-form select,
+      .review-form textarea {
+        width: 100%;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font: inherit;
+      }
+      .review-form textarea { min-height: 92px; resize: vertical; }
+      .review-status { color: #475569; font-size: 0.9rem; }
+      .review-empty { color: #64748b; padding: 12px 0; }
+      .review-status.pending { color: #b45309; }
+      .review-status.error { color: #dc2626; }
       @media (max-width: 980px) {
         .hero-shell { grid-template-columns: 1fr; }
         .hero { grid-template-columns: 1fr; }
@@ -2662,12 +3390,14 @@
         .payment-card,
         .auth-card,
         .card-secret-card,
-        .admin-card {
+        .admin-card,
+        .product-detail-card {
           width: 100%;
           max-height: calc(100vh - 12px);
           padding: 14px;
           border-radius: 16px;
         }
+        .product-detail-hero { grid-template-columns: 1fr; }
         .payment-head,
         .auth-head,
         .admin-head {
@@ -2683,17 +3413,83 @@
         .auth-send-btn,
         .auth-verify-btn,
         .admin-submit { width: 100%; justify-content: center; }
-        .ai-shop-entry {
-          right: 12px;
-          bottom: 12px;
-          left: 12px;
-          justify-content: center;
-          padding-right: 12px;
-        }
-        .lottery-shop-entry { bottom: 76px; }
+        /* 按钮已收纳进侧边栏，交由 .side-dock 控制位置与尺寸 */
+        .cart-drawer { width: 100%; }
+        .catalog-tools { padding: 12px 12px 0; }
+        .catalog-search, .catalog-sort { flex: 1 1 100%; }
+        .section-band { padding: 14px 12px 0; }
+        .product-grid { padding: 12px; }
+        .card-actions > * { flex: 1 1 calc(50% - 5px); justify-content: center; text-align: center; }
+        .card-actions .buy-btn { flex-basis: 100%; }
         .auth-captcha-row { flex-direction: column; }
         .admin-grid { grid-template-columns: 1fr; }
       }
+
+      .checkin-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(12px);
+        z-index: 66;
+      }
+      .checkin-modal.open { display: flex; }
+      .checkin-card {
+        width: min(420px, 100%);
+        border-radius: 28px;
+        padding: 22px;
+        display: grid;
+        gap: 14px;
+        background: rgba(255,255,255,0.96);
+        color: #111827;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.35);
+      }
+      html[data-theme="night"] .checkin-card {
+        background: rgba(15, 23, 42, 0.96);
+        color: #e2e8f0;
+        border-color: rgba(148, 163, 184, 0.22);
+      }
+      .checkin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+      .checkin-head h3 { margin: 0; font-size: 1.2rem; }
+      .checkin-points {
+        display: grid;
+        gap: 6px;
+        place-items: center;
+        padding: 16px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.16), rgba(167, 139, 250, 0.16));
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+      .checkin-points strong { font-size: 2rem; line-height: 1.1; }
+      .checkin-points span { font-size: 0.82rem; color: #64748b; }
+      html[data-theme="night"] .checkin-points span { color: #94a3b8; }
+      .checkin-meta { display: grid; gap: 8px; }
+      .checkin-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 11px 13px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.05);
+        color: #334155;
+      }
+      html[data-theme="night"] .checkin-row { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; }
+      .checkin-btn {
+        min-height: 52px;
+        border: none;
+        background: linear-gradient(135deg, #22c55e, #0ea5e9);
+        color: #fff;
+        font-weight: 900;
+        box-shadow: 0 16px 30px rgba(14, 165, 233, 0.24);
+      }
+      .checkin-btn[disabled] { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; animation: none; }
+      .checkin-status { color: #475569; font-size: 0.9rem; min-height: 20px; }
+      html[data-theme="night"] .checkin-status { color: #cbd5e1; }
     </style>
   </head>
   <body>
@@ -2720,7 +3516,15 @@
         <section class="hero">
           <div class="hero-copy">
             <span class="kicker">CARD SHOP FEED</span>
-            <h1 class="hero-title"><span class="accent">星际</span>小卖部</h1>
+            <div class="hero-titlerow">
+              <span class="hero-emblem" aria-hidden="true">★</span>
+              <h1 class="hero-title"><span class="accent">星际</span>小卖部</h1>
+            </div>
+            <div class="hero-badges">
+              <span class="hero-badge accent">官方授权商店</span>
+              <span class="hero-badge">v2.6.0</span>
+              <span class="hero-badge">永久折扣</span>
+            </div>
             <div class="hero-subline">
               <span>热卖精选</span>
               <span>订单可追踪</span>
@@ -2821,13 +3625,79 @@
         </div>
         <div class="feature-grid">
           <button class="feature-btn" type="button" data-feature-action="auth">
-            <strong>账号中心</strong>
-            <span>登录、注册、切换账号</span>
+            <strong>个人中心</strong>
+            <span>会员权益、订单与卡密</span>
           </button>
           <a class="feature-btn primary" href="/order-query.html">
             <strong>查单中心</strong>
-            <span>打开独立查单页，查询状态和卡密</span>
+            <span>打开独立查单页，查询状态和卡密            </span>
           </a>
+
+          <div class="product-detail-modal" data-product-detail-modal aria-hidden="true">
+            <article class="product-detail-card" role="dialog" aria-modal="true" aria-labelledby="product-detail-title">
+              <div class="product-detail-head">
+                <h3 id="product-detail-title">商品详情</h3>
+                <button class="btn" type="button" data-close-product-detail>关闭</button>
+              </div>
+              <div class="product-detail-hero">
+                <div class="product-detail-copy">
+                  <h4 data-detail-product-name>正在加载商品</h4>
+                  <strong class="card-price" data-detail-product-price>--</strong>
+                  <p data-detail-product-description>--</p>
+                  <div class="product-detail-meta" data-detail-product-meta></div>
+                  <div class="card-pills" data-detail-product-tags></div>
+                </div>
+                <img class="product-detail-image" data-detail-product-image alt="" hidden />
+              </div>
+              <div class="product-detail-actions">
+                <button class="buy-btn" type="button" data-detail-buy>立即购买</button>
+              </div>
+              <section class="review-section">
+                <div class="review-head">
+                  <h4>玩家评价</h4>
+                  <strong class="review-summary" data-review-summary>正在加载评分</strong>
+                </div>
+                <div class="review-list" data-review-list></div>
+                <form class="review-form" data-review-form>
+                  <label>
+                    我的评分
+                    <select data-review-rating>
+                      <option value="5">5 星 · 非常满意</option>
+                      <option value="4">4 星 · 满意</option>
+                      <option value="3">3 星 · 一般</option>
+                      <option value="2">2 星 · 不满意</option>
+                      <option value="1">1 星 · 很不满意</option>
+                    </select>
+                  </label>
+                  <label>
+                    使用体验
+                    <textarea data-review-content maxlength="600" placeholder="至少 5 个字符；提交后需管理员审核"></textarea>
+                  </label>
+                  <div class="review-form-actions">
+                    <span class="review-status" data-review-status>登录后可提交评价。</span>
+                    <button class="btn btn-primary" type="submit">提交评价</button>
+                  </div>
+                </form>
+              </section>
+              <section class="review-section">
+                <div class="review-head">
+                  <h4>商品问答</h4>
+                  <span class="review-meta">仅展示管理员已回复的问题</span>
+                </div>
+                <div class="review-list" data-question-list></div>
+                <form class="review-form" data-question-form>
+                  <label>
+                    向管理员提问
+                    <textarea data-question-content maxlength="400" placeholder="例如：该商品的适用版本和使用方式是什么？"></textarea>
+                  </label>
+                  <div class="review-form-actions">
+                    <span class="review-status" data-question-status>登录后可提交问题。</span>
+                    <button class="btn btn-primary" type="submit">提交问题</button>
+                  </div>
+                </form>
+              </section>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -2848,6 +3718,24 @@
               <div class="feed-meta" data-feed-meta>正在加载商品</div>
             </div>
 
+            <div class="catalog-tools">
+              <label class="catalog-search">
+                <span>搜索</span>
+                <input type="search" data-catalog-search placeholder="搜索商品名、编号或说明" autocomplete="off" />
+              </label>
+              <label class="catalog-sort">
+                <span>排序</span>
+                <select data-catalog-sort>
+                  <option value="default">默认排序</option>
+                  <option value="price-asc">价格从低到高</option>
+                  <option value="price-desc">价格从高到低</option>
+                  <option value="stock-desc">库存从多到少</option>
+                  <option value="name">名称</option>
+                </select>
+              </label>
+              <button class="catalog-reset" type="button" data-catalog-reset hidden>清除筛选</button>
+            </div>
+
             <div class="product-grid" data-product-grid></div>
 
             <div class="notice-card maintenance">
@@ -2858,27 +3746,93 @@
       </section>
     </main>
 
-    <a class="floating-button ai-shop-entry" href="/ai-shop.html" aria-label="打开 AI 选购商品">
-      <span class="ai-shop-entry-badge">AI</span>
-      <span class="ai-shop-entry-copy">
-        <strong>AI选购商品</strong>
-        <span>不会选就让 AI 帮你挑</span>
-      </span>
-    </a>
-    <a class="floating-button ai-shop-entry lottery-shop-entry" href="/lottery.html" aria-label="打开抽奖中心">
-      <span class="ai-shop-entry-badge">抽</span>
-      <span class="ai-shop-entry-copy">
-        <strong>抽奖中心</strong>
-        <span>查看奖池与活动</span>
-      </span>
-    </a>
+    <div class="checkin-modal" data-checkin-modal aria-hidden="true">
+      <div class="checkin-card" role="dialog" aria-modal="true" aria-labelledby="checkin-title">
+        <div class="checkin-head">
+          <h3 id="checkin-title">每日签到</h3>
+          <button class="btn" type="button" data-checkin-close>关闭</button>
+        </div>
+        <div class="checkin-points">
+          <strong data-checkin-points>--</strong>
+          <span>当前积分</span>
+        </div>
+        <div class="checkin-meta">
+          <div class="checkin-row"><span>连续签到</span><strong data-checkin-streak>0 天</strong></div>
+          <div class="checkin-row"><span>累计获得</span><strong data-checkin-total>0 积分</strong></div>
+          <div class="checkin-row"><span>今日奖励</span><strong data-checkin-reward>10 积分</strong></div>
+        </div>
+        <button class="checkin-btn" type="button" data-checkin-submit>立即签到</button>
+        <div class="checkin-status" data-checkin-status></div>
+      </div>
+    </div>
+
+    <aside class="side-dock side-dock-left" data-dock="left">
+      <div class="side-dock-items" data-dock-items="left">
+        <button class="cart-fab" type="button" data-cart-open aria-label="查看购物车" data-tip="购物车">
+          <span class="dock-ico">🛒</span>
+          <span class="dock-label">购物车</span>
+          <span class="cart-fab-count" data-cart-count>0</span>
+        </button>
+        <button class="floating-button notice-fab" type="button" data-notice-open aria-label="查看商店公告" data-tip="商店公告">
+          <span class="notice-fab-dot" data-notice-dot hidden></span>
+          <span class="notice-fab-icon dock-ico">📢</span>
+          <span class="dock-label">商店公告</span>
+          <span class="notice-fab-tag" data-notice-fab-tag>每日</span>
+        </button>
+        <a class="floating-button checkin-fab" href="/store-mall.html" aria-label="每日签到与积分商城" data-tip="每日签到">
+          <span class="checkin-fab-icon dock-ico">📅</span>
+          <span class="dock-label">每日签到</span>
+          <span class="checkin-fab-tag" data-checkin-fab-points>积分</span>
+        </a>
+        <a class="floating-button support-fab" href="/kefu.html" aria-label="联系客服" data-tip="联系客服">
+          <span class="support-fab-icon dock-ico">💬</span>
+          <span class="dock-label">联系客服</span>
+          <span class="support-fab-tag">在线</span>
+        </a>
+      </div>
+      <button class="side-dock-handle" type="button" data-dock-handle="left" aria-label="展开商店功能菜单" aria-expanded="false">»</button>
+    </aside>
+
+    <aside class="side-dock side-dock-right" data-dock="right">
+      <div class="side-dock-items" data-dock-items="right">
+        <a class="floating-button ai-shop-entry" href="/ai-shop.html" aria-label="打开 AI 选购商品" data-tip="AI 选购商品">
+          <span class="ai-shop-entry-badge dock-ico">AI</span>
+          <span class="ai-shop-entry-copy">
+            <strong>AI选购商品</strong>
+            <span>不会选就让 AI 帮你挑</span>
+          </span>
+        </a>
+        <a class="floating-button ai-shop-entry lottery-shop-entry" href="/lottery.html" aria-label="打开抽奖中心" data-tip="抽奖中心">
+          <span class="ai-shop-entry-badge dock-ico">抽</span>
+          <span class="ai-shop-entry-copy">
+            <strong>抽奖中心</strong>
+            <span>查看奖池与活动</span>
+          </span>
+        </a>
+      </div>
+      <button class="side-dock-handle" type="button" data-dock-handle="right" aria-label="展开更多功能" aria-expanded="false">«</button>
+    </aside>
+    <div class="cart-overlay" data-cart-overlay>
+      <aside class="cart-drawer" role="dialog" aria-label="购物车">
+        <div class="cart-head">
+          <h3>购物车</h3>
+          <button class="ghost-btn" type="button" data-cart-close>关闭</button>
+        </div>
+        <div class="cart-body" data-cart-body></div>
+        <div class="cart-foot">
+          <div class="cart-total"><span>合计</span><span data-cart-total>¥0.00</span></div>
+          <p class="cart-note">每件商品需单独结算支付，价格以结算页为准（含会员折扣与优惠券）。</p>
+          <button class="ghost-btn" type="button" data-cart-clear>清空购物车</button>
+        </div>
+      </aside>
+    </div>
 
     <div class="announcement-modal" data-announcement-modal aria-hidden="true">
       <div class="announcement-card" role="dialog" aria-modal="true" aria-labelledby="announcement-title">
         <div class="announcement-top">
           <div class="announcement-title" id="announcement-title">SW SERVICE NOTICE</div>
           <div class="announcement-body" data-announcement-body>购买功能已正常开放</div>
-          <div class="announcement-sub">本页公告每次进入都会弹出，权限可以在控制面板修改内容。</div>
+          <div class="announcement-sub">本页公告每天首次进入会自动弹出一次，公告内容可在控制面板修改。</div>
         </div>
         <div class="announcement-panel">
           <div class="announcement-tag">NOTICE</div>
@@ -3125,6 +4079,9 @@
         const announcementModal = document.querySelector('[data-announcement-modal]');
         const announcementBody = document.querySelector('[data-announcement-body]');
         const closeAnnouncementButton = document.querySelector('[data-close-announcement]');
+        const noticeOpenButton = document.querySelector('[data-notice-open]');
+        const noticeDot = document.querySelector('[data-notice-dot]');
+        const noticeFabTag = document.querySelector('[data-notice-fab-tag]');
         const onlineBoardCount = document.querySelector('[data-online-board-count]');
         const onlineBoardUpdated = document.querySelector('[data-online-board-updated]');
         const onlineBoardList = document.querySelector('[data-online-board-list]');
@@ -3132,7 +4089,29 @@
         const feedDescription = document.querySelector('[data-feed-description]');
         const categoryCount = document.querySelector('[data-category-count]');
         const categoryList = document.querySelector('[data-category-list]');
+        const catalogSearchInput = document.querySelector('[data-catalog-search]');
+        const catalogSortSelect = document.querySelector('[data-catalog-sort]');
+        const catalogResetButton = document.querySelector('[data-catalog-reset]');
         const featureButtons = Array.from(document.querySelectorAll('[data-feature-action]'));
+        const productDetailModal = document.querySelector('[data-product-detail-modal]');
+        const closeProductDetailButton = document.querySelector('[data-close-product-detail]');
+        const detailProductName = document.querySelector('[data-detail-product-name]');
+        const detailProductPrice = document.querySelector('[data-detail-product-price]');
+        const detailProductDescription = document.querySelector('[data-detail-product-description]');
+        const detailProductMeta = document.querySelector('[data-detail-product-meta]');
+        const detailProductTags = document.querySelector('[data-detail-product-tags]');
+        const detailProductImage = document.querySelector('[data-detail-product-image]');
+        const detailBuyButton = document.querySelector('[data-detail-buy]');
+        const reviewList = document.querySelector('[data-review-list]');
+        const reviewSummary = document.querySelector('[data-review-summary]');
+        const reviewForm = document.querySelector('[data-review-form]');
+        const reviewRatingInput = document.querySelector('[data-review-rating]');
+        const reviewContentInput = document.querySelector('[data-review-content]');
+        const reviewStatus = document.querySelector('[data-review-status]');
+        const questionList = document.querySelector('[data-question-list]');
+        const questionForm = document.querySelector('[data-question-form]');
+        const questionContentInput = document.querySelector('[data-question-content]');
+        const questionStatus = document.querySelector('[data-question-status]');
 
         const paymentModal = document.querySelector('[data-payment-modal]');
         const closePaymentButtons = Array.from(document.querySelectorAll('[data-close-payment]'));
@@ -3191,6 +4170,7 @@
         let storeProducts = [];
         let adminProducts = [];
         let currentPaymentOrder = null;
+        let activeDetailProduct = null;
         let currentPaymentOrderRequest = null;
         let paymentConfigReady = null;
         let activePaymentProduct = {
@@ -3212,6 +4192,8 @@
         let lastOrderQueryResult = null;
         let onlineHeartbeatTimer = null;
         let selectedCategory = '全部商品';
+        let catalogQuery = '';
+        let catalogSort = 'default';
         let activePaymentProvider = '';
         const hongxingReturnOrderStorageKey = 'mctools-hongxing-return-order';
         let storeAnnouncementText = '购买功能已正常开放';
@@ -3235,6 +4217,7 @@
           url.searchParams.set('productName', String(product?.name || '').trim());
           url.searchParams.set('price', String(product?.price || ''));
           url.searchParams.set('description', String(product?.description || '').trim());
+          if (Number(product?.quantity) > 1) url.searchParams.set('quantity', String(Math.floor(Number(product.quantity))));
           return url.toString();
         }
 
@@ -3430,8 +4413,54 @@
           }
         }
 
-        function openAnnouncementModal() {
-          return;
+        function getTodayKey() {
+          const now = new Date();
+          return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        function hasReadAnnouncementToday() {
+          try {
+            return localStorage.getItem('mctools-store-notice-read') === getTodayKey();
+          } catch {
+            return false;
+          }
+        }
+
+        function markAnnouncementReadToday() {
+          try {
+            localStorage.setItem('mctools-store-notice-read', getTodayKey());
+          } catch {
+            // 隐私模式下localStorage 不可用时静默忽略
+          }
+        }
+
+        function syncNoticeFab() {
+          // 今天还没看过公告时，公告按钮显示红点提示
+          if (noticeDot) {
+            noticeDot.hidden = hasReadAnnouncementToday();
+          }
+          if (noticeFabTag) {
+            noticeFabTag.textContent = hasReadAnnouncementToday() ? '已读' : '未读';
+          }
+        }
+
+        function openAnnouncementModal(options = {}) {
+          if (!announcementModal) {
+            return;
+          }
+
+          if (announcementBody) {
+            announcementBody.textContent = storeAnnouncementText || '购买功能已正常开放';
+          }
+
+          announcementModal.classList.add('open');
+          announcementModal.setAttribute('aria-hidden', 'false');
+
+          // 只有自动弹出（每天首次进入）才标记为已读；手动点按钮查看的不标记
+          if (options.markRead) {
+            markAnnouncementReadToday();
+          }
+          syncNoticeFab();
         }
 
         function closeAnnouncementModal() {
@@ -3441,6 +4470,9 @@
 
           announcementModal.classList.remove('open');
           announcementModal.setAttribute('aria-hidden', 'true');
+          // 用户主动关闭视为今日已读
+          markAnnouncementReadToday();
+          syncNoticeFab();
         }
 
         function renderStoreWhitelist() {
@@ -3707,13 +4739,18 @@
             selectedCategory = '全部商品';
           }
 
-          categoryList.innerHTML = categories.map((name) => `
+          categoryList.innerHTML = categories.map((name) => {
+            const count = name === '全部商品'
+              ? products.length
+              : products.filter((item) => getPrimaryCategory(item) === name).length;
+            return `
             <button
               class="category-btn ${name === selectedCategory ? 'active' : ''}"
               type="button"
               data-category-name="${escapeHtml(name)}"
-            >${escapeHtml(name)}</button>
-          `).join('');
+            >${escapeHtml(name)}<span>${count}</span></button>
+          `;
+          }).join('');
 
           if (categoryCount) {
             categoryCount.textContent = `共 ${Math.max(0, categories.length - 1)} 类`;
@@ -3804,20 +4841,41 @@
           renderCategoryList(catalogProducts);
 
           const normalizedAll = catalogProducts.map(normalizeProduct);
-          const normalized = selectedCategory === '全部商品'
-            ? normalizedAll
-            : normalizedAll.filter((item) => getPrimaryCategory(item) === selectedCategory);
+          const query = catalogQuery.trim().toLowerCase();
+          const normalized = normalizedAll
+            .filter((item) => selectedCategory === '全部商品' || getPrimaryCategory(item) === selectedCategory)
+            .filter((item) => {
+              if (!query) return true;
+              return [item.name, item.productCode, item.description, ...(item.tags || [])]
+                .join(' ')
+                .toLowerCase()
+                .includes(query);
+            })
+            .sort((left, right) => {
+              if (catalogSort === 'price-asc') return left.salePriceFen - right.salePriceFen || left.sortOrder - right.sortOrder;
+              if (catalogSort === 'price-desc') return right.salePriceFen - left.salePriceFen || left.sortOrder - right.sortOrder;
+              if (catalogSort === 'stock-desc') return right.stock - left.stock || left.sortOrder - right.sortOrder;
+              if (catalogSort === 'name') return left.name.localeCompare(right.name, 'zh-CN');
+              return left.sortOrder - right.sortOrder || left.name.localeCompare(right.name, 'zh-CN');
+            });
+          const filtering = Boolean(query) || selectedCategory !== '全部商品' || catalogSort !== 'default';
+          if (catalogResetButton) catalogResetButton.hidden = !filtering;
+          if (feedMeta) {
+            feedMeta.textContent = filtering
+              ? `显示 ${normalized.length} / ${normalizedAll.length} 个商品`
+              : `${normalizedAll.length} 个商品在线`;
+          }
 
           if (normalized.length === 0) {
             productGrid.innerHTML = `
               <article class="product-card featured">
                 <div class="product-card-header">
                   <div class="index-tag">#--</div>
-                  <h3 class="card-name">暂无上架商品</h3>
+                  <h3 class="card-name">${normalizedAll.length ? '没有匹配的商品' : '暂无上架商品'}</h3>
                   <div class="card-price">--</div>
                 </div>
                 <div class="card-body">
-                  <p class="card-desc">请使用权限控制面板新增商品并上架。</p>
+                  <p class="card-desc">${normalizedAll.length ? '换个关键词、分类或排序后再试。' : '请使用权限控制面板新增商品并上架。'}</p>
                 </div>
               </article>
             `;
@@ -3852,6 +4910,16 @@
                     ${tags.map((tag) => `<span class="card-pill">${escapeHtml(tag)}</span>`).join('')}
                   </div>
                   <div class="card-actions">
+                    <a
+                      class="ghost-btn"
+                      href="/store-product.html?productCode=${encodeURIComponent(product.productCode)}"
+                    >商品详情</a>
+                    <button
+                      class="ghost-btn"
+                      type="button"
+                      data-add-cart="${escapeHtml(product.productCode)}"
+                      ${hasStock ? '' : 'disabled'}
+                    >加入购物车</button>
                     <button
                       class="buy-btn"
                       type="button"
@@ -3879,6 +4947,7 @@
             storeProducts = Array.isArray(result?.products) ? result.products : [];
             updateStoreStats(storeProducts);
             renderStoreProducts(storeProducts);
+            renderCart();
 
             if (!activePaymentProduct.code && storeProducts.length > 0) {
               const first = normalizeProduct(storeProducts[0]);
@@ -3908,47 +4977,173 @@
           });
         }
 
-        function setAdminStatus(text, isError = false) {
-          if (!adminStatus) {
-            return;
-          }
-          adminStatus.textContent = text;
-          adminStatus.style.color = isError ? '#dc2626' : '';
-        }
+        catalogSearchInput?.addEventListener('input', () => {
+          catalogQuery = catalogSearchInput.value.trim();
+          renderStoreProducts(storeProducts);
+        });
 
-        function updateAdminAccessView() {
-          const hasAccess = accountState.loggedIn && accountState.isDeveloper;
-          if (adminLocked) {
-            adminLocked.hidden = hasAccess;
-          }
-          if (adminContent) {
-            adminContent.hidden = !hasAccess;
-          }
+        catalogSortSelect?.addEventListener('change', () => {
+          catalogSort = catalogSortSelect.value || 'default';
+          renderStoreProducts(storeProducts);
+        });
 
-          if (!hasAccess) {
-            if (!accountState.loggedIn) {
-              setAdminStatus('请先登录社区账号', true);
-            } else {
-              setAdminStatus('当前账号不是权限，请切换权限账号', true);
+        catalogResetButton?.addEventListener('click', () => {
+          catalogQuery = '';
+          catalogSort = 'default';
+          selectedCategory = '全部商品';
+          if (catalogSearchInput) catalogSearchInput.value = '';
+          if (catalogSortSelect) catalogSortSelect.value = 'default';
+          renderStoreProducts(storeProducts);
+        });
+
+
+
+            function setReviewStatus(text, state = '') {
+                if (!reviewStatus) return;
+                reviewStatus.textContent = text;
+                reviewStatus.className = `review-status ${state}`.trim();
             }
-          }
 
-          return hasAccess;
-        }
+            function renderProductReviews(reviews, summary) {
+                if (reviewSummary) {
+                    const count = Number(summary?.count || 0);
+                    const average = Number(summary?.averageRating || 0);
+                    reviewSummary.textContent = count > 0 ? `${average.toFixed(1)} / 5 · ${count} 条评价` : '暂无已审核评价';
+                }
+                if (!reviewList) return;
+                if (!Array.isArray(reviews) || reviews.length === 0) {
+                    reviewList.innerHTML = '<div class="review-empty">暂时还没有已审核的评价，欢迎成为第一位分享体验的玩家。</div>';
+                    return;
+                }
+                reviewList.innerHTML = reviews.map((review) => `
+            <article class="review-item">
+              <div><strong>${escapeHtml(review.username)}</strong> · ${'★'.repeat(Math.max(0, Math.min(5, Number(review.rating) || 0)))}${'☆'.repeat(Math.max(0, 5 - Math.min(5, Number(review.rating) || 0)))}</div>
+              <p>${escapeHtml(review.content)}</p>
+              <span class="review-meta">${escapeHtml(String(review.createdAt || '').replace('T', ' ').slice(0, 16))}</span>
+            </article>
+          `).join('');
+            }
 
-        function renderAdminTable() {
-          if (!adminTable) {
-            return;
-          }
+            function setQuestionStatus(text, state = '') {
+                if (!questionStatus) return;
+                questionStatus.textContent = text;
+                questionStatus.className = `review-status ${state}`.trim();
+            }
 
-          if (adminProducts.length === 0) {
-            adminTable.innerHTML = '<div class="admin-status">暂无商品，先新增一条。</div>';
-            return;
-          }
+            function renderProductQuestions(questions) {
+                if (!questionList) return;
+                if (!Array.isArray(questions) || questions.length === 0) {
+                    questionList.innerHTML = '<div class="review-empty">暂无已回复问题，有疑问可以直接提交。</div>';
+                    return;
+                }
+                questionList.innerHTML = questions.map((item) => `
+            <article class="review-item">
+              <div><strong>${escapeHtml(item.username)}</strong> · 提问</div>
+              <p>${escapeHtml(item.question)}</p>
+              <div class="question-answer">
+                <strong>管理员回复</strong>
+                <p>${escapeHtml(item.answer)}</p>
+              </div>
+            </article>
+          `).join('');
+            }
 
-          adminTable.innerHTML = adminProducts.map((raw) => {
-            const product = normalizeProduct(raw);
-            return `
+            async function loadProductReviews(productCode) {
+                const response = await fetch(`/api/store/reviews?productCode=${encodeURIComponent(productCode)}`);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || '评价加载失败');
+                }
+                renderProductReviews(result.reviews, result.summary);
+            }
+
+            async function loadProductQuestions(productCode) {
+                const response = await fetch(`/api/store/questions?productCode=${encodeURIComponent(productCode)}`);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.message || '问答加载失败');
+                }
+                renderProductQuestions(result.questions);
+            }
+
+            async function openProductDetail(productCode) {
+                const rawProduct = storeProducts.find((item) => String(item?.productCode || '').trim() === String(productCode || '').trim());
+                if (!rawProduct || !productDetailModal) return;
+                const product = normalizeProduct(rawProduct);
+                activeDetailProduct = product;
+                if (detailProductName) detailProductName.textContent = product.name;
+                if (detailProductPrice) detailProductPrice.textContent = `¥${formatFenToYuan(product.salePriceFen)}`;
+                if (detailProductDescription) detailProductDescription.textContent = product.description || '暂无商品说明。';
+                if (detailProductMeta) detailProductMeta.textContent = `商品编号：${product.productCode} · 库存：${product.stock > 0 ? product.stock : '无货'}`;
+                if (detailProductTags) detailProductTags.innerHTML = product.tags.map((tag) => `<span class="card-pill">${escapeHtml(tag)}</span>`).join('');
+                if (detailProductImage) {
+                    detailProductImage.hidden = !product.imageUrl;
+                    detailProductImage.src = product.imageUrl || '';
+                    detailProductImage.alt = product.name;
+                }
+                if (detailBuyButton) detailBuyButton.disabled = product.stock <= 0;
+                setReviewStatus(accountState.loggedIn ? '提交后将进入审核队列。' : '请先登录后再提交评价。');
+                setQuestionStatus(accountState.loggedIn ? '提交后等待管理员回复。' : '请先登录后再提交问题。');
+                if (reviewList) reviewList.innerHTML = '<div class="review-empty">正在加载评价...</div>';
+                if (questionList) questionList.innerHTML = '<div class="review-empty">正在加载问答...</div>';
+                productDetailModal.classList.add('open');
+                productDetailModal.setAttribute('aria-hidden', 'false');
+                try {
+                    await Promise.all([loadProductReviews(product.productCode), loadProductQuestions(product.productCode)]);
+                } catch (error) {
+                    if (reviewList) reviewList.innerHTML = `<div class="review-empty">${escapeHtml(error.message || '商品互动内容加载失败')}</div>`;
+                    if (questionList) questionList.innerHTML = `<div class="review-empty">${escapeHtml(error.message || '商品互动内容加载失败')}</div>`;
+                }
+            }
+
+            function closeProductDetail() {
+                if (!productDetailModal) return;
+                productDetailModal.classList.remove('open');
+                productDetailModal.setAttribute('aria-hidden', 'true');
+                activeDetailProduct = null;
+            }
+
+            function setAdminStatus(text, isError = false) {
+                if (!adminStatus) {
+                    return;
+                }
+                adminStatus.textContent = text;
+                adminStatus.style.color = isError ? '#dc2626' : '';
+            }
+
+            function updateAdminAccessView() {
+                const hasAccess = accountState.loggedIn && accountState.isDeveloper;
+                if (adminLocked) {
+                    adminLocked.hidden = hasAccess;
+                }
+                if (adminContent) {
+                    adminContent.hidden = !hasAccess;
+                }
+
+                if (!hasAccess) {
+                    if (!accountState.loggedIn) {
+                        setAdminStatus('请先登录社区账号', true);
+                    } else {
+                        setAdminStatus('当前账号不是权限，请切换权限账号', true);
+                    }
+                }
+
+                return hasAccess;
+            }
+
+            function renderAdminTable() {
+                if (!adminTable) {
+                    return;
+                }
+
+                if (adminProducts.length === 0) {
+                    adminTable.innerHTML = '<div class="admin-status">暂无商品，先新增一条。</div>';
+                    return;
+                }
+
+                adminTable.innerHTML = adminProducts.map((raw) => {
+                    const product = normalizeProduct(raw);
+                    return `
               <div class="admin-row" data-admin-product-row data-product-code="${escapeHtml(product.productCode)}" data-is-active="${product.isActive ? '1' : '0'}">
                 <div>
                   <input type="text" value="${escapeHtml(product.productCode)}" disabled />
@@ -3973,554 +5168,554 @@
                 </div>
               </div>
             `;
-          }).join('');
-        }
-
-        async function loadAdminProducts() {
-          if (!updateAdminAccessView()) {
-            return;
-          }
-
-          try {
-            const headers = {};
-            if (accountState.token) {
-              headers.Authorization = `Bearer ${accountState.token}`;
-            }
-            const response = await fetch('/api/store/products/admin', { headers });
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '加载管理商品失败');
+                }).join('');
             }
 
-            adminProducts = Array.isArray(result?.products) ? result.products : [];
-            renderAdminTable();
-            setAdminStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
-          } catch (error) {
-            setAdminStatus(error.message || '加载失败', true);
-          }
-        }
+            async function loadAdminProducts() {
+                if (!updateAdminAccessView()) {
+                    return;
+                }
 
-        function openAdminModal() {
-          window.location.href = '/store-admin.html';
-        }
+                try {
+                    const headers = {};
+                    if (accountState.token) {
+                        headers.Authorization = `Bearer ${accountState.token}`;
+                    }
+                    const response = await fetch('/api/store/products/admin', { headers });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.message || '加载管理商品失败');
+                    }
 
-        function closeAdminModal() {
-          if (!adminModal) {
-            return;
-          }
-
-          adminModal.hidden = true;
-        }
-
-        function applyTheme(theme) {
-          const nextTheme = theme === 'day' ? 'day' : 'night';
-          document.documentElement.dataset.theme = nextTheme;
-          try {
-            localStorage.setItem('mctools-store-theme', nextTheme);
-          } catch {
-            // ignore storage failures
-          }
-
-          const toggleButton = document.querySelector('[data-theme-toggle]');
-          if (toggleButton) {
-            toggleButton.textContent = nextTheme === 'night' ? '白天模式' : '黑夜模式';
-            toggleButton.setAttribute('aria-label', nextTheme === 'night' ? '切换到白天模式' : '切换到黑夜模式');
-          }
-        }
-
-        const savedTheme = (() => {
-          try {
-            const cached = localStorage.getItem('mctools-store-theme');
-            return cached === 'day' ? 'day' : 'night';
-          } catch {
-            return 'night';
-          }
-        })();
-        applyTheme(savedTheme);
-
-        function parseJsonFromText(text) {
-          const cleaned = String(text || '').trim();
-          if (!cleaned) {
-            return {};
-          }
-
-          if (cleaned.startsWith('<')) {
-            throw new Error('接口返回了 HTML 页面，不是 JSON 数据。');
-          }
-
-          try {
-            return JSON.parse(cleaned);
-          } catch {
-            throw new Error(`接口返回内容不是有效 JSON：${cleaned.slice(0, 120)}`);
-          }
-        }
-
-        async function fetchJsonSafely(url, options = {}, fallbackMessage = '请求失败') {
-          const response = await fetch(url, options);
-          const rawText = await response.text();
-          let payload = {};
-
-          try {
-            payload = parseJsonFromText(rawText);
-          } catch (error) {
-            if (!response.ok) {
-              throw new Error(error.message || fallbackMessage);
+                    adminProducts = Array.isArray(result?.products) ? result.products : [];
+                    renderAdminTable();
+                    setAdminStatus(`已加载 ${adminProducts.length} 件商品，可直接上架/下架/调价。`);
+                } catch (error) {
+                    setAdminStatus(error.message || '加载失败', true);
+                }
             }
-            throw new Error(error.message || fallbackMessage);
-          }
 
-          if (!response.ok) {
-            const detail = payload && typeof payload === 'object' ? payload.message || payload.error || fallbackMessage : fallbackMessage;
-            throw new Error(detail || fallbackMessage);
-          }
+            function openAdminModal() {
+                window.location.href = '/store-admin.html';
+            }
 
-          return payload;
-        }
+            function closeAdminModal() {
+                if (!adminModal) {
+                    return;
+                }
 
-        function setPaymentStatus(text, isError = false) {
-          if (!paymentStatus) {
-            return;
-          }
+                adminModal.hidden = true;
+            }
 
-          paymentStatus.textContent = text;
-          paymentStatus.style.color = isError ? '#dc2626' : '';
-        }
+            function applyTheme(theme) {
+                const nextTheme = theme === 'day' ? 'day' : 'night';
+                document.documentElement.dataset.theme = nextTheme;
+                try {
+                    localStorage.setItem('mctools-store-theme', nextTheme);
+                } catch {
+                    // ignore storage failures
+                }
 
-        function showPaymentPlaceholder(messageTitle, messageBody) {
-          if (paymentPlaceholder) {
-            paymentPlaceholder.hidden = false;
-            paymentPlaceholder.innerHTML = `
+                const toggleButton = document.querySelector('[data-theme-toggle]');
+                if (toggleButton) {
+                    toggleButton.textContent = nextTheme === 'night' ? '白天模式' : '黑夜模式';
+                    toggleButton.setAttribute('aria-label', nextTheme === 'night' ? '切换到白天模式' : '切换到黑夜模式');
+                }
+            }
+
+            const savedTheme = (() => {
+                try {
+                    const cached = localStorage.getItem('mctools-store-theme');
+                    return cached === 'day' ? 'day' : 'night';
+                } catch {
+                    return 'night';
+                }
+            })();
+            applyTheme(savedTheme);
+
+            function parseJsonFromText(text) {
+                const cleaned = String(text || '').trim();
+                if (!cleaned) {
+                    return {};
+                }
+
+                if (cleaned.startsWith('<')) {
+                    throw new Error('接口返回了 HTML 页面，不是 JSON 数据。');
+                }
+
+                try {
+                    return JSON.parse(cleaned);
+                } catch {
+                    throw new Error(`接口返回内容不是有效 JSON：${cleaned.slice(0, 120)}`);
+                }
+            }
+
+            async function fetchJsonSafely(url, options = {}, fallbackMessage = '请求失败') {
+                const response = await fetch(url, options);
+                const rawText = await response.text();
+                let payload = {};
+
+                try {
+                    payload = parseJsonFromText(rawText);
+                } catch (error) {
+                    if (!response.ok) {
+                        throw new Error(error.message || fallbackMessage);
+                    }
+                    throw new Error(error.message || fallbackMessage);
+                }
+
+                if (!response.ok) {
+                    const detail = payload && typeof payload === 'object' ? payload.message || payload.error || fallbackMessage : fallbackMessage;
+                    throw new Error(detail || fallbackMessage);
+                }
+
+                return payload;
+            }
+
+            function setPaymentStatus(text, isError = false) {
+                if (!paymentStatus) {
+                    return;
+                }
+
+                paymentStatus.textContent = text;
+                paymentStatus.style.color = isError ? '#dc2626' : '';
+            }
+
+            function showPaymentPlaceholder(messageTitle, messageBody) {
+                if (paymentPlaceholder) {
+                    paymentPlaceholder.hidden = false;
+                    paymentPlaceholder.innerHTML = `
               <strong>${messageTitle}</strong>
               <span>${messageBody}</span>
             `;
-          }
+                }
 
-          if (paymentCodeImage) {
-            paymentCodeImage.hidden = true;
-            paymentCodeImage.removeAttribute('src');
-          }
-        }
-
-        function resolveFallbackPaymentImagePath(product) {
-          const code = String(product?.code || '').toUpperCase();
-
-          if (code === 'CMD-20CB-IN') return '/assets/payment/wechat-pay-code-20.png';
-          if (code === 'CMD-20CB-PLUS') return '/assets/payment/wechat-pay-code-40.png';
-          if (code === 'IMPORT-ONCE' || code === 'BUILD-IMPORT-ONCE') return '/assets/payment/wechat-pay-code-20.png';
-          return '/assets/payment/wechat-pay-code.png';
-        }
-
-        function showLocalPaymentFallback(message) {
-          if (paymentOrderNo) {
-            paymentOrderNo.textContent = '本地付款码';
-          }
-
-          const fallbackImagePath = resolveFallbackPaymentImagePath(activePaymentProduct);
-
-          if (paymentCodeImage) {
-            paymentCodeImage.onload = () => {
-              if (paymentPlaceholder) paymentPlaceholder.hidden = true;
-            };
-            paymentCodeImage.onerror = () => {
-              showPaymentPlaceholder('付款码加载失败', `请检查 public${fallbackImagePath} 是否存在`);
-            };
-            paymentCodeImage.src = fallbackImagePath;
-            paymentCodeImage.hidden = false;
-          }
-
-          if (paymentPlaceholder) paymentPlaceholder.hidden = true;
-          setPaymentStatus(message || '当前微信支付未配置，已展示本地付款码作为兜底。');
-        }
-
-        function setAuthMessage(text, isError = false) {
-          if (!authMessage) {
-            return;
-          }
-
-          authMessage.textContent = text;
-          authMessage.style.color = isError ? '#fca5a5' : '';
-        }
-
-        function setAuthStatus(kind, text, isError = false) {
-          const target = kind === 'login' ? loginStatus : registerStatus;
-          if (!target) {
-            return;
-          }
-
-          target.textContent = text;
-          target.style.color = isError ? '#fca5a5' : '';
-        }
-
-        function setAuthTab(nextMode) {
-          authMode = nextMode;
-          authTabs.forEach((tab) => {
-            tab.classList.toggle('active', tab.dataset.authTab === nextMode);
-          });
-          authPanels.forEach((panel) => {
-            const isActive = panel.dataset.authPanel === nextMode;
-            panel.hidden = !isActive;
-            panel.classList.toggle('active', isActive);
-          });
-          setAuthMessage(nextMode === 'register'
-            ? '注册账号后可同步记录与账号状态。'
-            : '请输入已注册的用户名和邮箱，可直接登录。');
-        }
-
-        function updateAuthTrigger() {
-          if (!authTriggerButton) {
-            return;
-          }
-
-          authTriggerButton.textContent = accountState.loggedIn
-            ? '设置'
-            : '登录 / 注册';
-          authTriggerButton.classList.toggle('auth-logged-in', accountState.loggedIn);
-
-          if (authLogoutButton) {
-            authLogoutButton.hidden = !accountState.loggedIn;
-          }
-
-          if (controlPanelButton) {
-            controlPanelButton.hidden = !accountState.isDeveloper;
-          }
-
-          updatePaymentCheckoutView();
-
-          updateAdminAccessView();
-        }
-
-        async function loadAccountState() {
-          try {
-            const token = localStorage.getItem('mctools-auth-token');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            
-            const response = await fetch('/api/community/me', { headers });
-            if (!response.ok) {
-              accountState.loggedIn = false;
-              accountState.username = '';
-              accountState.isDeveloper = false;
-              accountState.storeDiscountTier = '';
-              accountState.token = null;
-              localStorage.removeItem('mctools-auth-token');
-              updateAuthTrigger();
-              return;
+                if (paymentCodeImage) {
+                    paymentCodeImage.hidden = true;
+                    paymentCodeImage.removeAttribute('src');
+                }
             }
 
-            const result = await response.json();
-            accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
-            accountState.username = String(result?.username || '');
-            accountState.isDeveloper = Boolean(result?.isDeveloper);
-            accountState.storeDiscountTier = String(result?.storeDiscountTier || '');
-            accountState.token = accountState.loggedIn ? token : null;
-            if (!accountState.loggedIn) {
-              localStorage.removeItem('mctools-auth-token');
-            }
-            updateAuthTrigger();
-            renderStoreProducts(storeProducts);
-          } catch {
-            accountState.loggedIn = false;
-            accountState.username = '';
-            accountState.isDeveloper = false;
-            accountState.storeDiscountTier = '';
-            accountState.token = null;
-            updateAuthTrigger();
-            renderStoreProducts(storeProducts);
-          }
-        }
+            function resolveFallbackPaymentImagePath(product) {
+                const code = String(product?.code || '').toUpperCase();
 
-        function openAuthModal(mode = 'register', message) {
-          if (!authModal) {
-            return;
-          }
-
-          setAuthTab(mode);
-          if (message) setAuthMessage(message);
-          authModal.classList.add('open');
-          authModal.setAttribute('aria-hidden', 'false');
-        }
-
-        function closeAuthModal() {
-          if (!authModal) {
-            return;
-          }
-
-          authModal.classList.remove('open');
-          authModal.setAttribute('aria-hidden', 'true');
-        }
-
-        async function submitLogout() {
-          if (!confirmCriticalAction('确认退出当前账号吗？')) {
-            setAuthMessage('已取消退出登录。');
-            return;
-          }
-
-          try {
-            await fetch('/api/community/logout', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json; charset=utf-8' }
-            });
-          } catch {
-            // Ignore logout transport failures and still clear local state.
-          }
-
-          localStorage.removeItem('mctools-auth-token');
-          accountState.loggedIn = false;
-          accountState.username = '';
-          accountState.isDeveloper = false;
-          accountState.storeDiscountTier = '';
-          accountState.token = null;
-          pendingPurchaseProduct = null;
-          updateAuthTrigger();
-          closeAdminModal();
-          setAuthMessage('你已经退出登录。');
-        }
-
-        async function requireLoginBeforePurchase(product) {
-          pendingPurchaseProduct = product;
-          updatePaymentCheckoutView();
-          return true;
-        }
-
-        function getAuthInputs() {
-          if (authMode === 'login') {
-            return {
-              usernameInput: loginUsernameInput,
-              emailInput: loginEmailInput,
-              codeInput: loginCodeInput,
-              statusKind: 'login'
-            };
-          }
-
-          return {
-            usernameInput: registerUsernameInput,
-            emailInput: registerEmailInput,
-            codeInput: registerCodeInput,
-            statusKind: 'register'
-          };
-        }
-
-        async function registerDirectly() {
-          const username = String(registerUsernameInput?.value || '').trim();
-          const email = String(registerEmailInput?.value || '').trim().toLowerCase();
-          const password = String(registerPasswordInput?.value || '').trim();
-          const rememberLogin = Boolean(authRememberLoginInput?.checked);
-
-          if (!username) {
-            setAuthStatus('register', '请先填写用户名', true);
-            return;
-          }
-
-          if (!email) {
-            setAuthStatus('register', '请先填写邮箱地址', true);
-            return;
-          }
-
-          if (password.length < 6 || password.length > 64) {
-            setAuthStatus('register', '请填写 6-64 位登录密码', true);
-            return;
-          }
-
-          setAuthStatus('register', '正在注册账号...');
-
-          try {
-            const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
-            const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
-            const response = await fetch('/api/community/register', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ username, email, password, rememberLogin, registerAsDeveloper, developerSecret })
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '注册失败');
+                if (code === 'CMD-20CB-IN') return '/assets/payment/wechat-pay-code-20.png';
+                if (code === 'CMD-20CB-PLUS') return '/assets/payment/wechat-pay-code-40.png';
+                if (code === 'IMPORT-ONCE' || code === 'BUILD-IMPORT-ONCE') return '/assets/payment/wechat-pay-code-20.png';
+                return '/assets/payment/wechat-pay-code.png';
             }
 
-            const token = String(result?.token || '').trim();
-            if (token) {
-              localStorage.setItem('mctools-auth-token', token);
+            function showLocalPaymentFallback(message) {
+                if (paymentOrderNo) {
+                    paymentOrderNo.textContent = '本地付款码';
+                }
+
+                const fallbackImagePath = resolveFallbackPaymentImagePath(activePaymentProduct);
+
+                if (paymentCodeImage) {
+                    paymentCodeImage.onload = () => {
+                        if (paymentPlaceholder) paymentPlaceholder.hidden = true;
+                    };
+                    paymentCodeImage.onerror = () => {
+                        showPaymentPlaceholder('付款码加载失败', `请检查 public${fallbackImagePath} 是否存在`);
+                    };
+                    paymentCodeImage.src = fallbackImagePath;
+                    paymentCodeImage.hidden = false;
+                }
+
+                if (paymentPlaceholder) paymentPlaceholder.hidden = true;
+                setPaymentStatus(message || '当前微信支付未配置，已展示本地付款码作为兜底。');
             }
 
-            accountState.loggedIn = true;
-            accountState.username = String(result?.username || username);
-            accountState.isDeveloper = Boolean(result?.isDeveloper);
-            accountState.token = token || null;
-            updateAuthTrigger();
-            closeAuthModal();
-            await loadAccountState();
+            function setAuthMessage(text, isError = false) {
+                if (!authMessage) {
+                    return;
+                }
 
-            if (pendingPurchaseProduct) {
-              const nextProduct = pendingPurchaseProduct;
-              pendingPurchaseProduct = null;
-              setPaymentProduct(nextProduct);
-              openPaymentModal();
-            }
-          } catch (error) {
-            setAuthStatus('register', error.message || '注册失败', true);
-          }
-        }
-
-        async function submitPasswordLogin() {
-          const username = String(loginUsernameInput?.value || '').trim();
-          const email = String(loginEmailInput?.value || '').trim().toLowerCase();
-          const password = String(loginPasswordInput?.value || '').trim();
-          const rememberLogin = Boolean(authRememberLoginInput?.checked);
-
-          if (!username && !email) {
-            setAuthStatus('login', '请填写用户名或邮箱', true);
-            return;
-          }
-
-          if (!password) {
-            setAuthStatus('login', '请输入登录密码', true);
-            return;
-          }
-
-          setAuthStatus('login', '正在校验密码...');
-
-          try {
-            const response = await fetch('/api/community/password-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json; charset=utf-8' },
-              body: JSON.stringify({ username, email, password, rememberLogin })
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-              throw new Error(result.message || '密码登录失败');
+                authMessage.textContent = text;
+                authMessage.style.color = isError ? '#fca5a5' : '';
             }
 
-            accountState.loggedIn = true;
-            accountState.username = String(result?.username || username || email);
-            accountState.isDeveloper = Boolean(result?.isDeveloper);
-            accountState.token = String(result?.token || '').trim() || null;
-            if (accountState.token) {
-              localStorage.setItem('mctools-auth-token', accountState.token);
+            function setAuthStatus(kind, text, isError = false) {
+                const target = kind === 'login' ? loginStatus : registerStatus;
+                if (!target) {
+                    return;
+                }
+
+                target.textContent = text;
+                target.style.color = isError ? '#fca5a5' : '';
             }
 
-            updateAuthTrigger();
-            closeAuthModal();
-            await loadAccountState();
-
-            if (pendingPurchaseProduct) {
-              const nextProduct = pendingPurchaseProduct;
-              pendingPurchaseProduct = null;
-              setPaymentProduct(nextProduct);
-              openPaymentModal();
+            function setAuthTab(nextMode) {
+                authMode = nextMode;
+                authTabs.forEach((tab) => {
+                    tab.classList.toggle('active', tab.dataset.authTab === nextMode);
+                });
+                authPanels.forEach((panel) => {
+                    const isActive = panel.dataset.authPanel === nextMode;
+                    panel.hidden = !isActive;
+                    panel.classList.toggle('active', isActive);
+                });
+                setAuthMessage(nextMode === 'register'
+                    ? '注册账号后可同步记录与账号状态。'
+                    : '请输入已注册的用户名和邮箱，可直接登录。');
             }
-          } catch (error) {
-            setAuthStatus('login', error.message || '密码登录失败', true);
-          }
-        }
 
-        function setPaymentProduct(product) {
-          activePaymentProduct = {
-            name: String(product?.name || '商品').trim(),
-            price: Number(product?.price || 1),
-            code: String(product?.code || '').trim().toUpperCase(),
-            description: String(product?.description || '').trim()
-          };
+            function updateAuthTrigger() {
+                if (!authTriggerButton) {
+                    return;
+                }
 
-          paymentCheckoutState.contact = paymentCheckoutState.contact || '';
+                authTriggerButton.textContent = accountState.loggedIn
+                    ? '设置'
+                    : '登录 / 注册';
+                authTriggerButton.classList.toggle('auth-logged-in', accountState.loggedIn);
 
-          if (paymentOrderNo) paymentOrderNo.textContent = '未创建';
-          if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
-          if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
-          if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
+                if (authLogoutButton) {
+                    authLogoutButton.hidden = !accountState.loggedIn;
+                }
 
-          if (paymentContactInput) {
-            paymentContactInput.value = paymentCheckoutState.contact;
-          }
+                if (controlPanelButton) {
+                    controlPanelButton.hidden = !accountState.isDeveloper;
+                }
 
-          updatePaymentCheckoutView();
+                updatePaymentCheckoutView();
 
-          currentPaymentOrder = null;
-        }
+                updateAdminAccessView();
+            }
 
-        function openCardSecretModal(cardSecret) {
-          if (isStorePaymentsTemporarilyClosed()) {
-            return;
-          }
+            async function loadAccountState() {
+                try {
+                    const token = localStorage.getItem('mctools-auth-token');
+                    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-          if (!cardSecretModal || !cardSecretValue) {
-            return;
-          }
+                    const response = await fetch('/api/community/me', { headers });
+                    if (!response.ok) {
+                        accountState.loggedIn = false;
+                        accountState.username = '';
+                        accountState.isDeveloper = false;
+                        accountState.storeDiscountTier = '';
+                        accountState.token = null;
+                        localStorage.removeItem('mctools-auth-token');
+                        updateAuthTrigger();
+                        return;
+                    }
 
-          closeAnnouncementModal();
+                    const result = await response.json();
+                    accountState.loggedIn = Boolean(result?.loggedIn && result?.username);
+                    accountState.username = String(result?.username || '');
+                    accountState.isDeveloper = Boolean(result?.isDeveloper);
+                    accountState.storeDiscountTier = String(result?.storeDiscountTier || '');
+                    accountState.token = accountState.loggedIn ? token : null;
+                    if (!accountState.loggedIn) {
+                        localStorage.removeItem('mctools-auth-token');
+                    }
+                    updateAuthTrigger();
+                    renderStoreProducts(storeProducts);
+                } catch {
+                    accountState.loggedIn = false;
+                    accountState.username = '';
+                    accountState.isDeveloper = false;
+                    accountState.storeDiscountTier = '';
+                    accountState.token = null;
+                    updateAuthTrigger();
+                    renderStoreProducts(storeProducts);
+                }
+            }
 
-          cardSecretValue.textContent = String(cardSecret || '').trim() || '未获取到卡密';
-          cardSecretModal.classList.add('open');
-          cardSecretModal.setAttribute('aria-hidden', 'false');
+            function openAuthModal(mode = 'register', message) {
+                if (!authModal) {
+                    return;
+                }
 
-          try {
-            localStorage.removeItem(hongxingReturnOrderStorageKey);
-          } catch {
-            // ignore storage errors
-          }
-        }
+                setAuthTab(mode);
+                if (message) setAuthMessage(message);
+                authModal.classList.add('open');
+                authModal.setAttribute('aria-hidden', 'false');
+            }
 
-        function closeCardSecretModal() {
-          if (!cardSecretModal) {
-            return;
-          }
+            function closeAuthModal() {
+                if (!authModal) {
+                    return;
+                }
 
-          cardSecretModal.classList.remove('open');
-          cardSecretModal.setAttribute('aria-hidden', 'true');
-        }
+                authModal.classList.remove('open');
+                authModal.setAttribute('aria-hidden', 'true');
+            }
 
-        function maybeOpenCardSecretFromOrderResult(result) {
-          if (!result || isStorePaymentsTemporarilyClosed()) {
-            return false;
-          }
+            async function submitLogout() {
+                if (!confirmCriticalAction('确认退出当前账号吗？')) {
+                    setAuthMessage('已取消退出登录。');
+                    return;
+                }
 
-          const orderNo = String(result?.orderNo || '').trim();
-          const cardSecret = String(result?.cardSecret || '').trim();
-          const status = String(result?.status || '').trim().toUpperCase();
-          const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
+                try {
+                    await fetch('/api/community/logout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json; charset=utf-8' }
+                    });
+                } catch {
+                    // Ignore logout transport failures and still clear local state.
+                }
 
-          if (!paid || !cardSecret) {
-            return false;
-          }
+                localStorage.removeItem('mctools-auth-token');
+                accountState.loggedIn = false;
+                accountState.username = '';
+                accountState.isDeveloper = false;
+                accountState.storeDiscountTier = '';
+                accountState.token = null;
+                pendingPurchaseProduct = null;
+                updateAuthTrigger();
+                closeAdminModal();
+                setAuthMessage('你已经退出登录。');
+            }
 
-          if (shownCardSecretOrderNo === orderNo) {
-            return true;
-          }
+            async function requireLoginBeforePurchase(product) {
+                pendingPurchaseProduct = product;
+                updatePaymentCheckoutView();
+                return true;
+            }
 
-          shownCardSecretOrderNo = orderNo;
-          openCardSecretModal(cardSecret);
-          setPaymentStatus('支付成功，卡密已发放。');
-          return true;
-        }
+            function getAuthInputs() {
+                if (authMode === 'login') {
+                    return {
+                        usernameInput: loginUsernameInput,
+                        emailInput: loginEmailInput,
+                        codeInput: loginCodeInput,
+                        statusKind: 'login'
+                    };
+                }
 
-        function renderOrderQueryResult(result, kind = '') {
-          if (!orderQueryResult) {
-            return;
-          }
+                return {
+                    usernameInput: registerUsernameInput,
+                    emailInput: registerEmailInput,
+                    codeInput: registerCodeInput,
+                    statusKind: 'register'
+                };
+            }
 
-          if (!result) {
-            orderQueryResult.className = 'order-query-result';
-            orderQueryResult.innerHTML = '<div class="order-query-note">请输入订单号后点击查单。</div>';
-            return;
-          }
+            async function registerDirectly() {
+                const username = String(registerUsernameInput?.value || '').trim();
+                const email = String(registerEmailInput?.value || '').trim().toLowerCase();
+                const password = String(registerPasswordInput?.value || '').trim();
+                const rememberLogin = Boolean(authRememberLoginInput?.checked);
 
-          if (result.error) {
-            orderQueryResult.className = 'order-query-result error';
-            orderQueryResult.innerHTML = `
+                if (!username) {
+                    setAuthStatus('register', '请先填写用户名', true);
+                    return;
+                }
+
+                if (!email) {
+                    setAuthStatus('register', '请先填写邮箱地址', true);
+                    return;
+                }
+
+                if (password.length < 6 || password.length > 64) {
+                    setAuthStatus('register', '请填写 6-64 位登录密码', true);
+                    return;
+                }
+
+                setAuthStatus('register', '正在注册账号...');
+
+                try {
+                    const registerAsDeveloper = Boolean(registerDeveloperToggleInput?.checked);
+                    const developerSecret = String(registerDeveloperSecretInput?.value || '').trim();
+                    const response = await fetch('/api/community/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                        body: JSON.stringify({ username, email, password, rememberLogin, registerAsDeveloper, developerSecret })
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.message || '注册失败');
+                    }
+
+                    const token = String(result?.token || '').trim();
+                    if (token) {
+                        localStorage.setItem('mctools-auth-token', token);
+                    }
+
+                    accountState.loggedIn = true;
+                    accountState.username = String(result?.username || username);
+                    accountState.isDeveloper = Boolean(result?.isDeveloper);
+                    accountState.token = token || null;
+                    updateAuthTrigger();
+                    closeAuthModal();
+                    await loadAccountState();
+
+                    if (pendingPurchaseProduct) {
+                        const nextProduct = pendingPurchaseProduct;
+                        pendingPurchaseProduct = null;
+                        setPaymentProduct(nextProduct);
+                        openPaymentModal();
+                    }
+                } catch (error) {
+                    setAuthStatus('register', error.message || '注册失败', true);
+                }
+            }
+
+            async function submitPasswordLogin() {
+                const username = String(loginUsernameInput?.value || '').trim();
+                const email = String(loginEmailInput?.value || '').trim().toLowerCase();
+                const password = String(loginPasswordInput?.value || '').trim();
+                const rememberLogin = Boolean(authRememberLoginInput?.checked);
+
+                if (!username && !email) {
+                    setAuthStatus('login', '请填写用户名或邮箱', true);
+                    return;
+                }
+
+                if (!password) {
+                    setAuthStatus('login', '请输入登录密码', true);
+                    return;
+                }
+
+                setAuthStatus('login', '正在校验密码...');
+
+                try {
+                    const response = await fetch('/api/community/password-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                        body: JSON.stringify({ username, email, password, rememberLogin })
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) {
+                        throw new Error(result.message || '密码登录失败');
+                    }
+
+                    accountState.loggedIn = true;
+                    accountState.username = String(result?.username || username || email);
+                    accountState.isDeveloper = Boolean(result?.isDeveloper);
+                    accountState.token = String(result?.token || '').trim() || null;
+                    if (accountState.token) {
+                        localStorage.setItem('mctools-auth-token', accountState.token);
+                    }
+
+                    updateAuthTrigger();
+                    closeAuthModal();
+                    await loadAccountState();
+
+                    if (pendingPurchaseProduct) {
+                        const nextProduct = pendingPurchaseProduct;
+                        pendingPurchaseProduct = null;
+                        setPaymentProduct(nextProduct);
+                        openPaymentModal();
+                    }
+                } catch (error) {
+                    setAuthStatus('login', error.message || '密码登录失败', true);
+                }
+            }
+
+            function setPaymentProduct(product) {
+                activePaymentProduct = {
+                    name: String(product?.name || '商品').trim(),
+                    price: Number(product?.price || 1),
+                    code: String(product?.code || '').trim().toUpperCase(),
+                    description: String(product?.description || '').trim()
+                };
+
+                paymentCheckoutState.contact = paymentCheckoutState.contact || '';
+
+                if (paymentOrderNo) paymentOrderNo.textContent = '未创建';
+                if (paymentProductName) paymentProductName.textContent = activePaymentProduct.name;
+                if (paymentProductCode) paymentProductCode.textContent = activePaymentProduct.code;
+                if (paymentAmount) paymentAmount.textContent = `${activePaymentProduct.price.toFixed(2)} 元`;
+
+                if (paymentContactInput) {
+                    paymentContactInput.value = paymentCheckoutState.contact;
+                }
+
+                updatePaymentCheckoutView();
+
+                currentPaymentOrder = null;
+            }
+
+            function openCardSecretModal(cardSecret) {
+                if (isStorePaymentsTemporarilyClosed()) {
+                    return;
+                }
+
+                if (!cardSecretModal || !cardSecretValue) {
+                    return;
+                }
+
+                closeAnnouncementModal();
+
+                cardSecretValue.textContent = String(cardSecret || '').trim() || '未获取到卡密';
+                cardSecretModal.classList.add('open');
+                cardSecretModal.setAttribute('aria-hidden', 'false');
+
+                try {
+                    localStorage.removeItem(hongxingReturnOrderStorageKey);
+                } catch {
+                    // ignore storage errors
+                }
+            }
+
+            function closeCardSecretModal() {
+                if (!cardSecretModal) {
+                    return;
+                }
+
+                cardSecretModal.classList.remove('open');
+                cardSecretModal.setAttribute('aria-hidden', 'true');
+            }
+
+            function maybeOpenCardSecretFromOrderResult(result) {
+                if (!result || isStorePaymentsTemporarilyClosed()) {
+                    return false;
+                }
+
+                const orderNo = String(result?.orderNo || '').trim();
+                const cardSecret = String(result?.cardSecret || '').trim();
+                const status = String(result?.status || '').trim().toUpperCase();
+                const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
+
+                if (!paid || !cardSecret) {
+                    return false;
+                }
+
+                if (shownCardSecretOrderNo === orderNo) {
+                    return true;
+                }
+
+                shownCardSecretOrderNo = orderNo;
+                openCardSecretModal(cardSecret);
+                setPaymentStatus('支付成功，卡密已发放。');
+                return true;
+            }
+
+            function renderOrderQueryResult(result, kind = '') {
+                if (!orderQueryResult) {
+                    return;
+                }
+
+                if (!result) {
+                    orderQueryResult.className = 'order-query-result';
+                    orderQueryResult.innerHTML = '<div class="order-query-note">请输入订单号后点击查单。</div>';
+                    return;
+                }
+
+                if (result.error) {
+                    orderQueryResult.className = 'order-query-result error';
+                    orderQueryResult.innerHTML = `
               <div class="order-query-note">${escapeHtml(result.error)}</div>
               ${result.orderNo ? `<div class="order-query-result-item"><span>订单号</span><strong>${escapeHtml(result.orderNo)}</strong></div>` : ''}
             `;
-            return;
-          }
+                    return;
+                }
 
-          const paidLabel = result.paid ? '已支付' : '未支付';
-          const cardSecret = String(result.cardSecret || '').trim();
-          const status = String(result.status || '').trim() || 'PENDING';
-          const note = result.paid
-            ? (cardSecret ? '订单已支付，卡密已发放。' : '订单已支付，卡密正在生成，请稍候。')
-            : '订单尚未支付成功，请完成付款后再查。';
+                const paidLabel = result.paid ? '已支付' : '未支付';
+                const cardSecret = String(result.cardSecret || '').trim();
+                const status = String(result.status || '').trim() || 'PENDING';
+                const note = result.paid
+                    ? (cardSecret ? '订单已支付，卡密已发放。' : '订单已支付，卡密正在生成，请稍候。')
+                    : '订单尚未支付成功，请完成付款后再查。';
 
-          orderQueryResult.className = `order-query-result ${kind || (result.paid ? 'success' : 'pending')}`;
-          orderQueryResult.innerHTML = `
+                orderQueryResult.className = `order-query-result ${kind || (result.paid ? 'success' : 'pending')}`;
+                orderQueryResult.innerHTML = `
             <div class="order-query-result-item"><span>订单号</span><strong>${escapeHtml(result.orderNo || '--')}</strong></div>
             <div class="order-query-result-item"><span>商品</span><strong>${escapeHtml(result.productName || '--')}</strong></div>
             <div class="order-query-result-item"><span>状态</span><strong>${escapeHtml(status)}</strong></div>
@@ -4529,84 +5724,84 @@
             <div class="order-query-note">${escapeHtml(note)}</div>
             ${cardSecret ? `<div class="order-query-result-item"><span>卡密</span><strong>${escapeHtml(cardSecret)}</strong></div>` : ''}
           `;
-        }
+            }
 
-        function normalizeLookupOrderNo(orderNo) {
-          const raw = String(orderNo || '').trim().toUpperCase();
-          if (!raw) {
-            return '';
-          }
+            function normalizeLookupOrderNo(orderNo) {
+                const raw = String(orderNo || '').trim().toUpperCase();
+                if (!raw) {
+                    return '';
+                }
 
-          const stripped = raw
-            .replace(/^#+/, '')
-            .replace(/^\*+/, '')
-            .replace(/\*+$/, '')
-            .replace(/^\s+|\s+$/g, '');
+                const stripped = raw
+                    .replace(/^#+/, '')
+                    .replace(/^\*+/, '')
+                    .replace(/\*+$/, '')
+                    .replace(/^\s+|\s+$/g, '');
 
-          const matched = stripped.match(/[A-Z0-9][A-Z0-9_-]{6,}/);
-          return String(matched ? matched[0] : stripped).replace(/[^A-Z0-9_-]/g, '');
-        }
+                const matched = stripped.match(/[A-Z0-9][A-Z0-9_-]{6,}/);
+                return String(matched ? matched[0] : stripped).replace(/[^A-Z0-9_-]/g, '');
+            }
 
-        function openOrderQueryModal(prefillOrderNo = '') {
-          if (!orderQueryModal) {
-            return;
-          }
+            function openOrderQueryModal(prefillOrderNo = '') {
+                if (!orderQueryModal) {
+                    return;
+                }
 
-          if (orderQueryInput && prefillOrderNo) {
-            orderQueryInput.value = String(prefillOrderNo || '').trim();
-          }
+                if (orderQueryInput && prefillOrderNo) {
+                    orderQueryInput.value = String(prefillOrderNo || '').trim();
+                }
 
-          orderQueryModal.classList.add('open');
-          orderQueryModal.setAttribute('aria-hidden', 'false');
-          renderOrderQueryResult(lastOrderQueryResult);
+                orderQueryModal.classList.add('open');
+                orderQueryModal.setAttribute('aria-hidden', 'false');
+                renderOrderQueryResult(lastOrderQueryResult);
 
-          if (orderQueryInput) {
-            orderQueryInput.focus();
-            orderQueryInput.select();
-          }
-        }
+                if (orderQueryInput) {
+                    orderQueryInput.focus();
+                    orderQueryInput.select();
+                }
+            }
 
-        function closeOrderQueryModal() {
-          if (!orderQueryModal) {
-            return;
-          }
+            function closeOrderQueryModal() {
+                if (!orderQueryModal) {
+                    return;
+                }
 
-          orderQueryModal.classList.remove('open');
-          orderQueryModal.setAttribute('aria-hidden', 'true');
-        }
+                orderQueryModal.classList.remove('open');
+                orderQueryModal.setAttribute('aria-hidden', 'true');
+            }
 
-        async function queryOrderByOrderNo(orderNo) {
-          const normalizedOrderNo = normalizeLookupOrderNo(orderNo);
+            async function queryOrderByOrderNo(orderNo) {
+                const normalizedOrderNo = normalizeLookupOrderNo(orderNo);
 
-          if (!normalizedOrderNo) {
-            throw new Error('请输入订单号');
-          }
+                if (!normalizedOrderNo) {
+                    throw new Error('请输入订单号');
+                }
 
-          const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
-          lastOrderQueryResult = result;
-          renderOrderQueryResult(result);
+                const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
+                lastOrderQueryResult = result;
+                renderOrderQueryResult(result);
 
-          maybeOpenCardSecretFromOrderResult(result);
-          return result;
-        }
+                maybeOpenCardSecretFromOrderResult(result);
+                return result;
+            }
 
-        function renderContactQueryOrders(contact, orders) {
-          if (!orderQueryContactList) {
-            return;
-          }
+            function renderContactQueryOrders(contact, orders) {
+                if (!orderQueryContactList) {
+                    return;
+                }
 
-          if (!Array.isArray(orders) || orders.length === 0) {
-            orderQueryContactList.hidden = false;
-            orderQueryContactList.innerHTML = '<div class="order-query-note">该联系方式暂无订单。</div>';
-            return;
-          }
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    orderQueryContactList.hidden = false;
+                    orderQueryContactList.innerHTML = '<div class="order-query-note">该联系方式暂无订单。</div>';
+                    return;
+                }
 
-          orderQueryContactList.hidden = false;
-          orderQueryContactList.innerHTML = orders.map((order) => {
-            const orderNo = String(order?.orderNo || '').trim();
-            const status = String(order?.status || 'PENDING').trim();
-            const paidLabel = status === 'SUCCESS' || status === 'TRADE_SUCCESS' || status === 'PAID' || status === '1' ? '已支付' : '未支付';
-            return `
+                orderQueryContactList.hidden = false;
+                orderQueryContactList.innerHTML = orders.map((order) => {
+                    const orderNo = String(order?.orderNo || '').trim();
+                    const status = String(order?.status || 'PENDING').trim();
+                    const paidLabel = status === 'SUCCESS' || status === 'TRADE_SUCCESS' || status === 'PAID' || status === '1' ? '已支付' : '未支付';
+                    return `
               <div class="order-query-contact-item" data-contact-order-item data-order-no="${escapeHtml(orderNo)}">
                 <div>
                   <strong>${escapeHtml(orderNo)}</strong>
@@ -4615,626 +5810,860 @@
                 <button type="button" data-contact-order-open="${escapeHtml(orderNo)}">查看</button>
               </div>
             `;
-          }).join('');
-        }
-
-        async function queryOrdersByContact(contact) {
-          const normalizedContact = String(contact || '').trim();
-          if (!normalizedContact || normalizedContact.length < 4) {
-            throw new Error('联系方式长度至少 4 位');
-          }
-
-          const result = await fetchJsonSafely(`/api/store/orders/by-contact?contact=${encodeURIComponent(normalizedContact)}&limit=20`, undefined, '联系方式查单失败');
-          renderContactQueryOrders(normalizedContact, result.orders || []);
-          return result.orders || [];
-        }
-
-        function stopOrderStatusPolling() {
-          if (paymentStatusPollTimer) {
-            clearInterval(paymentStatusPollTimer);
-            paymentStatusPollTimer = null;
-          }
-
-          paymentStatusPollingOrderNo = '';
-          paymentStatusPollingBusy = false;
-        }
-
-        async function queryCardSecretByOrderNo(orderNo) {
-          const normalizedOrderNo = String(orderNo || '').trim();
-
-          if (!normalizedOrderNo) {
-            throw new Error('当前订单还未创建，请先生成付款码');
-          }
-
-          const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
-
-          if (isStorePaymentsTemporarilyClosed()) {
-            return;
-          }
-
-          const productName = String(result?.productName || '').trim();
-          const productCode = String(result?.productCode || '').trim().toUpperCase();
-          const status = String(result?.status || '').trim().toUpperCase();
-          const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
-          if (paid && ['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
-            await loadAccountState();
-            await loadStoreProducts();
-          }
-
-          if (!paid) {
-            throw new Error('订单尚未支付成功，请完成付款后重试');
-          }
-
-          if (!String(result.cardSecret || '').trim()) {
-            setPaymentStatus('订单已支付，卡密生成中，请稍候...');
-            if (paymentStatusPollingOrderNo !== normalizedOrderNo) {
-              startOrderStatusPolling(normalizedOrderNo);
+                }).join('');
             }
-            return;
-          }
 
-          if (maybeOpenCardSecretFromOrderResult(result)) {
-            return;
-          }
+            async function queryOrdersByContact(contact) {
+                const normalizedContact = String(contact || '').trim();
+                if (!normalizedContact || normalizedContact.length < 4) {
+                    throw new Error('联系方式长度至少 4 位');
+                }
 
-          setPaymentStatus('支付成功，卡密已发放。');
-        }
-
-        async function resumeHongxingPaymentFromQuery() {
-          let hongxingOrderNo = '';
-
-          try {
-            const url = new URL(window.location.href);
-            hongxingOrderNo = String(url.searchParams.get('hongxingOrderNo') || '').trim();
-
-            if (hongxingOrderNo) {
-              url.searchParams.delete('hongxingOrderNo');
-              window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+                const result = await fetchJsonSafely(`/api/store/orders/by-contact?contact=${encodeURIComponent(normalizedContact)}&limit=20`, undefined, '联系方式查单失败');
+                renderContactQueryOrders(normalizedContact, result.orders || []);
+                return result.orders || [];
             }
-          } catch {
-            hongxingOrderNo = '';
-          }
 
-          if (!hongxingOrderNo) {
-            try {
-              hongxingOrderNo = String(localStorage.getItem(hongxingReturnOrderStorageKey) || '').trim();
-            } catch {
-              hongxingOrderNo = '';
-            }
-          }
+            function stopOrderStatusPolling() {
+                if (paymentStatusPollTimer) {
+                    clearInterval(paymentStatusPollTimer);
+                    paymentStatusPollTimer = null;
+                }
 
-          if (!hongxingOrderNo) {
-            return;
-          }
-
-          setPaymentStatus('支付已返回，正在查询卡密...');
-
-          try {
-            await queryCardSecretByOrderNo(hongxingOrderNo);
-          } catch (error) {
-            setPaymentStatus('支付状态确认中，请稍候...', false);
-            paymentStatusPollingOrderNo = hongxingOrderNo;
-            startOrderStatusPolling(hongxingOrderNo);
-
-            let waitCount = 0;
-            const waitForCardSecret = async () => {
-              if (!paymentStatusPollingOrderNo) {
-                return;
-              }
-
-              try {
-                await queryCardSecretByOrderNo(hongxingOrderNo);
                 paymentStatusPollingOrderNo = '';
-                return;
-              } catch {
-                waitCount += 1;
-                if (waitCount < 20 && paymentStatusPollingOrderNo) {
-                  window.setTimeout(waitForCardSecret, 1500);
-                }
-              }
-            };
-
-            window.setTimeout(waitForCardSecret, 1500);
-          }
-        }
-
-        function startOrderStatusPolling(orderNo) {
-          const normalizedOrderNo = String(orderNo || '').trim();
-
-          if (!normalizedOrderNo) {
-            return;
-          }
-
-          if (paymentStatusPollTimer && paymentStatusPollingOrderNo === normalizedOrderNo) {
-            return;
-          }
-
-          stopOrderStatusPolling();
-          paymentStatusPollingOrderNo = normalizedOrderNo;
-
-          const poll = async () => {
-            if (!paymentStatusPollingOrderNo || paymentStatusPollingBusy) {
-              return;
+                paymentStatusPollingBusy = false;
             }
 
-            paymentStatusPollingBusy = true;
+            async function queryCardSecretByOrderNo(orderNo) {
+                const normalizedOrderNo = String(orderNo || '').trim();
 
-            try {
-              const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(paymentStatusPollingOrderNo)}`);
-              if (!response.ok) return;
+                if (!normalizedOrderNo) {
+                    throw new Error('当前订单还未创建，请先生成付款码');
+                }
 
-              const result = await response.json();
-              if (isStorePaymentsTemporarilyClosed()) {
-                stopOrderStatusPolling();
-                setPaymentStatus('支付状态正在处理，请稍后再试。', true);
-                return;
-              }
+                const result = await fetchJsonSafely(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(normalizedOrderNo)}`, undefined, '查询订单失败');
 
-              const hasPaidStatus = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(String(result?.status || '').trim().toUpperCase());
+                if (isStorePaymentsTemporarilyClosed()) {
+                    return;
+                }
 
-              if (hasPaidStatus) {
+                const productName = String(result?.productName || '').trim();
+                const productCode = String(result?.productCode || '').trim().toUpperCase();
+                const status = String(result?.status || '').trim().toUpperCase();
+                const paid = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(status);
+                if (paid && ['LVIP-30', 'VIP-45', 'SVIP-15'].includes(productCode)) {
+                    await loadAccountState();
+                    await loadStoreProducts();
+                }
+
+                if (!paid) {
+                    throw new Error('订单尚未支付成功，请完成付款后重试');
+                }
+
+                if (!String(result.cardSecret || '').trim()) {
+                    setPaymentStatus('订单已支付，卡密生成中，请稍候...');
+                    if (paymentStatusPollingOrderNo !== normalizedOrderNo) {
+                        startOrderStatusPolling(normalizedOrderNo);
+                    }
+                    return;
+                }
+
                 if (maybeOpenCardSecretFromOrderResult(result)) {
-                  stopOrderStatusPolling();
-                  return;
-                }
-                setPaymentStatus('微信支付已确认，卡密正在生成，请稍候...');
-              }
-            } catch {
-              // Keep polling for transient network failures.
-            } finally {
-              paymentStatusPollingBusy = false;
-            }
-          };
-
-          paymentStatusPollTimer = setInterval(poll, 3000);
-          poll();
-        }
-
-        async function ensurePaymentConfigReady() {
-          if (paymentConfigReady !== null) {
-            return paymentConfigReady && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled;
-          }
-
-          try {
-            const [metaResponse, settingsResponse] = await Promise.all([
-              fetch('/api/store/wechat/meta'),
-              fetch('/api/store/settings')
-            ]);
-            const result = await metaResponse.json();
-            const settingsResult = await settingsResponse.json();
-            storeFeatureSettings = {
-              maintenanceEnabled: Boolean(settingsResult?.maintenanceEnabled),
-              paymentsEnabled: settingsResult?.paymentsEnabled !== false
-            };
-            activePaymentProvider = String(result?.provider || '').trim().toLowerCase();
-            paymentConfigReady = Boolean(metaResponse.ok && result.ready && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled);
-            return paymentConfigReady;
-          } catch {
-            activePaymentProvider = '';
-            paymentConfigReady = false;
-            return false;
-          }
-        }
-
-        function renderPaymentOrder(order) {
-          if (!order) {
-            return;
-          }
-
-          currentPaymentOrder = order;
-
-          if (paymentOrderNo) {
-            paymentOrderNo.textContent = order.orderNo || '未生成';
-          }
-
-          if (paymentCodeImage && order.qrDataUrl) {
-            paymentCodeImage.onload = () => {
-              if (paymentPlaceholder) {
-                paymentPlaceholder.hidden = true;
-              }
-            };
-            paymentCodeImage.onerror = () => {
-              showPaymentPlaceholder('二维码加载失败', '请重新打开付款弹窗或稍后重试');
-              setPaymentStatus('二维码加载失败，请重试。', true);
-            };
-            paymentCodeImage.src = order.qrDataUrl;
-            paymentCodeImage.hidden = false;
-          }
-
-          setPaymentStatus(`微信订单已创建，订单号 ${order.orderNo}`);
-
-          if (order.orderNo) {
-            startOrderStatusPolling(order.orderNo);
-          }
-        }
-
-        async function createPaymentOrder() {
-          if (currentPaymentOrder?.qrDataUrl) {
-            return currentPaymentOrder;
-          }
-
-          if (isStorePaymentsTemporarilyClosed()) {
-            throw new Error('支付通道已关闭，当前无法创建订单。');
-          }
-
-          const ready = await ensurePaymentConfigReady();
-          if (!ready) {
-            throw new Error('微信支付配置不完整');
-          }
-
-          if (currentPaymentOrderRequest) {
-            return currentPaymentOrderRequest;
-          }
-
-          if (!accountState.loggedIn) {
-            openAuthModal('login', '请先登录后再继续支付，登录完成会自动回到确认页。');
-            pendingPurchaseProduct = activePaymentProduct;
-            setPaymentStatus('未登录，请先登录后再生成支付码。', true);
-            return null;
-          }
-
-          const contactValue = String(paymentContactInput?.value || paymentCheckoutState.contact || '').trim();
-          const selectedMethod = String(paymentCheckoutState.method || 'wechat').toLowerCase();
-          const normalizedMethod = selectedMethod === 'alipay' ? 'alipay' : selectedMethod === 'wechat_backup' || selectedMethod === 'wechat-backup' ? 'wechat_backup' : 'wechat';
-          paymentCheckoutState.method = normalizedMethod;
-
-          if (!contactValue) {
-            setPaymentStatus('请填写联系方式后再生成支付码。', true);
-            paymentContactInput?.focus();
-            return null;
-          }
-
-          paymentCheckoutState.contact = contactValue;
-          updatePaymentCheckoutView();
-
-          currentPaymentOrderRequest = (async () => {
-            const providerLabel = activePaymentProvider === 'hongxing' ? '洪星' : '微信';
-            const methodLabel = getPaymentMethodLabel(selectedMethod);
-            setPaymentStatus(`正在创建${providerLabel}支付订单...`);
-            showPaymentPlaceholder(`正在创建${providerLabel}支付订单`, '请稍候，订单创建成功后会自动显示付款信息');
-
-            const result = await fetchJsonSafely('/api/store/wechat/native-order', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json; charset=utf-8',
-                ...(accountState.token ? { Authorization: `Bearer ${accountState.token}` } : {})
-              },
-              body: JSON.stringify({
-                productCode: activePaymentProduct.code,
-                productName: activePaymentProduct.name,
-                description: activePaymentProduct.description,
-                paymentMethod: normalizedMethod,
-                contact: contactValue
-              })
-            }, '支付下单失败');
-
-            renderPaymentOrder(result);
-            if (paymentMethodLabel) {
-              const responseMethod = String(result?.paymentMethod || normalizedMethod || methodLabel).toLowerCase();
-              paymentMethodLabel.textContent = responseMethod === 'alipay' ? '支付宝支付' : responseMethod === 'wechat_backup' || responseMethod === 'wechat-backup' ? '微信支付（备用）' : '微信支付';
-            }
-
-            if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.orderNo || '').trim()) {
-              try {
-                localStorage.setItem(hongxingReturnOrderStorageKey, String(result.orderNo).trim());
-              } catch {
-                // ignore storage errors
-              }
-            }
-
-            return result;
-          })();
-
-          try {
-            return await currentPaymentOrderRequest;
-          } finally {
-            currentPaymentOrderRequest = null;
-          }
-        }
-
-        async function openPaymentModal() {
-          if (!paymentModal) {
-            return;
-          }
-
-          paymentModal.classList.add('open');
-          paymentModal.setAttribute('aria-hidden', 'false');
-
-          if (paymentStatus) {
-            paymentStatus.textContent = '请选择支付方式并填写联系方式后生成订单。';
-            paymentStatus.style.color = '';
-          }
-
-          if (paymentContactInput && !paymentContactInput.value) {
-            paymentContactInput.focus();
-          }
-        }
-
-        function closePaymentModal() {
-          if (!paymentModal) {
-            return;
-          }
-
-          paymentModal.classList.remove('open');
-          paymentModal.setAttribute('aria-hidden', 'true');
-        }
-
-        if (toggleButton) {
-          toggleButton.addEventListener('click', () => {
-            const currentTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
-            const nextTheme = currentTheme === 'night' ? 'day' : 'night';
-            applyTheme(nextTheme);
-          });
-        }
-
-        if (authTriggerButton) {
-          authTriggerButton.addEventListener('click', () => {
-            const nextMode = accountState.loggedIn ? 'login' : 'register';
-            const target = new URL('/store-account.html', window.location.origin);
-            target.searchParams.set('auth', nextMode);
-            window.location.href = target.toString();
-          });
-        }
-
-        if (controlPanelButton) {
-          controlPanelButton.addEventListener('click', () => {
-            openAdminModal();
-          });
-        }
-
-        featureButtons.forEach((button) => {
-          button.addEventListener('click', () => {
-            const action = button.dataset.featureAction;
-
-            if (action === 'auth') {
-              const target = new URL('/store-account.html', window.location.origin);
-              target.searchParams.set('auth', accountState.loggedIn ? 'login' : 'register');
-              window.location.href = target.toString();
-              return;
-            }
-
-            if (action === 'dev') {
-              openAdminModal();
-            }
-          });
-        });
-
-        if (closeAdminButton) {
-          closeAdminButton.addEventListener('click', closeAdminModal);
-        }
-
-        if (adminCreateSubmit) {
-          adminCreateSubmit.addEventListener('click', async () => {
-            try {
-              const code = String(adminCreateCode?.value || '').trim().toUpperCase();
-              const name = String(adminCreateName?.value || '').trim();
-              const originalStr = String(adminCreateOriginal?.value || '').trim();
-              const saleStr = String(adminCreateSale?.value || '').trim();
-
-              // 前端验证
-              if (!code) {
-                throw new Error('请填写商品编码');
-              }
-              if (!name) {
-                throw new Error('请填写商品名称');
-              }
-              if (!originalStr) {
-                throw new Error('请填写原价');
-              }
-              if (!saleStr) {
-                throw new Error('请填写优惠价');
-              }
-
-              const originalPrice = Number(originalStr);
-              const salePrice = Number(saleStr);
-
-              if (!Number.isInteger(originalPrice) || originalPrice <= 0) {
-                throw new Error('原价必须为大于 0 的整数（分）');
-              }
-              if (!Number.isInteger(salePrice) || salePrice <= 0) {
-                throw new Error('优惠价必须为大于 0 的整数（分）');
-              }
-              if (salePrice > originalPrice) {
-                throw new Error('优惠价不能高于原价');
-              }
-
-              const body = {
-                productCode: code,
-                name: name,
-                description: String(adminCreateDescription?.value || '').trim(),
-                originalPriceFen: originalPrice,
-                salePriceFen: salePrice,
-                sortOrder: Number(adminCreateSort?.value || 100),
-                tags: String(adminCreateTags?.value || '')
-              };
-
-              if (!confirmCriticalAction(`确认新增商品「${name}」吗？`)) {
-                setAdminStatus('已取消新增商品。');
-                return;
-              }
-
-              setAdminStatus('正在提交...');
-              const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-              if (accountState.token) {
-                headers['Authorization'] = `Bearer ${accountState.token}`;
-              }
-              const response = await fetch('/api/store/products', {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(body)
-              });
-              const result = await response.json();
-              if (!response.ok) {
-                throw new Error(result.message || `请求失败 (${response.status})`);
-              }
-
-              setAdminStatus('新增商品成功。');
-              if (adminCreateCode) adminCreateCode.value = '';
-              if (adminCreateName) adminCreateName.value = '';
-              if (adminCreateDescription) adminCreateDescription.value = '';
-              if (adminCreateOriginal) adminCreateOriginal.value = '';
-              if (adminCreateSale) adminCreateSale.value = '';
-              if (adminCreateSort) adminCreateSort.value = '';
-              if (adminCreateTags) adminCreateTags.value = '';
-
-              await loadAdminProducts();
-              await loadStoreProducts();
-            } catch (error) {
-              console.error('Admin create error:', error);
-              setAdminStatus(error.message || '新增失败', true);
-            }
-          });
-        }
-
-        if (adminTable) {
-          adminTable.addEventListener('click', async (event) => {
-            const saveButton = event.target.closest('[data-admin-save]');
-            const toggleButton = event.target.closest('[data-admin-toggle]');
-            const row = event.target.closest('[data-admin-product-row]');
-
-            if (!row) {
-              return;
-            }
-
-            const productCode = String(row.dataset.productCode || '').trim();
-            const nameInput = row.querySelector('[data-admin-name]');
-            const descInput = row.querySelector('[data-admin-description]');
-            const originalInput = row.querySelector('[data-admin-original]');
-            const saleInput = row.querySelector('[data-admin-sale]');
-            const sortInput = row.querySelector('[data-admin-sort]');
-            const tagsInput = row.querySelector('[data-admin-tags]');
-
-            if (saveButton) {
-              try {
-                const name = String(nameInput?.value || '').trim();
-                const originalStr = String(originalInput?.value || '').trim();
-                const saleStr = String(saleInput?.value || '').trim();
-
-                // 前端验证
-                if (!name) {
-                  throw new Error('商品名称不能为空');
-                }
-                if (originalStr && !Number.isInteger(Number(originalStr))) {
-                  throw new Error('原价必须为整数（分）');
-                }
-                if (saleStr && !Number.isInteger(Number(saleStr))) {
-                  throw new Error('优惠价必须为整数（分）');
+                    return;
                 }
 
-                if (!confirmCriticalAction(`确认保存商品 ${productCode} 的修改吗？`)) {
-                  setAdminStatus('已取消商品保存。');
-                  return;
+                setPaymentStatus('支付成功，卡密已发放。');
+            }
+
+            async function resumeHongxingPaymentFromQuery() {
+                let hongxingOrderNo = '';
+
+                try {
+                    const url = new URL(window.location.href);
+                    hongxingOrderNo = String(url.searchParams.get('hongxingOrderNo') || '').trim();
+
+                    if (hongxingOrderNo) {
+                        url.searchParams.delete('hongxingOrderNo');
+                        window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+                    }
+                } catch {
+                    hongxingOrderNo = '';
                 }
 
-                setAdminStatus('正在保存...');
-                const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-                if (accountState.token) {
-                  headers['Authorization'] = `Bearer ${accountState.token}`;
-                }
-                const response = await fetch('/api/store/products/update', {
-                  method: 'POST',
-                  headers,
-                  body: JSON.stringify({
-                    productCode,
-                    name: name,
-                    description: String(descInput?.value || '').trim(),
-                    originalPriceFen: originalStr ? Number(originalStr) : undefined,
-                    salePriceFen: saleStr ? Number(saleStr) : undefined,
-                    sortOrder: Number(sortInput?.value || 100),
-                    tags: String(tagsInput?.value || '')
-                  })
-                });
-
-                const result = await response.json();
-                if (!response.ok) {
-                  throw new Error(result.message || `保存失败 (${response.status})`);
+                if (!hongxingOrderNo) {
+                    try {
+                        hongxingOrderNo = String(localStorage.getItem(hongxingReturnOrderStorageKey) || '').trim();
+                    } catch {
+                        hongxingOrderNo = '';
+                    }
                 }
 
-                setAdminStatus(`商品 ${productCode} 已保存。`);
-                await loadAdminProducts();
-                await loadStoreProducts();
-              } catch (error) {
-                console.error('Admin save error:', error);
-                setAdminStatus(error.message || '保存失败', true);
-              }
-              return;
+                if (!hongxingOrderNo) {
+                    return;
+                }
+
+                setPaymentStatus('支付已返回，正在查询卡密...');
+
+                try {
+                    await queryCardSecretByOrderNo(hongxingOrderNo);
+                } catch (error) {
+                    setPaymentStatus('支付状态确认中，请稍候...', false);
+                    paymentStatusPollingOrderNo = hongxingOrderNo;
+                    startOrderStatusPolling(hongxingOrderNo);
+
+                    let waitCount = 0;
+                    const waitForCardSecret = async () => {
+                        if (!paymentStatusPollingOrderNo) {
+                            return;
+                        }
+
+                        try {
+                            await queryCardSecretByOrderNo(hongxingOrderNo);
+                            paymentStatusPollingOrderNo = '';
+                            return;
+                        } catch {
+                            waitCount += 1;
+                            if (waitCount < 20 && paymentStatusPollingOrderNo) {
+                                window.setTimeout(waitForCardSecret, 1500);
+                            }
+                        }
+                    };
+
+                    window.setTimeout(waitForCardSecret, 1500);
+                }
+            }
+
+            function startOrderStatusPolling(orderNo) {
+                const normalizedOrderNo = String(orderNo || '').trim();
+
+                if (!normalizedOrderNo) {
+                    return;
+                }
+
+                if (paymentStatusPollTimer && paymentStatusPollingOrderNo === normalizedOrderNo) {
+                    return;
+                }
+
+                stopOrderStatusPolling();
+                paymentStatusPollingOrderNo = normalizedOrderNo;
+
+                const poll = async () => {
+                    if (!paymentStatusPollingOrderNo || paymentStatusPollingBusy) {
+                        return;
+                    }
+
+                    paymentStatusPollingBusy = true;
+
+                    try {
+                        const response = await fetch(`/api/store/wechat/order-status?orderNo=${encodeURIComponent(paymentStatusPollingOrderNo)}`);
+                        if (!response.ok) return;
+
+                        const result = await response.json();
+                        if (isStorePaymentsTemporarilyClosed()) {
+                            stopOrderStatusPolling();
+                            setPaymentStatus('支付状态正在处理，请稍后再试。', true);
+                            return;
+                        }
+
+                        const hasPaidStatus = Boolean(result?.paid) || ['SUCCESS', 'TRADE_SUCCESS', 'PAID', '1'].includes(String(result?.status || '').trim().toUpperCase());
+
+                        if (hasPaidStatus) {
+                            if (maybeOpenCardSecretFromOrderResult(result)) {
+                                stopOrderStatusPolling();
+                                return;
+                            }
+                            setPaymentStatus('微信支付已确认，卡密正在生成，请稍候...');
+                        }
+                    } catch {
+                        // Keep polling for transient network failures.
+                    } finally {
+                        paymentStatusPollingBusy = false;
+                    }
+                };
+
+                paymentStatusPollTimer = setInterval(poll, 3000);
+                poll();
+            }
+
+            async function ensurePaymentConfigReady() {
+                if (paymentConfigReady !== null) {
+                    return paymentConfigReady && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled;
+                }
+
+                try {
+                    const [metaResponse, settingsResponse] = await Promise.all([
+                        fetch('/api/store/wechat/meta'),
+                        fetch('/api/store/settings')
+                    ]);
+                    const result = await metaResponse.json();
+                    const settingsResult = await settingsResponse.json();
+                    storeFeatureSettings = {
+                        maintenanceEnabled: Boolean(settingsResult?.maintenanceEnabled),
+                        paymentsEnabled: settingsResult?.paymentsEnabled !== false
+                    };
+                    activePaymentProvider = String(result?.provider || '').trim().toLowerCase();
+                    paymentConfigReady = Boolean(metaResponse.ok && result.ready && storeFeatureSettings.paymentsEnabled && !storeFeatureSettings.maintenanceEnabled);
+                    return paymentConfigReady;
+                } catch {
+                    activePaymentProvider = '';
+                    paymentConfigReady = false;
+                    return false;
+                }
+            }
+
+            function renderPaymentOrder(order) {
+                if (!order) {
+                    return;
+                }
+
+                currentPaymentOrder = order;
+
+                if (paymentOrderNo) {
+                    paymentOrderNo.textContent = order.orderNo || '未生成';
+                }
+
+                if (paymentCodeImage && order.qrDataUrl) {
+                    paymentCodeImage.onload = () => {
+                        if (paymentPlaceholder) {
+                            paymentPlaceholder.hidden = true;
+                        }
+                    };
+                    paymentCodeImage.onerror = () => {
+                        showPaymentPlaceholder('二维码加载失败', '请重新打开付款弹窗或稍后重试');
+                        setPaymentStatus('二维码加载失败，请重试。', true);
+                    };
+                    paymentCodeImage.src = order.qrDataUrl;
+                    paymentCodeImage.hidden = false;
+                }
+
+                setPaymentStatus(`微信订单已创建，订单号 ${order.orderNo}`);
+
+                if (order.orderNo) {
+                    startOrderStatusPolling(order.orderNo);
+                }
+            }
+
+            async function createPaymentOrder() {
+                if (currentPaymentOrder?.qrDataUrl) {
+                    return currentPaymentOrder;
+                }
+
+                if (isStorePaymentsTemporarilyClosed()) {
+                    throw new Error('支付通道已关闭，当前无法创建订单。');
+                }
+
+                const ready = await ensurePaymentConfigReady();
+                if (!ready) {
+                    throw new Error('微信支付配置不完整');
+                }
+
+                if (currentPaymentOrderRequest) {
+                    return currentPaymentOrderRequest;
+                }
+
+                if (!accountState.loggedIn) {
+                    openAuthModal('login', '请先登录后再继续支付，登录完成会自动回到确认页。');
+                    pendingPurchaseProduct = activePaymentProduct;
+                    setPaymentStatus('未登录，请先登录后再生成支付码。', true);
+                    return null;
+                }
+
+                const contactValue = String(paymentContactInput?.value || paymentCheckoutState.contact || '').trim();
+                const selectedMethod = String(paymentCheckoutState.method || 'wechat').toLowerCase();
+                const normalizedMethod = selectedMethod === 'alipay' ? 'alipay' : selectedMethod === 'wechat_backup' || selectedMethod === 'wechat-backup' ? 'wechat_backup' : 'wechat';
+                paymentCheckoutState.method = normalizedMethod;
+
+                if (!contactValue) {
+                    setPaymentStatus('请填写联系方式后再生成支付码。', true);
+                    paymentContactInput?.focus();
+                    return null;
+                }
+
+                paymentCheckoutState.contact = contactValue;
+                updatePaymentCheckoutView();
+
+                currentPaymentOrderRequest = (async () => {
+                    const providerLabel = activePaymentProvider === 'hongxing' ? '洪星' : '微信';
+                    const methodLabel = getPaymentMethodLabel(selectedMethod);
+                    setPaymentStatus(`正在创建${providerLabel}支付订单...`);
+                    showPaymentPlaceholder(`正在创建${providerLabel}支付订单`, '请稍候，订单创建成功后会自动显示付款信息');
+
+                    const result = await fetchJsonSafely('/api/store/wechat/native-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json; charset=utf-8',
+                            ...(accountState.token ? { Authorization: `Bearer ${accountState.token}` } : {})
+                        },
+                        body: JSON.stringify({
+                            productCode: activePaymentProduct.code,
+                            productName: activePaymentProduct.name,
+                            description: activePaymentProduct.description,
+                            paymentMethod: normalizedMethod,
+                            contact: contactValue
+                        })
+                    }, '支付下单失败');
+
+                    renderPaymentOrder(result);
+                    if (paymentMethodLabel) {
+                        const responseMethod = String(result?.paymentMethod || normalizedMethod || methodLabel).toLowerCase();
+                        paymentMethodLabel.textContent = responseMethod === 'alipay' ? '支付宝支付' : responseMethod === 'wechat_backup' || responseMethod === 'wechat-backup' ? '微信支付（备用）' : '微信支付';
+                    }
+
+                    if (String(result?.provider || '').trim().toLowerCase() === 'hongxing' && String(result?.orderNo || '').trim()) {
+                        try {
+                            localStorage.setItem(hongxingReturnOrderStorageKey, String(result.orderNo).trim());
+                        } catch {
+                            // ignore storage errors
+                        }
+                    }
+
+                    return result;
+                })();
+
+                try {
+                    return await currentPaymentOrderRequest;
+                } finally {
+                    currentPaymentOrderRequest = null;
+                }
+            }
+
+            async function openPaymentModal() {
+                if (!paymentModal) {
+                    return;
+                }
+
+                paymentModal.classList.add('open');
+                paymentModal.setAttribute('aria-hidden', 'false');
+
+                if (paymentStatus) {
+                    paymentStatus.textContent = '请选择支付方式并填写联系方式后生成订单。';
+                    paymentStatus.style.color = '';
+                }
+
+                if (paymentContactInput && !paymentContactInput.value) {
+                    paymentContactInput.focus();
+                }
+            }
+
+            function closePaymentModal() {
+                if (!paymentModal) {
+                    return;
+                }
+
+                paymentModal.classList.remove('open');
+                paymentModal.setAttribute('aria-hidden', 'true');
             }
 
             if (toggleButton) {
-              try {
-                const isActive = String(row.dataset.isActive || '0') === '1';
-                const nextActionText = isActive ? '下架' : '上架';
-                if (!confirmCriticalAction(`确认${nextActionText}商品 ${productCode} 吗？`)) {
-                  setAdminStatus('已取消商品状态切换。');
-                  return;
-                }
-                setAdminStatus('正在切换状态...');
-                const headers = { 'Content-Type': 'application/json; charset=utf-8' };
-                if (accountState.token) {
-                  headers['Authorization'] = `Bearer ${accountState.token}`;
-                }
-                const response = await fetch('/api/store/products/toggle', {
-                  method: 'POST',
-                  headers,
-                  body: JSON.stringify({
-                    productCode,
-                    isActive: !isActive
-                  })
+                toggleButton.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.dataset.theme === 'day' ? 'day' : 'night';
+                    const nextTheme = currentTheme === 'night' ? 'day' : 'night';
+                    applyTheme(nextTheme);
                 });
+            }
 
-                const result = await response.json();
-                if (!response.ok) {
-                  throw new Error(result.message || `切换失败 (${response.status})`);
+            if (authTriggerButton) {
+                authTriggerButton.addEventListener('click', () => {
+                    const target = new URL('/store-account.html', window.location.origin);
+                    if (!accountState.loggedIn) {
+                        target.searchParams.set('auth', 'register');
+                    }
+                    window.location.href = target.toString();
+                });
+            }
+
+            if (controlPanelButton) {
+                controlPanelButton.addEventListener('click', () => {
+                    openAdminModal();
+                });
+            }
+
+            featureButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    const action = button.dataset.featureAction;
+
+                    if (action === 'auth') {
+                        const target = new URL('/store-account.html', window.location.origin);
+                        if (!accountState.loggedIn) {
+                            target.searchParams.set('auth', 'register');
+                        }
+                        window.location.href = target.toString();
+                        return;
+                    }
+
+                    if (action === 'dev') {
+                        openAdminModal();
+                    }
+                });
+            });
+
+            if (closeAdminButton) {
+                closeAdminButton.addEventListener('click', closeAdminModal);
+            }
+
+            if (adminCreateSubmit) {
+                adminCreateSubmit.addEventListener('click', async () => {
+                    try {
+                        const code = String(adminCreateCode?.value || '').trim().toUpperCase();
+                        const name = String(adminCreateName?.value || '').trim();
+                        const originalStr = String(adminCreateOriginal?.value || '').trim();
+                        const saleStr = String(adminCreateSale?.value || '').trim();
+
+                        // 前端验证
+                        if (!code) {
+                            throw new Error('请填写商品编码');
+                        }
+                        if (!name) {
+                            throw new Error('请填写商品名称');
+                        }
+                        if (!originalStr) {
+                            throw new Error('请填写原价');
+                        }
+                        if (!saleStr) {
+                            throw new Error('请填写优惠价');
+                        }
+
+                        const originalPrice = Number(originalStr);
+                        const salePrice = Number(saleStr);
+
+                        if (!Number.isInteger(originalPrice) || originalPrice <= 0) {
+                            throw new Error('原价必须为大于 0 的整数（分）');
+                        }
+                        if (!Number.isInteger(salePrice) || salePrice <= 0) {
+                            throw new Error('优惠价必须为大于 0 的整数（分）');
+                        }
+                        if (salePrice > originalPrice) {
+                            throw new Error('优惠价不能高于原价');
+                        }
+
+                        const body = {
+                            productCode: code,
+                            name: name,
+                            description: String(adminCreateDescription?.value || '').trim(),
+                            originalPriceFen: originalPrice,
+                            salePriceFen: salePrice,
+                            sortOrder: Number(adminCreateSort?.value || 100),
+                            tags: String(adminCreateTags?.value || '')
+                        };
+
+                        if (!confirmCriticalAction(`确认新增商品「${name}」吗？`)) {
+                            setAdminStatus('已取消新增商品。');
+                            return;
+                        }
+
+                        setAdminStatus('正在提交...');
+                        const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+                        if (accountState.token) {
+                            headers['Authorization'] = `Bearer ${accountState.token}`;
+                        }
+                        const response = await fetch('/api/store/products', {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(body)
+                        });
+                        const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(result.message || `请求失败 (${response.status})`);
+                        }
+
+                        setAdminStatus('新增商品成功。');
+                        if (adminCreateCode) adminCreateCode.value = '';
+                        if (adminCreateName) adminCreateName.value = '';
+                        if (adminCreateDescription) adminCreateDescription.value = '';
+                        if (adminCreateOriginal) adminCreateOriginal.value = '';
+                        if (adminCreateSale) adminCreateSale.value = '';
+                        if (adminCreateSort) adminCreateSort.value = '';
+                        if (adminCreateTags) adminCreateTags.value = '';
+
+                        await loadAdminProducts();
+                        await loadStoreProducts();
+                    } catch (error) {
+                        console.error('Admin create error:', error);
+                        setAdminStatus(error.message || '新增失败', true);
+                    }
+                });
+            }
+
+            if (adminTable) {
+                adminTable.addEventListener('click', async (event) => {
+                    const saveButton = event.target.closest('[data-admin-save]');
+                    const toggleButton = event.target.closest('[data-admin-toggle]');
+                    const row = event.target.closest('[data-admin-product-row]');
+
+                    if (!row) {
+                        return;
+                    }
+
+                    const productCode = String(row.dataset.productCode || '').trim();
+                    const nameInput = row.querySelector('[data-admin-name]');
+                    const descInput = row.querySelector('[data-admin-description]');
+                    const originalInput = row.querySelector('[data-admin-original]');
+                    const saleInput = row.querySelector('[data-admin-sale]');
+                    const sortInput = row.querySelector('[data-admin-sort]');
+                    const tagsInput = row.querySelector('[data-admin-tags]');
+
+                    if (saveButton) {
+                        try {
+                            const name = String(nameInput?.value || '').trim();
+                            const originalStr = String(originalInput?.value || '').trim();
+                            const saleStr = String(saleInput?.value || '').trim();
+
+                            // 前端验证
+                            if (!name) {
+                                throw new Error('商品名称不能为空');
+                            }
+                            if (originalStr && !Number.isInteger(Number(originalStr))) {
+                                throw new Error('原价必须为整数（分）');
+                            }
+                            if (saleStr && !Number.isInteger(Number(saleStr))) {
+                                throw new Error('优惠价必须为整数（分）');
+                            }
+
+                            if (!confirmCriticalAction(`确认保存商品 ${productCode} 的修改吗？`)) {
+                                setAdminStatus('已取消商品保存。');
+                                return;
+                            }
+
+                            setAdminStatus('正在保存...');
+                            const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+                            if (accountState.token) {
+                                headers['Authorization'] = `Bearer ${accountState.token}`;
+                            }
+                            const response = await fetch('/api/store/products/update', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({
+                                    productCode,
+                                    name: name,
+                                    description: String(descInput?.value || '').trim(),
+                                    originalPriceFen: originalStr ? Number(originalStr) : undefined,
+                                    salePriceFen: saleStr ? Number(saleStr) : undefined,
+                                    sortOrder: Number(sortInput?.value || 100),
+                                    tags: String(tagsInput?.value || '')
+                                })
+                            });
+
+                            const result = await response.json();
+                            if (!response.ok) {
+                                throw new Error(result.message || `保存失败 (${response.status})`);
+                            }
+
+                            setAdminStatus(`商品 ${productCode} 已保存。`);
+                            await loadAdminProducts();
+                            await loadStoreProducts();
+                        } catch (error) {
+                            console.error('Admin save error:', error);
+                            setAdminStatus(error.message || '保存失败', true);
+                        }
+                        return;
+                    }
+
+                    if (toggleButton) {
+                        try {
+                            const isActive = String(row.dataset.isActive || '0') === '1';
+                            const nextActionText = isActive ? '下架' : '上架';
+                            if (!confirmCriticalAction(`确认${nextActionText}商品 ${productCode} 吗？`)) {
+                                setAdminStatus('已取消商品状态切换。');
+                                return;
+                            }
+                            setAdminStatus('正在切换状态...');
+                            const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+                            if (accountState.token) {
+                                headers['Authorization'] = `Bearer ${accountState.token}`;
+                            }
+                            const response = await fetch('/api/store/products/toggle', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({
+                                    productCode,
+                                    isActive: !isActive
+                                })
+                            });
+
+                            const result = await response.json();
+                            if (!response.ok) {
+                                throw new Error(result.message || `切换失败 (${response.status})`);
+                            }
+
+                            setAdminStatus(result.message || '状态已更新');
+                            await loadAdminProducts();
+                            await loadStoreProducts();
+                        } catch (error) {
+                            console.error('Admin toggle error:', error);
+                            setAdminStatus(error.message || '切换失败', true);
+                        }
+                    }
+                });
+            }
+
+            if (authLogoutButton) {
+                authLogoutButton.addEventListener('click', submitLogout);
+            }
+
+            authTabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    setAuthTab(tab.dataset.authTab || 'register');
+                });
+            });
+
+            closeAuthButtons.forEach((button) => {
+                button.addEventListener('click', closeAuthModal);
+            });
+
+            const registerButton = document.querySelector('[data-submit-register]');
+            if (registerButton) {
+                registerButton.addEventListener('click', registerDirectly);
+            }
+
+            if (passwordLoginButton) {
+                passwordLoginButton.addEventListener('click', submitPasswordLogin);
+            }
+
+            function openCheckoutFromButton(button) {
+                const checkoutUrl = buildCheckoutUrl({
+                    code: button.dataset.productCode,
+                    name: button.dataset.productName,
+                    price: button.dataset.productPrice,
+                    description: button.dataset.productDescription
+                });
+                window.location.href = checkoutUrl;
+            }
+
+            const cartStorageKey = 'mctools-store-cart';
+            const cartOpenButton = document.querySelector('[data-cart-open]');
+            const cartOverlay = document.querySelector('[data-cart-overlay]');
+            const cartBody = document.querySelector('[data-cart-body]');
+            const cartCount = document.querySelector('[data-cart-count]');
+            const cartTotal = document.querySelector('[data-cart-total]');
+            let cartToastTimer = null;
+
+            function loadCart() {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(cartStorageKey) || '[]');
+                    return (Array.isArray(parsed) ? parsed : [])
+                        .map((item) => ({ code: String(item?.code || '').trim(), quantity: Math.max(1, Math.min(99, Math.floor(Number(item?.quantity) || 1))) }))
+                        .filter((item) => item.code);
+                } catch {
+                    return [];
                 }
+            }
 
-                setAdminStatus(result.message || '状态已更新');
-                await loadAdminProducts();
-                await loadStoreProducts();
-              } catch (error) {
-                console.error('Admin toggle error:', error);
-                setAdminStatus(error.message || '切换失败', true);
+            function saveCart(items) {
+                localStorage.setItem(cartStorageKey, JSON.stringify(items));
+                renderCart();
+            }
+
+            function findCartProduct(code) {
+                const raw = storeProducts.find((item) => String(item?.productCode || '').trim() === code);
+                return raw ? normalizeProduct(raw) : null;
+            }
+
+            function showCartToast(text) {
+                document.querySelector('.cart-added')?.remove();
+                const toast = document.createElement('div');
+                toast.className = 'cart-added';
+                toast.textContent = text;
+                document.body.appendChild(toast);
+                clearTimeout(cartToastTimer);
+                cartToastTimer = setTimeout(() => toast.remove(), 1600);
+            }
+
+            function addToCart(code) {
+                const product = findCartProduct(code);
+                if (!product || product.stock <= 0) return;
+                const items = loadCart();
+                const existing = items.find((item) => item.code === code);
+                if (existing) {
+                    existing.quantity = Math.min(99, product.stock, existing.quantity + 1);
+                } else {
+                    items.push({ code, quantity: 1 });
+                }
+                saveCart(items);
+                showCartToast(`已加入购物车：${product.name}`);
+            }
+
+            function renderCart() {
+                if (!cartBody) return;
+                const items = loadCart();
+                let totalFen = 0;
+                let totalQuantity = 0;
+                cartBody.innerHTML = items.length === 0
+                    ? '<div class="cart-empty">购物车还是空的，去挑选商品吧。</div>'
+                    : items.map((item) => {
+                        const product = findCartProduct(item.code);
+                        if (!product) {
+                            return `<div class="cart-item"><div class="cart-item-top"><strong>${escapeHtml(item.code)}</strong></div><div class="cart-item-meta">商品已下架或暂时无法读取</div><div class="cart-item-row"><span></span><button class="cart-btn" type="button" data-cart-remove="${escapeHtml(item.code)}">移除</button></div></div>`;
+                        }
+                        totalFen += product.salePriceFen * item.quantity;
+                        totalQuantity += item.quantity;
+                        return `
+                <div class="cart-item">
+                  <div class="cart-item-top">
+                    <strong>${escapeHtml(product.name)}</strong>
+                    <span>¥${formatFenToYuan(product.salePriceFen * item.quantity)}</span>
+                  </div>
+                  <div class="cart-item-meta">单价 ¥${formatFenToYuan(product.salePriceFen)} · 库存 ${product.stock}</div>
+                  <div class="cart-item-row">
+                    <div class="cart-qty">
+                      <button type="button" data-cart-dec="${escapeHtml(item.code)}" aria-label="减少数量">−</button>
+                      <span>${item.quantity}</span>
+                      <button type="button" data-cart-inc="${escapeHtml(item.code)}" aria-label="增加数量">+</button>
+                    </div>
+                    <div>
+                      <button class="cart-btn" type="button" data-cart-remove="${escapeHtml(item.code)}">移除</button>
+                      <button class="cart-btn primary" type="button" data-cart-checkout="${escapeHtml(item.code)}">去结算</button>
+                    </div>
+                  </div>
+                </div>`;
+                    }).join('');
+                if (cartCount) cartCount.textContent = String(items.reduce((sum, item) => sum + item.quantity, 0));
+                if (cartTotal) cartTotal.textContent = `¥${formatFenToYuan(totalFen)}`;
+            }
+
+            function setCartOpen(open) {
+                cartOverlay?.classList.toggle('open', open);
+                if (open) renderCart();
+            }
+
+            cartOpenButton?.addEventListener('click', () => setCartOpen(true));
+            cartOverlay?.addEventListener('click', (event) => {
+                if (event.target === cartOverlay || event.target.closest('[data-cart-close]')) {
+                    setCartOpen(false);
+                    return;
+                }
+                const clear = event.target.closest('[data-cart-clear]');
+                const inc = event.target.closest('[data-cart-inc]');
+                const dec = event.target.closest('[data-cart-dec]');
+                const remove = event.target.closest('[data-cart-remove]');
+                const checkout = event.target.closest('[data-cart-checkout]');
+                if (clear) {
+                    saveCart([]);
+                    return;
+                }
+                const items = loadCart();
+                if (inc || dec) {
+                    const code = (inc || dec).dataset.cartInc || (inc || dec).dataset.cartDec;
+                    const entry = items.find((item) => item.code === code);
+                    const product = findCartProduct(code);
+                    if (!entry) return;
+                    const max = Math.max(1, Math.min(99, product ? product.stock : 99));
+                    entry.quantity = Math.max(1, Math.min(max, entry.quantity + (inc ? 1 : -1)));
+                    saveCart(items);
+                } else if (remove) {
+                    saveCart(items.filter((item) => item.code !== remove.dataset.cartRemove));
+                } else if (checkout) {
+                    const entry = items.find((item) => item.code === checkout.dataset.cartCheckout);
+                    const product = entry ? findCartProduct(entry.code) : null;
+                    if (!product) return;
+                    window.location.href = buildCheckoutUrl({
+                        code: product.productCode,
+                        name: product.name,
+                        price: (product.salePriceFen / 100).toFixed(2),
+                        description: product.description,
+                        quantity: entry.quantity
+                    });
+                }
+            });
+            renderCart();
+
+            if (productGrid) {
+                productGrid.addEventListener('click', (event) => {
+                    const addButton = event.target.closest('[data-add-cart]');
+                    if (addButton) {
+                        addToCart(addButton.dataset.addCart);
+                        return;
+                    }
+                    const detailButton = event.target.closest('[data-open-product-detail]');
+                    if (detailButton) {
+                        openProductDetail(detailButton.dataset.productCode);
+                        return;
+                    }
+                    const button = event.target.closest('[data-open-payment]');
+                    if (button) openCheckoutFromButton(button);
+                });
+            }
+
+            if (closeProductDetailButton) {
+          closeProductDetailButton.addEventListener('click', closeProductDetail);
+        }
+
+        if (detailBuyButton) {
+          detailBuyButton.addEventListener('click', () => {
+            if (!activeDetailProduct) return;
+            closeProductDetail();
+            openCheckoutFromButton({
+              dataset: {
+                productCode: activeDetailProduct.productCode,
+                productName: activeDetailProduct.name,
+                productPrice: (activeDetailProduct.salePriceFen / 100).toFixed(2),
+                productDescription: activeDetailProduct.description
               }
+            });
+          });
+        }
+
+        if (reviewForm) {
+          reviewForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!activeDetailProduct) return;
+            if (!accountState.loggedIn) {
+              openAuthModal('login', '请先登录后再提交商品评价。');
+              setReviewStatus('未登录，无法提交评价。', 'error');
+              return;
+            }
+            try {
+              setReviewStatus('正在提交评价...');
+              const response = await fetch('/api/store/reviews', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json; charset=utf-8',
+                  ...(accountState.token ? { Authorization: `Bearer ${accountState.token}` } : {})
+                },
+                body: JSON.stringify({
+                  productCode: activeDetailProduct.productCode,
+                  rating: Number(reviewRatingInput?.value || 5),
+                  content: String(reviewContentInput?.value || '').trim()
+                })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '评价提交失败');
+              if (reviewContentInput) reviewContentInput.value = '';
+              setReviewStatus(result.message || '评价已提交，等待审核。', 'pending');
+            } catch (error) {
+              setReviewStatus(error.message || '评价提交失败。', 'error');
             }
           });
         }
 
-        if (authLogoutButton) {
-          authLogoutButton.addEventListener('click', submitLogout);
-        }
-
-        authTabs.forEach((tab) => {
-          tab.addEventListener('click', () => {
-            setAuthTab(tab.dataset.authTab || 'register');
-          });
-        });
-
-        closeAuthButtons.forEach((button) => {
-          button.addEventListener('click', closeAuthModal);
-        });
-
-        const registerButton = document.querySelector('[data-submit-register]');
-        if (registerButton) {
-          registerButton.addEventListener('click', registerDirectly);
-        }
-
-        if (passwordLoginButton) {
-          passwordLoginButton.addEventListener('click', submitPasswordLogin);
-        }
-
-        function openCheckoutFromButton(button) {
-          const checkoutUrl = buildCheckoutUrl({
-            code: button.dataset.productCode,
-            name: button.dataset.productName,
-            price: button.dataset.productPrice,
-            description: button.dataset.productDescription
-          });
-          window.location.href = checkoutUrl;
-        }
-
-        if (productGrid) {
-          productGrid.addEventListener('click', (event) => {
-            const button = event.target.closest('[data-open-payment]');
-            if (button) openCheckoutFromButton(button);
+        if (questionForm) {
+          questionForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!activeDetailProduct) return;
+            if (!accountState.loggedIn) {
+              openAuthModal('login', '请先登录后再提交商品问题。');
+              setQuestionStatus('未登录，无法提交问题。', 'error');
+              return;
+            }
+            try {
+              setQuestionStatus('正在提交问题...');
+              const response = await fetch('/api/store/questions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json; charset=utf-8',
+                  ...(accountState.token ? { Authorization: `Bearer ${accountState.token}` } : {})
+                },
+                body: JSON.stringify({
+                  productCode: activeDetailProduct.productCode,
+                  question: String(questionContentInput?.value || '').trim()
+                })
+              });
+              const result = await response.json();
+              if (!response.ok) throw new Error(result.message || '问题提交失败');
+              if (questionContentInput) questionContentInput.value = '';
+              setQuestionStatus(result.message || '问题已提交，等待管理员回复。', 'pending');
+            } catch (error) {
+              setQuestionStatus(error.message || '问题提交失败。', 'error');
+            }
           });
         }
 
@@ -5429,8 +6858,33 @@
           });
         }
 
+        if (productDetailModal) {
+          productDetailModal.addEventListener('click', (event) => {
+            if (event.target === productDetailModal) closeProductDetail();
+          });
+        }
+
         if (closeAnnouncementButton) {
           closeAnnouncementButton.addEventListener('click', closeAnnouncementModal);
+        }
+
+        if (noticeOpenButton) {
+          noticeOpenButton.addEventListener('click', () => {
+            // 手动点公告按钮：不标记已读，只是打开查看
+            openAnnouncementModal({ markRead: false });
+          });
+        }
+
+        // 每天首次进入自动弹出一次公告（关闭后当天不再自动弹）
+        try {
+          syncNoticeFab();
+          if (!hasReadAnnouncementToday()) {
+            setTimeout(() => {
+              openAnnouncementModal({ markRead: true });
+            }, 600);
+          }
+        } catch {
+          // 忽略公告自动弹出异常，不影响页面其他功能
         }
 
         setAuthTab(authMode);
@@ -5454,6 +6908,248 @@
           await applyBackgroundImageFromApi();
           startOnlineHeartbeat();
           await resumeHongxingPaymentFromQuery();
+        });
+      })();
+    </script>
+
+    <script>
+      (function () {
+        const openButton = document.querySelector('[data-checkin-open]');
+        const modal = document.querySelector('[data-checkin-modal]');
+        const closeButton = document.querySelector('[data-checkin-close]');
+        const submitButton = document.querySelector('[data-checkin-submit]');
+        const statusNode = document.querySelector('[data-checkin-status]');
+        const pointsNode = document.querySelector('[data-checkin-points]');
+        const streakNode = document.querySelector('[data-checkin-streak]');
+        const totalNode = document.querySelector('[data-checkin-total]');
+        const rewardNode = document.querySelector('[data-checkin-reward]');
+        const entryNode = document.querySelector('[data-checkin-entry]');
+        const fabPointsNode = document.querySelector('[data-checkin-fab-points]');
+
+        function setStatus(text) {
+          if (statusNode) statusNode.textContent = text || '';
+        }
+
+        function authHeaders(extra) {
+          let token = '';
+          try {
+            token = localStorage.getItem('mctools-auth-token') || '';
+          } catch { }
+          return Object.assign({}, extra || {}, token ? { Authorization: 'Bearer ' + token } : {});
+        }
+
+        function render(data) {
+          if (!data) return;
+          if (pointsNode) pointsNode.textContent = String(data.points ?? 0);
+          if (streakNode) streakNode.textContent = `${data.streak || 0} 天`;
+          if (totalNode) totalNode.textContent = `${data.totalEarned || 0} 积分`;
+          if (rewardNode) rewardNode.textContent = `${data.basePoints || 10} 积分`;
+          if (entryNode) {
+            entryNode.textContent = data.checkedToday ? '今日已签到' : `${data.points || 0} 积分 · 去签到`;
+          }
+          if (fabPointsNode) {
+            fabPointsNode.textContent = `${data.points || 0} 分`;
+          }
+          if (submitButton) {
+            submitButton.disabled = Boolean(data.checkedToday);
+            submitButton.textContent = data.checkedToday ? '今天已签到' : '立即签到';
+          }
+        }
+
+        async function loadPoints() {
+          const response = await fetch('/api/store/points', { headers: authHeaders(), credentials: 'same-origin' });
+          const result = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            setStatus(result.message || '请先登录社区账号后再签到。');
+            if (submitButton) {
+              submitButton.disabled = true;
+              submitButton.textContent = '登录后签到';
+            }
+            render({ points: 0, streak: 0, totalEarned: 0, basePoints: 10 });
+            return;
+          }
+          setStatus(result.checkedToday ? '今天已经签到过了，明天再来。' : '');
+          render(result);
+        }
+
+        function openModal() {
+          if (!modal) return;
+          modal.classList.add('open');
+          modal.setAttribute('aria-hidden', 'false');
+          setStatus('');
+          loadPoints();
+        }
+
+        function closeModal() {
+          if (!modal) return;
+          modal.classList.remove('open');
+          modal.setAttribute('aria-hidden', 'true');
+        }
+
+        openButton?.addEventListener('click', openModal);
+        closeButton?.addEventListener('click', closeModal);
+        modal?.addEventListener('click', (event) => {
+          if (event.target === modal) closeModal();
+        });
+
+        submitButton?.addEventListener('click', async () => {
+          submitButton.disabled = true;
+          setStatus('签到中…');
+          try {
+            const response = await fetch('/api/store/points/checkin', {
+              method: 'POST',
+              headers: authHeaders({ 'Content-Type': 'application/json' }),
+              credentials: 'same-origin',
+              body: JSON.stringify({})
+            });
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) {
+              setStatus(result.message || '签到失败，请稍后再试。');
+              submitButton.disabled = false;
+              return;
+            }
+            setStatus(result.message || '签到成功。');
+            render(result);
+          } catch {
+            setStatus('网络异常，签到失败。');
+            submitButton.disabled = false;
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeModal();
+        });
+      })();
+    </script>
+
+    <script>
+      /* ============ 侧边收纳栏交互 ============
+       * 桌面端：鼠标靠近屏幕左右边缘自动展开，离开后自动收起；
+       * 移动端：点击小箭头展开/收起（因为没有 hover）。
+       */
+      (function () {
+        const docks = Array.from(document.querySelectorAll('[data-dock]'));
+        if (docks.length === 0) return;
+
+        const HOVER_EDGE_PX = 90;   // 鼠标进入左右该范围内即展开
+        const LEAVE_EDGE_PX = 150;  // 鼠标离开该范围后收起
+        let leaveTimer = null;
+
+        function setDockOpen(dock, open) {
+          if (!dock) return;
+          dock.classList.toggle('open', open);
+          const handle = dock.querySelector('[data-dock-handle]');
+          if (handle) {
+            handle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            // 箭头指向"可移动的方向"：收起时指向屏幕内侧，展开时指向外侧收起
+            const isLeft = dock.dataset.dock === 'left';
+            handle.textContent = open ? (isLeft ? '‹' : '›') : (isLeft ? '»' : '«');
+            handle.setAttribute('aria-label', open ? '收起菜单' : '展开菜单');
+          }
+          updateDockHeight(dock);
+        }
+
+        // 展开时让背景胶囊高度贴合实际内容，避免过高或出现空白
+        function updateDockHeight(dock) {
+          if (!dock) return;
+          const items = dock.querySelector('[data-dock-items]');
+          const handle = dock.querySelector('[data-dock-handle]');
+          if (!items || !handle) return;
+          if (!dock.classList.contains('open')) {
+            dock.style.removeProperty('--dock-open-height');
+            return;
+          }
+          const buttons = items.querySelectorAll('a, button');
+          const gap = 10;
+          const itemH = buttons.length ? buttons[0].getBoundingClientRect().height : 46;
+          const contentH = buttons.length * itemH + (buttons.length - 1) * gap;
+          const handleH = handle.getBoundingClientRect().height;
+          const padding = 20; // 上下内边距
+          dock.style.setProperty('--dock-open-height', `${contentH + handleH + gap + padding}px`);
+        }
+
+        function closeAllDocks() {
+          docks.forEach((dock) => setDockOpen(dock, false));
+        }
+
+        // 触屏/窄屏一律走"点击展开"模式
+        function isTouchLayout() {
+          return window.matchMedia('(hover: none), (pointer: coarse)').matches;
+        }
+
+        docks.forEach((dock) => {
+          const side = dock.dataset.dock;
+          const handle = dock.querySelector('[data-dock-handle]');
+
+          // 点击小箭头：移动端主交互，桌面端也可手动点开
+          if (handle) {
+            handle.addEventListener('click', (event) => {
+              event.stopPropagation();
+              const willOpen = !dock.classList.contains('open');
+              closeAllDocks();
+              setDockOpen(dock, willOpen);
+            });
+          }
+
+          // 鼠标移入收纳栏内部：保持展开
+          dock.addEventListener('mouseenter', () => {
+            if (leaveTimer) {
+              clearTimeout(leaveTimer);
+              leaveTimer = null;
+            }
+            if (!isTouchLayout()) {
+              setDockOpen(dock, true);
+            }
+          });
+
+          dock.addEventListener('mouseleave', () => {
+            if (isTouchLayout()) return;
+            if (leaveTimer) clearTimeout(leaveTimer);
+            leaveTimer = setTimeout(() => setDockOpen(dock, false), 260);
+          });
+
+          // 鼠标靠近屏幕边缘自动展开对应一侧
+          document.addEventListener('mousemove', (event) => {
+            if (isTouchLayout()) return;
+            const w = window.innerWidth;
+            if (event.clientX <= HOVER_EDGE_PX) {
+              if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+              docks.forEach((d) => setDockOpen(d, d.dataset.dock === 'left'));
+            } else if (event.clientX >= w - HOVER_EDGE_PX) {
+              if (leaveTimer) { clearTimeout(leaveTimer); leaveTimer = null; }
+              docks.forEach((d) => setDockOpen(d, d.dataset.dock === 'right'));
+            } else if (event.clientX > LEAVE_EDGE_PX && event.clientX < w - LEAVE_EDGE_PX) {
+              // 回到中间区域：延迟收起，避免划过时闪烁
+              if (leaveTimer) clearTimeout(leaveTimer);
+              leaveTimer = setTimeout(() => {
+                docks.forEach((d) => {
+                  const rect = d.getBoundingClientRect();
+                  const insideX = event.clientX >= rect.left - 40 && event.clientX <= rect.right + 40;
+                  if (!insideX) setDockOpen(d, false);
+                });
+              }, 320);
+            }
+          });
+
+          // 点击页面其他位置收起（移动端尤其需要）
+          document.addEventListener('click', (event) => {
+            if (!dock.contains(event.target)) {
+              setDockOpen(dock, false);
+            }
+          });
+
+          // 从侧边栏点按钮后自动收起，避免遮挡内容
+          dock.querySelectorAll('a, button').forEach((el) => {
+            el.addEventListener('click', () => {
+              if (el.hasAttribute('data-dock-handle')) return;
+              setTimeout(() => setDockOpen(dock, false), 120);
+            });
+          });
+        });
+
+        // Esc 收起全部
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') closeAllDocks();
         });
       })();
     </script>
